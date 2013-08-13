@@ -1,4 +1,5 @@
 HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry
+===================================================================
 Forked since v0.4 by ZeroQI
 
 Here are the changes since v0.4:
