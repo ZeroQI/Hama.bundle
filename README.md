@@ -43,8 +43,8 @@ ScudLee mapping files
                               Hentai titles are almost entirely missing...
                               Any recent movies/OVAs might be missing (he wrote the list a while back, and only did a minor update before posting it)...</TD> </TR>
  <TR> <TD><B>Help the XML get updated?</B></TD> <TD>http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010 <BR />
-                              if you do one or two shows, PM me (ScudLee), so as not to flood the thread with posts. 
+                              if you do one or two shows, PM (ScudLee), so as not to flood the thread with posts. 
                               if you do a whole batch, post it in the thread link indicated above. 
-                              If you're familiar with Git and GitHub, 1) you can also clone ScudLee repo, edit your copy of anime-list-master.xml directly. 
+                              If you're familiar with Git and GitHub, 1) you can also clone ScudLee repo [https://github.com/ScudLee/anime-lists], edit your copy of anime-list-master.xml directly. 
                               and then make a Pull Request (@vaneska does it this way). That simplifies things greatly for me, but is a bit technical</TD> </TR>
  </TABLE>
