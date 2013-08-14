@@ -1,6 +1,9 @@
-#############################################################################################
-# HTTP Anidb Metadata Agent (HAMA) # v0.4 for plex # By Atomicstrawberry # Forked by ZeroQI #
-#############################################################################################
+###############################################################################################
+# HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry alias Simon Christensen  #
+# Forked since v0.4 by ZeroQI 2013-08-13 -                                                    #
+###############################################################################################
+
+  # Requirements: Better ABsolute Scanner (BABS) http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/
 
   ### Functionality change
   #   . Local (anime-titles.xml) Title XML Title & Keyword parsing: search main title or any language in the language order.
@@ -49,12 +52,13 @@
 ##Prefs['
 ##Prefs['
 
-SERIE_LANGUAGE_PRIORITY   = [ 'x-jat', 'en']
-EPISODE_LANGUAGE_PRIORITY = [ 'en', 'x-jat']
-FILTER_CHARS              = "\\/:*?<>|~- "
-SPLIT_CHARS               = [';', ',', '.', '~', '-' ] #Space is implied
-HTTP.CacheTime            = CACHE_1HOUR * 26
-SECONDS_BETWEEN_REQUESTS  = 2
+SERIE_LANGUAGE_PRIORITY      = [ 'x-jat', 'en']
+EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
+FILTER_CHARS                 = "\\/:*?<>|~- "
+SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
+HTTP.CacheTime               = CACHE_1HOUR * 26
+SECONDS_BETWEEN_REQUESTS     = 2
+MINIMUM_WEIGHT               = 300
 
 ### AniDB and TVDB URL and path variable definition ####################################################################################################################
 TVDB_API_KEY                 = 'A27AD9BE0DA63333'                                              # TVDB API key register URL: http://thetvdb.com/?tab=apiregister
@@ -71,33 +75,6 @@ ANIDB_TVDB_MAPPING           = 'anime-list-full.xml'                            
 ANIDB_TVDB_MAPPING_URL       = 'https://raw.github.com/ScudLee/anime-lists/master/anime-list-full.xml'
 ANIDB_COLLECTION_MAPPING     = 'anime-movieset-list.xml'                                       # ScudLee AniDB movies collections XML mapping file
 ANIDB_COLLECTION_MAPPING_URL = 'https://github.com/ScudLee/anime-lists/raw/master/anime-movieset-list.xml'
-
-# ScudLee mapping files
-#######################
-#
-# Source:                      Git Dev repository: https://github.com/ScudLee/anime-lists
-#                              Dev Forum thread:   http://forum.xbmc.org/showthread.php?tid=142835 - XBMC Anidb.net MOD plugin
-#                               
-# anime-list-todo.xml        - This is a list of shows that don't yet have a mapping.
-#                              In a lot of cases they just need the tvdbid and defaulttvdbseason (and/or imdbid/tmdbid).
-#                              More complicated ones may need individual episode mappings (particularly for OVAs linked to TV series).
-#                              Some of the shows are deliberately left out because the episodes were a mess on thetvdb when I looked,
-#                              but they may have been fixed since then (the scraper should still manage to find artwork without a mapping).
-#
-# anime-list-unknown.xml     - This is a list of shows he couldn't find on thetvdb when he looked for them.
-#
-# anime-movieset-list.xml    - Still needs a lot of work. The format should be fairly obvious. 
-#                              "Official" collection titles for languages other than English need to be added...
-#                              Hentai titles are almost entirely missing...
-#                              Any recent movies/OVAs might be missing (he wrote the list a while back, and only did a minor update before posting it)... 
-#
-# Help the XML Updated?        http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010
-#                              if you do one or two shows, PM me (ScudLee), so as not to flood the thread with posts
-#                              if you do a whole batch, post it in the thread link indicated above
-#                              If you're familiar with Git and GitHub, 1) you can also clone ScudLee repo, edit your copy of anime-list-master.xml directly
-#                              and then make a Pull Request (@vaneska does it this way). That simplifies things greatly for me, but is a bit technical.
-#
-#                                    
 
 ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
 RESTRICTED_GENRE_NAMES    = [ '18 Restricted', 'Pornography' ]
@@ -136,45 +113,41 @@ GENRE_NAMES               = [
 ]
 
 ### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
-FILTER_SEARCH_WORDS = [                                                                                                          # Lowercase only
-    'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', # En particles
-    'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de',                                                            # Jp particles
-    'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses'                                                                          # Fr particles
+FILTER_SEARCH_WORDS = [                                                                                                                 # Lowercase only
+    'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', # En particles
+    'princess', 'theater',
+    'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime'                                                    # Jp particles
+    'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses'                                                                                 # Fr particles
 ]
 
 ### set up some stuff ###
 import os, os.path, re, time, datetime
 # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
-# Unused modules: urllib, types, hashlib , unicodedata, Stack, utils
+# Unused modules:            urllib, types, hashlib , unicodedata, Stack, utils
 
 NAME                = "HTTP Anidb Metadata Agent (HAMA) by Atomicstrawberry forked by ZeroQI"
 ART                 = 'art-default.jpg'
 ICON                = 'icon-default.png'
 DirectoryItem.thumb = R(ICON)
 MediaContainer.art  = R(ART)
-#MediaContainer.title1 = "HTTP Anidb Metadata Agent (HAMA) by Atomicstrawberry forked by ZeroQI"
 
 networkLock = Thread.Lock()
 def Start():
   Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started #################################################################################################')
 
-  # Initialize the plugin
-  #Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
-  #Plugin.AddViewGroup("List", viewMode = "List", mediaType = "items")
-
   # Setup the artwork associated with the plugin
-  #MediaContainer.viewGroup = "List"
   MediaContainer.art       = R(ART)
   MediaContainer.title1    = NAME
   DirectoryItem.thumb      = R(ICON)
 
-#def Validate Prefs()
+#def Validate Prefs():
+#  pass
 
 ### main metadata agent ################################################################################################################################################
 class HamaCommonAgent:
 
   ### Local XML AniDB lookup ###
-  def searchByName(self, results, lang, origTitle, year=""):
+  def searchByName(self, results, lang, origTitle, year):
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
@@ -251,57 +224,6 @@ class HamaCommonAgent:
     results.Sort('score', descending=True)
     Log.Debug("=== searchByName - End - =================================================================================================")
 	
-  ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
-  def xmlElementFromFile (self, filename, url):
-    if not ""=="": #if not up to date...
-      string = XML.ElementFromURL(ANIDB_ANIME_TITLES_URL, cacheTime=CACHE_1HOUR * 24 * 7);
-       # String = XML.ElementFromString( Archive.GzipDecompress( HTTP.Request(subUrl, headers={'Accept-Encoding':''}).content ) )
-    else:
-      Log('xmlElementFromFile (%s, %s) %s' % (filename, url, R(filename) ) )
-      string = Resource.Load(filename) #no option to write
-   
-    return XML.ElementFromString(string) 
-
-  ### Get the Levenshtein distance score in percent between two strings ################################################################################################
-  def getScore(self, a, b):
-    return int(100 - (100 * float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) ))   #To-Do: LongestCommonSubstring(first, second). use that?
-
-  ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
-  def cleanse_title(self, title):
-    return title.replace("'", "`").translate(None, FILTER_CHARS).lower()
-
-  ### Split a string per list of chars #################################################################################################################################
-  def splitByChars(self, string, separators=SPLIT_CHARS):
-    
-    for i in separators:
-      string.replace(" ", i)
-    #for i in range(len(string)):
-    #  if string[i] in separators:
-    #    string[i] = ' '
-    return string.split()
-
-  ### extract the series / movie title / Episode title #################################################################################################################################
-  def getMainTitle(self, titles, LANGUAGE_PRIORITY):
-    
-    langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+2)]                            # LANGUAGE_PRIORITY title order, original title, then choosen title
-    for title in titles:                                                                      # For each of the possible titles given
-      lang = title.get('{http://www.w3.org/XML/1998/namespace}lang')                          #   Get the language, 'xml:lang' attribute need hack to read properly
-      type = title.get('type')                                                                #   Get the type (main, official, syn, short)
-                                                                                              
-      if type == 'main' or type == None and langTitles[ len(LANGUAGE_PRIORITY) ] == "":       # If main title or default episode title empty
-          langTitles [ len(LANGUAGE_PRIORITY)        ] = title.text                           #   save main title or episode first result as original title
-      if type in ['official', 'main', None]  and lang in LANGUAGE_PRIORITY:                   # If title in the languages order (include main title)
-          langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text                           #   save it in the right language slot
-                                                                                              
-      for index in range( len(LANGUAGE_PRIORITY)+1 ):                                         # Loop all saved language and main titles in the priority order
-        if not langTitles [ index ] == '' :                                                   #   If the title for language was filled
-          langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]                        #     set as language title
-          break                                                                               #     Break the loop if found the title
-                                                                                               
-    if not type== None:
-      Log.Debug("getMainTitle (%d titles) Title: %s  Main title: %s" % (len(titles), langTitles[len(LANGUAGE_PRIORITY)], langTitles[len(LANGUAGE_PRIORITY)+1] ))
-    return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
-
   ### Parse the AniDB anime XML ########################################################################################################################################
   def parseAniDBXml(self, metadata, media, force, movie):
    
@@ -358,89 +280,49 @@ class HamaCommonAgent:
     Log.Debug('--- parseAniDBXml - Begin -------------------------------------------------------------------------------------------')
     Log("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
 
-    anime          = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id ).xpath('/anime')[0]   ### Pull down the XML for a given anime ID. Don't worry about caching, the HTTP system does that ###
+    anime          = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id ).xpath('/anime')[0]   # Put AniDB.net serie xml (cached if able) into 'anime'
     getElementText = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp)[0].text else ""     # helper for getting text from XML element
     movie          = (True if getElementText(anime, 'type')=='Movie' else False)              # Read movie type from XML
     
+    tvdbWarning = []
     tvdbid, defaulttvdbseason, mappingList, studio = self.anidbTvdbMapping(metadata)          # Search for the TVDB ID from the animeId + update studio
-    if tvdbid in ['movie', 'OAV', 'hentai', 'unknown', 'tv special', None]:                   # If a TV Serie so will have a tvdbid
-      tvdbid = None
-    
+    if not tvdbidtvdbid.isdigit():                                                            # If a TV Serie so will have a tvdbid
+      tvdbid = None                                                                           # Values: movie, OAV, hentai, unknown, tv special, ...
+      tvdbWarning.add("No TVDB id in mapping file. ")  
+
     ### Title ###
     try:
       metadata.title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
     except:
       raise ValueError                                                                        # No title found
-    if movie:
-      metadata.original_title = orig  #http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
+    if movie:                                                                                 # If it's a movie
+      metadata.original_title = orig                                                          #   Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
     Log.Debug("parseAniDBXml - Chosen title: '%s' original title: '%s'" % (metadata.title, metadata.original_title))
 
-    ### Summary ###
-    try:                                                                                      # Remove wiki-style links to staff, characters etc
-      description = "AniDB.net:   <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A><BR />\n" % (metadata.id, metadata.title) + \
-                    "TheTVDB.com: <A href='http://thetvdb.com/?tab=series&id=%s'>%s</A><BR />\n"                   % (tvdbid,      metadata.title) + \
-                    re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))
-      metadata.summary = description 
-    except Exception, e:
-      Log.Debug("Exception: " + str(e))
-      pass
-    
-    ### Start date ###
-    startdate                          = getElementText(anime, 'startdate')                                           # get start date if any
-    if startdate != "":
-      metadata.originally_available_at = Datetime.ParseDate(startdate).date()                                       # Update metadata.originally_available_at
-      if movie:
-        metadata.year = metadata.originally_available_at.year
-    
-    ### Ratings
-    rating = getElementText(anime, 'ratings/permanent')                       
-    if rating:
-      metadata.rating = float(rating)  
-      
-    
-    ### Category -> Genre mapping ###
-    temp              = ""
-    genres            = {}
-    restrictedContent = False
-    for category in anime.xpath('categories/category'):                         
-      weight = category.get('weight')
-      name   = getElementText(category, 'name')
-      if name in GENRE_NAMES:   #and not weigth<MINIMUM_WEIGHT
-        genres[name]      = int(weight)
-        temp             += name + " "
-      if name in RESTRICTED_GENRE_NAMES:
-        if not  metadata.content_rating == RESTRICTED_CONTENT_RATING:
-          metadata.content_rating = RESTRICTED_CONTENT_RATING
-          restrictedContent       = True
-        temp             += name + "(18+) "
-    sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)                  # sort genre list
-    if len(sortedGenres) > 6: #remove categories below minimum weight instead
-      del sortedGenres[6:]
-    
-    temp = ""
-    metadata.genres.clear()
-    for genre in sortedGenres:
-      metadata.genres.add(genre[0])
-      temp += "%s (%s) " % (genre[0], str(genre[1])) 
-    Log.Debug("parseAniDBXml - Categories - Genres (Weight): " + temp) 
-      
-    ### Posters AniDB.net ###
+    ### AniDB.net Posters ###
     if getElementText(anime, 'picture') != "":                                                # If anidb poster exist
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');                  #   Build banner RealUrl variable
       if not bannerRealUrl in metadata.posters:                                               #   If url not already there
-        metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request( bannerRealUrl ).content, sort_order=(1 if PreferAnidbPoster else 99))
+        metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl).content, sort_order=(1 if PreferAnidbPoster else 99))
     
     ### thetvdb.com - Posters + Studio + Episode summary [anime-list-full.xml] ###
-    if tvdbid:                                                                                # If a TV Serie so will have a tvdbid
-
+    tvdbSummary = {}
+    if tvdbid.isdigit():                                                                      # If a TV Serie so will have a tvdbid
+      
+      ### TheTVDB.com - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:                                   # TVDB doesn't index movies, nor 18+ anime
-        self.getImagesFromTVDB(metadata, media, tvdbid)                                       # getImagesFromTVDB(self, metadata, tvdbSeriesId):self.getImagesFromTVDB(metadata, media, tvdbid)                                           # getImagesFromTVDB(self, metadata, tvdbSeriesId):
-     
-      ### thetvdb.com - Build 'tvdbSummary' table ###
-      tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid) ).xpath('/Data')[0] ### Pull down the XML cached if possible for a given anime ID
-      tvdbSummary         = {}
-      tvdbSummaryAbsolute = {}
+        tvdbposternum = self.getImagesFromTVDB(metadata, media, tvdbid)                                       # getImagesFromTVDB(self, metadata, tvdbSeriesId):self.getImagesFromTVDB(metadata, media, tvdbid)                                           # getImagesFromTVDB(self, metadata, tvdbSeriesId):
+      else:
+        tvdbposternum = 0
 
+      if not tvdbposternum:                                                                   # If a TV Serie doesn't have english posters
+        tvdbWarning.add("No English poster present on TheTVDB.com")                           #   Add warning to TVDB warning table
+
+      ### TheTVDB.com - Load serie XML ###
+      tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid) ).xpath('/Data')[0] ### Pull down the XML cached if possible for a given anime ID
+      tvdbtitle = getElementText(tvdbanime, 'SeriesName')
+      
+      ### TheTVDB.com - Build 'tvdbSummary' table ###
       for episode in tvdbanime.xpath('Episode'):                         
         Overview        = getElementText(episode, 'Overview'       )    
         SeasonNumber    = getElementText(episode, 'SeasonNumber'   )   
@@ -450,17 +332,71 @@ class HamaCommonAgent:
         id              = getElementText(episode, 'id'             )
         seasonid        = getElementText(episode, 'seasonid'       )
         EpisodeName     = getElementText(episode, 'EpisodeName'    )
+        warning = ""
         if not SeasonNumber=="" and not EpisodeNumber=="":                                     # If something to treat
-          if Overview=="":
+          if Overview=="":                                                                     # If empty overview
             Log.Debug("parseAniDBXml - theTVDB.com Episode Summary missing - " + metadata.title + " s" + SeasonNumber + "e" + EpisodeNumber + " - " + TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid))
-          Overview = "TheTVDB.com: <A href='http://thetvdb.com/?tab=series&id=%s'                         >%s</A> > "          % (tvdbid, metadata.title                           ) + \
+            tvdbWarning.add("Episode Overview Empty. ")
+          temp=""
+          for warning in tvdbWarning:
+            temp += warning 
+          Overview = "TheTVDB.com: <A href='http://thetvdb.com/?tab=series&id=%s'                         >%s</A> > "          % (tvdbid, tvdbtitle                                ) + temp + \
                                   "<A href='http://thetvdb.com/?tab=season&seriesid=%s&seasonid=%s'       >Season %s</A> > "   % (tvdbid, seasonid, SeasonNumber                   ) + \
-                                  "<A href='http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'>s%se%s</A><BR />\n" % (tvdbid, seasonid, id, SeasonNumber, EpisodeNumber) + Overview
+                                  "<A href='http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'>s%se%s</A>\n" % (tvdbid, seasonid, id, SeasonNumber, EpisodeNumber) + warning + Overview
+          else:
+            Overview = "TheTVDB.com: "
+          
           if absolute_number=="a" and not absolute_number=="":                                 #   If absolute numbering and absolute episod number present
             tvdbSummary [ "s1e%s" + absolute_number                ] = Overview                #     In tvdbSummary Add at key s1ex the Overview (summary)
           else:                                                                                #   Otherwise (only season 1 have absolute nb)
             tvdbSummary [ "s%se%s" % (SeasonNumber, EpisodeNumber) ] = Overview                #     In tvdbSummary Add at key sxey the Overview (summary)
-      Log.Debug("parseAniDBXml - Episode Summaries - " + str(tvdbSummary.keys))
+      Log.Debug("parseAniDBXml - Episode Summaries - " + str(sort(tvdbSummary.keys())))
+          
+    ### Summary ###
+    try:                                                                                      
+      description = "AniDB.net:   <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A><BR />\n" % (metadata.id, metadata.title)
+      if tvdbidtvdbid.isdigit():                                                               # If a TV Serie have a tvdbid in the mapping file
+        description += "TheTVDB.com: <A href='http://thetvdb.com/?tab=series&id=%s'>%s</A><BR />\n"                   % (tvdbid,      metadata.title)
+      else:
+        description += "TheTVDB.com:  No tvdb id found in anime-list-full.xml. <A HREF='http://thetvdb.com/?tab=listseries&function=Search&string=%s'>Search title in TheTVDB.com ?</A>" % metadata.title
+      if not posternum:
+         temp = "No poster for anime serie"
+      description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')) # Remove wiki-style links to staff, characters etc
+      metadata.summary = description 
+    except Exception, e:
+      Log.Debug("Exception: " + str(e))
+      pass
+    
+    ### Start date ###
+    startdate  = getElementText(anime, 'startdate')                                           # get start date if any
+    if startdate != "":                                                                       # If not empty
+      metadata.originally_available_at = Datetime.ParseDate(startdate).date()                 #   Update metadata.originally_available_at
+      if movie:                                                                               #   If it's a movie
+        metadata.year = metadata.originally_available_at.year                                 #     Update year in metadata
+    
+    ### Ratings
+    rating = getElementText(anime, 'ratings/permanent')                                       # Get 'ratings/permanent' attribute form 'anime' XML
+    if rating:                                                                                # If not empty
+      metadata.rating = float(rating)                                                         #   Update rating in metadata
+      
+    
+    ### Category -> Genre mapping ###
+    genres            = {}
+    for category in anime.xpath('categories/category'):                                       # For each category in the serie
+      weight = category.get('weight')                                                         #   Get the weight attribute from the category
+      name   = getElementText(category, 'name')                                               #   Get the name   attribute from the category
+      if name in GENRE_NAMES and weigth >= MINIMUM_WEIGHT:                                    #   If genre name in whitelist
+        genres [ name ] = int(weight)                                                         #     Build genre table with name as key and weight as value
+      if name in RESTRICTED_GENRE_NAMES and \
+         not metadata.content_rating == RESTRICTED_CONTENT_RATING:                            #   If genre name in adult blacklist and content not flagged restricted
+        metadata.content_rating = RESTRICTED_CONTENT_RATING                                   #     Set content_rating in metadata
+    sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)                  # sort genre list
+    temp         = ""                                                                         #
+    metadata.genres.clear()                                                                   #
+    for genre in sortedGenres:                                                                #
+      metadata.genres.add(genre[0])                                                           #
+      temp += "%s (%s) " % (genre[0], str(genre[1]))                                          #
+    Log.Debug("parseAniDBXml - Categories - Genres (Weight): " + temp)                        #
         
     ### Collections ###
     #
@@ -477,17 +413,17 @@ class HamaCommonAgent:
     #
     metadata.collections.clear()
     if movie:
-      self.anidbCollectionMapping(metadata, metadata.id)                                     # Group movies into collections, using anime-movieset-list.xml
-    relatedSeriesRoot = {'205':'Tenchi Muyou!'}
-    if metadata.id in relatedSeriesRoot:
-      metadata.collections.add(relatedSeriesRoot[metadata.id])
-    for relatedAnime in anime.xpath('/anime/relatedanime/anime'):
-      relatedAnimeID    = relatedAnime.get('id')
-      relatedAnimeType  = relatedAnime.get('type')
-      relatedAnimeTitle = relatedAnime.text
-      if metadata.id in relatedSeriesRoot:
-        metadata.collections.add(relatedSeriesRoot[metadata.id])
-        break
+      self.anidbCollectionMapping(metadata, metadata.id)                                       # Group movies using anime-movieset-list.xml, XBMC support only collection for movies
+    relatedSeriesRoot = {'205':'Tenchi Muyou!'}                                                # Proof of concept
+    if metadata.id in relatedSeriesRoot:                                                       #
+      metadata.collections.add(relatedSeriesRoot[metadata.id])                                 # 
+    for relatedAnime in anime.xpath('/anime/relatedanime/anime'):                              #
+      relatedAnimeID    = relatedAnime.get('id')                                               # 
+      relatedAnimeType  = relatedAnime.get('type')                                             # 
+      relatedAnimeTitle = relatedAnime.text                                                    # 
+      if metadata.id in relatedSeriesRoot:                                                     # 
+        metadata.collections.add(relatedSeriesRoot[metadata.id])                               # 
+        break                                                                                  # 
     
     ### Studio ###
     # Studio pic - XBOX: .png file, white-on-clear, sized 161px x 109px, Save it in 'skin.aeon.nox"/media/flags/studios/'
@@ -544,6 +480,7 @@ class HamaCommonAgent:
     if not movie: ### TV Serie specific #################################################################################################################
       numEpisodes   = 0
       totalDuration = 0;
+      temp = "parseAniDBXml - Episode Summaries - AniDB->TVDB mapped: "
       for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
         #absolute_index 
         eid       = episode.get('id')
@@ -559,7 +496,7 @@ class HamaCommonAgent:
           continue
           
         episodeObj = metadata.seasons[season].episodes[epNumVal]                             # easier to manipulate, as it's going to be used a lot below
-
+        
         ### Writers, etc... ###
         episodeObj.writers.clear()                                                           #
         for writer in writers:                                                               #
@@ -597,27 +534,26 @@ class HamaCommonAgent:
           episodeObj.title = epNum.text                                                      #   use epNum.text as for specials it's still prefixed with S  
         
         ### TVDB mapping episode summary ###
-        temp = "parseAniDBXml - Episode Summaries - AniDB->TVDB mapped: "
-        if not movie and not restrictedContent:                                              # TVDB doesn't index movies, nor 18+ anime
-          anidb_ep = 's' + season + 'e' + epNumVal                                           # Set anidb_ep episode number
-          if not tvdbid in ['movie', 'OAV', 'hentai', 'unknown', 'tv special', None]:        # If tvdb id not invalid ( it is a TV Serie)
-            if anidb_ep in mappingList and mappingList[anidb_ep] in tvdbSummary :            #   If ep in mapping list and mapped ep in the summary list
-              tvdb_ep = mappingList [ anidb_ep ]                                             #     tvdb_ep correcponding episode is through the mapping list
-            elif defaulttvdbseason=="a" and anidb_ep in tvdbSummary:                         #   else if tvdb have absolute listing and ep in summary list
-              tvdb_ep = anidb_ep                                                             #     tvdb_ep in absolute numbering is the anidb id
-            elif "s"+defaulttvdbseason+"e"+epNumVal in tvdbSummary:                          #   else mapped season ep exist (implies: and not defaulttvdbseason=="a")
-              tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal                                   #     tvdb_ep used the mapped default season
-            if not tvdb_ep == None:                                                          #   if tvdb_ep variable defines
-              summary = ( tvdbSummary [ tvdb_ep ] if not tvdb_ep == None else "" )           #     update summary with tvdbSummary at 'tvdb_ep' key
-              summary = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "          % (metadata.id, metadata.title) + \
-                                   "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A><BR />\n" % (eid, season, epNumVal) + summary # update summary with tvdbSummary at 'tvdb_ep' key
-              episodeObj.summary = summary                                                     #     update summary with tvdbSummary at 'tvdb_ep' key
-              if not tvdb_ep == anidb_ep:                                                   # Because if there is no mapping to be done, no point seeing the logs
-                temp += "%s>%s, " % (anidb_ep, tvdb_ep)
-            else:
-              Log.Debug("parseAniDBXml - Episode Summaries - AniDB episod '"+anidb_ep+"' could not be mapped - defaulttvdbseason: " + defaulttvdbseason)
-          Log.Debug(temp)
-              
+        anidb_ep = 's' + season + 'e' + epNumVal                                           # Set anidb_ep episode number
+        summary = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "          % (metadata.id, metadata.title) + \
+                             "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A><BR />\n" % (eid, season, epNumVal) + summary # update summary with tvdbSummary at 'tvdb_ep' key
+        if tvdbid.isdigit():                                                                 # Matching TVDB id found 
+          if anidb_ep in mappingList and mappingList[anidb_ep] in tvdbSummary :            #   If ep in mapping list and mapped ep in the summary list
+            tvdb_ep = mappingList [ anidb_ep ]                                             #     tvdb_ep correcponding episode is through the mapping list
+          elif defaulttvdbseason=="a" and anidb_ep in tvdbSummary:                         #   else if tvdb have absolute listing and ep in summary list
+            tvdb_ep = anidb_ep                                                             #     tvdb_ep in absolute numbering is the anidb id
+          elif "s"+defaulttvdbseason+"e"+epNumVal in tvdbSummary:                          #   else mapped season ep exist (implies: and not defaulttvdbseason=="a")
+            tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal                                   #     tvdb_ep used the mapped default season
+          if tvdb_ep == None:                                                              #   if tvdb_ep variable defines
+            Log.Debug("parseAniDBXml - Episode Summaries - AniDB episod '"+anidb_ep+"' could not be mapped - defaulttvdbseason: " + defaulttvdbseason)
+          else:
+            summary = ( tvdbSummary [ tvdb_ep ] if not tvdb_ep == None else "" ) + summary #     update summary with tvdbSummary at 'tvdb_ep' key
+            if not tvdb_ep == anidb_ep:                                                    # Because if there is no mapping to be done, no point seeing the logs
+              temp += anidb_ep + ">" + tvdb_ep + ", "
+        else:                                                                                # No tvdbid found
+          summary = summary + "TheTVDB.com:  No tvdb id found in anime-list-full.xml. <A HREF='http://thetvdb.com/?tab=listseries&function=Search&string=%s'>Search title in TheTVDB.com ?</A>" % metadata.title
+        episodeObj.summary = summary  
+
         ### Duration ###
         duration = getElementText(episode, 'length')
         if duration != "":                                                                   # If duration present
@@ -625,6 +561,8 @@ class HamaCommonAgent:
           if season == 1:                                                                    #    If it is a serie then
             numEpisodes   += 1                                                               #    One more episode for the average to come
             totalDuration += episodeObj.duration                                             #    Adding episode duration
+          
+      Log.Debug(temp)
           
       ### Final post-episode titles cleanup ###
       if numEpisodes: #if movie getting scrapped as episode number by scanner...
@@ -683,7 +621,7 @@ class HamaCommonAgent:
     
     anidbid     = metadata.id
     mappingList = {}
-    tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)               # Load XML file
+    tree        = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)        # Load XML file
     for anime in tree.iterchildren('anime'):                                                 # For anime in matches.xpath('/anime-list/anime')
       if anidbid == anime.get("anidbid"):                                                    # If it is the right anime id
         tvdbid            = anime.get('tvdbid')                                              #   Get tvdb id
@@ -701,11 +639,7 @@ class HamaCommonAgent:
           if tvdbid =='unknown':                                                             #   If the xml mapping file possibly needs updating, log it
             Log("[anime-list-full.xml] Missing tvdbid for anidbid %s update on https://github.com/ScudLee/anime-lists/blob/master/anime-list-todo.xml" % metadata.id);
         else:                                                                                # Else if Anime id valid
-          #try:
-          #  before = anime.xpath("before")[0].text
-          #except:
-          #  before = ""
-          #  pass
+          #  Unused variable: before = anime.xpath("before")[0].text
           try:
             for season in anime.iterchildren('mapping-list'):                                # For each season mapping line in mapping list
               for string in season.text.split(';'):                                          #   Split the sting between semi-colon
@@ -722,7 +656,7 @@ class HamaCommonAgent:
           metadata.studio = studio  
         return tvdbid, defaulttvdbseason, mappingList, studio
 
-    Log.Debug('anidbTvdbMapping('+animeId+') found no corresponding tvdbId')
+    Log.Debug('anidbTvdbMapping('+anidbid+') found no corresponding tvdbId')
     return "", "",[], ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
@@ -763,40 +697,42 @@ class HamaCommonAgent:
     GetTvdbPosters    = Prefs['GetTvdbPosters'   ];
     GetTvdbFanart     = Prefs['GetTvdbFanart'    ];
     GetTvdbBanners    = Prefs['GetTvdbBanners'   ];
+    
     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbSeriesId), cacheTime=(CACHE_1HOUR * 720)) # don't bother with the full zip, all we need is the banners 
     Log('getImagesFromTVDB([METADATA],%s) GetTvdbPosters: %s, GetTvdbFanart: %s, GetTvdbBanners: %s, PreferAnidbPoster: %s' %(tvdbSeriesId, GetTvdbPosters, GetTvdbFanart, GetTvdbBanners, PreferAnidbPoster))
-    num = 0
+    num       = 0
+    posternum = 0
     for banner in bannersXml.xpath('Banner'):                                                 # For each picture reference in the banner file
       num += 1                                                                                # Increase their count
       if banner.xpath('Language')[0].text != 'en':                                            # Skipping non-english images as AniDB/theTVDB english mainly as is this metadata agent
         continue
+      if bannerType == 'poster':
+        posternum += 1
 
-      bannerType     = banner.xpath('BannerType'   )[0].text                                  #
-      bannerType2    = banner.xpath('BannerType2'  )[0].text                                  #
-      bannerPath     = banner.xpath('BannerPath'   )[0].text                                  #
-      season         = banner.xpath('season'       )                                          # Season if it is a season poster
-      if 0 in season:
-        season = season[0].text
-      else:
-        season = ""  
-      proxyFunc      = (Proxy.Preview if bannerType=='fanart' else Proxy.Media)               # Manage preview for if pic is a fanart
+      bannerType     = banner.xpath('BannerType' )[0].text                                    #
+      bannerType2    = banner.xpath('BannerType2')[0].text                                    #
+      bannerPath     = banner.xpath('BannerPath' )[0].text                                    #
+      rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "") #
+      season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "") # Season if it is a season poster
+      proxyFunc      = Proxy.Preview if bannerType=='fanart' else Proxy.Media)                # Manage preview for if pic is a fanart
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
       bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
       metaType       = (metadata.art                     if bannerType=='fanart' else \
                         metadata.posters                 if bannerType=='poster' else \
-                        metadata.banners                 if bannerType=='series' else \
-                        metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season' else None)
+                        metadata.banners                 if bannerType=='series' or  bannerType2=='seasonwide' else \
+                        metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season'     else None)
                           
       if GetTvdbFanart  and   bannerType == 'fanart' or \
-         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' ) or \
-         GetTvdbBanners and ( bannerType == 'series' ): 
+         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season'    ) or \
+         GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not bannerRealUrl in [metadata.art, metadata.posters, metadata.banners, metadata.seasons[season].posters]: 
           try:
-            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num + 1 if PreferAnidbPoster and GetTvdbPosters else num))
+            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num+1 if PreferAnidbPoster else num))  #why 
           except:
             Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
             pass
-         
+    return posternum
+
   ### AniDB collection mapping #######################################################################################################################
   def anidbCollectionMapping(self, metadata, animeId ):
   
@@ -821,6 +757,57 @@ class HamaCommonAgent:
     metadata.collections.clear()
     metadata.collections.add(collection)
     Log.Debug('anidbCollectionMapping - animeId.zfill(5) is part of collection: %s' % (animeId, collection) )
+
+  ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
+  def xmlElementFromFile (self, filename, url):
+    if not ""=="": #if not up to date...
+      string = XML.ElementFromURL(ANIDB_ANIME_TITLES_URL, cacheTime=CACHE_1HOUR * 24 * 7);
+       # String = XML.ElementFromString( Archive.GzipDecompress( HTTP.Request(subUrl, headers={'Accept-Encoding':''}).content ) )
+    else:
+      Log('xmlElementFromFile (%s, %s) %s' % (filename, url, R(filename) ) )
+      string = Resource.Load(filename) #no option to write
+   
+    return XML.ElementFromString(string) 
+
+  ### Get the Levenshtein distance score in percent between two strings ################################################################################################
+  def getScore(self, a, b):
+    return int(100 - (100 * float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) ))   #To-Do: LongestCommonSubstring(first, second). use that?
+
+  ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
+  def cleanse_title(self, title):
+    return title.replace("'", "`").translate(None, FILTER_CHARS).lower()
+
+  ### Split a string per list of chars #################################################################################################################################
+  def splitByChars(self, string, separators=SPLIT_CHARS):
+    
+    for i in separators:
+      string.replace(" ", i)
+    #for i in range(len(string)):
+    #  if string[i] in separators:
+    #    string[i] = ' '
+    return string.split()
+
+  ### extract the series / movie title / Episode title #################################################################################################################################
+  def getMainTitle(self, titles, LANGUAGE_PRIORITY):
+    
+    langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+2)]                            # LANGUAGE_PRIORITY title order, original title, then choosen title
+    for title in titles:                                                                      # For each of the possible titles given
+      lang = title.get('{http://www.w3.org/XML/1998/namespace}lang')                          #   Get the language, 'xml:lang' attribute need hack to read properly
+      type = title.get('type')                                                                #   Get the type (main, official, syn, short)
+                                                                                              
+      if type == 'main' or type == None and langTitles[ len(LANGUAGE_PRIORITY) ] == "":       # If main title or default episode title empty
+          langTitles [ len(LANGUAGE_PRIORITY)        ] = title.text                           #   save main title or episode first result as original title
+      if type in ['official', 'main', None]  and lang in LANGUAGE_PRIORITY:                   # If title in the languages order (include main title)
+          langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text                           #   save it in the right language slot
+                                                                                              
+      for index in range( len(LANGUAGE_PRIORITY)+1 ):                                         # Loop all saved language and main titles in the priority order
+        if not langTitles [ index ] == '' :                                                   #   If the title for language was filled
+          langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]                        #     set as language title
+          break                                                                               #     Break the loop if found the title
+                                                                                               
+    if not type== None:
+      Log.Debug("getMainTitle (%d titles) Title: %s  Main title: %s" % (len(titles), langTitles[len(LANGUAGE_PRIORITY)], langTitles[len(LANGUAGE_PRIORITY)+1] ))
+    return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
 
 ### TV Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
