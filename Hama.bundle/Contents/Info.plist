@@ -5,10 +5,16 @@
         <key>CFBundleIdentifier</key>
         <string>com.plexapp.agents.hama</string>
         <key>PlexAgentAttributionText</key>
-        <string>HTTP-based Metadata Agent for anime lookup from &lt;a href=&quot;http://anidb.net/&quot;&gt;AniDB.net&lt;/a&gt;:
-		&lt;blockquote&gt;&lt;i&gt;&quot;AniDB is non-profit database of anime information that is freely open to the public. As well as providing general anime information, if you sign up you can organise your anime collection, keep track of what you've seen and how much you liked it, and all kinds of nifty extras.&quot;&lt;/i&gt;&lt;/blockquote&gt;
+        <string>HTTP AniDB Metadata Agent (HAMA) for absolute numbering anime lookup from :
+        
+		Uses most metadata and cover from AniDB:
+		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://anidb.net/&quot;&gt;AniDB.net&lt;/a&gt; is non-profit database of anime information that is freely open to the public. As well as providing general anime information, if you sign up you can organise your anime collection, keep track of what you've seen and how much you liked it, and all kinds of nifty extras.&quot;&lt;/i&gt;&lt;/blockquote&gt;
 
-		Uses content from TheTVDB:
+		Uses Fanart, covers, banners and episode summary from TheTVDB:
+		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://thetvdb.com&quot;&gt;TheTVDB.com&lt;/a&gt; is a community driven database of television shows. &lt;br/&gt;
+		It is our aim to be the most complete and accurate source of&lt;br/&gt; information on TV series from many languages and countries.&quot;&lt;/i&gt;&lt;/blockquote&gt;
+
+		Uses XML files from :
 		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://thetvdb.com&quot;&gt;TheTVDB.com&lt;/a&gt; is a community driven database of television shows. &lt;br/&gt;
 		It is our aim to be the most complete and accurate source of&lt;br/&gt; information on TV series from many languages and countries.&quot;&lt;/i&gt;&lt;/blockquote&gt;
         </string>
