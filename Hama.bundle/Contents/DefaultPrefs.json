@@ -26,5 +26,18 @@
         "type": "bool",
         "default": "true",
     },
+   {
+      "id":      "Language1",
+      "label":   "First Language preference for the title",
+      "type":    "enum",
+      "values":  ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
+      "default": "x-jat",
+   },
+   {
+      "id":      "Language2",
+      "label":   "Second Language preference for the title",
+      "type":    "enum",
+      "values":  ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
+      "default": "en",
+   },
 ]
-
