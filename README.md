@@ -26,3 +26,25 @@ Improvements
    <LI> imported movie bolean from AniDB.net xml
    <LI> Commented some file formats in the source for clarity when reading
 </UL>
+
+ScudLee mapping files
+=====================
+ <TABLE>
+ <TR> <TD> <B>Source</B></TD> <TD>Git Dev repository: https://github.com/ScudLee/anime-lists <BR />
+                             Dev Forum thread:   http://forum.xbmc.org/showthread.php?tid=142835 - XBMC Anidb.net MOD plugin</TD> </TR>
+ <TR> <TD><B>anime-list-todo.xml</B></TD> <TD>This is a list of shows that don't yet have a mapping.
+                              In a lot of cases they just need the tvdbid and defaulttvdbseason (and/or imdbid/tmdbid). 
+                              More complicated ones may need individual episode mappings (particularly for OVAs linked to TV series).
+                              Some of the shows are deliberately left out because the episodes were a mess on thetvdb when I looked,
+                              but they may have been fixed since then (the scraper should still manage to find artwork without a mapping).</TD> </TR>
+ <TR> <TD> <B>anime-list-unknown.xml</B></TD> <TD>This is a list of shows he couldn't find on thetvdb when he looked for them.</TD> </TR>
+ <TR> <TD><B>anime-movieset-list.xml</B></TD> <TD>Still needs a lot of work. The format should be fairly obvious. 
+                              "Official" collection titles for languages other than English need to be added...
+                              Hentai titles are almost entirely missing...
+                              Any recent movies/OVAs might be missing (he wrote the list a while back, and only did a minor update before posting it)...</TD> </TR>
+ <TR> <TD><B>Help the XML get updated?</B></TD> <TD>http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010 <BR />
+                              if you do one or two shows, PM me (ScudLee), so as not to flood the thread with posts. 
+                              if you do a whole batch, post it in the thread link indicated above. 
+                              If you're familiar with Git and GitHub, 1) you can also clone ScudLee repo, edit your copy of anime-list-master.xml directly. 
+                              and then make a Pull Request (@vaneska does it this way). That simplifies things greatly for me, but is a bit technical</TD> </TR>
+ </TABLE>
