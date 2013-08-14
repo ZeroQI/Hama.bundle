@@ -1,6 +1,9 @@
 HTTP Anidb Metadata Agent (HAMA)
 ================================
 Created By Atomicstrawberry and maintained until v0.4 <br />
+<UL>
+ <LI>http://forums.plexapp.com/index.php/topic/66918-release-http-anidb-metadata-agent-hama/</LI>
+</UL>
 Forked from v0.4 and maintained since by ZeroQI <br />
  <br />
 Here are the changes since v0.4:<BR />
