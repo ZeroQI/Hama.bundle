@@ -51,3 +51,6 @@ ScudLee mapping files
                               If you're familiar with Git and GitHub, 1) you can also clone ScudLee repo [https://github.com/ScudLee/anime-lists], edit your copy of anime-list-master.xml directly. 
                               and then make a Pull Request (@vaneska does it this way). That simplifies things greatly for me, but is a bit technical</TD> </TR>
  </TABLE>
+
+I recommend an absolut mode scanner to match the AniDB episod numbering (no season, unlike TVDB) <BR />
+Better ABsolute Scanner (BABS): http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/
