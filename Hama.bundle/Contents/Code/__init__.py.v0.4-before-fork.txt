@@ -1,0 +1,721 @@
+import re, time, unicodedata, urllib, hashlib, types, datetime
+
+# Define some URLs we need for doing lookups etc
+ANIDB_DOMAIN = 'anidb.net'
+ANIDB_HTTP_API_PORT = '9001'
+ANIDB_HTTP_API_BASE_URL = 'http://api.%s:%s' % (ANIDB_DOMAIN, ANIDB_HTTP_API_PORT)
+
+ANIDB_HTTP_CLIENT_NAME = 'hama'
+ANIDB_HTTP_CLIENT_VER = '1'
+
+ANIDB_HTTP_API_URL = '%s/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=' % ANIDB_HTTP_API_BASE_URL
+
+# use the pinkubentobox mirror of the Eloyard's anisearch code for AniDB AnimeID lookups by name 
+ANIDB_SEARCH_URL = 'http://anidbsearch.pinkubentobox.com/index.php?task=search&query='
+
+# change this if the location of anidb's poster pics changes
+ANIDB_PIC_BASE_URL = 'http://img7.anidb.net/pics/anime/'
+
+LANG_PRIORITY = [ 'en', 'x-jat' ]
+
+# List of AniDB categories that are useful as genres
+# No specific rhyme or reason to which of these we use really, just 'I know it if I see it'
+GENRE_NAMES = [
+    # Audience categories - all useful though I suspect some not used often
+    'Josei', 'Kodomo', 'Mina', 'Seinen', 'Shoujo', 'Shounen', 
+    # Elements - many useful
+    'Action', 'Martial Arts', 'Swordplay', 'Adventure', 'Angst', 'Anthropomorphism',
+    'Comedy', 'Parody', 'Slapstick', 'Super Deformed', 'Detective', 'Ecchi', 
+    'Fantasy', 'Contemporary Fantasy', 'Dark Fantasy', 'Ghost', 'High Fantasy', 'Magic', 
+    'Vampire', 'Zombie', 'Harem', 'Reverse Harem', 'Henshin', 'Horror', 'Incest',
+    'Mahou Shoujo', 'Pornography', 'Yaoi', 'Yuri', 'Romance', 'Love Polygon', 'Shoujo Ai',
+    'Shounen Ai', 'Sci-Fi', 'Alien', 'Mecha', 'Space Travel', 'Time Travel', 'Thriller',
+    'Western',
+    # Fetishes - not many useful as genres really. Leaving out most of the porn genres. 
+    'Futanari', 'Lolicon', 'Shotacon', 'Tentacle', 'Trap', 'Reverse Trap',
+    # Original Work - mainly useful
+    'Game', 'Action Game', 'Dating Sim - Visual Novel', 'Erotic Game', 'RPG', 'Manga', 
+    '4-koma', 'Movie', 'Novel',
+    # Setting - most of the places aren't genres, some Time stuff is useful
+    'Fantasy World', 'Parallel Universe', 'Virtual Reality', 'Hell', 'Space', 'Mars', 
+    'Space Colony', 'Shipboard', 'Future', 'Past', 'Alternative Universe', 'Historical', 
+    '1920s', 'Bakumatsu - Meiji Period', 'Edo Period', 'Heian Period', 'Sengoku Period', 
+    'Victorian Period', 'World War I', 'World War II', 'Present', 'Alternative Present',
+    # Themes - many useful
+    'Anti-War', 'Art', 'Music', 'Band', 'Idol', 'Photography', 'Christmas', 'Coming of Age',
+    'Conspiracy', 'Cooking', 'Cosplay', 'Cyberpunk', 'Daily Life', 'Earthquake', 'Post-War',
+    'Post-apocalypse', 'War', 'Dystopia', 'Friendship', 'Law and Order', 'Cops', 'Special Squads',
+    'Military', 'Airforce', 'Feudal Warfare', 'Navy', 'Politics', 'Proxy Battles', 'Racism', 
+    'Religion', 'School Life', 'All-boys School', 'All-girls School', 'Art School', 'Clubs', 
+    'College', 'Delinquents', 'Elementary School', 'High School', 'School Dormitory',
+    'Student Council', 'Transfer Student', 'Sports', 'Acrobatics', 'Archery', 'Badminton', 
+    'Baseball', 'Basketball', 'Board Games', 'Chess', 'Go', 'Mahjong', 'Shougi', 'Combat', 
+    'Boxing', 'Judo', 'Kendo', 'Muay Thai', 'Wrestling', 'Cycling', 'Dodgeball', 'Fishing', 
+    'Football', 'Golf', 'Gymnastics', 'Horse Riding', 'Ice Skating', 'Inline Skating', 
+    'Motorsport', 'Formula Racing', 'Street Racing', 'Rugby', 'Swimming', 'Tennis', 
+    'Track and Field', 'Volleyball', 'Steampunk', 'Summer Festival', 'Tragedy', 'Underworld',
+    'Assassin', 'Bounty Hunter', 'Mafia', 'Yakuza', 'Pirate', 'Terrorist', 'Thief'
+]
+
+# List of AniDB category names which we can use to mark the content as 18+
+RESTRICTED_GENRE_NAMES = [
+    '18 Restricted', 'Pornography'
+]
+
+# This will actually cause a flag to appear in Plex
+RESTRICTED_CONTENT_RATING = "NC-17"
+
+# These are words which cause extra noise due to being uninteresting for doing searches on
+FILTER_SEARCH_WORDS = [
+    # english particles
+    'a', 'of', 'an' 'the', 
+    
+    # JP particles
+    'to', 'wa', 'ga'
+]
+
+# Stuff for TVDB lookups
+TVDB_API_KEY    = 'A27AD9BE0DA63333'
+TVDB_SEARCH_URL = 'http://thetvdb.com/api/GetSeries.php?seriesname=%s&language=en'
+TVDB_BANNERS_URL = 'http://thetvdb.com/api/%s/series/%%s/banners.xml' % TVDB_API_KEY
+TVDB_IMAGES_URL = 'http://thetvdb.com/banners/%s'
+
+# Roadmap:
+# TODO: Implement local anidb title lookup by parsing out the names XML?
+# TODO: UDP lookup on file hash for perfect matching?
+
+SECONDS_BETWEEN_REQUESTS = 2
+
+networkLock = Thread.Lock()
+
+# set up some stuff
+def Start():
+  HTTP.CacheTime = CACHE_1HOUR * 24; # avoid re-requesting files we don't need to (flood protection) FIXME: is this too aggressive?
+  
+
+# get a result from anidb - according to their documentation, requests closer than 2 secs apart will get you banned. :(
+lastRequestTime = datetime.datetime.utcfromtimestamp(0);
+def getResultFromAnidb(url):
+  global lastRequestTime
+
+  try:
+    networkLock.acquire()
+
+    tries = 2
+    while tries:
+      delta = datetime.datetime.utcnow() - lastRequestTime;
+      if delta.seconds < SECONDS_BETWEEN_REQUESTS:
+        time.sleep(SECONDS_BETWEEN_REQUESTS - delta.seconds)
+
+      result = None
+      try:
+        lastRequestTime = datetime.datetime.utcnow()
+        result = HTTP.Request(url, timeout=60)
+      
+      except Exception, e:
+        if e.code == 404:
+          Log("Url not found.")
+          return None;
+
+      if result != None:
+        return result;
+
+      tries -= 1
+  finally:
+    networkLock.release()
+
+  return None;
+        
+# main metadata agent
+class HamaCommonAgent:
+  # Process TVDB matches
+  def processTVDBMatch(self, matches, searchTitle):
+    for match in matches:
+      seriesId = match.xpath('seriesid')[0].text
+      mainName = match.xpath('SeriesName')[0].text
+      try:
+        altNames = match.xpath('AliasNames')[0].text if match.xpath('AliasNames')[0].text else ""
+      except:
+        altNames = ""
+        pass
+      
+      Log('Series %s, main name: %s alt: %s' % (seriesId, mainName, altNames))
+      
+      if searchTitle.lower() == mainName.lower() or searchTitle.lower() in altNames.lower().split('|'):
+        Log('Matched series, id %s' % seriesId)
+        return seriesId
+    
+    # no match
+    return None
+
+  # Attempt to look up TVDB for image data
+  def searchInTVDB(self, metadata):
+    searchTitle = metadata.title
+    if searchTitle == "":
+      Log("Can't search TVDB - no title set.")
+      return None
+
+    Log('Searching TVDB for %s' % searchTitle)
+    tvdbMatches = XML.ElementFromURL(TVDB_SEARCH_URL % (String.Quote(searchTitle, usePlus=True)), cacheTime=CACHE_1HOUR)
+    seriesId = self.processTVDBMatch(tvdbMatches.xpath('/Data/Series'), searchTitle)
+    if seriesId != None:
+      return seriesId
+
+    # try stripping punctuation - quite common for series to use marks like ` or ' or . to mark second season, could mismatch
+    searchTitle = re.sub(r'[()\.~+_\-!,:&`]', '', searchTitle)
+    tvdbMatches = XML.ElementFromURL(TVDB_SEARCH_URL % (String.Quote(searchTitle, usePlus=True)), cacheTime=CACHE_1HOUR)
+    seriesId = self.processTVDBMatch(tvdbMatches.xpath('/Data/Series'), searchTitle)
+    if seriesId != None:
+      return seriesId
+
+    # no match :(
+    return None
+
+  # Attempt to get the TVDB's image data
+  def getImagesFromTVDB(self, metadata, tvdbSeriesId):
+    if tvdbSeriesId is None:
+      Log("No TVDB series id")
+      return
+
+    # check prefs
+    getPosters = Prefs['GetTvdbPosters'];
+    getFanart = Prefs['GetTvdbFanart'];
+    getBanners = Prefs['GetTvdbBanners'];
+    preferAnidbPoster = Prefs['PreferAnidbPoster'];
+   
+    # don't bother with the full zip, all we need is the banners 
+    bannersXml = XML.ElementFromURL(TVDB_BANNERS_URL % tvdbSeriesId, cacheTime=(CACHE_1HOUR * 24))
+    num = 0
+    for banner in bannersXml.xpath('Banner'):
+      num += 1
+      bannerType = banner.xpath('BannerType')[0].text
+      bannerPath = banner.xpath('BannerPath')[0].text
+      bannerLang = banner.xpath('Language')[0].text
+      try:
+        bannerType2 = banner.xpath('BannerType2')[0].text
+      except:
+        bannerType2 = None
+
+      # thumbnail version is optional for some banners, we always want to use preview if we can!
+      proxyFunc = Proxy.Preview
+      try:
+        bannerThumb = banner.xpath('ThumbnailPath')[0].text
+      except:
+        # no thumbnail set so fall back to downloading the full image
+        Log('Error getting thumbnail, falling back to full file.')
+        bannerThumb = bannerPath 
+        proxyFunc = Proxy.Media
+
+      bannerRealUrl = TVDB_IMAGES_URL % bannerPath
+      bannerThumbUrl = TVDB_IMAGES_URL % bannerThumb
+
+      # this is an english-only metadata agent so skip non-english images.
+      if bannerLang != 'en':
+        continue
+  
+      # download the images
+      if bannerType == 'fanart' and getFanart and bannerRealUrl not in metadata.art:
+        try: 
+          metadata.art[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=num)
+          Log('Got fanart %s' % bannerRealUrl)
+        except:
+          pass
+
+      elif bannerType == 'poster' and getPosters and bannerRealUrl not in metadata.posters:
+        try:
+          # note: sort order +1 because anidb's poster is default.
+          metadata.posters[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num + 1 if preferAnidbPoster else num))
+          Log('Got poster %s' % bannerRealUrl)
+        except:
+          pass
+
+      elif bannerType == 'series' and getBanners and bannerRealUrl not in metadata.banners:
+        try:
+          metadata.banners[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=num)
+          Log('Got banner %s' % bannerRealUrl)
+        except:
+          pass
+
+      elif bannerType == 'season' and bannerType2 is not None:
+        # because we're using AniDB as our base, every show has one 'season' even if it's a sequel to another show, so
+        # map the season banners from TVDB into the normal poster list and let the user figure it out if they want to tweak!
+        if bannerType2 == 'season' and getPosters and bannerRealUrl not in metadata.posters:
+          metadata.posters[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num + 1 if preferAnidbPoster else num))
+          Log('Got series poster %s' % bannerRealUrl)
+        elif bannerType2 == 'seasonwide' and getBanners and bannerRealUrl not in metadata.banners:
+          metadata.banners[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=num)
+
+      else:
+        Log('Skipping banner %s (%s, lang %s) because already have it, or type invalid' % (bannerPath, bannerType, bannerLang))
+
+  # do a direct anime-id lookup on anidb - assumption is if this code is called, the user knows what they're doing and is attempting to match a
+  # specific entry, so we can fetch the XML once then it'll be cached
+  def searchByAnimeId(self, results, lang, animeId, year):
+    Log("SearchByAnimeId")
+    animeXml = self.getAnimeXmlById(animeId)
+    rootElement = XML.ElementFromString(animeXml)
+    anime = rootElement.xpath('/anime')[0]
+
+    try:
+      title,origtitle = self.getMainTitle(anime.xpath('titles/title'))
+    except:
+      Log("Failed to get anime %s by ID" % animeId)
+      return
+
+    results.Append(MetadataSearchResult(id=str(animeId), name=title, year=None, lang=Locale.Language.English, score=100))
+
+  # extract out all the names we want to match against and decide which name should be displayed to the UI (based on which one we'll select later)
+  def getMatchedTitles(self, titles):
+    displayTitle = ""
+    englishTitle = ""
+    romajiTitle = ""
+    kanjiTitle = ""
+    allTitles = []
+
+    for title in titles:
+      titleType = title.get('type')
+      titleLang = title.get('lang')
+      if titleType in ['main', 'official']:
+        if titleLang == "en":
+          englishTitle = title.text
+        elif titleLang == "x-jat":
+          romajiTitle = title.text
+        elif titleLang == 'ja':
+          kanjiTitle = title.text
+
+      # short titles tend to be not useful for matching as they are abbreviations
+      # eg. Crest of the Stars / Seikai no Monshou - 'SnM' 
+      if titleType != 'short':
+        allTitles.append(title.text)
+
+    if englishTitle != "":
+      displayTitle = englishTitle
+    elif romajiTitle != "":
+      displayTitle = romajiTitle
+    elif kanjiTitle != "":
+      displayTitle = kanjiTitle
+    else:
+      raise ValueError
+
+    return displayTitle, allTitles
+
+  # get the Levenshtein distance score between two strings (100% - distance/maxDistance, where max possible distance is the edit distance from empty string to longest of the two strings)
+  def getScore(self, a, b):
+    d = Util.LevenshteinDistance(a, b)
+    maxD = max([len(a), len(b)])
+    score = 100 - ((float(d)/float(maxD)) * 100)
+    Log("Score: " + a + ", " + b + " : " + str(score));
+    return int(score)
+
+  # use the Outrance.pl search system to find the Anime ID for a given title
+  def searchByName(self, results, lang, origTitle, year):
+    Log('SearchByName: %s' % origTitle)
+    title = origTitle.lower()
+
+    # strip punctuation marks
+    title = re.sub(r'[()\.~+\-_!,:&]', ' ', title)
+
+    # multiple whitespace -> single whitespace
+    title = re.sub(r'[ ]+', ' ', title)
+
+    # filter out noisy words and mark every other word as required
+    query = ""
+    for word in title.split():
+      if word not in FILTER_SEARCH_WORDS:
+        query += word + ' '
+
+    Log('Search: %s' % query)
+
+    #title = String.Quote(query, True)
+    searchurl = ANIDB_SEARCH_URL + query
+
+    matchedTitles = None
+  
+    # build list of matches
+    try:
+      matches = XML.ElementFromURL(searchurl, cacheTime=CACHE_1HOUR);
+      for anime in matches.xpath('/animetitles/anime'):
+        aid = anime.get("aid")
+        displayTitle, allTitles = self.getMatchedTitles(anime.iterchildren("title"))
+        matchedTitles.append([aid, displayTitle, allTitles])
+        Log("Added title " + displayTitle + " for anime ID " + aid)
+
+    except:
+      Log("Exception was thrown")
+      raise
+
+    # calculate scores
+    for match in matchedTitles:
+      thisAnimeId = match[0]
+      thisTitle = match[1]
+      allTitles = match[2]
+      Log("AID: " + thisAnimeId + "Title: " + thisTitle)
+      scores = []
+      for title in allTitles:
+        scores.append(self.getScore(title, origTitle))
+      
+      bestScore = max(scores)
+      Log("Best score: " + str(bestScore))
+      
+      results.Append(MetadataSearchResult(id=str(thisAnimeId), name=thisTitle, year=None, lang=Locale.Language.English, score=int(bestScore)))
+    
+    results.Sort('score', descending=True)
+    
+    # Only return at most 20 results.
+    if len(results) > 20:
+      del results[20:]
+
+  # Pull down the XML for a given anime ID. Don't worry about caching, the HTTP system does that
+  def getAnimeXmlById(self, animeId):
+    anidbRequest = ANIDB_HTTP_API_URL + animeId
+    return getResultFromAnidb(anidbRequest)
+
+  # Remove wiki-style links to staff, characters etc from the summary
+  def sanitizeSummary(self, summary):
+    summary = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', summary)
+    return summary
+
+  # turn the YYYY-MM-DD airdate in each episode into a Date
+  def parseAirDate(self, airdate):
+    match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", airdate)
+    if match:
+      try:
+        return datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+      except ValueError, e:
+        Log("Date out of range: " + str(e))
+        return None;
+        
+    Log("Bad date in airdate.")
+    return None;
+
+  # extract the series / movie title
+  def getMainTitle(self, titles):
+    englishTitle = ""
+    romajiTitle = ""
+    kanjiTitle = ""
+
+    for title in titles:
+      Log("Title: %s" % title.text)
+      titleType = title.get('type')
+      # some wierdness caused by the fact the XML has 'xml:lang' attrib here
+      titleLang = title.get('{http://www.w3.org/XML/1998/namespace}lang')
+      Log("Type: " + titleType + " Lang: " + titleLang)
+
+      # only one title can be main, and for each language there is an 'official' title
+      # the 'main' title is assumed to be official.
+      # TODO: should we be selecting the 'main' title always?
+      if titleType == 'main' or titleType == 'official':
+        Log("Main or official title")
+        if titleLang == 'en': 
+          englishTitle = title.text
+        if titleLang == 'x-jat':
+          romajiTitle = title.text
+        if titleLang == 'ja':
+          kanjiTitle = title.text
+
+    # set the title 
+    mainTitle = ""
+    originalTitle = ""
+    if englishTitle != "":
+      mainTitle = englishTitle
+
+    if romajiTitle != "":
+      if mainTitle == "":
+        mainTitle = romajiTitle
+      if mainTitle != romajiTitle and originalTitle == "":
+        originalTitle = romajiTitle
+
+    if kanjiTitle != "":
+      if mainTitle == "":
+        mainTitle = kanjiTitle
+      if mainTitle != kanjiTitle and originalTitle == "":
+        originalTitle = kanjiTitle
+
+    if mainTitle == "":
+      raise ValueError
+
+    return mainTitle, originalTitle
+      
+  # Parse the anime XML
+  def parseAnimeXml(self, metadata, media, force, animeXml, movie):
+    Log("Parsing anime XML")
+
+    rootElement = XML.ElementFromString(animeXml)
+    anime = rootElement.xpath('/anime')[0]
+
+    # helper for getting text from XML element
+    getElementText = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp)[0].text else ""
+
+    # get start date if any
+    startDate = getElementText(anime, 'startdate')
+    Log("Start Date: %s" % startDate)
+    if startDate != "":
+      metadata.originally_available_at = Datetime.ParseDate(startDate).date()
+      if movie:
+        metadata.year = metadata.originally_available_at.year
+    else:
+      metadata.originally_available_at = None
+
+    # figure out what title to use
+    try:
+      main, orig = self.getMainTitle(anime.xpath('titles/title'))
+      metadata.title = main
+      metadata.original_title = orig
+    except:
+      Log("No title!")
+      raise
+    
+    Log("Chosen title: %s" % metadata.title)
+    Log("Chosen original title: %s" % metadata.original_title)
+
+    writers = []
+    directors = []
+    producers = []
+    
+    # pull out the creator data. Aside from the animation studio though, none of this maps to Series entries, so save it for episodes
+    for creator in anime.xpath('creators/name'):
+      nameType = creator.get('type')
+      if nameType == "Animation Work":
+        Log("Studio: %s" % creator.text)
+        metadata.studio = creator.text;
+      if "Direction" in nameType:
+        # Direction, Animation Direction, Chief Animation Direction, Chief Direction
+        Log("%s is director", creator.text)
+        directors.append(creator.text)
+      if nameType == "Series Composition":
+        # Series Composition is basically a producer role
+        Log("%s is producer", creator.text)
+        producers.append(creator.text)
+      if nameType == "Original Work":
+        # original creator of whatever this was adapted from might be an artist for manga, but 'writers' is the best we can map to
+        Log("%s is writer", creator.text)
+        writers.append(creator.text)
+      if "Script" in nameType or "Screenplay" in nameType:
+        Log("%s is writer", creator.text)
+        writers.append(creator.text)
+
+    # Movies have these on the top level
+    if movie:
+      metadata.writers.clear()
+      for writer in writers:
+        metadata.writers.add(writer)
+
+      metadata.producers.clear()
+      for producer in producers:
+        metadata.producers.add(producer)
+
+      metadata.directors.clear()
+      for director in directors:
+        metadata.directors.add(director)
+
+    # get the description & filter it (looks like sometimes this description's not set!)
+    try:
+      description = getElementText(anime, 'description')
+      metadata.summary = self.sanitizeSummary(description)
+    except Exception, e:
+      Log("Exception: " + str(e))
+      pass
+
+    # Ratings
+    rating = getElementText(anime, 'ratings/permanent')
+    if rating:
+      metadata.rating = float(rating)
+    
+    # get the picture name
+    preferAnidbPoster = Prefs['PreferAnidbPoster'];
+    picture = getElementText(anime, 'picture')
+    if picture != "":
+      posterUrl = ANIDB_PIC_BASE_URL + picture;
+      Log("Getting picture from url: %s", posterUrl)
+      metadata.posters[posterUrl] = Proxy.Media(HTTP.Request(posterUrl).content, sort_order=(1 if preferAnidbPoster else 99))
+
+    # Category -> Genre mapping 
+    genres = {}
+    restrictedContent = False
+    for category in anime.xpath('categories/category'):
+      weight = category.get('weight')
+      name = getElementText(category, 'name')
+      if name in GENRE_NAMES:
+        Log(name + " in accepted genres, adding")
+        genres[name] = int(weight)
+      if name in RESTRICTED_GENRE_NAMES:
+        Log(name + " in restricted genres, marking as 18+")
+        restrictedContent = True
+
+    # sort genre list
+    sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
+
+    # take top 5
+    if len(sortedGenres) > 5:
+      del sortedGenres[5:]
+
+    metadata.genres.clear()
+    for genre in sortedGenres:
+      Log('Genre: %s with weight %s' % (genre[0], str(genre[1])));
+      metadata.genres.add(genre[0])
+
+    if restrictedContent:
+      metadata.content_rating = RESTRICTED_CONTENT_RATING
+
+    # do crude anidb -> tvdb mapping to try and pull their images
+    getPosters = Prefs['GetTvdbPosters'];
+    getFanart = Prefs['GetTvdbFanart'];
+    getBanners = Prefs['GetTvdbBanners'];
+
+    if getPosters or getFanart or getBanners:
+      mapEntry = 'tvdb:%s' % metadata.id
+      tvdbSeriesId = None
+      if mapEntry in Dict and not force and not movie: # if force is set, refresh the ID anyway
+        Log("Series ID %s is persisted" % mapEntry)
+        tvdbSeriesId = Dict[mapEntry]
+      elif not restrictedContent and not movie: # TVDB doesn't index 18+ anime or movies
+        Log("Forcing TVDB lookup for ID %s" % mapEntry)
+        tvdbSeriesId = self.searchInTVDB(metadata)
+        Dict[mapEntry] = tvdbSeriesId
+        Dict.Save()
+
+      if not movie and tvdbSeriesId != None:
+        Log("Doing TVDB lookup with series id: %s" % tvdbSeriesId);
+        self.getImagesFromTVDB(metadata, tvdbSeriesId)
+
+    if not movie:
+      # set poster for every season we know about in the Media
+      for season in media.seasons:
+        Log("Setting season poster")
+        for posterUrl in metadata.posters.keys():
+          metadata.seasons[season].posters[posterUrl] = Proxy.Media(HTTP.Request(posterUrl).content, sort_order=(1 if preferAnidbPoster else 99))
+
+      numEpisodes = 0;
+      totalDuration = 0;
+
+      for episode in anime.xpath('episodes/episode'):
+        epNum = episode.xpath('epno')[0]
+        epNumType = epNum.get('type')
+        epNumVal = epNum.text
+
+        Log("Episode type " + epNumType + "Num: " + epNumVal)
+
+        if epNumType == "1":
+          # normal episode
+          season = 1
+        elif epNumType == "2":
+          season = 0
+          # specials are prefixed with S
+          if epNumVal[0] == 'S':
+            epNumVal = epNumVal[1:]
+        #TODO: map OPs, CMs etc to season 2+?
+        else:
+          Log("Skipping episode as it is not a special or a normal episode.")
+          continue
+
+        if not (season in media.seasons and epNumVal in media.seasons[season].episodes):
+          Log("Skipping episode " + str(epNumVal) + " in season " + str(season) + " as it is not in the media collection.")
+          continue
+
+        episodeObj = metadata.seasons[season].episodes[epNumVal]
+
+        Log("Setting writers etc.")
+        episodeObj.writers.clear()
+        for writer in writers:
+          episodeObj.writers.add(writer)
+
+        episodeObj.producers.clear()
+        for producer in producers:
+          episodeObj.producers.add(producer)
+
+        episodeObj.directors.clear()
+        for director in directors:
+          episodeObj.directors.add(director)
+
+        try:
+          rating = getElementText(episode, 'rating')
+          if rating != "":
+            episodeObj.rating = float(rating)
+        except:
+          pass # rating is optional
+
+        duration = getElementText(episode, 'length')
+        if duration != "":
+          # AniDB stores in minutes, Plex in millisecs
+          episodeObj.duration = int(duration) * 60 * 1000 
+          Log("Duration: %s" % str(episodeObj.duration))
+          if season == 1:
+            numEpisodes += 1
+            totalDuration += episodeObj.duration
+
+        airdate = getElementText(episode, 'airdate')
+        if airdate != "":
+            episodeObj.originally_available_at = self.parseAirDate(airdate)
+            Log("Airdate: " + str(episodeObj.originally_available_at))
+
+        # get the correct title :(
+        englishTitle = ""
+        romajiTitle = ""
+        kanjiTitle = ""
+        for title in episode.xpath('title'):
+          # FIXME xml:lang wierdness
+          titleLang = title.get('{http://www.w3.org/XML/1998/namespace}lang')
+          if titleLang == "en":
+            englishTitle = title.text
+          elif titleLang == "x-jat":
+            romajiTitle = title.text;
+          elif titleLang == "ja":
+            kanjiTitle = title.text
+
+        if englishTitle != "":
+          episodeObj.title = englishTitle
+        elif romajiTitle != "":
+          episodeObj.title = romajiTitle
+        elif kanjiTitle != "":
+          episodeObj.title = kanjiTitle
+        else:
+          # deliberately using epNum.text as for specials it's still prefixed with S
+          episodeObj.title = epNum.text
+        Log("Episode Title: %s" % episodeObj.title)
+
+      # Final post-episode titles cleanup
+      metadata.duration = int(totalDuration) / int(numEpisodes)
+
+  def matchAnime(self, metadata, media, force, movie):
+    self.parseAnimeXml(metadata, media, force, self.getAnimeXmlById(metadata.id), movie)
+    
+
+# TV-specific agent 
+class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
+  name = 'HamaTV'
+  languages = [
+    Locale.Language.English,
+  ]
+  primary_provider = True
+  fallback_agent = False
+  accepts_from = ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles']
+  contributes_to = None
+
+  def search(self, results, media, lang, manual):
+    if media.show.startswith('aid:'):
+      self.searchByAnimeId(results, lang, media.show[4:], media.year)
+    else:
+      self.searchByName(results, lang, media.show, media.year)
+
+  def update(self, metadata, media, lang, force):
+    self.matchAnime(metadata, media, force, False)
+
+# Movie-specific agent
+class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
+  name = 'HamaMovies'
+  languages = [
+    Locale.Language.English,
+  ]
+  primary_provider = True
+  fallback_agent = False
+  accepts_from = ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles']
+  contributes_to = None
+
+  def search(self, results, media, lang, manual):
+    if media.name.startswith('aid:'):
+      self.searchByAnimeId(results, lang, media.name[4:], media.year)
+    else:
+      self.searchByName(results, lang, media.name, media.year)
+ 
+  def update(self, metadata, media, lang, force):
+    self.matchAnime(metadata, media, force, True)
