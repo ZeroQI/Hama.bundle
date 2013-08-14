@@ -5,8 +5,11 @@ Created By Atomicstrawberry and maintained until v0.4 <br />
  <LI>http://forums.plexapp.com/index.php/topic/66918-release-http-anidb-metadata-agent-hama/</LI>
 </UL>
 Forked from v0.4 and maintained since by ZeroQI <br />
+<UL>
+ <LI>http://forums.plexapp.com/index.php/topic/77636-release-http-anidb-metadata-agent-hama/</LI>
+</UL>
  <br />
-Here are the changes since v0.4:<BR />
+Here are the changes Between v0.5 and v0.4:<BR />
 
 New features
 <UL>
