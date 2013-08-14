@@ -1,0 +1,30 @@
+[
+    {
+        "id": "GetTvdbFanart",
+        "label": "Attempt to fetch Fanart images from TVDB",
+        "type": "bool",
+        "default": "true",
+    },
+
+    {
+        "id": "GetTvdbPosters",
+        "label": "Attempt to fetch Poster images from TVDB",
+        "type": "bool",
+        "default": "true",
+    },
+
+    {
+        "id": "GetTvdbBanners",
+        "label": "Attempt to fetch series Banner images from TVDB",
+        "type": "bool",
+        "default": "true",
+    },
+
+    {
+        "id": "PreferAnidbPoster",
+        "label": "Prefer AniDB's poster over TVDB if TVDB lookup enabled",
+        "type": "bool",
+        "default": "true",
+    },
+]
+
