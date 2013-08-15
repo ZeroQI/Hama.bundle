@@ -38,12 +38,12 @@ ANIDB_COLLECTION_MAPPING     = 'anime-movieset-list.xml'                        
 ANIDB_ANIME_TITLES_URL       = 'anime-titles.xml.gz'                                           # AniDB title database decompressed in Hama.bundle\Contents\Resources
 ANIDB_TVDB_MAPPING_URL       = 'https://raw.github.com/ScudLee/anime-lists/master/anime-list-full.xml'
 ANIDB_COLLECTION_MAPPING_URL = 'https://github.com/ScudLee/anime-lists/raw/master/anime-movieset-list.xml'
+ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body='
 
 ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
 RESTRICTED_GENRE_NAMES    = [ '18 Restricted', 'Pornography' ]
 RESTRICTED_CONTENT_RATING = "NC-17"
 GENRE_NAMES               = [
-
   ### Audience categories - all useful but not used often ############################################################################################################
   'Josei', 'Kodomo', 'Mina', 'Seinen', 'Shoujo', 'Shounen',
   
@@ -102,10 +102,13 @@ def Start():
   MediaContainer.art       = R(ART)
   MediaContainer.title1    = NAME
   DirectoryItem.thumb      = R(ICON)
-
-#def ValidatePrefs():
-#  pass
-#
+  
+  # Load the XML files once for all since they are read only, no global declaration needed
+  AniDB_title_tree        = self.xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # 'anime-titles.xml' 
+  AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # 'anime-list-full.xml' 
+  AniDB_collection_tree   = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) # 'anime-movieset-list.xml' 
+  
+#def Validateprefs():
 
 ### main metadata agent ################################################################################################################################################
 class HamaCommonAgent:
@@ -115,19 +118,19 @@ class HamaCommonAgent:
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
-    tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)                # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
+    #AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)                # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB.net (Caching it) from the anime-id ###
     if origTitle.startswith('aid:'):                                                          # If custom search starts with aid:
       animeId = str(origTitle[4:])                                                            #   Get string after "aid:" which is 4 characters
-      langTitle, mainTitle = self.getMainTitle(tree.xpath("/animetitles/anime[@aid='%s']/*" % animeId), LANGUAGE_PRIORITY) # Extract titles from the Anime XML element tree directly
+      langTitle, mainTitle = self.getMainTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % animeId), LANGUAGE_PRIORITY) # Extract titles from the Anime XML element tree directly
       Log.Debug( "SearchByName - aid: %s, Title: %s, Main title: %s" % (animeId, langTitle, mainTitle) )                   # Log aid, title found, main title
       results.Append(MetadataSearchResult(id=animeId, name=langTitle, year=None, lang=Locale.Language.English, score=100)) # Return array with result
       return 
     
     ### Local exact search ###
     cleansedTitle = self.cleanse_title (origTitle)                                            # Cleanse title for search
-    elements      = list(tree.iterdescendants())                                              # from lxml import etree; tree = etree.parse(ANIDB_ANIME_TITLES) folder missing?; #To-Do: Save to local (media OR cache-type folder) XML???  
+    elements      = list(AniDB_title_tree.iterdescendants())                                              # from lxml import etree; tree = etree.parse(ANIDB_ANIME_TITLES) folder missing?; #To-Do: Save to local (media OR cache-type folder) XML???  
     for title in elements:                                                                    # For each title in serie
       if title.get('aid'):                                                                    #   Is an anime tag (not title tag) in that case ###
         aid = title.get('aid')                                                                #   Get anime id
@@ -594,10 +597,10 @@ class HamaCommonAgent:
     #                                    [text]              Episode mapping anidb_ep-tvdb_ep separated by ';', also present at the beginning & end of the string
     # --------------------------------   -----------------   --------------------------------------------------------------------------------------------------------
     
-    anidbid     = metadata.id
-    mappingList = {}
-    tree        = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)         # Load XML file
-    for anime in tree.iterchildren('anime'):                                                  # For anime in matches.xpath('/anime-list/anime')
+    anidbid                 = metadata.id
+    mappingList             = {}
+    #AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)         # Load XML file
+    for anime in AniDB_TVDB_mapping_tree.iterchildren('anime'):                                                  # For anime in matches.xpath('/anime-list/anime')
       if anidbid == anime.get("anidbid"):                                                     # If it is the right anime id
         tvdbid            = anime.get('tvdbid')                                               #   Get tvdb id
         defaulttvdbseason = anime.get('defaulttvdbseason')                                    #   get default tvdb season
@@ -720,9 +723,9 @@ class HamaCommonAgent:
     #                                    xml:lang     AniDB.net language
     #                                    [text]
     
-    tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
+    #AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
     try:
-      element = tree.iterfind("anime[@anidbid='%s']" % animeId)[0]
+      element = AniDB_collection_tree.iterfind("anime[@anidbid='%s']" % animeId)[0]
     except:
       Log("anidbCollectionMapping([metadata], %s) - %s is not part of any collection" % (animeId, animeId.zfill(5)) )
       return
