@@ -103,8 +103,9 @@ def Start():
   MediaContainer.title1    = NAME
   DirectoryItem.thumb      = R(ICON)
 
-#def Validate Prefs(self):
+#def ValidatePrefs():
 #  pass
+#
 
 ### main metadata agent ################################################################################################################################################
 class HamaCommonAgent:
