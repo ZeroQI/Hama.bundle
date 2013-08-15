@@ -114,43 +114,40 @@ class HamaCommonAgent:
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
-    tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)                #Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
-    #Log("SearchByName - %s loaded" % ANIDB_ANIME_TITLES)                                     #Check logs to see loading time
+    tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)                # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB.net (Caching it) from the anime-id ###
-    if origTitle.startswith('aid:'):
-      animeId = str(origTitle[4:])                                                            #Get string after "aid:" which is 4 characters
-      Log.Debug( "SearchByName - aid: %s" % animeId)
-      langTitle, mainTitle = self.getMainTitle(tree.xpath("/animetitles/anime[@aid='%s']/*" % animeId), LANGUAGE_PRIORITY) #extract titles from the Anime XML element tree directly
-      Log.Debug( "SearchByName - aid: %s %s (%s)" % (animeId, langTitle, mainTitle) )
-      results.Append(MetadataSearchResult(id=animeId, name=langTitle, year=None, lang=Locale.Language.English, score=100))
+    if origTitle.startswith('aid:'):                                                          # If custom search starts with aid:
+      animeId = str(origTitle[4:])                                                            #   Get string after "aid:" which is 4 characters
+      langTitle, mainTitle = self.getMainTitle(tree.xpath("/animetitles/anime[@aid='%s']/*" % animeId), LANGUAGE_PRIORITY) # Extract titles from the Anime XML element tree directly
+      Log.Debug( "SearchByName - aid: %s, Title: %s, Main title: %s" % (animeId, langTitle, mainTitle) )                   # Log aid, title found, main title
+      results.Append(MetadataSearchResult(id=animeId, name=langTitle, year=None, lang=Locale.Language.English, score=100)) # Return array with result
       return 
     
     ### Local exact search ###
-    #Log.Debug('SearchByName - XML exact search - Trying to match: ' + origTitle)
-    cleansedTitle = self.cleanse_title (origTitle)
-    elements      = list(tree.iterdescendants())                                              #from lxml import etree; tree = etree.parse(ANIDB_ANIME_TITLES) folder missing?; #To-Do: Save to local (media OR cache-type folder) XML???  
-    for title in elements:
-      if title.get('aid'):                                                                    #is an anime tag (not title tag) in that case ###
-        aid = title.get('aid')
-      else:
+    cleansedTitle = self.cleanse_title (origTitle)                                            # Cleanse title for search
+    elements      = list(tree.iterdescendants())                                              # from lxml import etree; tree = etree.parse(ANIDB_ANIME_TITLES) folder missing?; #To-Do: Save to local (media OR cache-type folder) XML???  
+    for title in elements:                                                                    # For each title in serie
+      if title.get('aid'):                                                                    #   Is an anime tag (not title tag) in that case ###
+        aid = title.get('aid')                                                                #   Get anime id
+      else:                                                                                   # Else
         if title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
-          sample = self.cleanse_title (title.text)
-          if cleansedTitle == sample :                                                        #Should i add "origTitle.lower()==title.text.lower() or" ??
-            Log.Debug("SearchByName: Local exact search for '%s' matched aid: %s %s" % (origTitle, aid,title.text))
-            langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)    #Title according language order selection instead of main title
-            results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100))
-            return
+          sample = self.cleanse_title (title.text)                                            # Put cleanse title in sample
+          if cleansedTitle == sample :                                                        # Should i add "origTitle.lower()==title.text.lower() or" ??
+            Log.Debug("SearchByName: Local exact search for '%s' matched aid: %s %s" % (origTitle, aid,title.text))          # 
+            langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)                             # Title according language order selection instead of main title
+            results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100)) # return
     
     ### local keyword search ###
-    matchedTitles  = [ ]
-    words          = [ ]
-    temp           = ""
-    for word in self.splitByChars(origTitle, SPLIT_CHARS):
-      word = self.cleanse_title (word)
-      if not word=="" and word not in FILTER_SEARCH_WORDS and len(word)>1:                    #Special characters scrubbed result in empty word matching all
-        words.append (word)
-        temp += "'%s', " % word
+    matchedTitles  = [ ]                                                                      # 
+    #matchedWords   = defaultdict(list)                                                        # 
+    words          = [ ]                                                                      #
+    temp           = ""                                                                       #
+    for word in self.splitByChars(origTitle, SPLIT_CHARS):                                    #
+      word = self.cleanse_title (word)                                                        #
+      if not word=="" and word not in FILTER_SEARCH_WORDS and len(word)>1:                    # Special characters scrubbed result in empty word matching all
+        words.append (word)                                                                   #
+        temp += "'%s', " % word                                                               #
     Log.Debug("SearchByName - XML Keyword search -  Trying to match: '%s' with Keywords: %s " % (origTitle, temp) )
 
     if len(words)==0 or len( self.splitByChars(origTitle, SPLIT_CHARS) )==1 :                 # Single work title so already tested
@@ -172,7 +169,11 @@ class HamaCommonAgent:
                   matchedTitles[index][2].append(title.text)                                  #         append title to allTitles list
               else:                                                                           #     else
                 matchedTitles.append([aid, aid.zfill(5) + ' ' + title.text, [title.text] ])   #       new insertion (not necessarily main title)
-                #Log.Debug("SearchByName - XML Keyword search - keyword '%s' matched '%s'" % (word, sample) )
+                #matchedWords[word].append(sample)
+    # temp=""
+    # for key, value in matchedWords.iteritems():
+    #   temp += key + " (" + len(value) + "), "
+    # Log.Debug("SearchByName - Keywords: " + temp)  
     if len(matchedTitles)==0:
       return None
 
@@ -183,7 +184,7 @@ class HamaCommonAgent:
         scores.append(self.getScore( self.cleanse_title(title), cleansedTitle ))              # (removed tilde when used WRONGLY as separator by MIKE)
       bestScore = max(scores)
       results.Append(MetadataSearchResult(id=match[0], name=match[1], year=None, lang=Locale.Language.English, score=bestScore))
-      Log.Debug("SearchByName - %s%% similarity with %s" % ('{:>2}'.format(str(bestScore)), match[1]) )
+      #Log.Debug("SearchByName - %s%% similarity with %s" % ('{:>2}'.format(str(bestScore)), match[1]) )
     results.Sort('score', descending=True)
     Log.Debug("=== searchByName - End - =================================================================================================")
 	
