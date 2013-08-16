@@ -187,7 +187,10 @@ class HamaCommonAgent:
     for match in matchedTitles:
       scores = []                                                                             
       for title in match[2]:                                                                  # Calculate distance without space and characters not allowed for files 
-        scores.append(self.getScore( self.cleanse_title(title), cleansedTitle ))              # (removed tilde when used WRONGLY as separator by MIKE)
+        a = self.cleanse_title(title)
+        b = cleansedTitle
+        score = int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) # (removed tilde when used WRONGLY as separator by MIKE)
+        scores.append(score)              
       bestScore = max(scores)
       results.Append(MetadataSearchResult(id=match[0], name=match[1], year=None, lang=Locale.Language.English, score=bestScore))
       #Log.Debug("SearchByName - %s%% similarity with %s" % ('{:>2}'.format(str(bestScore)), match[1]) )
@@ -399,8 +402,8 @@ class HamaCommonAgent:
 
     ### AniDB + links - Serie/Movie description ###
     warnings=""                                                                               #
-    for temp in serieWarnings:                                                                #
-      warnings += temp + ". "                                                                 #
+    for warning in serieWarnings:                                                             #
+      warnings += warning + ". "                                                              #
     description = "AniDB.net:      <A href='%s'>%s</A><BR />\n"        % (ANIDB_SERIE_URL % (metadata.id),   metadata.title          )
     if tvdbid.isdigit():                                                                      # If a TV Serie have a tvdbid in the mapping file
       description += "TheTVDB.com: <A href='%s'>%s</A> %s\n"           % (TVDB_SERIE_URL  % (tvdbid),        metadata.title, warnings) + description 
@@ -418,13 +421,11 @@ class HamaCommonAgent:
       #
       # SubmitBugReport = "<A href='%s'>%s</A>" % (ANIDB_TVDB_MAPPING_FEEDBACK % ("anidbid:%s '%s' matches tvdbid:xxxxxxx" % (metadata.id,metadata.title), body), str(warnings))
       try:                                                                                      
-      temp = getElementText(anime, 'description')
-      description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', temp)       # Remove wiki-style links to staff, characters etc
+      description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
       metadata.summary = description                                                          #
     except Exception, e:                                                                      #
-      Log.Debug("Exception: " + str(e))                                                       #
+      Log.Debug("Exception: " + str(e) )                                                      #
      
-    temp=""
     if not movie: ### TV Serie specific #################################################################################################################
       numEpisodes   = 0
       totalDuration = 0
@@ -438,7 +439,7 @@ class HamaCommonAgent:
         season      = ("0" if epNumType == "2" else "1" if epNumType == "1" else "")          # Normal episode
         epNumVal    = ( epNum.text[1:] if epNumType == "2" and epNumVal[0] == ['S'] else epNum.text )
         if epNumVal[0] in ['C', 'T', 'P', 'O']:                                               # Specials are prefixed with S(Specials 000-100), C(OPs, EDs 101-199),
-            continue                                                                          #       T(Trailers 201-299), P(Parodies 301-399), O(Other    401-499)
+          continue                                                                            #       T(Trailers 201-299), P(Parodies 301-399), O(Other    401-499)
         if not (season in media.seasons and epNumVal in media.seasons[season].episodes):      # Log missing episodes
           missing_eps.append(" s" + season + "e" + epNumVal )                                 #
           continue                                                                         
@@ -752,8 +753,8 @@ class HamaCommonAgent:
     return XML.ElementFromString(string) 
 
   ### Get the Levenshtein distance score in percent between two strings ################################################################################################
-  def getScore(self, a, b):
-    return int(100 - (100 * float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) ))   #To-Do: LongestCommonSubstring(first, second). use that?
+  #def getScore(self, a, b):
+  #  return int(100 - (100 * float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) ))   #To-Do: LongestCommonSubstring(first, second). use that?
 
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
