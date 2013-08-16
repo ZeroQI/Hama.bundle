@@ -1,7 +1,7 @@
-#######################################################################################
-# HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry (Simon) ##########
-# Forked+maintained from v0.5 by ZeroQI - Thanks to ScudLee for the XML mapping files #
-#######################################################################################
+######################################################################
+# HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry #
+# Forked+maintained from v0.5 by ZeroQI                              #
+######################################################################
 
 ### Preferences declared in "DefaultPrefs.json", accessible in Settings > Tab: Plex Media Server > Sidebar: Agents > Tab: Movies/TV Shows > Tab HamaTV ###
 #Prefs['GetTvdbFanart'    ] "id": "GetTvdbFanart",     "label": "Attempt to fetch Fanart images from TVDB",               "type": "bool", "default": "true"
@@ -84,30 +84,26 @@ FILTER_SEARCH_WORDS = [                                                         
 ]
 
 ### set up some stuff ###
-import os, os.path, re, time, datetime
-# Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
-# Unused modules:            urllib, types, hashlib , unicodedata, Stack, utils
+import os, os.path, re, time, datetime # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+                                       # Unused modules:            urllib, types, hashlib , unicodedata, Stack, utils
 
-NAME                = "HTTP Anidb Metadata Agent (HAMA) by Atomicstrawberry forked by ZeroQI"
-ART                 = 'art-default.jpg'
-ICON                = 'icon-default.png'
-DirectoryItem.thumb = R(ICON)
-MediaContainer.art  = R(ART)
+AniDB_title_tree        = None #xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # 'anime-titles.xml' 
+AniDB_TVDB_mapping_tree = None #xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # 'anime-list-full.xml' 
+AniDB_collection_tree   = None #xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) # 'anime-movieset-list.xml' 
+
+#NAME                = "HTTP Anidb Metadata Agent (HAMA) by Atomicstrawberry forked by ZeroQI"
+#ART                 = 'art-default.jpg'
+#ICON                = 'icon-default.png'
+#DirectoryItem.thumb = R(ICON)
+#MediaContainer.art  = R(ART)
 
 networkLock = Thread.Lock()
 def Start():
   Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started #################################################################################################')
-
   # Setup the artwork associated with the plugin
-  MediaContainer.art       = R(ART)
-  MediaContainer.title1    = NAME
-  DirectoryItem.thumb      = R(ICON)
-  
-  # Load the XML files once for all since they are read only, no global declaration needed
-  AniDB_title_tree        = self.xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # 'anime-titles.xml' 
-  AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # 'anime-list-full.xml' 
-  AniDB_collection_tree   = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) # 'anime-movieset-list.xml' 
-  
+  #MediaContainer.art       = R(ART)
+  #MediaContainer.title1    = NAME
+  #DirectoryItem.thumb      = R(ICON) 
 #def Validateprefs():
 
 ### main metadata agent ################################################################################################################################################
@@ -118,7 +114,9 @@ class HamaCommonAgent:
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
-    #AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)                # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
+    global AniDB_title_tree
+    if not AniDB_title_tree:
+      AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)  # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB.net (Caching it) from the anime-id ###
     if origTitle.startswith('aid:'):                                                          # If custom search starts with aid:
@@ -141,10 +139,11 @@ class HamaCommonAgent:
             Log.Debug("SearchByName: Local exact search for '%s' matched aid: %s %s" % (origTitle, aid,title.text))          # 
             langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)                             # Title according language order selection instead of main title
             results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100)) # return
-    
+            return
+
     ### local keyword search ###
     matchedTitles  = [ ]                                                                      # 
-    #matchedWords   = defaultdict(list)                                                        # 
+    matchedWords   = { }  #####                                                                     # 
     words          = [ ]                                                                      #
     temp           = ""                                                                       #
     for word in self.splitByChars(origTitle, SPLIT_CHARS):                                    #
@@ -173,11 +172,14 @@ class HamaCommonAgent:
                   matchedTitles[index][2].append(title.text)                                  #         append title to allTitles list
               else:                                                                           #     else
                 matchedTitles.append([aid, aid.zfill(5) + ' ' + title.text, [title.text] ])   #       new insertion (not necessarily main title)
-                #matchedWords[word].append(sample)
-    # temp=""
-    # for key, value in matchedWords.iteritems():
-    #   temp += key + " (" + len(value) + "), "
-    # Log.Debug("SearchByName - Keywords: " + temp)  
+                if word in matchedWords:
+                  matchedWords[word].append(sample)
+                else:
+                  matchedWords[word]= [sample]
+    temp=""
+    for key, value in matchedWords.iteritems():
+      temp += key + " (" + str(len(value)) + "), "
+    Log.Debug("SearchByName - Keywords: " + temp)  
     if len(matchedTitles)==0:
       return None
 
@@ -244,7 +246,8 @@ class HamaCommonAgent:
     GetTvdbPosters    = Prefs['GetTvdbPosters'   ];
     GetTvdbFanart     = Prefs['GetTvdbFanart'    ];
     GetTvdbBanners    = Prefs['GetTvdbBanners'   ];
-    
+    global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
+
     Log.Debug('--- parseAniDBXml - Begin -------------------------------------------------------------------------------------------')
     Log("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
 
@@ -288,6 +291,7 @@ class HamaCommonAgent:
       
       ### TheTVDB.com - Build 'tvdbSummary' table ###
       summary_missing = []
+      summary_present = []
       for episode in tvdbanime.xpath('Episode'):                         
         Overview        = getElementText(episode, 'Overview'       )    
         SeasonNumber    = getElementText(episode, 'SeasonNumber'   )   
@@ -300,10 +304,10 @@ class HamaCommonAgent:
         episodeWarning = ""
         if not SeasonNumber=="" and not EpisodeNumber=="":                                    #If something to treat
           if Overview=="":                                                                    # If empty overview
-            #Log.Debug("parseAniDBXml - theTVDB.com Episode Summary missing - " + metadata.title + " s" + SeasonNumber + "e" + EpisodeNumber + " - " + TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid))
             summary_missing.append(" s" + SeasonNumber + "e" + EpisodeNumber)
             episodeWarning ="Episode Overview Empty. "
-          
+          else:
+            summary_present.append(" s" + SeasonNumber + "e" + EpisodeNumber)
           if tvdbid.isdigit():
             Overview = "TheTVDB.com: " + \
              "<A href='%s'>%s</A> > "        % ( TVDB_SERIE_URL   % (tvdbid              ), tvdbtitle                  ) + \
@@ -315,8 +319,8 @@ class HamaCommonAgent:
             tvdbSummary [ "s%se%s" % (SeasonNumber, absolute_number) ] = Overview             #     In tvdbSummary Add at key sxex the Overview (summary)
           else:                                                                               #   Otherwise (only season 1 have absolute nb)
             tvdbSummary [ "s%se%s" % (SeasonNumber, EpisodeNumber  ) ] = Overview             #     In tvdbSummary Add at key sxey the Overview (summary)
-      Log.Debug("parseAniDBXml - TVDB Episode Summary table - Episodes with summary:    " + str(sorted(tvdbSummary.keys())))
-      Log.Debug("parseAniDBXml - TVDB Episode Summary table - Episodes without Summary: " + str(sorted(summary_missing)))
+      Log.Debug("parseAniDBXml - TVDB Episode Summary table - Episodes with summary:    " + str(sorted(summary_present)) )
+      Log.Debug("parseAniDBXml - TVDB Episode Summary table - Episodes without Summary: " + str(sorted(summary_missing)) )
           
     ### AniDB.net Posters ###
     if getElementText(anime, 'picture') == "":
@@ -330,11 +334,11 @@ class HamaCommonAgent:
     warnings=""
     for temp in serieWarning:
       warnings += temp
-    description = "AniDB.net:      <A href='%s'>%s</A><BR />\n"        % (ANIDB_SERIE_URL % (metadata.id), metadata.title)
+    description = "AniDB.net:      <A href='%s'>%s</A><BR />\n"        % (ANIDB_SERIE_URL % (metadata.id),   metadata.title          )
     if tvdbid.isdigit():                                                                      # If a TV Serie have a tvdbid in the mapping file
-      description += "TheTVDB.com: <A href='%s'>%s</A> %s\n"           % (TVDB_SERIE_URL  % (tvdbid), metadata.title, warnings) + description 
+      description += "TheTVDB.com: <A href='%s'>%s</A> %s\n"           % (TVDB_SERIE_URL  % (tvdbid),        metadata.title, warnings) + description 
     else:
-      description += "TheTVDB.com: <A HREF='%s'>Search title</A> %s\n" % (TVDB_SEARCH_URL % (metadata.title),         warnings) + description 
+      description += "TheTVDB.com: <A HREF='%s'>Search title</A> %s\n" % (TVDB_SEARCH_URL % (metadata.title),                warnings) + description 
     try:                                                                                      
       temp = getElementText(anime, 'description')
       description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', temp)       # Remove wiki-style links to staff, characters etc
@@ -512,8 +516,7 @@ class HamaCommonAgent:
         ### TVDB mapping episode summary ###
         anidb_ep = 's' + season + 'e' + epNumVal                                              # Set anidb_ep episode number
         tvdb_ep  = ""                                                                         #
-        summary  = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "          % (metadata.id, metadata.title) + \
-                             "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A><BR />\n" % (eid, season, epNumVal)  # update summary with tvdbSummary at 'tvdb_ep' key
+        summary  = ""
         if tvdbid.isdigit():                                                                  # Matching TVDB id found 
           if anidb_ep in mappingList and mappingList[anidb_ep] in tvdbSummary :               #   If ep in mapping list and mapped ep in the summary list
             tvdb_ep = mappingList [ anidb_ep ]                                                #     tvdb_ep correcponding episode is through the mapping list
@@ -524,11 +527,13 @@ class HamaCommonAgent:
           if tvdb_ep == "":                                                                   #   if tvdb_ep variable defines
             Log.Debug("parseAniDBXml - Episode Summaries - AniDB episod '"+anidb_ep+"' could not be mapped - defaulttvdbseason: " + defaulttvdbseason)
           else:
-            summary = ( tvdbSummary [ tvdb_ep ] if not tvdb_ep == None else "" ) + summary    #     update summary with tvdbSummary at 'tvdb_ep' key
+            summary = ( tvdbSummary [ tvdb_ep ] if not tvdb_ep == None else "" )              #     update summary with tvdbSummary at 'tvdb_ep' key
             #if not tvdb_ep == anidb_ep:                                                      # Because if there is no mapping to be done, no point seeing the logs
             mapped_eps.append( anidb_ep + ">" + tvdb_ep )                                        #
         else:                                                                                 # No tvdbid found
-          summary = summary + "TheTVDB.com:  No tvdb id found in anime-list-full.xml. <A HREF='http://thetvdb.com/?tab=listseries&function=Search&string=%s'>Search title in TheTVDB.com ?</A>" % metadata.title
+          summary = "TheTVDB.com:  No tvdb id found in anime-list-full.xml. <A HREF='http://thetvdb.com/?tab=listseries&function=Search&string=%s'>Search title in TheTVDB.com ?</A>" % metadata.title
+        summary  = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "          % (metadata.id, metadata.title) + \
+                              "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A><BR />\n" % (eid, season, epNumVal) + summary
         episodeObj.summary = summary                                                          #
 
         ### Duration ###
@@ -599,7 +604,9 @@ class HamaCommonAgent:
     
     anidbid                 = metadata.id
     mappingList             = {}
-    #AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)         # Load XML file
+    global AniDB_TVDB_mapping_tree
+    if not AniDB_TVDB_mapping_tree:
+      AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL)         # Load XML file
     for anime in AniDB_TVDB_mapping_tree.iterchildren('anime'):                                                  # For anime in matches.xpath('/anime-list/anime')
       if anidbid == anime.get("anidbid"):                                                     # If it is the right anime id
         tvdbid            = anime.get('tvdbid')                                               #   Get tvdb id
@@ -723,7 +730,9 @@ class HamaCommonAgent:
     #                                    xml:lang     AniDB.net language
     #                                    [text]
     
-    #AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
+    global AniDB_collection_tree
+    if not AniDB_collection_tree:
+      AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
     try:
       element = AniDB_collection_tree.iterfind("anime[@anidbid='%s']" % animeId)[0]
     except:
