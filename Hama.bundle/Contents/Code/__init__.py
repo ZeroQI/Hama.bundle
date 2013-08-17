@@ -434,9 +434,13 @@ class HamaCommonAgent:
     AniDB_warning = ""
     for temp in AniDB_warnings:
       AniDB_warning += temp + ", "
+    AniDB_warning = AniDB_warning[:-2]
+
     TVDB_warning  = ""
     for temp in TVDB_warnings:
       TVDB_warning  += temp + ", "
+    TVDB_warning  = TVDB_warning[:-2]
+    
     description = "AniDB.net: <A href='%s'>%s</A> %s\n" % ( (ANIDB_SERIE_URL % metadata.id), metadata.title, AniDB_warning)
     if tvdbid.isdigit():                                                                      # If a TV Serie have a tvdbid in the mapping file
       description += "TheTVDB.com: <A href='%s'>%s</A> %s<BR />\n" % (TVDB_SERIE_URL % (tvdbid), metadata.title, TVDB_warning) 
@@ -531,8 +535,8 @@ class HamaCommonAgent:
             summary = ( tvdbSummary [ tvdb_ep ] if not tvdb_ep == None else "" )              #     update summary with tvdbSummary at 'tvdb_ep' key
             #if not tvdb_ep == anidb_ep:                                                      # Because if there is no mapping to be done, no point seeing the logs
             mapped_eps.append( anidb_ep + ">" + tvdb_ep )                                     #
-        summary  = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "          % (metadata.id, metadata.title) + \
-                              "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A><BR />\n" % (eid, season, epNumVal) + summary
+        summary  = "AniDB.net: <A href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'>%s</A> > "    % (metadata.id, metadata.title) + \
+                              "<A href='http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'   >s%se%s</A>\n" % (eid, season, epNumVal) + summary
         episodeObj.summary = summary                                                          #
 
         ### AniDB Duration ###
