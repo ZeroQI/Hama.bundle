@@ -5,18 +5,18 @@
         <key>CFBundleIdentifier</key>
         <string>com.plexapp.agents.hama</string>
         <key>PlexAgentAttributionText</key>
-        <string>HTTP AniDB Metadata Agent (HAMA) for absolute numbering anime lookup from :
-        
+        <string>HTTP AniDB Metadata Agent (HAMA) was created by Atomicstrawberry (v0.1-0.4), is currently maintained by ZeroQI (v0.5+). HAMA uses the different databases and software below.&lt;br/&gt;:&lt;br/&gt;
+		
 		Uses most metadata and cover from AniDB:
 		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://anidb.net/&quot;&gt;AniDB.net&lt;/a&gt; is non-profit database of anime information that is freely open to the public. As well as providing general anime information, if you sign up you can organise your anime collection, keep track of what you've seen and how much you liked it, and all kinds of nifty extras.&quot;&lt;/i&gt;&lt;/blockquote&gt;
 
-		Uses Fanart, covers, banners and episode summary from TheTVDB:
+		Uses pictures (Fanart, covers, banners) and episode summary (v0.5+) from TheTVDB:
 		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://thetvdb.com&quot;&gt;TheTVDB.com&lt;/a&gt; is a community driven database of television shows. &lt;br/&gt;
 		It is our aim to be the most complete and accurate source of&lt;br/&gt; information on TV series from many languages and countries.&quot;&lt;/i&gt;&lt;/blockquote&gt;
 
-		Uses XML files from :
-		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://thetvdb.com&quot;&gt;TheTVDB.com&lt;/a&gt; is a community driven database of television shows. &lt;br/&gt;
-		It is our aim to be the most complete and accurate source of&lt;br/&gt; information on TV series from many languages and countries.&quot;&lt;/i&gt;&lt;/blockquote&gt;
+		Uses files from XBMC plugin 'AniDB mod' (v0.5+):
+		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://forum.xbmc.org/showthread.php?tid=142835&quot;&gt;XBMC AniDB Mod&lt;/a&gt; is a XBMC metadata agent scrapper for AniDB. &lt;br/&gt;
+		The AniDB to TVDB XML mapping file (&lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/anime-list-master.xml&quot;&gt;anime-list-master.xml&lt;/a&gt;), and Movie set collection file (&lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/anime-movieset-list.xml&quot;&gt;anime-movieset-list.xml&lt;/a&gt;) are used with ScudLee authorisation and theire use and format explained here: &lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/README.md&quot;&gt;Read Me&lt;/a&gt;&quot;&lt;/i&gt;&lt;/blockquote&gt;
         </string>
         <key>PlexFrameworkVersion</key>
         <string>2</string>
