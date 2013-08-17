@@ -17,6 +17,10 @@
 		Uses files from XBMC plugin 'AniDB mod' (v0.5+):
 		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://forum.xbmc.org/showthread.php?tid=142835&quot;&gt;XBMC AniDB Mod&lt;/a&gt; is a XBMC metadata agent scrapper for AniDB. &lt;br/&gt;
 		The AniDB to TVDB XML mapping file (&lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/anime-list-master.xml&quot;&gt;anime-list-master.xml&lt;/a&gt;), and Movie set collection file (&lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/anime-movieset-list.xml&quot;&gt;anime-movieset-list.xml&lt;/a&gt;) are used with ScudLee authorisation and theire use and format explained here: &lt;a href=&quot;https://github.com/ScudLee/anime-lists/blob/master/README.md&quot;&gt;Read Me&lt;/a&gt;&quot;&lt;/i&gt;&lt;/blockquote&gt;
+
+		Uses Better ABsolute Scanner (BABS):
+		&lt;blockquote&gt;&lt;i&gt;&quot;&lt;a href=&quot;http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/&quot;&gt;Better ABsolute Scanner (BABS)&lt;/a&gt; is a scanner that uses absolute numbering like AniDB.&lt;br/&gt;
+		It disables certain features of the original scanner, but leaves most of the original scanner's features in place
         </string>
         <key>PlexFrameworkVersion</key>
         <string>2</string>
@@ -24,3 +28,5 @@
         <string>Agent</string>
 </dict>
 </plist>
+
+
