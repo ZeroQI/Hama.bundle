@@ -1,0 +1,3 @@
+[submodule "Hama.bundle/Contents/Resources/anime-lists"]
+	path = Hama.bundle/Contents/Resources/anime-lists
+	url = https://github.com/ScudLee/anime-lists.git
