@@ -1,43 +1,52 @@
 [
-    {
-        "id": "GetTvdbFanart",
-        "label": "Attempt to fetch Fanart images from TVDB",
-        "type": "bool",
-        "default": "true",
-    },
-
-    {
-        "id": "GetTvdbPosters",
-        "label": "Attempt to fetch Poster images from TVDB",
-        "type": "bool",
-        "default": "true",
-    },
-
-    {
-        "id": "GetTvdbBanners",
-        "label": "Attempt to fetch series Banner images from TVDB",
-        "type": "bool",
-        "default": "true",
-    },
-
-    {
-        "id": "PreferAnidbPoster",
-        "label": "Prefer AniDB's poster over TVDB if TVDB lookup enabled",
-        "type": "bool",
-        "default": "true",
-    },
-   {
-      "id":      "Language1",
-      "label":   "First Language preference for the title",
-      "type":    "enum",
-      "values":  ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-      "default": "x-jat",
-   },
-   {
-      "id":      "Language2",
-      "label":   "Second Language preference for the title",
-      "type":    "enum",
-      "values":  ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-      "default": "en",
-   },
+  {
+    "id"      : "GetTvdbFanart",
+    "label"   : "Attempt to fetch Fanart images from TVDB",
+    "type"    : "bool",
+    "default" : "true"
+  },
+  {
+    "id"      : "GetTvdbPosters",
+    "label"   : "Attempt to fetch Poster images from TVDB",
+    "type"    : "bool",
+    "default" : "true"
+  },
+  {
+    "id"      : "GetTvdbBanners",
+    "label"   : "Attempt to fetch series Banner images from TVDB",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "PreferAnidbPoster",
+    "label"   : "Prefer AniDB's poster over TVDB if TVDB lookup enabled",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "UseWebLinks",
+    "label"   : "Display links + warnings in tv serie/Movie summary and episode overview page",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "UseWarnings",
+    "label"   : "Use warnings in tv serie/Movie summary and episode overview",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "Language1",
+    "label"   : "First Language preference for the title",
+    "type"    : "enum",
+    "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
+    "default" : "x-jat"
+  },
+  {
+    "id"      : "Language2",
+    "label"   : "Second Language preference for the title",
+    "type"    : "enum",
+    "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
+    "default" : "en"
+  }
 ]
