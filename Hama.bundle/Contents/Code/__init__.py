@@ -4,7 +4,7 @@
 ######################################################################
 
 ### Global initialisation ################################################################################################################################################
-import os, os.path, re, time, datetime # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+import os, os.path, re, time, datetime, string # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
                                        # Unused modules:            urllib, types, hashlib , unicodedata, Stack, utils
 SERIE_LANGUAGE_PRIORITY      = [ 'x-jat', 'en']
 EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
@@ -29,12 +29,9 @@ TVDB_SEASON_URL              = 'http://thetvdb.com/?tab=season&seriesid=%s&seaso
 TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'
 TVDB_SEARCH_URL              = 'http://thetvdb.com/?tab=listseries&function=Search&string=%s'
 
-ANIDB_ANIME_TITLES           = 'anime-titles.xml'                                              # AniDB title database decompressed in Hama.bundle\Contents\Resources
-ANIDB_TVDB_MAPPING           = 'anime-list-master.xml'                                         # ScudLee AniDB to TVDB XML mapping file
-ANIDB_COLLECTION_MAPPING     = 'anime-movieset-list.xml'                                       # ScudLee AniDB movies collections XML mapping file
-ANIDB_ANIME_TITLES_URL       = 'anime-titles.xml.gz'                                           # AniDB title database decompressed in Hama.bundle\Contents\Resources
-ANIDB_TVDB_MAPPING_URL       = 'https://raw.github.com/ScudLee/anime-lists/master/anime-list-master.xml'
-ANIDB_COLLECTION_MAPPING_URL = 'https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
+ANIDB_ANIME_TITLES           = 'anime-lists/animetitles.xml'                                   # AniDB title database decompressed in Hama.bundle\Contents\Resources
+ANIDB_TVDB_MAPPING           = 'anime-lists/anime-list-master.xml'                             # ScudLee AniDB to TVDB XML mapping file
+ANIDB_COLLECTION_MAPPING     = 'anime-lists/anime-movieset-list.xml'                           # ScudLee AniDB movies collections XML mapping file
 ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body='
 
 ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
@@ -135,9 +132,9 @@ def Start():
 
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
   
-  AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # AniDB's:   anime-titles.xml
-  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # ScudLee's: anime-list-master.xml 
-  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) #            anime-movieset-list.xml 
+  AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES)       # AniDB's:   anime-titles.xml
+  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING)       # ScudLee's: anime-list-master.xml 
+  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING) #            anime-movieset-list.xml 
 
   global networkLock
   networkLock = Thread.Lock()
@@ -170,7 +167,7 @@ class HamaCommonAgent:
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
     global AniDB_title_tree                                                                   # Call global variable
     if not AniDB_title_tree:                                                                  # If not loaded yet
-      AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)  # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
+      AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES)  # Get the xml title file into a tree, #from lxml import etree #doc = etree.parse('content-sample.xml')
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB.net (Caching it) from the anime-id ###
     if origTitle.startswith('aid:'):                                                          # If custom search starts with aid:
@@ -670,7 +667,7 @@ class HamaCommonAgent:
     mapping_studio          = ""                                                              # Studio from mapping file
     global AniDB_TVDB_mapping_tree, TVDB_warnings, AniDB_warnings                             # Global variables
     if not AniDB_TVDB_mapping_tree:                                                           # If XML mappile file not loaded
-      AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL) # Load XML file
+      AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING)                   # Load XML file
 
     for anime in AniDB_TVDB_mapping_tree.iterchildren('anime'):                               # For anime in matches.xpath('/anime-list/anime')
       if metadata.id == anime.get("anidbid"):                                                 # If it is the right anime id
@@ -814,7 +811,7 @@ class HamaCommonAgent:
     
     global AniDB_collection_tree
     if not AniDB_collection_tree:
-      AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
+      AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING)
 
     ### AniDB related anime List creation ###
     related_anime_list = [ ]
@@ -845,7 +842,7 @@ class HamaCommonAgent:
     #   Dict.Save()
     
   ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
-  def xmlElementFromFile (self, filename, url):
+  def xmlElementFromFile (self, filename, url=None):
     Log('xmlElementFromFile (%s, %s) %s' % (filename, url, R(filename) ) )
     try:
       element = XML.ElementFromString( Resource.Load(filename) )
@@ -867,7 +864,7 @@ class HamaCommonAgent:
 
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
-    return title.replace("'", "`").translate(None, FILTER_CHARS).lower()
+    return title.replace("'", "`").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
   ### Split a string per list of chars #################################################################################################################################
   def splitByChars(self, string, separators=SPLIT_CHARS):
