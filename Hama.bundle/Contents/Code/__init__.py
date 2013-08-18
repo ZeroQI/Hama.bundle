@@ -761,9 +761,9 @@ class HamaCommonAgent:
     posternum = 0
     for banner in bannersXml.xpath('Banner'):                                                 # For each picture reference in the banner file
       num += 1                                                                                # Increase their count
-      if banner.xpath('Language')[0].text != 'en':                                            # Skipping non-english images as AniDB/theTVDB english mainly as is this metadata agent
+      Language       = banner.xpath('Language')[0].text
+      if Language != 'en':                                                                    # Skipping non-english images as AniDB/theTVDB english mainly as is this metadata agent
         continue
-      
       bannerType     = banner.xpath('BannerType' )[0].text                                    #
       bannerType2    = banner.xpath('BannerType2')[0].text                                    #
       bannerPath     = banner.xpath('BannerPath' )[0].text                                    #
@@ -780,7 +780,7 @@ class HamaCommonAgent:
       if GetTvdbFanart  and   bannerType == 'fanart' or \
          GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season'    ) or \
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-        if not bannerRealUrl in [metadata.art, metadata.posters, metadata.banners, metadata.seasons[season].posters]: 
+        if not metaType[bannerRealUrl]:
           try:
             metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num+1 if PreferAnidbPoster else num))  #why 
             Log.Debug('getImagesFromTVDB - Downloading url1: %s, url2: %s, sort_order: %s' % (bannerRealUrl, bannerThumbUrl, num))
