@@ -391,7 +391,7 @@ class HamaCommonAgent:
         #              Plex: 512x288px .png located in 'Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/'
         metadata.studio = creator.text;                                                       # Set studio in metadata
         studio          = creator.text                                                        # 
-        log_string     += "Studio: %s, " % creator.text                                       # 
+        log_string     += "Studio: %s, " to % creator.text                                       # 
     
       if "Direction" in nameType:                                                             # Direction, Animation Direction, Chief Animation Direction, Chief Direction
         if movie:                                                                             # if movie
@@ -497,7 +497,14 @@ class HamaCommonAgent:
     TVDB_warning  = ("" if len(TVDB_warnings) == 0 else TVDB_warning[:-2])
     
     if UseWebLinks:
-      ### To Do: add ANN link
+      ### ANN link ###
+      try:
+      	ann_id = anime.xpath("resources/resource[@type='1']")[0].text
+      except:
+      	pass
+      else:
+      	description += WEB_LINK % (AniDB_Resources["1"][0] % ann_id, AniDB_Resources["1"][1]) + " "
+      	
       description = "AniDB.net: "     +WEB_LINK % (ANIDB_SERIE_URL % metadata.id,   metadata.title) + " "+(AniDB_warning if UseWarnings else "")+"\n"
       if tvdbid.isdigit():                                                                      # If a TV Serie have a tvdbid in the mapping file
         description += "TheTVDB.com: "+WEB_LINK % (TVDB_SERIE_URL  % tvdbid,        metadata.title) +" "+(TVDB_warning if UseWarnings else "") +" <BR />\n"
