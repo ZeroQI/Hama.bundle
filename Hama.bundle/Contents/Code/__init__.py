@@ -757,13 +757,15 @@ class HamaCommonAgent:
       return 0
 
     Log('getImagesFromTVDB([METADATA],%s) GetTvdbPosters: %s, GetTvdbFanart: %s, GetTvdbBanners: %s, PreferAnidbPoster: %s' %(tvdbSeriesId, GetTvdbPosters, GetTvdbFanart, GetTvdbBanners, PreferAnidbPoster))
-    num       = 0
-    posternum = 0
+    num        = 0
+    posternum  = 0
+    log_string = ""
     for banner in bannersXml.xpath('Banner'):                                                 # For each picture reference in the banner file
       num += 1                                                                                # Increase their count
-      Language       = banner.xpath('Language')[0].text
+      Language       = banner.xpath('Language'   )[0].text
       if Language != 'en':                                                                    # Skipping non-english images as AniDB/theTVDB english mainly as is this metadata agent
         continue
+      id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text                                    #
       bannerType2    = banner.xpath('BannerType2')[0].text                                    #
       bannerPath     = banner.xpath('BannerPath' )[0].text                                    #
@@ -776,7 +778,9 @@ class HamaCommonAgent:
                         metadata.posters                 if bannerType=='poster' else \
                         metadata.banners                 if bannerType=='series' or  bannerType2=='seasonwide' else \
                         metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season'     else None)
-                          
+      if bannerType == 'poster':
+        posternum += 1
+        log_string += id + ", " 
       if GetTvdbFanart  and   bannerType == 'fanart' or \
          GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season'    ) or \
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
@@ -786,10 +790,9 @@ class HamaCommonAgent:
             Log.Debug('getImagesFromTVDB - Downloading url1: %s, url2: %s, sort_order: %s' % (bannerRealUrl, bannerThumbUrl, num))
           except:
             Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
-      if bannerType == 'poster':
-        posternum += 1
-      return posternum
-
+    Log.Debug("getImagesFromTVDB - Item number: %s, poster en: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
+    return posternum
+    
   ### AniDB collection mapping #######################################################################################################################
   def anidbCollectionMapping(self, metadata, anime ):
   
