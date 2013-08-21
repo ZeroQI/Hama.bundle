@@ -35,7 +35,9 @@ ANIDB_COLLECTION_MAPPING     = 'anime-lists/anime-movieset-list.xml'            
 ANIDB_ANIME_TITLES_URL       = 'http://anidb.net/api/anime-titles.xml.gz'                      # AniDB title database decompressed in Hama.bundle\Contents\Resources
 ANIDB_TVDB_MAPPING_URL       = 'https://raw.github.com/ScudLee/anime-lists/master/anime-list-master.xml'
 ANIDB_COLLECTION_MAPPING_URL = 'https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
-ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body='
+ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'
+
+THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'
 
 ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
 RESTRICTED_GENRE_NAMES    = [ '18 Restricted', 'Pornography' ]
@@ -391,7 +393,7 @@ class HamaCommonAgent:
         #              Plex: 512x288px .png located in 'Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/'
         metadata.studio = creator.text;                                                       # Set studio in metadata
         studio          = creator.text                                                        # 
-        log_string     += "Studio: %s, " to % creator.text                                       # 
+        log_string     += "Studio: %s, " % creator.text                                       # 
     
       if "Direction" in nameType:                                                             # Direction, Animation Direction, Chief Animation Direction, Chief Direction
         if movie:                                                                             # if movie
@@ -419,13 +421,13 @@ class HamaCommonAgent:
     Log.Debug("parseAniDBXml - TVDB - AniDB-TVDB mapping file")                               #
     AniDB_warnings = []                                                                       #
     TVDB_warnings  = []                                                                       #
-    tvdbid, defaulttvdbseason, mappingList, mapping_studio = self.anidbTvdbMapping(metadata, AniDB_warnings)  # Search for the TVDB ID from the animeId + update studio
+    tvdbid, defaulttvdbseason, mappingList, mapping_studio, mapping_element = self.anidbTvdbMapping(metadata, AniDB_warnings)  # Search for the TVDB ID from the animeId + update studio
     tvdbSummary   = {}                                                                        # Declare tvdbSummary as Dictionnary
+    tvdbposternum = 0                                                                       # Put hte number of TVDB posters to 0
     if tvdbid.isdigit():                                                                      # If a TV Serie so will have a tvdbid
       Log.Debug("parseAniDBXml - TVDB - id: " + tvdbid)                                       #
       
       ### TheTVDB.com - Fanart, Poster and Banner ###
-      tvdbposternum = 0                                                                       # Put hte number of TVDB posters to 0
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:                                   # TVDB doesn't index movies, nor 18+ anime
         tvdbposternum = self.getImagesFromTVDB(metadata, media, tvdbid)                       # getImagesFromTVDB(self, metadata, tvdbSeriesId):self.getImagesFromTVDB(metadata, media, tvdbid)                                           # getImagesFromTVDB(self, metadata, tvdbSeriesId):
         if not tvdbposternum:                                                                 # If a TV Serie doesn't have english posters
@@ -460,10 +462,9 @@ class HamaCommonAgent:
           else:                                                                                 #
             summary_present.append(" s" + SeasonNumber + "e" + EpisodeNumber)
           if UseWebLinks:
-           Overview = "TheTVDB.com: " + \
-                       WEB_LINK % (TVDB_SERIE_URL  %(tvdbid              ),  tvdbtitle            ) + " > " + \
-                       WEB_LINK % (TVDB_SEASON_URL %(tvdbid, seasonid    ), "Season "+SeasonNumber) + " > " + \
-                       WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "s"+SeasonNumber+"e"+EpisodeNumber) + " " + episodeWarning + "\n" + Overview
+           Overview = WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "TVDB") + " " + episodeWarning + Overview
+                      # WEB_LINK % (TVDB_SERIE_URL  %(tvdbid              ),  "TVDB"            ) + " > " + \
+                      # WEB_LINK % (TVDB_SEASON_URL %(tvdbid, seasonid    ), "Season "+SeasonNumber) + " > " + \
           tvdbSummary [ "s"+SeasonNumber+"e"+(EpisodeNumber if absolute_number=="" else absolute_number) ] = Overview
         Log.Debug("parseAniDBXml - TheTVDB.com - Episode Summary table - Episodes with summary:    " + str(sorted(summary_present)) )
         Log.Debug("parseAniDBXml - TheTVDB.com - Episode Summary table - Episodes without Summary: " + str(sorted(summary_missing)) )
@@ -479,12 +480,18 @@ class HamaCommonAgent:
       if not bannerRealUrl in metadata.posters:                                               #   If url not already there
         metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl).content, sort_order=(1 if PreferAnidbPoster else 99))
 
+    ### Plex TV serie theme ###
+    Log.Debug("parseAniDBXml - Plex TV serie theme - THEME_URL: %s, tvdbid: %s" % (THEME_URL, tvdbid))
+    url = THEME_URL % tvdbid
+    if url not in metadata.themes:                                                            # To Do: file search in local or common folder (no files in each media folder)
+      metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
+
     ### AniDB Serie/Movie description + link ###
     Log.Debug("parseAniDBXml - AniDB.net - Serie/Movie description + link")
     if studio + mapping_studio == "":
-      warnings = "AniDb and XML missing studio."                                          # add studio in xml
+      warnings = "AniDb and XML missing studio."                                              # add studio in xml
     elif not studio == "" and not mapping_studio == "":
-      warnings = "AniDb have studio '%s'  but XML have '%s'" % (studio, mapping_studio)   # => remove studio in xml
+      warnings = "AniDb have studio '%s'  but XML have '%s'" % (studio, mapping_studio)       # => remove studio in xml
     
     AniDB_warning = ""
     for temp in AniDB_warnings:
@@ -496,30 +503,47 @@ class HamaCommonAgent:
       TVDB_warning  += temp + ", "
     TVDB_warning  = ("" if len(TVDB_warnings) == 0 else TVDB_warning[:-2])
     
+    description=""
     if UseWebLinks:
       ### ANN link ###
+      #Log.Debug("parseAniDBXml - AniDB.net - ANN link") #works but uses all length of the description field (html code takes more length than displayed chars)
       try:
-      	ann_id = anime.xpath("resources/resource[@type='1']")[0].text
+        #resources = anime.xpath("resources/resource[@type]")
+        #Log.Debug("AniDB links - resources: %s" % (len(resources)))
+        #for resource in resources:
+        #  type       = resource.get('type')
+        #  identifiers = anime.xpath("resources/resource[@type='"+type+"']/externalentity/identifier")
+        #  Log.Debug("AniDB links - loop - %s " % (type))
+        #  if type=="3":
+        #    description += WEB_LINK % (AniDB_Resources[type][0] % (identifiers[0].text, identifiers[1].text), AniDB_Resources[type][1]) +" "
+        #  else:
+        #    count=0
+        #    for identifier in identifiers:
+        #      count +=1
+        #    description += WEB_LINK % (AniDB_Resources[type][0] % identifier.text, AniDB_Resources[type][1]+("" if count==1 else count) ) +" "
+        ann_id       = anime.xpath("resources/resource[@type='1']/externalentity/identifier")[0].text
+        description += WEB_LINK % (AniDB_Resources["1"][0] % ann_id, AniDB_Resources["1"][1]) +" "
       except:
-      	pass
-      else:
-      	description += WEB_LINK % (AniDB_Resources["1"][0] % ann_id, AniDB_Resources["1"][1]) + " "
-      	
-      description = "AniDB.net: "     +WEB_LINK % (ANIDB_SERIE_URL % metadata.id,   metadata.title) + " "+(AniDB_warning if UseWarnings else "")+"\n"
+        pass
+      description   += WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB") +" "+(AniDB_warning+" " if UseWarnings else "")
       if tvdbid.isdigit():                                                                      # If a TV Serie have a tvdbid in the mapping file
-        description += "TheTVDB.com: "+WEB_LINK % (TVDB_SERIE_URL  % tvdbid,        metadata.title) +" "+(TVDB_warning if UseWarnings else "") +" <BR />\n"
-      else: ### NO TVDB id ###
-        description += "TheTVDB.com: "+WEB_LINK % ( TVDB_SEARCH_URL % (metadata.title,"Search title"), TVDB_warning) + " <BR />\n"
-        # #%3B Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring
-        # TheTVBD.com: id not mapped. [search TVDB] [Submit bug report] (need GIT account) [file format]
-        # SubmitBugReport = "<A href='%s'>%s</A>" % (ANIDB_TVDB_MAPPING_FEEDBACK % ("anidbid:%s '%s' matches tvdbid:xxxxxxx" % (metadata.id,metadata.title), body), str(warnings))
+        description += WEB_LINK % (TVDB_SERIE_URL  % tvdbid,       "TVDB") +" "+( TVDB_warning+" " if UseWarnings else "")
+      else:
+        ### NO TVDB id ###
+        description += WEB_LINK % ( TVDB_SEARCH_URL % metadata.title,"TVDB Search") + " " + TVDB_warning + " "
+        # # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring
+        # TheTVBD.com: id not mapped. [search TVDB] [Submit bug report] (need GIT account) [file format] "```" String.StripTags(XML.StringFromElement(mapping_element) String.Quote(
+        #temp = WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, metadata.title),  XML.StringFromElement(mapping_element, encoding='utf8').replace("<","&#60;").replace(">","&#62;").replace("&","&#38;")), "Submit bug report (need GIT account)")+ " "
+        #dict = {';':"%3B", '\n':"%0A", '	':"%09"}
+        #for item in dict:
+        #  temp.replace(item, list[item])
+        #description += temp
     elif UseWarnings:
-      description = ("" if len(AniDB_warnings) == 0 else "AniDB.net: "   + AniDB_warning +       "\n")
+      description+= ("" if len(AniDB_warnings) == 0 else "AniDB.net: "   + AniDB_warning +       "\n")
       description+= ("" if len( TVDB_warnings) == 0 else "TheTVDB.com: " +  TVDB_warning + "<BR />\n")
-    else:
-      description = ""
     try:                                                                                      
       description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
+      #description += String.StripTags( XML.StringFromElement(mapping_element, encoding='utf8') )
       metadata.summary = description                                                          #
     except Exception, e:                                                                      #
       Log.Debug("Exception: " + str(e) )                                                      #
@@ -597,10 +621,7 @@ class HamaCommonAgent:
             #if not tvdb_ep == anidb_ep:                                                      # Because if there is no mapping to be done, no point seeing the logs
             mapped_eps.append( anidb_ep + ">" + tvdb_ep )                                     #
         if UseWebLinks:
-          summary = "AniDB.net: " + \
-                    WEB_LINK % (ANIDB_SERIE_URL   % metadata.id, metadata.title         ) + " > " + \
-                    WEB_LINK % (ANIDB_EPISODE_URL % eid,         "s"+season+"e"+epNumVal) + " "   + \
-                    "\n" + summary
+          summary = WEB_LINK % (ANIDB_EPISODE_URL % eid, "AniDB") + " " + summary             #WEB_LINK % (ANIDB_SERIE_URL   % metadata.id, "AniDB"                ) + " > " + \
         episodeObj.summary = summary                                                          #
 
         ### AniDB Duration ###
@@ -677,7 +698,7 @@ class HamaCommonAgent:
     
     mappingList             = {}                                                              # Episode mapping list
     mapping_studio          = ""                                                              # Studio from mapping file
-    global AniDB_TVDB_mapping_tree #, TVDB_warnings, AniDB_warnings                             # Global variables
+    global AniDB_TVDB_mapping_tree #, TVDB_warnings, AniDB_warnings, studio                   # Global variables
     if not AniDB_TVDB_mapping_tree:                                                           # If XML mappile file not loaded
       AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL) # Load XML file
 
@@ -696,11 +717,11 @@ class HamaCommonAgent:
           if metadata.studio == "":                                                           # Need to be after "elf.anidbTvdbMapping(metadata)"
             metadata.studio = studio2                                                         #
           else:
-            AniDB_warnings.append("Studio in both AniDB and mapping file")                     # studio in mapping file but is in AniDB  
+            AniDB_warnings.append("Studio in both AniDB and mapping file")                    # studio in mapping file but is in AniDB  
             pass                                                                              #
         if not tvdbid.isdigit():                                                              #   If the xml mapping file possibly needs updating, log it
-            Log("[Lanime-list-full.xml] Missing tvdbid for anidbid %s" % metadata.id);       #
-            AniDB_warnings.append("studio AniDB '%s', anime-list: '%s'" % (studio, studio2))   #
+            Log("[anime-list-full.xml] Missing tvdbid for anidbid %s" % metadata.id);         #
+            #AniDB_warnings.append("studio AniDB '%s', anime-list: '%s'" % (studio, studio2))  #
         else:                                                                                 # Else if Anime id valid
           try:
             for season in anime.iterchildren('mapping-list'):                                 # For each season mapping line in mapping list
@@ -714,10 +735,10 @@ class HamaCommonAgent:
             mappingList = {}                                                                  # Leave it empty
             pass         
         Log("gettvdbId(%s) tvbdid: %s studio: %s defaullttvdbseason: %s" % (metadata.id, tvdbid, studio2, str(defaulttvdbseason)) )
-        return tvdbid, defaulttvdbseason, mappingList, studio2
+        return tvdbid, defaulttvdbseason, mappingList, studio2, anime
 
     Log.Debug('anidbTvdbMapping('+metadata.id+') found no matching anidbid...')
-    return "", "",[], ""
+    return "", "",[], "", ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, tvdbSeriesId):
@@ -880,7 +901,7 @@ class HamaCommonAgent:
 
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
-    return title.replace("'", "`").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
+    return title.replace("`", "'").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
   ### Split a string per list of chars #################################################################################################################################
   def splitByChars(self, string, separators=SPLIT_CHARS):
