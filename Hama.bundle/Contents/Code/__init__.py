@@ -482,10 +482,24 @@ class HamaCommonAgent:
 
     ### Plex TV serie theme ###
     Log.Debug("parseAniDBXml - Plex TV serie theme - THEME_URL: %s, tvdbid: %s" % (THEME_URL, tvdbid))
-    url = THEME_URL % tvdbid
-    if url not in metadata.themes:                                                            # To Do: file search in local or common folder (no files in each media folder)
-      metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
-
+    # http://wiki.plexapp.com/index.php/TV_Themes
+    plex_messages = ""
+    if tvdbid:
+    	# if local
+    	#   url = local
+    	# elif  in common theme song folder
+    	#   try language priority
+    	#   try root of common theme song folder   
+    	# try remote server
+    	url = THEME_URL % tvdbid
+      if url not in metadata.themes:                                                            # To Do: file search in local or common folder (no files in each media folder)
+        try:
+    	    metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
+        except:
+          plex_messages = "Missing theme song"
+          #plex_messages =  <a href="mailto:themes@plexapp.com?cc=&subject=Serie%20-%20tvdbid.mp3">Mail 30s or less theme</a> 'TV Show Name - TVDBID.mp3' sample rate 44.1Khz+ 128kbps < bitrate < 256kbps Plex TVDB theme song missing. "
+          pass
+      
     ### AniDB Serie/Movie description + link ###
     Log.Debug("parseAniDBXml - AniDB.net - Serie/Movie description + link")
     if studio + mapping_studio == "":
