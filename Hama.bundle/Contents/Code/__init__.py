@@ -94,18 +94,9 @@ AniDB_Resources = { "1":["http://www.animenewsnetwork.com/encyclopedia/anime.php
       }
       
 ### TheTVDB.com language codes ###
-THETVDB_LANGUAGES_CODE = { 'cs':'28', 'da':'10',
- 'de':'14',
- 'el':'20', 'en': '7', 'es':'16', 'fi':'11',
- 'fr':'17', 'he':'24', 'hu':'19',
- 'it':'15', 'ja':'25',
-
-                           'ko':'32', 'nl':'13', 'no': '9',
- 'pl':'18',
- 'pt':'26', 'ru':'22',
- 'sv': '8', 'tr':'21',
- 'zh': '6'
-}
+THETVDB_LANGUAGES_CODE = { 'cs':'28', 'da':'10', 'de':'14', 'el':'20', 'en': '7', 'es':'16', 'fi':'11', 'fr':'17', 'he':'24', 'hu':'19', 'it':'15', 'ja':'25',
+                           'ko':'32', 'nl':'13', 'no': '9', 'pl':'18', 'pt':'26', 'ru':'22', 'sv': '8', 'tr':'21', 'zh': '6' 
+                         }
 
 ### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
 FILTER_SEARCH_WORDS          = [                                                                                                      # Lowercase only
@@ -470,7 +461,9 @@ class HamaCommonAgent:
         Log.Debug("parseAniDBXml - TheTVDB.com - Episode Summary table - Episodes without Summary: " + str(sorted(summary_missing)) )
     else:                                                                                     #
       TVDB_warnings.append("TVDBid not in mapping file")                                      #  
-      
+      Data.Save("TVDB_warnings.txt", "TVDBid not in mapping file")
+      #string = Data.Load(item), Data.Save(file, string+string.join(TVDB_warnings)) Data.Remove(item), Data.Exists(item)
+
     ### AniDB.net Posters ###
     Log.Debug("parseAniDBXml - AniDB.net - Posters")
     if getElementText(anime, 'picture') == "":
@@ -491,16 +484,20 @@ class HamaCommonAgent:
     	#   try language priority
     	#   try root of common theme song folder   
     	# try remote server
-    	url = THEME_URL % tvdbid
+    	# import httplib / def exists(site, path): / conn = httplib.HTTPConnection(site) / conn.request('HEAD', path) / response = conn.getresponse() / conn.close() / return response.status == 200 
+      url = THEME_URL % tvdbid
       if url not in metadata.themes:                                                            # To Do: file search in local or common folder (no files in each media folder)
         try:
-    	    metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
+    	  metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
         except:
           plex_messages = "Missing theme song"
           #plex_messages =  <a href="mailto:themes@plexapp.com?cc=&subject=Serie%20-%20tvdbid.mp3">Mail 30s or less theme</a> 'TV Show Name - TVDBID.mp3' sample rate 44.1Khz+ 128kbps < bitrate < 256kbps Plex TVDB theme song missing. "
           pass
       
     ### AniDB Serie/Movie description + link ###
+    #     r = requests.head(url) / return r.status_code == 200
+    #  urllib.urlopen("http://www.stackoverflow.com").getcode()
+    # import urllib2 / def file_exists(url): / request = urllib2.Request(url) / request.get_method = lambda : 'HEAD' / try: / response = urllib2.urlopen(request) / return True / except: / return False
     Log.Debug("parseAniDBXml - AniDB.net - Serie/Movie description + link")
     if studio + mapping_studio == "":
       warnings = "AniDb and XML missing studio."                                              # add studio in xml
