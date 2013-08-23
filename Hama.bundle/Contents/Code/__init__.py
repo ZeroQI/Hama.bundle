@@ -322,7 +322,7 @@ class HamaCommonAgent:
     if movie and not movie2: 
       #metadata = Agent.TV_Show() #Load metadata for TV shows instead of selected Movie category
       pass
-    elif not movie and movie2
+    elif not movie and movie2:
       pass
       # metadata = Agent.Movies() #Load metadata for movies instead of the TV Show folder category
     
@@ -423,7 +423,7 @@ class HamaCommonAgent:
 
     ### TVDB get id (+etc...) through mapping file ###
     Log.Debug("parseAniDBXml - TVDB - AniDB-TVDB mapping file")                               #
-    tvdbid, defaulttvdbseason, mappingList, mapping_studio, mapping_element = self.anidbTvdbMapping(metadata)  # Search for the TVDB ID from the animeId + update studio
+    tvdbid, defaulttvdbseason, mappingList, mapping_studio, mapping_element = self.anidbTvdbMapping(metadata, error_log)  # Search for the TVDB ID from the animeId + update studio
     tvdbSummary   = {}                                                                        # Declare tvdbSummary as Dictionnary
     tvdbposternum = 0                                                                         # Put hte number of TVDB posters to 0
     if not tvdbid.isdigit():                                                                  # If a TV Serie so will have a tvdbid
@@ -452,7 +452,7 @@ class HamaCommonAgent:
     	  metadata.themes[url] = Proxy.Media(HTTP.Request(url))                                   #
         except:
           display_log['themes'].append("Missing theme song")
-          error_log  ['themes'].append("Missing theme song - <a href="mailto:themes@plexapp.com?cc=&subject=%s%20-%20%s.mp3">Mail '%s - %s.mp3' 30s or less sample rate 44.1Khz+, 128kbps <= bitrate <= 256kbps</a>" % (metadata.title, tvdbid,metadata.title, tvdbid))
+          error_log  ['themes'].append("Missing theme song - <a href='mailto:themes@plexapp.com?cc=&subject=%s%20-%20%s.mp3'>Mail '%s - %s.mp3' 30s or less sample rate 44.1Khz+, 128kbps <= bitrate <= 256kbps</a>" % (metadata.title, tvdbid,metadata.title, tvdbid))
           pass
 
       ### TVDB - Fanart, Poster and Banner ###
@@ -511,14 +511,16 @@ class HamaCommonAgent:
         except: pass
       
     ### AniDB Serie/Movie description + link ###
-    Log.Debug("parseAniDBXml - AniDB.net - Serie/Movie description + link")
+    Log.Debug("parseAniDBXml - AniDB - Serie/Movie description + link")
     if studio + mapping_studio == "":
       error_log['anime-list'].append("Aid: %s AniDb and anime-list missing studio." % metadata.id)                         # add studio in xml
     elif not studio == "" and not mapping_studio == "":
       error_log['anime-list'].append("Aid: %s AniDb have studio '%s' but XML have '%s'" % (metadata.id, studio, mapping_studio))# => remove studio in xml
-    AniDB_warning = ( string.join(error_log['AniDB'],", ")[:-2] if len(error_log['AniDB']) else "" )   # for entry in error_log['AniDB']: AniDB_warning += entry + ", "
-    TVDB_warning  = ( string.join(error_log['TVDB' ],", ")[:-2] if len(error_log['TVDB' ]) else "" )   # for temp in TVDB_warnings:       TVDB_warning  += temp + ", "
+    Log.Debug("parseAniDBXml - AniDB - resources link")
+    AniDB_warning = ( ", ".join(error_log['AniDB'])[:-2] if len(error_log['AniDB']) else "" )   # for entry in error_log['AniDB']: AniDB_warning += entry + ", "
+    TVDB_warning  = ( ", ".join(error_log['TVDB' ])[:-2] if len(error_log['TVDB' ]) else "" )   # for temp in TVDB_warnings:       TVDB_warning  += temp + ", "
     description   = ""
+    Log.Debug("parseAniDBXml - AniDB - resources link")
     if UseWebLinks:
       ### Anidb resources links ###
       try: #works but uses all length of the description field (html code takes more length than displayed chars)
@@ -650,10 +652,10 @@ class HamaCommonAgent:
         metadata.duration = int(totalDuration) / int(numEpisodes)     
 
     ### HAMA - Write all Error Logs to Plug-in Support/Data/com.plexapp.agents.hama/DataItems ### 
-    for log in error_log                                                                      # For each separate list of logs
+    for log in error_log:                                                                     # For each separate list of logs
       if not error_log[log] == []:                                                            #   If log list not empty
         string  = ( Data.Load(log+".htm") if Data.Exists(log+".htm") else "" )                #     load previous log or ""
-        string += string.join(error_log[log], "\n")                                           # Better than: for entry in error_log[log]: string += entry + "\n"
+        string += "\n".join(error_log[log])                                                   # Better than: for entry in error_log[log]: string += entry + "\n"
         Data.Save(log+".htm", string)                                                         # Save the log
       	
     Log.Debug('--- parseAniDBXml - end -------------------------------------------------------------------------------------------------')
@@ -690,7 +692,7 @@ class HamaCommonAgent:
         pass
 
   ### Get the tvdbId from the AnimeId #######################################################################################################################
-  def anidbTvdbMapping(self, metadata):
+  def anidbTvdbMapping(self, metadata, error_log):
 
     # --------------------------------   -----------------   --------------------------------------------------------------------------------------------------------
     # ScudLee anime-list-full.xml Tags   attributes          Description
@@ -712,7 +714,6 @@ class HamaCommonAgent:
     
     mappingList             = {}                                                              # Episode mapping list
     mapping_studio          = ""                                                              # Studio from mapping file
-    global error_log
     global AniDB_TVDB_mapping_tree #, TVDB_warnings, AniDB_warnings, studio                   # Global variables
     if not AniDB_TVDB_mapping_tree:                                                           # If XML mappile file not loaded
       AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING_URL) # Load XML file
@@ -735,7 +736,7 @@ class HamaCommonAgent:
             error_log['anime-list'].append("%s studio AniDB '%s', anime-list: '%s'" % (metadata.id, studio, studio2))  #
         if not tvdbid.isdigit():                                                              #   If the xml mapping file possibly needs updating, log it
           if tvdbid=="" or tvdbid=="unknown":
-            error_log['anime-list'].append("%s Missing tvdbid ('%s')" % (metadata.id, tvdbid))  #
+            error_log['anime-list'].append("%s Missing tvdbid ('%s')" % (metadata.id, tvdbid))#
             Log("[anime-list-full.xml] Missing tvdbid for anidbid %s" % metadata.id);         #
         else:                                                                                 # Else if Anime id valid
           try:
@@ -753,7 +754,7 @@ class HamaCommonAgent:
         return tvdbid, defaulttvdbseason, mappingList, studio2, anime
 
     Log.Debug('anidbTvdbMapping('+metadata.id+') found no matching anidbid...')
-    error_log['anime-list'].append("%s Missing anidbid, update mapping file" % metadata.id    #
+    error_log['anime-list'].append("%s Missing anidbid, update mapping file" % metadata.id)   #
     return "", "",[], "", ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
