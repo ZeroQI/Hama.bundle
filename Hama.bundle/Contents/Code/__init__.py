@@ -690,7 +690,7 @@ class HamaCommonAgent:
         
         if not tvdbid.isdigit():                                                              #   If the xml mapping file possibly needs updating, log it
           if tvdbid=="" or tvdbid=="unknown":
-            error_log  ['TVDB'].append("Aid: %s '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, tvdbid) + \
+            error_log  ['anime-list'].append("Aid: %s '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, tvdbid) + \
             WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report (need GIT account)"))
             Log("[anime-list-full.xml] Missing tvdbid for anidbid %s" % metadata.id);
             # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring
