@@ -316,28 +316,27 @@ class HamaCommonAgent:
     ### AniDB Serie MXL ###
     Log.Debug("parseAniDBXml - AniDB Serie MXL")
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-    except: raise ValueError
+    except:
+      raise ValueError
     
     ### AniDB Movie setting ###
     movie2 = (True if getElementText(anime, 'type')=='Movie' else False)                      # Read movie type from XML
     if movie and not movie2: 
-      #metadata = Agent.TV_Show() #Load metadata for TV shows instead of selected Movie category
+      #metadata = TV_Serie ???? #Load metadata for TV shows instead of selected Movie    category. Can it be done (ie do like the tv show folder setting was selected)
       pass
     elif not movie and movie2:
+      #metadata = Movie ????    #Load metadata for Movies   instead of selected TV_Serie category. Can it be done (ie do like the movie   folder setting was selected)
       pass
-      # metadata = Agent.Movies() #Load metadata for movies instead of the TV Show folder category
-    
+      
     ### AniDB Title ###
     Log.Debug("parseAniDBXml - AniDB title")
-    try:    title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
+    try:
+      title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
     except: raise ValueError                                                                  # No title found
     else:                                                                                     #
-      if title != "" and title != metadata.title:                                             #
-        metadata.title = title                                                                #
-      if movie and orig != "" and orig != metadata.original_title:                    # If it's a movie
-        metadata.original_title = orig                                                        #   Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
-      Log.Debug("parseAniDBXml - Title - title: '"+metadata.title+"' original title: '"+metadata.original_title+"'")
-
+      if title != "" and title != str(metadata.title):             metadata.title = title     #
+      if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie  Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
+      
     ### AniDB Start Date ###
     Log.Debug("parseAniDBXml - AniDB - Anime Start Date")
     startdate  = getElementText(anime, 'startdate')                                           # get start date if any
@@ -710,8 +709,9 @@ class HamaCommonAgent:
           metadata.studio = mapping_studio                                                    #
         except: mapping_studio = ""                                                           # But if not there Make the variable empty
         if studio + mapping_studio == "":           error_log['anime-list'].append("Aid: %s '%s' AniDB and anime-list are both missing the studio" % (metadata.id.zfill(5), name))
-        elif studio != "" and mapping_studio != "": error_log['anime-list'].append("Aid: %s '%s' AniDB have studio '%s' and XML have '%s'"         % (metadata.id.zfill(5), name, studio, mapping_studio))
-
+        elif studio != "" and mapping_studio != "": error_log['anime-list'].append("Aid: %s '%s' AniDB have studio '%s' and XML have '%s'"         % (metadata.id.zfill(5), name, studio, mapping_studio) + \
+          WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report (need GIT account)"))
+         
         Log("gettvdbId(%s) tvbdid: %s studio: %s defaullttvdbseason: %s" % (metadata.id, tvdbid, mapping_studio, str(defaulttvdbseason)) )
         return tvdbid, defaulttvdbseason, mappingList, mapping_studio
 
@@ -886,11 +886,12 @@ class HamaCommonAgent:
           langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text                           #   save it in the right language slot
                                                                                               
       for index in range( len(LANGUAGE_PRIORITY)+1 ):                                         # Loop all saved language and main titles in the priority order
-        if langTitles [ index ] != '' :                                                   #   If the title for language was filled
+        if langTitles [ index ] != '' :                                                       #   If the title for language was filled
           langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]                        #     set as language title
           break                                                                               #     Break the loop if found the title
                                                                                                
-    if type != None: Log.Debug("getMainTitle (%d titles) Title: %s  Main title: %s" % (len(titles), langTitles[len(LANGUAGE_PRIORITY)], langTitles[len(LANGUAGE_PRIORITY)+1] ))
+    if type != None: 
+      Log.Debug("getMainTitle (%d titles) Title: '%s'  Main title: '%s'" % (len(titles), langTitles[len(LANGUAGE_PRIORITY)], langTitles[len(LANGUAGE_PRIORITY)+1] ))
     return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
 
 ### TV Agent declaration ###############################################################################################################################################
