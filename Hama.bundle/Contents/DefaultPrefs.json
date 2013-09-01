@@ -30,10 +30,11 @@
     "default" : "false"
   },
   {
-    "id"      : "UseWarnings",
-    "label"   : "Use warnings in tv serie/Movie summary and episode overview",
-    "type"    : "bool",
-    "default" : "false"
+    "id"      : "MinimumWeight",
+    "label"   : "Map categories at or above the minimum weight selected",
+    "type"    : "text",
+    "option"  : "hidden",
+    "default" : ""
   },
   {
     "id"      : "Language1",
