@@ -9,7 +9,6 @@ import os, os.path, re, time, datetime, string # Functions used per module: os (
 ### Language Priorities ###
 SERIE_LANGUAGE_PRIORITY      = [ 'x-jat', 'en']
 EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
-MINIMUM_WEIGHT               = 200
 SECONDS_BETWEEN_REQUESTS     = 2
 FILTER_CHARS                 = "\\/:*?<>|~- "
 SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
@@ -121,12 +120,14 @@ def Start():
 
   msgContainer = ValidatePrefs()
   if msgContainer.header == 'Error': Log("ValidatePrefs - Error")
-  else:                              MessageContainer('Success', "HAMA started")
-
+  else:
+    MessageContainer('Success', "HAMA started")
+    global SERIE_LANGUAGE_PRIORITY
+    SERIE_LANGUAGE_PRIORITY = [ Prefs['Language1'], Prefs['Language2'] ] #override default language
   HTTP.CacheTime           = CACHE_1HOUR * 24 * 7  
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree, networkLock #only this one to make search after start faster
   AniDB_title_tree         = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # AniDB's:   anime-titles.xml
-  #AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # ScudLee's: anime-list-master.xml 
+  #AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING      ,  ANIDB_TVDB_MAPPING_URL     ) # ScudLee's: anime-list-master.xml 
   #AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) #            anime-movieset-list.xml 
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
@@ -294,7 +295,7 @@ class HamaCommonAgent:
     Log.Debug("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
 
     ### AniDB Serie MXL ###
-    Log.Debug("AniDB Serie MXL: " + ANIDB_HTTP_API_URL + metadata.id)
+    Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id)
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
     except: raise ValueError
     
@@ -351,7 +352,6 @@ class HamaCommonAgent:
       Log.Debug(log_string)
     
     ### AniDB Collections ###
-    Log.Debug("AniDB Collections")
     self.anidbCollectionMapping(metadata, anime)
     
     ### AniDB Creator data -  Aside from the animation studio, none of this maps to Series entries, so save it for episodes ###
@@ -765,32 +765,31 @@ class HamaCommonAgent:
 
     ### AniDB related anime List creation ###
     related_anime_list = []
-    for relatedAnime in anime.xpath('/anime/relatedanime/anime'):
-      id = relatedAnime.get('id') #type  = relatedAnime.get('type') #title = relatedAnime.text
-      related_anime_list.append(id)
+    for relatedAnime in anime.xpath('/anime/relatedanime/anime'): related_anime_list.append(relatedAnime.get('id')) #type  = relatedAnime.get('type') #title = relatedAnime.text
+    Log.Debug("anidbCollectionMapping - related_anime_list: " + str(related_anime_list))
 
     ### AniDB search in collection XML ###
-    for element in AniDB_collection_tree.iterfind("anime"):
+    for element in AniDB_collection_tree.iter("anime"):
       anidbid = element.get('anidbid')
       title   = element.text
-      if anidbid in related_anime_list:
+      if anidbid == metadata.id or anidbid in related_anime_list:
         set = element.getparent()
         title, main = self.getMainTitle(set.xpath('titles')[0], SERIE_LANGUAGE_PRIORITY)
-        metadata.collections.clear()
+        #metadata.collections.clear()
         metadata.collections.add(title)
-        Log.Debug('anidbCollectionMapping - anidbid is part of collection: %s' % (metadata.id, title) )
+        Log.Debug('anidbCollectionMapping - anidbid (%s) is part of collection: %s' % (metadata.id, title) )
         return True
 
+    Log.Debug('anidbCollectionMapping - anidbid is not part of any collection:' )
     return False
 
   ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
   def xmlElementFromFile (self, filename, url=None):
-    #Log('xmlElementFromFile (%s, %s)' % (filename, url) )
     try:    element = XML.ElementFromString( Resource.Load(filename) )
     except: pass
     else:   return element
 
-    #Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
+    Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
     try:    element = XML.ElementFromString( XML.ElementFromURL(url, cacheTime=CACHE_1HOUR * 24 * 7 * 2) ) # String = XML.ElementFromString( Archive.GzipDecompress( HTTP.Request(subUrl, headers={'Accept-Encoding':''}).content ) )
     except: raise ValueError
     else:   return element
@@ -820,7 +819,6 @@ class HamaCommonAgent:
           langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]
           break
                                                                                                
-    #if type != None: Log.Debug("getMainTitle (%d titles) Title: '%s'  Main title: '%s'" % (len(titles), langTitles[len(LANGUAGE_PRIORITY)], langTitles[len(LANGUAGE_PRIORITY)+1] ))
     return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
 
 ### TV Agent declaration ###############################################################################################################################################
@@ -846,9 +844,3 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
 
   def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year)
   def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media, force,      True      )
-
-    # r = requests.head(url) / return r.status_code == 200
-    # urllib.urlopen("http://www.stackoverflow.com").getcode()
-    # import urllib2 / def file_exists(url): / request = urllib2.Request(url) / request.get_method = lambda : 'HEAD' / try: / response = urllib2.urlopen(request) / return True / except: / return False
-    # import httplib / def exists(site, path): / conn = httplib.HTTPConnection(site) / conn.request('HEAD', path) / response = conn.getresponse() / conn.close() / return response.status == 200 
-    # Dict.Reset() / Dict[key] = name / if key in Dict: / x = Dict[key] / Dict.Save()
