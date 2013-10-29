@@ -375,17 +375,17 @@ class HamaCommonAgent:
         log_string += "Studio: %s, " % creator.text
     
       if "Direction" in nameType:
-        if movie: metadata.directors.add(director)
+        if movie: metadata.directors.add(creator.text)
         else:     directors.append(creator.text)
         log_string += "%s is director, " % creator.text
         
       if nameType == "Series Composition":
-        if movie: metadata.producers.add(producer)
+        if movie: metadata.producers.add(creator.text)
         else:     producers.append(creator.text)
         log_string += "%s is producer, " % creator.text
         
       if nameType == "Original Work" or "Script" in nameType or "Screenplay" in nameType:
-        if movie: metadata.writers.add(writer)
+        if movie: metadata.writers.add(creator.text)
         else:     writers.append(creator.text)
         log_string += "%s is writer, " % creator.text
     Log.Debug(log_string)
