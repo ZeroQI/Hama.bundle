@@ -342,7 +342,7 @@ class HamaCommonAgent:
     log_string   = "AniDB Genres (Weight): "
     genres = []
     for genre in sortedGenres: genres.append(genre[0].encode("utf-8") ) 
-    if all(x in genres for x in metadata.genres): Log.Debug(log_string+str(sortedGenres)+"*") #set(sortedGenres).issubset(set(metadata.genres)):
+    if all(x in metadata.genres for x in genres): Log.Debug(log_string+str(sortedGenres)+"*") #set(sortedGenres).issubset(set(metadata.genres)):
     else:
       Log.Debug("genres: " + str( sortedGenres) + " " + str(genres))
       metadata.genres.clear()
