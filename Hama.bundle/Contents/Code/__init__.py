@@ -814,10 +814,10 @@ class HamaCommonAgent:
       if type == 'main' or type == None and langTitles[ len(LANGUAGE_PRIORITY) ] == "": langTitles [ len(LANGUAGE_PRIORITY)        ] = title.text #type==none is for mapping file language
       if type in ['official', 'main', None]  and lang in LANGUAGE_PRIORITY:             langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text #type==none is for mapping file language
                                                                                               
-      for index in range( len(LANGUAGE_PRIORITY)+1 ):
-        if langTitles [ index ] != '' :
-          langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]
-          break
+    for index in range( len(LANGUAGE_PRIORITY)+1 ):
+      if langTitles [ index ] != '' :
+        langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]
+        break
                                                                                                
     return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
 
