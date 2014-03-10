@@ -7,7 +7,7 @@
 import os, os.path, re, time, datetime, string # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 
 ### Language Priorities ###
-SERIE_LANGUAGE_PRIORITY      = [ 'x-jat', 'en']
+SERIE_LANGUAGE_PRIORITY      = [ 'main', 'x-jat', 'en']
 EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
 SECONDS_BETWEEN_REQUESTS     = 2
 FILTER_CHARS                 = "\\/:*?<>|~- "
@@ -819,8 +819,29 @@ class HamaCommonAgent:
         langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]
         break
                                                                                                
-    return langTitles[len(LANGUAGE_PRIORITY)+1], langTitles[len(LANGUAGE_PRIORITY)]
+  ### extract the series/movie/Episode title #################################################################################################################################
+  def getMainTitle(self, titles, LANGUAGE_PRIORITY):
+    
+    if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.ADD('main')                            # Add main to the selection if not present
+    langTitles = ["" for index in range(len(LANGUAGE_PRIORITY))]                                 # LANGUAGE_PRIORITY: title order including main title, then choosen title
 
+    for title in titles:                                                                         # Loop through all languages listed in the anime XML
+      type = title.get('type')                                                                   # IF Serie: Main, official, Synonym, short. If episode: None
+      lang = title.get('{http://www.w3.org/XML/1998/namespace}lang')                             # Get the language, 'xml:lang' attribute need hack to read properly
+       
+      if type == 'main' or type == None and langTitles[ LANGUAGE_PRIORITY.index('main') ] == "": # type==none is for mapping episode language
+        langTitles [ LANGUAGE_PRIORITY.index('main') ] = title.text
+ 
+      if lang in LANGUAGE_PRIORITY and type in ['main', 'official', None]:                       # type==none is for mapping file language     
+         langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text        
+                                                                                              
+    for index in range( len(LANGUAGE_PRIORITY)-1 ):
+      if langTitles [ index ] != '' :
+        langTitles [len(LANGUAGE_PRIORITY)] = langTitles [ index ]
+        break
+                                                                                               
+    return langTitles[len(LANGUAGE_PRIORITY)], langTitles[ LANGUAGE_PRIORITY.index('main') ]
+    
 ### TV Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name             = 'HamaTV'
