@@ -69,5 +69,5 @@
     "type"    : "enum",
     "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "x-jat"
-  },
+  }
 ]
