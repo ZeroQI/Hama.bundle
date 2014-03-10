@@ -7,8 +7,8 @@
 import os, os.path, re, time, datetime, string # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 
 ### Language Priorities ###
-SERIE_LANGUAGE_PRIORITY      = [ 'main', 'x-jat', 'en']
-EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
+#SERIE_LANGUAGE_PRIORITY      = [ 'main', 'x-jat', 'en']
+#EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
 SECONDS_BETWEEN_REQUESTS     = 2
 FILTER_CHARS                 = "\\/:*?<>|~- "
 SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
@@ -122,8 +122,9 @@ def Start():
   if msgContainer.header == 'Error': Log("ValidatePrefs - Error")
   else:
     MessageContainer('Success', "HAMA started")
-    global SERIE_LANGUAGE_PRIORITY
-    SERIE_LANGUAGE_PRIORITY = [ Prefs['Language1'], Prefs['Language2'] ] #override default language
+    global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
+    SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ] #override default language
+    EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'], Prefs['EpisodeLanguage2']                      ] #override default language
   HTTP.CacheTime           = CACHE_1HOUR * 24 * 7  
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree, networkLock #only this one to make search after start faster
   AniDB_title_tree         = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # AniDB's:   anime-titles.xml
@@ -136,7 +137,7 @@ def ValidatePrefs():
   result     = 'Success'
   msg        = 'HAMA - Provided preference values are ok'
   log_string = ""
-  settings   = ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'PreferAnidbPoster', 'UseWebLinks', 'MinimumWeight', 'Language1', 'Language2']
+  settings   = ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'PreferAnidbPoster', 'UseWebLinks', 'MinimumWeight', 'SerieLanguage1', 'SerieLanguage2', 'SerieLanguage3', 'EpisodeLanguage1', 'EpisodeLanguage2']
   for key in settings: #for key, value in enumerate(settings):
     try: temp = Prefs[key]
     except:
@@ -159,6 +160,8 @@ class HamaCommonAgent:
   def searchByName(self, results, lang, origTitle, year):
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
+    #SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ] #override default language
+    #EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'], Prefs['EpisodeLanguage2']                      ] #override default language
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
     global AniDB_title_tree
     if not AniDB_title_tree: AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)
@@ -806,6 +809,9 @@ class HamaCommonAgent:
   ### extract the series/movie/Episode title #################################################################################################################################
   def getMainTitle(self, titles, LANGUAGE_PRIORITY):
     
+    #SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ] #override default language
+    #EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'], Prefs['EpisodeLanguage2']                      ] #override default language
+  
     langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+2)] # LANGUAGE_PRIORITY title order, original title, then choosen title
     for title in titles:
       type = title.get('type')
