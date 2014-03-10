@@ -23,7 +23,7 @@ FILTER_SEARCH_WORDS          = [                                                
 ]
 
 ### AniDB and TVDB URL and path variable definition ####################################################################################################################
-ANIDB_ANIME_TITLES           = 'anime-lists/animetitles.xml'                                               # AniDB title database decompressed in Hama.bundle\Contents\Resources
+ANIDB_ANIME_TITLES           = 'anime-lists/anime-titles.xml'                                              # AniDB title database decompressed in Hama.bundle\Contents\Resources
 ANIDB_ANIME_TITLES_URL       = 'http://anidb.net/api/anime-titles.xml.gz'                                  # AniDB title database file contain all ids, all languages
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                         # AniDB picture directory
@@ -809,25 +809,9 @@ class HamaCommonAgent:
   ### extract the series/movie/Episode title #################################################################################################################################
   def getMainTitle(self, titles, LANGUAGE_PRIORITY):
     
-    #SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ] #override default language
-    #EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'], Prefs['EpisodeLanguage2']                      ] #override default language
+    SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ] #override default language
+    EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'], Prefs['EpisodeLanguage2']                      ] #override default language
   
-    langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+2)] # LANGUAGE_PRIORITY title order, original title, then choosen title
-    for title in titles:
-      type = title.get('type')
-      lang = title.get('{http://www.w3.org/XML/1998/namespace}lang') # Get the language, 'xml:lang' attribute need hack to read properly
-
-      if type == 'main' or type == None and langTitles[ len(LANGUAGE_PRIORITY) ] == "": langTitles [ len(LANGUAGE_PRIORITY)        ] = title.text #type==none is for mapping file language
-      if type in ['official', 'main', None]  and lang in LANGUAGE_PRIORITY:             langTitles [ LANGUAGE_PRIORITY.index(lang) ] = title.text #type==none is for mapping file language
-                                                                                              
-    for index in range( len(LANGUAGE_PRIORITY)+1 ):
-      if langTitles [ index ] != '' :
-        langTitles [len(LANGUAGE_PRIORITY)+1] = langTitles [ index ]
-        break
-                                                                                               
-  ### extract the series/movie/Episode title #################################################################################################################################
-  def getMainTitle(self, titles, LANGUAGE_PRIORITY):
-    
     if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.ADD('main')                            # Add main to the selection if not present
     langTitles = ["" for index in range(len(LANGUAGE_PRIORITY))]                                 # LANGUAGE_PRIORITY: title order including main title, then choosen title
 
