@@ -7,8 +7,6 @@
 import os, os.path, re, time, datetime, string # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 
 ### Language Priorities ###
-#SERIE_LANGUAGE_PRIORITY      = [ 'main', 'x-jat', 'en']
-#EPISODE_LANGUAGE_PRIORITY    = [ 'en', 'x-jat']
 SECONDS_BETWEEN_REQUESTS     = 2
 FILTER_CHARS                 = "\\/:*?<>|~- "
 SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
@@ -291,8 +289,8 @@ class HamaCommonAgent:
     UseWebLinks       = Prefs['UseWebLinks'      ]
     MinimumWeight     = Prefs['MinimumWeight'    ]
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
-    EPISODE_LANGUAGE_PRIORITY   = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
-    error_log         = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [] }
+    EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
+    error_log                 = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [] }
     global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
     
     Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
@@ -764,6 +762,7 @@ class HamaCommonAgent:
     #                                    xml:lang     AniDB language
     #                                    [text]
     
+    SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
     global AniDB_collection_tree
     if not AniDB_collection_tree: AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL)
 
@@ -810,10 +809,9 @@ class HamaCommonAgent:
   ### extract the series/movie/Episode title #################################################################################################################################
   def getMainTitle(self, titles, LANGUAGE_PRIORITY):
     
-    #SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
     Log.Debug("getMainTitle - LANGUAGE_PRIORITY: " + str(LANGUAGE_PRIORITY))
 
-    if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.ADD('main')                            # Add main to the selection if not present
+    if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.append('main')                            # Add main to the selection if not present
     langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+1)]                               # LANGUAGE_PRIORITY: title order including main title, then choosen title
 
     for title in titles:                                                                         # Loop through all languages listed in the anime XML
