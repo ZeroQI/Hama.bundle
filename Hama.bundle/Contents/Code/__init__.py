@@ -310,11 +310,13 @@ class HamaCommonAgent:
     try:    title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
     except: raise ValueError
     else:
-      if title != "" and title == str(metadata.title):             Log.Debug("AniDB title: '%s' original title: '%s'*" % (title, orig) )
+      title=title.encode("utf-8")
+      orig =orig.encode("utf-8")
+      if title != "" and title == str(metadata.title):             Log.Debug("AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
       else:
         metadata.title = title
         if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie, Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
-        Log.Debug("AniDB title: '%s' original title: '%s'" % (title, orig) )
+        Log.Debug("AniDB title changed: '%s' original title: '%s'" % (title, orig) )
      
     ### AniDB Start Date ###
     startdate  = getElementText(anime, 'startdate')
@@ -338,7 +340,7 @@ class HamaCommonAgent:
     for category in anime.xpath('categories/category'):
       name   = getElementText(category, 'name')
       weight = category.get('weight')
-      if name in GENRE_NAMES and weight >= MinimumWeight: genres [ name ] = int(weight) #.decode('utf-8')
+      if name in GENRE_NAMES and weight >= MinimumWeight: genres [ name ] = int(weight)
       if name in RESTRICTED_GENRE_NAMES and metadata.content_rating != RESTRICTED_CONTENT_RATING: metadata.content_rating = RESTRICTED_CONTENT_RATING
     sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
     log_string   = "AniDB Genres (Weight): "
@@ -402,7 +404,7 @@ class HamaCommonAgent:
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
         tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid)
-        if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster " % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title))
+        if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster $s" % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title), WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters", "Restrictions"))
      
       ### TVDB - Load serie XML ###
       try:    tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid) ).xpath('/Data')[0]
@@ -445,7 +447,7 @@ class HamaCommonAgent:
           if url not in metadata.themes: metadata.themes[url] = Proxy.Media(HTTP.Request(url)) # To Do: file search in local or common folder (no files in each media folder)
         except Exception, e: 
           tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
-          error_log  ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("http://wiki.plexapp.com/index.php/PlexNine_PMS_ThemeMusic#Submitting_TV_Theme_Music","Restrictions") )
+          error_log  ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
           Log.Debug(  "Plex TV serie theme url: %s, tvdbid: %s" % (THEME_URL % tvdbid, tvdbid))
       else: Log.Debug("Plex TV serie theme not present for tvdbid: %s" % tvdbid)
 
@@ -799,6 +801,7 @@ class HamaCommonAgent:
       
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
+    title=title.encode('utf-8')
     return title.replace("`", "'").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
   ### Split a string per list of chars #################################################################################################################################
@@ -811,7 +814,7 @@ class HamaCommonAgent:
     
     Log.Debug("getMainTitle - LANGUAGE_PRIORITY: " + str(LANGUAGE_PRIORITY))
 
-    if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.append('main')                            # Add main to the selection if not present
+    if not 'main' in LANGUAGE_PRIORITY: LANGUAGE_PRIORITY.append('main')                         # Add main to the selection if not present
     langTitles = ["" for index in range(len(LANGUAGE_PRIORITY)+1)]                               # LANGUAGE_PRIORITY: title order including main title, then choosen title
 
     for title in titles:                                                                         # Loop through all languages listed in the anime XML
@@ -855,3 +858,4 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
 
   def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year)
   def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media, force,      True      )
+  
