@@ -792,17 +792,19 @@ class HamaCommonAgent:
   def xmlElementFromFile (self, filename, url=None):
 
     if url is not None:
-    Log.Debug("xmlElementFromFile - Looking up url: " + url)
-    try:  if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) )
-          else                            string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
-          element = XML.ElementFromString( string )
-    except:
-      Log.Debug("xmlElementFromFile - exception loading XML from URL:" + sys.exc_info()[0])
-      pass
-    else:   Data.Save(filename, string)   #if not Data.Exists(filename):  # save string to file while we have copy
-            return element
+      Log.Debug("xmlElementFromFile - Looking up url: " + url)
+      try:  if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) )
+            else                            string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
+            element = XML.ElementFromString( string )
+      except:
+        Log.Debug("xmlElementFromFile - exception loading XML from URL:" + sys.exc_info()[0])
+        pass
+      else:
+        Data.Save(filename, string)   #if not Data.Exists(filename):  # save string to file while we have copy
+        return element
+    else:  Log.Debug("xmlElementFromFile - No url provided")
+    
     Log.Debug("xmlElementFromFile - Loading XML file from URL failed, faling back to resource file")
-
     try:    element = XML.ElementFromString( Data.Load(filename) ) #element = XML.ElementFromString( Resource.Load(filename) )
     except:
       Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
