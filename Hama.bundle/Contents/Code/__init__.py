@@ -481,7 +481,7 @@ class HamaCommonAgent:
         #    for identifier in identifiers: count +=1
         #    description += WEB_LINK % (AniDB_Resources[type][0] % identifier.text, AniDB_Resources[type][1]+("" if count==1 else count) ) +" "
       description += WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB") +" "
-      if tvdbid.isdigit(): description += WEB_LINK % (TVDB_SERIE_URL  % tvdbid,       "TVDB") +" "
+      if tvdbivdbid,       "TVDB") +" "
     try:   description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
     except Exception, e: Log.Debug("Exception: " + str(e))
     else:  metadata.summary = description
@@ -584,7 +584,7 @@ class HamaCommonAgent:
         delta = datetime.datetime.utcnow() - lastRequestTime
         if delta.seconds < SECONDS_BETWEEN_REQUESTS: time.sleep(SECONDS_BETWEEN_REQUESTS - delta.seconds)
       lastRequestTime = datetime.datetime.utcnow()
-      result          = HTTP.Request(url, headers={'Accept-Encoding':''}, timeout=60)
+      result          = HTTP.Request(url, headers={'Accept-Encoding':''}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 )
     except Exception, e: Log("anidbLoadXml(" + url + ") - Error: " + e.code)
     else:
       if result == "<error>Banned</error>": Log("urlLoadXml - You have been Banned by AniDB") #to test
@@ -790,13 +790,23 @@ class HamaCommonAgent:
 
   ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
   def xmlElementFromFile (self, filename, url=None):
-    try:    element = XML.ElementFromString( Resource.Load(filename) )
-    except: pass
-    else:   return element
 
-    Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
-    try:    element = XML.ElementFromString( XML.ElementFromURL(url, cacheTime=CACHE_1HOUR * 24 * 7 * 2) ) # String = XML.ElementFromString( Archive.GzipDecompress( HTTP.Request(subUrl, headers={'Accept-Encoding':''}).content ) )
-    except: raise ValueError
+    if url is not None:
+    Log.Debug("xmlElementFromFile - Looking up url: " + url)
+    try:  if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) )
+          else                            string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content ) #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
+          element = XML.ElementFromString( string )
+    except:
+      Log.Debug("xmlElementFromFile - exception loading XML from URL:" + sys.exc_info()[0])
+      pass
+    else:   Data.Save(filename, string)   #if not Data.Exists(filename):  # save string to file while we have copy
+            return element
+    Log.Debug("xmlElementFromFile - Loading XML file from URL failed, faling back to resource file")
+
+    try:    element = XML.ElementFromString( Data.Load(filename) ) #element = XML.ElementFromString( Resource.Load(filename) )
+    except:
+      Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
+      raise ValueError
     else:   return element
       
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
