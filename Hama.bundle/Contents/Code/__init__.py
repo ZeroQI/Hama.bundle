@@ -793,9 +793,10 @@ class HamaCommonAgent:
 
     if url is not None:
       Log.Debug("xmlElementFromFile - Looking up url: " + url)
-      try:  if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content )
-            else                            string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content    #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
-            element = XML.ElementFromString( string )
+      try:
+      	if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content )
+        else:                           string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content    #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
+        element = XML.ElementFromString( string )
       except:
         Log.Debug("xmlElementFromFile - exception loading XML from URL:" + sys.exc_info()[0])
         pass
