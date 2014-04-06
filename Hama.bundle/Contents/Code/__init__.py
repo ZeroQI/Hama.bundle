@@ -481,7 +481,7 @@ class HamaCommonAgent:
         #    for identifier in identifiers: count +=1
         #    description += WEB_LINK % (AniDB_Resources[type][0] % identifier.text, AniDB_Resources[type][1]+("" if count==1 else count) ) +" "
       description += WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB") +" "
-      if tvdbivdbid,       "TVDB") +" "
+      if tvdbid.isdigit(): description += WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") +" "
     try:   description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
     except Exception, e: Log.Debug("Exception: " + str(e))
     else:  metadata.summary = description
