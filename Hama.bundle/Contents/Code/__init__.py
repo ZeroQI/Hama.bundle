@@ -38,10 +38,10 @@ TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seas
 TVDB_SEARCH_URL              = 'http://thetvdb.com/?tab=listseries&function=Search&string=%s'              #
 
 ANIDB_TVDB_MAPPING           = 'anime-lists/anime-list-master.xml'                                         # ScudLee mapping file local
-ANIDB_TVDB_MAPPING_URL       = 'https://raw.github.com/ScudLee/anime-lists/master/anime-list-master.xml'   # ScudLee mapping file url
+ANIDB_TVDB_MAPPING_URL       = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'   # ScudLee mapping file url
 ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'        # ScudLee mapping file git feedback url
 ANIDB_COLLECTION_MAPPING     = 'anime-lists/anime-movieset-list.xml'                                       # ScudLee AniDB movies collections XML mapping file
-ANIDB_COLLECTION_MAPPING_URL = 'https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml' # ScudLee collection mapping file
+ANIDB_COLLECTION_MAPPING_URL = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml' # ScudLee collection mapping file
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                        # Plex TV Theme url
 
 ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
@@ -444,7 +444,7 @@ class HamaCommonAgent:
       if code == 200:
         Log.Debug("url exist: " + str(code))
         try:
-          if url not in metadata.themes: metadata.themes[url] = Proxy.Media(HTTP.Request(url)) # To Do: file search in local or common folder (no files in each media folder)
+          if url not in metadata.themes: metadata.themes[url] = Proxy.Media(HTTP.Request(url, cacheTime=None)) # To Do: file search in local or common folder (no files in each media folder)
         except Exception, e: 
           tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
           error_log  ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
@@ -457,7 +457,7 @@ class HamaCommonAgent:
     elif PreferAnidbPoster or tvdbposternumber == 0:
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');
       if not bannerRealUrl in metadata.posters:
-        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl).content, sort_order=(1 if PreferAnidbPoster else 99))
+        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=(1 if PreferAnidbPoster else 99))
         except: pass
       
     ### AniDB Serie/Movie description + link ###
@@ -735,7 +735,7 @@ class HamaCommonAgent:
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not metaType[bannerRealUrl]:
           try:
-            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl).content, sort_order=(num+1 if PreferAnidbPoster else num))
+            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=(num+1 if PreferAnidbPoster else num))
             Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           except: Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
     Log.Debug("getImagesFromTVDB - Item number: %s, poster en: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
@@ -794,11 +794,12 @@ class HamaCommonAgent:
     if url is not None:
       Log.Debug("xmlElementFromFile - Looking up url: " + url)
       try:
-      	if url.endswith(['GZ', 'gz']):  string = Archive.GzipDecompress( HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content )
-        else:                           string =                         HTTP.Request(url, headers={'Accept-Encoding':''    }, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content    #Time=CACHE_1HOUR * 24 * 7 * 2 ) #element = XML.ElementFromString( string = self.urlLoadXml(url) )
+        string  = HTTP.Request(url, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content
         element = XML.ElementFromString( string )
+        #element = XML.ElementFromURL( url, headers={'Content-type':'text/xml'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2, encoding='utf-8') #, isHTML=False 'Content-type', 'text/xml'
+        #string  = XML.StringFromElement(element, encoding='utf-8') 
       except:
-        Log.Debug("xmlElementFromFile - exception loading XML from URL:" + sys.exc_info()[0])
+        Log.Debug("xmlElementFromFile - exception loading XML from URL: " + url)
         pass
       else:
         Data.Save(filename, string)   #if not Data.Exists(filename):  # save string to file while we have copy
