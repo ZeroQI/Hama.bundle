@@ -20,8 +20,8 @@ FILTER_SEARCH_WORDS          = [                                                
   'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses'                                                                                 # Fr 
 ]
 
-### AniDB and TVDB URL and path variable definition ####################################################################################################################
-ANIDB_ANIME_TITLES           = 'anime-lists/anime-titles.xml'                                              # AniDB title database decompressed in Hama.bundle\Contents\Resources
+### AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###########################################################################
+ANIDB_ANIME_TITLES           = 'XMLs/anime-titles.xml'                                                     # AniDB title database decompressed in Hama.bundle\Contents\Resources
 ANIDB_ANIME_TITLES_URL       = 'http://anidb.net/api/anime-titles.xml.gz'                                  # AniDB title database file contain all ids, all languages
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                         # AniDB picture directory
@@ -37,14 +37,15 @@ TVDB_SEASON_URL              = 'http://thetvdb.com/?tab=season&seriesid=%s&seaso
 TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'             #
 TVDB_SEARCH_URL              = 'http://thetvdb.com/?tab=listseries&function=Search&string=%s'              #
 
-ANIDB_TVDB_MAPPING           = 'anime-lists/anime-list-master.xml'                                         # ScudLee mapping file local
-ANIDB_TVDB_MAPPING_URL       = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'   # ScudLee mapping file url
+ANIDB_TVDB_MAPPING           = 'XMLs/anime-list-master.xml'                                                # ScudLee mapping file local
+ANIDB_TVDB_MAPPING_URL       = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'    # ScudLee mapping file url
 ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'        # ScudLee mapping file git feedback url
-ANIDB_COLLECTION_MAPPING     = 'anime-lists/anime-movieset-list.xml'                                       # ScudLee AniDB movies collections XML mapping file
-ANIDB_COLLECTION_MAPPING_URL = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml' # ScudLee collection mapping file
+ANIDB_COLLECTION_MAPPING     = 'XMLs/anime-movieset-list.xml'                                              # ScudLee AniDB movies collections XML mapping file
+ANIDB_COLLECTION_MAPPING_URL = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'  # ScudLee collection mapping file
+
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                        # Plex TV Theme url
 
-### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ######################
+### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ####################
 RESTRICTED_GENRE_NAMES    = [ '18 Restricted', 'Pornography' ]
 RESTRICTED_CONTENT_RATING = "NC-17"
 GENRE_NAMES               = [
@@ -437,20 +438,29 @@ class HamaCommonAgent:
           tvdbSummary [ (numbering if absolute_number=="" else "s"+SeasonNumber+"e"+absolute_number) ] = Overview
         Log.Debug("TVDB - Build 'tvdbSummary' table:" + str(sorted(summary_present)) ) #Log.Debug("TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
       
-      ### Plex - TV serie theme - http://wiki.plexapp.com/index.php/TV_Themes ###
+      ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       # if in current folder, or the parent one /  url = local / elif  in common theme song folder / try language priority / try root of common theme song folder / try remote server
-      url = THEME_URL % tvdbid
-      code = self.http_status_code(url)
-      if code == 200:
-        Log.Debug("url exist: " + str(code))
-        try:
-          if url not in metadata.themes: metadata.themes[url] = Proxy.Media(HTTP.Request(url, cacheTime=None)) # To Do: file search in local or common folder (no files in each media folder)
-        except Exception, e: 
-          tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
-          error_log  ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
-          Log.Debug(  "Plex TV serie theme url: %s, tvdbid: %s" % (THEME_URL % tvdbid, tvdbid))
-      else: Log.Debug("Plex TV serie theme not present for tvdbid: %s" % tvdbid)
-
+      filename = 'Theme Songs/' + metadata.id + '.mp3'
+      url      = THEME_URL % tvdbid
+      if metadata.themes[url] or metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added")
+      elif Data.Exists(filename):
+        Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
+        theme_song = Data.Load(filename)
+        metadata.themes[filename] = Proxy.Media(theme_song)
+      elif self.http_status_code(THEME_URL % tvdbid) == 200:
+        try: theme_song = HTTP.Request(url, cacheTime=None)
+        except Exception, e:
+          Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, however download failed: %s" % url)
+          pass
+        else:
+          Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, and download suceeded: %s" % url)
+          Data.Save(metadata.id+'.mp3', theme_song)
+          metadata.themes[url] = Proxy.Media(theme_song)
+      else:
+        Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
+        tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
+        error_log ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
+        
     ### AniDB Posters ###
     Log.Debug("AniDB Poster")
     if getElementText(anime, 'picture') == "": error_log['AniDB'].append("Aid: %s No poster present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB"))
@@ -554,15 +564,15 @@ class HamaCommonAgent:
         duration = getElementText(episode, 'length')
         if duration != "":
           episodeObj.duration = int(duration) * 1000 * 60 # Plex save duration in millisecs, AniDB stores it in minutes
-          if season == 1:
+          if season == "1":
             numEpisodes   += 1
             totalDuration += episodeObj.duration
             
       convert      = lambda text: int(text) if text.isdigit() else text 
       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
-      Log.Debug("AniDB-TVDB mapping episode Summaries - mapped eps: %s, Missing eps: %s"  % (str(mapped_eps.sort(key=alphanum_key)),str(missing_eps.sort(key=alphanum_key))) )
     
       ### AniDB Final post-episode titles cleanup ###
+      Log.Debug("DURATION: %s, numEpisodes: %s" %(totalDuration, numEpisodes) )
       if numEpisodes: metadata.duration = int(totalDuration) / int(numEpisodes) #if movie getting scrapped as episode number by scanner...
 
     ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ### 
@@ -788,30 +798,29 @@ class HamaCommonAgent:
     Log.Debug('anidbCollectionMapping - anidbid is not part of any collection:' )
     return False
 
-  ### Import XML file from 'Resources' folder into an XML element ######################################################################################################
+  ### Import XML file from 'Data' folder into an XML element ######################################################################################################
   def xmlElementFromFile (self, filename, url=None):
 
     if url is not None:
-      Log.Debug("xmlElementFromFile - Looking up url: " + url)
       try:
         string  = HTTP.Request(url, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 ).content
         element = XML.ElementFromString( string )
-        #element = XML.ElementFromURL( url, headers={'Content-type':'text/xml'}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2, encoding='utf-8') #, isHTML=False 'Content-type', 'text/xml'
-        #string  = XML.StringFromElement(element, encoding='utf-8') 
       except:
-        Log.Debug("xmlElementFromFile - exception loading XML from URL: " + url)
+        Log.Debug("xmlElementFromFile - Loading XML file from url failed: " + url)
         pass
       else:
-        Data.Save(filename, string)   #if not Data.Exists(filename):  # save string to file while we have copy
+        Log.Debug("xmlElementFromFile - Loading XML file from url worked: " + url)
+        Data.Save(filename, string)
         return element
     else:  Log.Debug("xmlElementFromFile - No url provided")
     
-    Log.Debug("xmlElementFromFile - Loading XML file from URL failed, faling back to resource file")
-    try:    element = XML.ElementFromString( Data.Load(filename) ) #element = XML.ElementFromString( Resource.Load(filename) )
+    try:    element = XML.ElementFromString( Data.Load(filename) ) #Resource.Load(filename)
     except:
-      Log.Debug("xmlElementFromFile - Loading XML file from Resources folder failed:" + filename)
+      Log.Debug("xmlElementFromFile - Loading XML file from Data folder failed: " + filename)
       raise ValueError
-    else:   return element
+    else:
+      Log.Debug("xmlElementFromFile - Loading XML file from Data folder worked")
+      return element
       
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
