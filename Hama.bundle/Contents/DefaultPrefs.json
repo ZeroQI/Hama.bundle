@@ -18,8 +18,14 @@
     "default" : "false"
   },
   {
-    "id"      : "PreferAnidbPoster",
-    "label"   : "Prefer AniDB's poster over TVDB if TVDB lookup enabled",
+    "id"      : "GetPlexThemes",
+    "label"   : "Download Themes from PLEX",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetAnidbPoster",
+    "label"   : "Get AniDB's poster",
     "type"    : "bool",
     "default" : "false"
   },
@@ -65,7 +71,7 @@
   },
   {
     "id"      : "EpisodeLanguage2",
-    "label"   : "Second Language preference for the Episode title",
+    "label"   : "First Language preference for the Episode title",
     "type"    : "enum",
     "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "x-jat"
