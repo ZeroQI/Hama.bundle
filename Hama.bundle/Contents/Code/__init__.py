@@ -1,6 +1,6 @@
 ######################################################################
 # HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry #
-# Forked+maintained from v0.5 by ZeroQI  V0.5 alpha 2013-08-24 02h14 #
+# Forked+maintained from v0.5 by ZeroQI  V0.5 beta 2014-04-08 xxhxx #
 ######################################################################
 
 ### Global initialisation ################################################################################################################################################
@@ -8,8 +8,8 @@ import os, os.path, re, time, datetime, string # Functions used per module: os (
 
 ### Language Priorities ###
 SECONDS_BETWEEN_REQUESTS     = 2
-FILTER_CHARS                 = "\\/:*?<>|~- "
 SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
+FILTER_CHARS                 = "\\/:*?<>|~- "
 WEB_LINK                     = "<A HREF='%s' target='_blank'>%s</A>"
 
 ### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
@@ -136,7 +136,7 @@ def ValidatePrefs():
   result     = 'Success'
   msg        = 'HAMA - Provided preference values are ok'
   log_string = ""
-  settings   = ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'PreferAnidbPoster', 'UseWebLinks', 'MinimumWeight', 'SerieLanguage1', 'SerieLanguage2', 'SerieLanguage3', 'EpisodeLanguage1', 'EpisodeLanguage2']
+  settings   = ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'GetAnidbPoster', 'UseWebLinks', 'MinimumWeight', 'SerieLanguage1', 'SerieLanguage2', 'SerieLanguage3', 'EpisodeLanguage1', 'EpisodeLanguage2']
   for key in settings: #for key, value in enumerate(settings):
     try: temp = Prefs[key]
     except:
@@ -159,10 +159,12 @@ class HamaCommonAgent:
   def searchByName(self, results, lang, origTitle, year):
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
-    SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
+    SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
     global AniDB_title_tree
-    if not AniDB_title_tree: AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)
+    if not AniDB_title_tree:
+      Log.Debug( "SearchByName - HAD TO RELOAD AniDB Tree, so not kept in memory ###########" )
+      AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB (Caching it) from the anime-id ###
     if origTitle.startswith('aid:'):
@@ -178,9 +180,14 @@ class HamaCommonAgent:
     for title in elements:
       if title.get('aid'): aid = title.get('aid')
       elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
+        if origTitle == title.text: #Shortcut
+          Log.Debug("SearchByName: Local exact search - Strict match '%s' matched aid: %s, title: %s" % (origTitle, aid, title.text))
+          langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)
+          results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100))
+          return
         sample = self.cleanse_title (title.text)
-        if cleansedTitle == sample: # Should i add "origTitle.lower()==title.text.lower() or" ??
-          Log.Debug("SearchByName: Local exact search for '%s' matched aid: %s %s" % (origTitle, aid,title.text))
+        if cleansedTitle == sample:
+          Log.Debug("SearchByName: Local exact search - Cleansed title '%s' matched aid: %s, title: %s" % (origTitle, aid, title.text))
           langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)
           results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100))
           return
@@ -283,7 +290,7 @@ class HamaCommonAgent:
     # -------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
   
     getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-    PreferAnidbPoster = Prefs['PreferAnidbPoster']
+    GetAnidbPoster = Prefs['GetAnidbPoster']
     GetTvdbPosters    = Prefs['GetTvdbPosters'   ]
     GetTvdbFanart     = Prefs['GetTvdbFanart'    ]
     GetTvdbBanners    = Prefs['GetTvdbBanners'   ]
@@ -404,7 +411,7 @@ class HamaCommonAgent:
 
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid)
+        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaullttvdbseason)
         if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster $s" % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title), WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters", "Restrictions"))
      
       ### TVDB - Load serie XML ###
@@ -442,7 +449,8 @@ class HamaCommonAgent:
       # if in current folder, or the parent one /  url = local / elif  in common theme song folder / try language priority / try root of common theme song folder / try remote server
       filename = 'Theme Songs/' + metadata.id + '.mp3'
       url      = THEME_URL % tvdbid
-      if metadata.themes[url] or metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added")
+      if filename in metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
+      elif url in metadata.themes:               Log.Debug("parseAniDBXml - Theme song - already added from Plex server")
       elif Data.Exists(filename):
         Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
         theme_song = Data.Load(filename)
@@ -464,10 +472,10 @@ class HamaCommonAgent:
     ### AniDB Posters ###
     Log.Debug("AniDB Poster")
     if getElementText(anime, 'picture') == "": error_log['AniDB'].append("Aid: %s No poster present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB"))
-    elif PreferAnidbPoster or tvdbposternumber == 0:
+    elif GetAnidbPoster: # or tvdbposternumber == 0:
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');
       if not bannerRealUrl in metadata.posters:
-        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=(1 if PreferAnidbPoster else 99))
+        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=99) #(1 if PreferAnidbPoster else 99))
         except: pass
       
     ### AniDB Serie/Movie description + link ###
@@ -676,7 +684,7 @@ class HamaCommonAgent:
     return "", "",[], ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid):
+  def getImagesFromTVDB(self, metadata, media, tvdbid, defaullttvdbseason=1):
 
     # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
     # theTVDB.com banners.xml Tags         Used by   Values         Description
@@ -709,7 +717,7 @@ class HamaCommonAgent:
     #     VignettePath                     fanart    path           Used exactly the same way as BannerPath, only shows if BannerType is fanart.
     # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
     
-    PreferAnidbPoster = Prefs['PreferAnidbPoster'];
+    GetAnidbPoster = Prefs['GetAnidbPoster'];
     GetTvdbPosters    = Prefs['GetTvdbPosters'   ];
     GetTvdbFanart     = Prefs['GetTvdbFanart'    ];
     GetTvdbBanners    = Prefs['GetTvdbBanners'   ];
@@ -722,14 +730,16 @@ class HamaCommonAgent:
     for banner in bannersXml.xpath('Banner'):
       num += 1
       Language       = banner.xpath('Language'   )[0].text
-      if Language != 'en': continue
-        
+      if Language not in ['en', 'jp']: continue #might add selected title languages in that
+  
       id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text
       bannerType2    = banner.xpath('BannerType2')[0].text
       bannerPath     = banner.xpath('BannerPath' )[0].text
       #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
       season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
+      if not defaullttvdbseason == season: continue
+      if not season in metadata.seasons: season = "1"
       proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
       bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
@@ -745,7 +755,8 @@ class HamaCommonAgent:
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not metaType[bannerRealUrl]:
           try:
-            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=(num+1 if PreferAnidbPoster else num))
+            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num)#(num+1 if GetAnidbPoster else num))
+            if metaType == metadata.seasons[season].posters: metadata.posters[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num) # (num+1 if GetAnidbPoster else num))
             Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           except: Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
     Log.Debug("getImagesFromTVDB - Item number: %s, poster en: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
