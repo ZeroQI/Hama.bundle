@@ -405,14 +405,16 @@ class HamaCommonAgent:
     ### TVDB get id (+etc...) through mapping file ###
     Log.Debug("TVDB - AniDB-TVDB mapping file")
     tvdbid, defaulttvdbseason, mappingList, mapping_studio = self.anidbTvdbMapping(metadata, error_log, studio) ### tvdb id ###
+    #if not defaulttvdbseason defaulttvdbseason = "1"
+    Log.Debug("TVDB - defaulttvdbseason: " + defaulttvdbseason)
     tvdbSummary      = {}
     tvdbposternumber = 0
     if tvdbid.isdigit(): ### TVDB id exists ###############################################################################################
-
+    
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaullttvdbseason)
-        if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster $s" % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title), WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters", "Restrictions"))
+        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaulttvdbseason)
+        if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster" % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title) + WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters", "Restrictions"))
      
       ### TVDB - Load serie XML ###
       try:    tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid) ).xpath('/Data')[0]
@@ -449,8 +451,8 @@ class HamaCommonAgent:
       # if in current folder, or the parent one /  url = local / elif  in common theme song folder / try language priority / try root of common theme song folder / try remote server
       filename = 'Theme Songs/' + metadata.id + '.mp3'
       url      = THEME_URL % tvdbid
-      if filename in metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
-      elif url in metadata.themes:               Log.Debug("parseAniDBXml - Theme song - already added from Plex server")
+      if metadata.themes[filename] and filename in metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
+      elif metadata.themes and url in metadata.themes:                         Log.Debug("parseAniDBXml - Theme song - already added from Plex server")
       elif Data.Exists(filename):
         Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
         theme_song = Data.Load(filename)
@@ -560,7 +562,7 @@ class HamaCommonAgent:
         if tvdbid.isdigit():
           if anidb_ep in mappingList and mappingList[anidb_ep] in tvdbSummary: tvdb_ep = mappingList [ anidb_ep ]
           elif defaulttvdbseason=="a" and anidb_ep in tvdbSummary:             tvdb_ep = anidb_ep
-          elif "s"+str(defaulttvdbseason)+"e"+str(epNumVal) in tvdbSummary:    tvdb_ep = "s"+str(defaulttvdbseason)+"e"+str(epNumVal)
+          elif "s"+defaulttvdbseason+"e"+str(epNumVal) in tvdbSummary:    tvdb_ep = "s"+defaulttvdbseason+"e"+str(epNumVal)
           if tvdb_ep == "": pass
           else:
             summary = ( tvdbSummary [ tvdb_ep ] if tvdb_ep != None else "" )
@@ -676,7 +678,7 @@ class HamaCommonAgent:
         elif studio != "" and mapping_studio != "": error_log['anime-list'].append("Aid: %s '%s' AniDB have studio '%s' and XML have '%s'"         % (metadata.id.zfill(5), name, studio, mapping_studio) + \
           WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report (need GIT account)"))
          
-        Log.Debug("AniDB-TVDB Mapping - anidb:%s tvbdid: %s studio: %s defaullttvdbseason: %s" % (metadata.id, tvdbid, mapping_studio, str(defaulttvdbseason)) )
+        Log.Debug("AniDB-TVDB Mapping - anidb:%s tvbdid: %s studio: %s defaulttvdbseason: %s" % (metadata.id, tvdbid, mapping_studio, str(defaulttvdbseason)) )
         return tvdbid, defaulttvdbseason, mappingList, mapping_studio
 
     error_log['anime-list'].append("Aid: %s anime-list is missing the anidbid" % metadata.id.zfill(5))
@@ -684,7 +686,7 @@ class HamaCommonAgent:
     return "", "",[], ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, defaullttvdbseason=1):
+  def getImagesFromTVDB(self, metadata, media, tvdbid, defaulttvdbseason=1):
 
     # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
     # theTVDB.com banners.xml Tags         Used by   Values         Description
@@ -738,7 +740,7 @@ class HamaCommonAgent:
       bannerPath     = banner.xpath('BannerPath' )[0].text
       #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
       season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
-      if not defaullttvdbseason == season: continue
+      if not defaulttvdbseason == season: continue
       if not season in metadata.seasons: season = "1"
       proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
