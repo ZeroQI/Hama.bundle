@@ -8,7 +8,7 @@ import os, os.path, re, time, datetime, string # Functions used per module: os (
 
 ### Language Priorities ###
 SECONDS_BETWEEN_REQUESTS     = 2
-SPLIT_CHARS                  = [';', ',', '.', '~', '-' ] #Space is implied
+SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
 FILTER_CHARS                 = "\\/:*?<>|~- "
 WEB_LINK                     = "<A HREF='%s' target='_blank'>%s</A>"
 
@@ -17,7 +17,8 @@ FILTER_SEARCH_WORDS          = [                                                
   'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', # En 
   'princess', 'theater',                                                                                                              # En Continued
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime',                                                   # Jp 
-  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses'                                                                                 # Fr 
+  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                # Fr 
+  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi'                                # Roman digits 
 ]
 
 ### AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###########################################################################
@@ -127,8 +128,8 @@ def Start():
   HTTP.CacheTime           = CACHE_1HOUR * 24 * 7  
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree, networkLock #only this one to make search after start faster
   AniDB_title_tree         = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES      , ANIDB_ANIME_TITLES_URL      ) # AniDB's:   anime-titles.xml
-  #AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING      ,  ANIDB_TVDB_MAPPING_URL     ) # ScudLee's: anime-list-master.xml 
-  #AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) #            anime-movieset-list.xml 
+  AniDB_TVDB_mapping_tree  = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING      , ANIDB_TVDB_MAPPING_URL      ) # ScudLee's: anime-list-master.xml 
+  AniDB_collection_tree    = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING, ANIDB_COLLECTION_MAPPING_URL) # ScudLee's: anime-movieset-list.xml 
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
@@ -167,27 +168,28 @@ class HamaCommonAgent:
       AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)
     
     ### aid:xxxxx Fetch the exact serie XML form AniDB (Caching it) from the anime-id ###
-    if origTitle.startswith('aid:'):
-      animeId = str(origTitle[4:])
-      langTitle, mainTitle = self.getMainTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % animeId), SERIE_LANGUAGE_PRIORITY)
-      Log.Debug( "SearchByName - aid: %s, Title: %s, Main title: %s" % (animeId, langTitle, mainTitle) )
-      results.Append(MetadataSearchResult(id=animeId, name=langTitle, year=None, lang=Locale.Language.English, score=100))
+    origTitle = origTitle.encode('utf-8')
+    if origTitle.startswith("aid:"): #NEEDS UTF-8
+      Log.Debug( "SearchByName - aid: '%s'" % origTitle )
+      aidstring = origTitle.split(':', 2) #str(origTitle[4:])
+      aid  = aidstring[1]
+      if len(aidstring) == 3:
+        langTitle = aidstring[2]
+        mainTitle = None
+      else: langTitle, mainTitle = self.getMainTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % aid), SERIE_LANGUAGE_PRIORITY)
+      Log.Debug( "SearchByName - aid: %s, Main title: %s, Title: %s" % (aidstring[1], mainTitle, langTitle) )
+      results.Append(MetadataSearchResult(id=aid, name=langTitle, year=year, lang=Locale.Language.English, score=100))
       return 
     
     ### Local exact search ###
-    cleansedTitle = self.cleanse_title (origTitle)
     elements      = list(AniDB_title_tree.iterdescendants())
+    cleansedTitle = self.cleanse_title (origTitle)
+    Log.Debug( "SearchByName - exact search - checking title: " + repr(origTitle) )
     for title in elements:
       if title.get('aid'): aid = title.get('aid')
-      elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
-        if origTitle == title.text: #Shortcut
-          Log.Debug("SearchByName: Local exact search - Strict match '%s' matched aid: %s, title: %s" % (origTitle, aid, title.text))
-          langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)
-          results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100))
-          return
-        sample = self.cleanse_title (title.text)
-        if cleansedTitle == sample:
-          Log.Debug("SearchByName: Local exact search - Cleansed title '%s' matched aid: %s, title: %s" % (origTitle, aid, title.text))
+      elif title.get('type') in ('main', 'official', 'syn', 'short'): #title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type') == 'main'):
+        if origTitle== title.text or cleansedTitle == self.cleanse_title (title.text):
+          Log.Debug("SearchByName: Local exact search - Strict match '%s' matched title: '%s' with aid: %s" % (origTitle, title.text, aid))
           langTitle, mainTitle = self.getMainTitle(title.getparent(), SERIE_LANGUAGE_PRIORITY)
           results.Append(MetadataSearchResult(id=aid, name=langTitle, year=None, lang=Locale.Language.English, score=100))
           return
@@ -200,24 +202,26 @@ class HamaCommonAgent:
     for word in self.splitByChars(origTitle, SPLIT_CHARS):
       word = self.cleanse_title (word)
       if word != "" and word not in FILTER_SEARCH_WORDS and len(word) > 1:
-        words.append (word)
+        words.append (word.encode('utf-8'))
         log_string += "'%s', " % word
-    Log.Debug(log_string[:-2])
-
-    if len(words)==0 or len( self.splitByChars(origTitle, SPLIT_CHARS) )==1: return None # No result found
+    Log.Debug(log_string[:-2]) #remove last 2 chars
+    if len(words)==0 or len( self.splitByChars(origTitle, SPLIT_CHARS) )<=1:
+      Log.Debug("SearchByName: Local exact search - NO KEYWORD: title: '%s', '%s'" % (origTitle, title.text))
+      return None # No result found
     
     for title in elements:
       if title.get('aid'): aid = title.get('aid')
       elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
         sample = self.cleanse_title (title.text)
+        sample = sample.encode('utf-8')
         for word in words:
           if word in sample:
             index  = len(matchedTitles)-1
             if index >=0 and matchedTitles[index][0] == aid:
-              if title.get('type') == 'main':               matchedTitles[index][1] = aid.zfill(5) + ' ' + title.text
+              if title.get('type') == 'main':               matchedTitles[index][1] = title.text #aid.zfill(5) + ' ' + title.text
               if not title.text in matchedTitles[index][2]: matchedTitles[index][2].append(title.text)
             else:
-              matchedTitles.append([aid, aid.zfill(5) + ' ' + title.text, [title.text] ])
+              matchedTitles.append([aid, title.text, [title.text] ]) #aid.zfill(5) + ' ' + title.text
               if word in matchedWords: matchedWords[word].append(sample)
               else:                    matchedWords[word]= [sample]
     log_string="SearchByName - Keywords: "
@@ -229,7 +233,7 @@ class HamaCommonAgent:
     log_string = "searchByName - similarity with '%s': " % origTitle 
     for match in matchedTitles:
       scores = []                                                                             
-      for title in match[2]: # Calculate distance without space and characters not allowed for files 
+      for title in match[2]: # Calculate distance without space and characters
         a = self.cleanse_title(title)
         b = cleansedTitle
         score = int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) #To-Do: LongestCommonSubstring(first, second). use that?
@@ -320,7 +324,9 @@ class HamaCommonAgent:
     else:
       title=title.encode("utf-8")
       orig =orig.encode("utf-8")
-      if title != "" and title == str(metadata.title):             Log.Debug("AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
+      if title != "" and title == str(metadata.title):
+        Log.Debug("AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
+        metadata.title = title #why anidbid stays in front
       else:
         metadata.title = title
         if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie, Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
@@ -449,7 +455,7 @@ class HamaCommonAgent:
       
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       # if in current folder, or the parent one /  url = local / elif  in common theme song folder / try language priority / try root of common theme song folder / try remote server
-      filename = 'Theme Songs/' + metadata.id + '.mp3'
+      filename = "Theme Songs/%s.mp3" % metadata.id
       url      = THEME_URL % tvdbid
       if metadata.themes[filename] and filename in metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
       elif metadata.themes and url in metadata.themes:                         Log.Debug("parseAniDBXml - Theme song - already added from Plex server")
@@ -464,7 +470,7 @@ class HamaCommonAgent:
           pass
         else:
           Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, and download suceeded: %s" % url)
-          Data.Save(metadata.id+'.mp3', theme_song)
+          Data.Save(filename, theme_song)
           metadata.themes[url] = Proxy.Media(theme_song)
       else:
         Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
@@ -732,7 +738,7 @@ class HamaCommonAgent:
     for banner in bannersXml.xpath('Banner'):
       num += 1
       Language       = banner.xpath('Language'   )[0].text
-      if Language not in ['en', 'jp']: continue #might add selected title languages in that
+      #if Language not in ['en', 'jp']: continue #might add selected title languages in that
   
       id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text
@@ -740,7 +746,7 @@ class HamaCommonAgent:
       bannerPath     = banner.xpath('BannerPath' )[0].text
       #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
       season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
-      if not defaulttvdbseason == season: continue
+      if season and not defaulttvdbseason == season: continue
       if not season in metadata.seasons: season = "1"
       proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
@@ -757,11 +763,11 @@ class HamaCommonAgent:
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not metaType[bannerRealUrl]:
           try:
-            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num)#(num+1 if GetAnidbPoster else num))
+            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num) #(num+1 if GetAnidbPoster else num))
             if metaType == metadata.seasons[season].posters: metadata.posters[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num) # (num+1 if GetAnidbPoster else num))
             Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           except: Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
-    Log.Debug("getImagesFromTVDB - Item number: %s, poster en: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
+    Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
     
   ### AniDB collection mapping #######################################################################################################################
