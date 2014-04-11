@@ -455,27 +455,29 @@ class HamaCommonAgent:
       
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       # if in current folder, or the parent one /  url = local / elif  in common theme song folder / try language priority / try root of common theme song folder / try remote server
-      filename = "Theme Songs/%s.mp3" % metadata.id
+      #if filename in metadata.themes:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
       url      = THEME_URL % tvdbid
-      if metadata.themes[filename] and filename in metadata.themes[filename]:  Log.Debug("parseAniDBXml - Theme song - already added from local copy")
-      elif metadata.themes and url in metadata.themes:                         Log.Debug("parseAniDBXml - Theme song - already added from Plex server")
-      elif Data.Exists(filename):
-        Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
-        theme_song = Data.Load(filename)
-        metadata.themes[filename] = Proxy.Media(theme_song)
-      elif self.http_status_code(THEME_URL % tvdbid) == 200:
-        try: theme_song = HTTP.Request(url, cacheTime=None)
-        except Exception, e:
-          Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, however download failed: %s" % url)
-          pass
-        else:
-          Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, and download suceeded: %s" % url)
-          Data.Save(filename, theme_song)
-          metadata.themes[url] = Proxy.Media(theme_song)
+      if    url in metadata.themes:  Log.Debug("parseAniDBXml - Theme song - already added")
       else:
-        Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
-        tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
-        error_log ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
+        filename = "Theme Songs/%s.mp3" % metadata.id
+        if Data.Exists(filename):
+          Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
+          theme_song = Data.Load(filename)
+          metadata.themes[filename] = Proxy.Media(theme_song)
+        elif Prefs['GetPlexThemes']:
+          if self.http_status_code(THEME_URL % tvdbid) == 200:
+            try: theme_song = HTTP.Request(url, cacheTime=None)
+            except Exception, e:
+              Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, however download failed: %s" % url)
+              pass
+            else:
+              Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, and download suceeded: %s" % url)
+              Data.Save(filename, theme_song)
+              metadata.themes[url] = Proxy.Media(theme_song)
+          else:
+            Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
+            tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
+            error_log ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
         
     ### AniDB Posters ###
     Log.Debug("AniDB Poster")
@@ -483,7 +485,13 @@ class HamaCommonAgent:
     elif GetAnidbPoster: # or tvdbposternumber == 0:
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');
       if not bannerRealUrl in metadata.posters:
-        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=99) #(1 if PreferAnidbPoster else 99))
+        filename = "AniDB Posters/%s" % getElementText(anime, 'picture')
+        if Data.Exists(filename):
+          poster = Data.Load(filename)
+        else:
+          poster   = HTTP.Request(bannerRealUrl, cacheTime=None).content
+          Data.Save(filename, poster)
+        try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(poster, sort_order=99) # metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=99)
         except: pass
       
     ### AniDB Serie/Movie description + link ###
@@ -726,9 +734,10 @@ class HamaCommonAgent:
     # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
     
     GetAnidbPoster = Prefs['GetAnidbPoster'];
-    GetTvdbPosters    = Prefs['GetTvdbPosters'   ];
-    GetTvdbFanart     = Prefs['GetTvdbFanart'    ];
-    GetTvdbBanners    = Prefs['GetTvdbBanners'   ];
+    GetTvdbPosters = Prefs['GetTvdbPosters'];
+    GetTvdbFanart  = Prefs['GetTvdbFanart' ];
+    GetTvdbBanners = Prefs['GetTvdbBanners'];
+    getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
     
     try:    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=(CACHE_1HOUR * 720)) # don't bother with the full zip, all we need is the banners 
     except: return
@@ -739,7 +748,6 @@ class HamaCommonAgent:
       num += 1
       Language       = banner.xpath('Language'   )[0].text
       #if Language not in ['en', 'jp']: continue #might add selected title languages in that
-  
       id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text
       bannerType2    = banner.xpath('BannerType2')[0].text
@@ -761,12 +769,19 @@ class HamaCommonAgent:
       if GetTvdbFanart  and   bannerType == 'fanart' or \
          GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season'    ) or \
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-        if not metaType[bannerRealUrl]:
-          try:
-            metaType[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num) #(num+1 if GetAnidbPoster else num))
-            if metaType == metadata.seasons[season].posters: metadata.posters[bannerRealUrl] = proxyFunc(HTTP.Request(bannerThumbUrl, cacheTime=None).content, sort_order=num) # (num+1 if GetAnidbPoster else num))
-            Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
-          except: Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
+        if not bannerRealUrl in metaType:
+          filename = "TVDB/" + bannerPath
+          if Data.Exists(filename): poster = Data.Load(filename)
+          else:
+            try:    
+              poster = HTTP.Request(bannerThumbUrl, cacheTime=None).content
+              Data.Save(filename, poster)
+            except: 
+              Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
+              pass
+            else:  Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
+          metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
+          if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
     
