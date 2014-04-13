@@ -302,7 +302,7 @@ class HamaCommonAgent:
     MinimumWeight   = Prefs['MinimumWeight'    ]
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
     EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
-    error_log                 = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [] }
+    error_log                 = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [], 'Missing Episodes': [] }
     global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
     
     Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
@@ -595,8 +595,9 @@ class HamaCommonAgent:
           if season == "1":
             numEpisodes   += 1
             totalDuration += episodeObj.duration
-            
-      Log.Debug("Missing Eps: " + missing_eps)
+      
+      error_log['Missing Episodes'].append("aid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
+
       convert      = lambda text: int(text) if text.isdigit() else text 
       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     
