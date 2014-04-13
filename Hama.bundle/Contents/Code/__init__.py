@@ -525,21 +525,20 @@ class HamaCommonAgent:
       totalDuration = 0
       mapped_eps    = []
       missing_eps   = []
+      specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
       for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
 
         eid         = episode.get('id')
         epNum       = episode.xpath('epno')[0]
-        epNumType   = epNum.get('type')
-        season      = ("0" if epNumType == "2" else "1" ) # if epNumType == "1" #else "") # Normal episode
-        epNumVal    = ( epNum.text[1:] if epNumType == "2" and epNum.text[0].isalpha() else epNum.text ) # ( epNum.text[0] == ['S'] or epNum.text[0] == ['s']) else epNum.text )
-        Log.Debug("Season: '%s', Episode: '%s'" % (season, epNumVal))
-        if epNumVal[0] in ['C', 'T', 'P', 'O']:
-          specials = {'S': 0, 'C': 100, 'T': 200, 'P': 300, 'O': 400}
-          epNumVal = str( int(epNum.text[1:]) + specials[ epNum.text[0] ] )
-          #continue # Specials are prefixed with S(Specials 000-100), C(OPs,EDs 101-199), T(Trailers 201-299), P(Parodies 301-399), O(Other 401-499)
+        epNumType   = epNum.get('type') 
+        season      = ("1" if epNumType == "1" else "0" ) #Type 1 Episodes 2 Specials 3 C (Openings, Endings) 4 Trailers
+        epNumVal    = (epNum.text if epNumType == "1" else str( int(epNum.text[1:]) + specials[ epNum.text[0] ][0] ) )
+
         if not (season in media.seasons and epNumVal in media.seasons[season].episodes):
-          missing_eps.append(" s" + season + "e" + epNumVal )
+          Log.Debug("Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
+          if epNumType == "1": missing_eps.append(" s" + season + "e" + epNumVal )
           continue                                                                         
+        Log.Debug("Season: '%s', Episode: '%s' => '%s' Present on disk" % (season, epNum.text, epNumVal))
         episodeObj = metadata.seasons[season].episodes[epNumVal]
         
         ### AniDB Writers, Producers, Directors ###
@@ -570,8 +569,10 @@ class HamaCommonAgent:
 
         ### AniDB Get the correct episode title ###
         ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
-        if ep_title != "" and ep_title != episodeObj.title: episodeObj.title = ep_title
-        elif ep_title=="" and episodeObj.title == "":       episodeObj.title = epNum.text # use epNum.text as for specials it's still prefixed with S  
+        if ep_title != "": 
+          if ep_title != episodeObj.title: episodeObj.title = ep_title
+        else: #   if episodeObj.title == "":
+          episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:]
         
         ### TVDB mapping episode summary ###
         anidb_ep = 's' + season + 'e' + epNumVal
