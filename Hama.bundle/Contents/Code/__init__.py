@@ -9,7 +9,7 @@ import os, os.path, re, time, datetime, string # Functions used per module: os (
 ### Language Priorities ###
 SECONDS_BETWEEN_REQUESTS     = 2
 SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
-FILTER_CHARS                 = "\\/:*?<>|~- "
+FILTER_CHARS                 = "\\/:*?<>|~-; "
 WEB_LINK                     = "<A HREF='%s' target='_blank'>%s</A>"
 
 ### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
@@ -161,7 +161,7 @@ class HamaCommonAgent:
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
-    Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle, str(year) ))
+    Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
     global AniDB_title_tree
     if not AniDB_title_tree:
       Log.Debug( "SearchByName - HAD TO RELOAD AniDB Tree, so not kept in memory ###########" )
@@ -205,8 +205,8 @@ class HamaCommonAgent:
         words.append (word.encode('utf-8'))
         log_string += "'%s', " % word
     Log.Debug(log_string[:-2]) #remove last 2 chars
-    if len(words)==0 or len( self.splitByChars(origTitle, SPLIT_CHARS) )<=1:
-      Log.Debug("SearchByName: Local exact search - NO KEYWORD: title: '%s', '%s'" % (origTitle, title.text))
+    if len(words)==0: # or len( self.splitByChars(origTitle, SPLIT_CHARS) )<=1:
+      Log.Debug("SearchByName: Local exact search - NO KEYWORD: title: '%s'" % (origTitle))
       return None # No result found
     
     for title in elements:
@@ -293,13 +293,13 @@ class HamaCommonAgent:
     # ..X....   thumbs                    A container of proxy objects representing the episode’s thumbnail images. See below for information about proxy objects.
     # -------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
   
-    getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-    GetAnidbPoster = Prefs['GetAnidbPoster']
-    GetTvdbPosters    = Prefs['GetTvdbPosters'   ]
-    GetTvdbFanart     = Prefs['GetTvdbFanart'    ]
-    GetTvdbBanners    = Prefs['GetTvdbBanners'   ]
-    UseWebLinks       = Prefs['UseWebLinks'      ]
-    MinimumWeight     = Prefs['MinimumWeight'    ]
+    getElementText  = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
+    GetAnidbPoster  = Prefs['GetAnidbPoster']
+    GetTvdbPosters  = Prefs['GetTvdbPosters'   ]
+    GetTvdbFanart   = Prefs['GetTvdbFanart'    ]
+    GetTvdbBanners  = Prefs['GetTvdbBanners'   ]
+    UseWebLinks     = Prefs['UseWebLinks'      ]
+    MinimumWeight   = Prefs['MinimumWeight'    ]
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
     EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
     error_log                 = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [] }
@@ -530,9 +530,13 @@ class HamaCommonAgent:
         eid         = episode.get('id')
         epNum       = episode.xpath('epno')[0]
         epNumType   = epNum.get('type')
-        season      = ("0" if epNumType == "2" else "1" if epNumType == "1" else "") # Normal episode
-        epNumVal    = ( epNum.text[1:] if epNumType == "2" and epNumVal[0] == ['S'] else epNum.text )
-        if epNumVal[0] in ['C', 'T', 'P', 'O']: continue # Specials are prefixed with S(Specials 000-100), C(OPs,EDs 101-199), T(Trailers 201-299), P(Parodies 301-399), O(Other 401-499)
+        season      = ("0" if epNumType == "2" else "1" ) # if epNumType == "1" #else "") # Normal episode
+        epNumVal    = ( epNum.text[1:] if epNumType == "2" and epNum.text[0].isalpha() else epNum.text ) # ( epNum.text[0] == ['S'] or epNum.text[0] == ['s']) else epNum.text )
+        Log.Debug("Season: '%s', Episode: '%s'" % (season, epNumVal))
+        if epNumVal[0] in ['C', 'T', 'P', 'O']:
+          specials = {'S': 0, 'C': 100, 'T': 200, 'P': 300, 'O': 400}
+          epNumVal = str( int(epNum.text[1:]) + specials[ epNum.text[0] ] )
+          #continue # Specials are prefixed with S(Specials 000-100), C(OPs,EDs 101-199), T(Trailers 201-299), P(Parodies 301-399), O(Other 401-499)
         if not (season in media.seasons and epNumVal in media.seasons[season].episodes):
           missing_eps.append(" s" + season + "e" + epNumVal )
           continue                                                                         
@@ -553,7 +557,7 @@ class HamaCommonAgent:
           
         try:    rating = getElementText(episode, 'rating')
         except: pass
-        else: 
+        else:
           if rating != "" and rating != episodeObj.rating: episodeObj.rating = float(rating)
         
         ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
@@ -592,6 +596,7 @@ class HamaCommonAgent:
             numEpisodes   += 1
             totalDuration += episodeObj.duration
             
+      Log.Debug("Missing Eps: " + missing_eps)
       convert      = lambda text: int(text) if text.isdigit() else text 
       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     
