@@ -522,8 +522,10 @@ class HamaCommonAgent:
       if tvdbid.isdigit(): description += WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") +" "
     try:   description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
     except Exception, e: Log.Debug("Exception: " + str(e))
-    else:  metadata.summary = description
-     
+    else:
+      metadata.summary = description
+      if description == "": error_log['AniDB'].append("Aid: %s No summary present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB")) 
+
     if not movie: ### TV Serie specific #################################################################################################################
       numEpisodes   = 0
       totalDuration = 0
