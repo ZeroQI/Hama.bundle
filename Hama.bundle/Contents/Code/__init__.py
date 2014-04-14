@@ -476,7 +476,11 @@ class HamaCommonAgent:
               metadata.themes[url] = Proxy.Media(theme_song)
           else:
             Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
-            tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
+            try:     tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
+            except:
+              tvdb_title= "title error, Not in serie XML"
+              error_log ['TVDB'].append("Aid: %s '%s' tvdbid: %s title error, Not in serie XML, %s" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), "N/A", WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") ) )
+              pass
             error_log ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
         
     ### AniDB Posters ###
@@ -557,7 +561,11 @@ class HamaCommonAgent:
         try:    rating = getElementText(episode, 'rating')
         except: pass
         else:
-          if rating != "" and rating != episodeObj.rating: episodeObj.rating = float(rating)
+          if rating != "":
+            if rating != episodeObj.rating:
+              Log.Debug("Rating: '%s'" % str( float(rating) ) )
+              episodeObj.rating = float(rating)
+            else: Log.Debug("Rating: '%s'" % str( float(rating) ) )
         
         ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
         airdate = getElementText(episode, 'airdate')
@@ -568,10 +576,15 @@ class HamaCommonAgent:
             except ValueError, e: Log.Debug("AniDB parseAirDate - Date out of range: " + str(e))
 
         ### AniDB Get the correct episode title ###
+        Log.Debug("Ep title:" )
         ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
+        Log.Debug("Ep title:" )
         if ep_title != "": 
-          if ep_title != episodeObj.title: episodeObj.title = ep_title
-        else: #   if episodeObj.title == "":
+          if ep_title != episodeObj.title:
+            Log.Debug("Ep title: '%s'" % ep_title )
+            episodeObj.title = ep_title
+          else: Log.Debug("Ep title: '%s' *" % ep_title )
+        else:
           episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:]
         
         ### TVDB mapping episode summary ###
@@ -744,7 +757,7 @@ class HamaCommonAgent:
     GetTvdbPosters = Prefs['GetTvdbPosters'];
     GetTvdbFanart  = Prefs['GetTvdbFanart' ];
     GetTvdbBanners = Prefs['GetTvdbBanners'];
-    getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
+    #getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
     
     try:    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=(CACHE_1HOUR * 720)) # don't bother with the full zip, all we need is the banners 
     except: return
