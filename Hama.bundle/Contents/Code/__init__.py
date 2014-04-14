@@ -612,7 +612,7 @@ class HamaCommonAgent:
             numEpisodes   += 1
             totalDuration += episodeObj.duration
       
-      error_log['Missing Episodes'].append("aid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
+      if len(missing_eps)>0:  error_log['Missing Episodes'].append("aid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
 
       convert      = lambda text: int(text) if text.isdigit() else text 
       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
