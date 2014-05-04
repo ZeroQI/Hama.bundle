@@ -28,6 +28,8 @@ ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                         # AniDB picture directory
 ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                    # AniDB link to the anime
 ANIDB_EPISODE_URL            = 'http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'                       # AniDB link to the episode
+ANIDB_RELATION_URL           = 'http://anidb.net/perl-bin/animedb.pl?show=rel&aid=%s'                      # AniDB link to the relation graph
+
 
 TVDB_API_KEY                 = 'A27AD9BE0DA63333'                                                          # TVDB API key register URL: http://thetvdb.com/?tab=apiregister
 TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/%s/series/%s/all/en.xml'                            # TVDB Serie XML for episodes sumaries for now
@@ -519,6 +521,7 @@ class HamaCommonAgent:
         #    for identifier in identifiers: count +=1
         #    description += WEB_LINK % (AniDB_Resources[type][0] % identifier.text, AniDB_Resources[type][1]+("" if count==1 else count) ) +" "
       description += WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB") +" "
+      description += "(" + WEB_LINK % (ANIDB_RELATION_URL % metadata.id, "#") +") "
       if tvdbid.isdigit(): description += WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") +" "
     try:   description += re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description'))       # Remove wiki-style links to staff, characters etc
     except Exception, e: Log.Debug("Exception: " + str(e))
