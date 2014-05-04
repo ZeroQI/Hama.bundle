@@ -504,23 +504,21 @@ class HamaCommonAgent:
     Log.Debug("AniDB description + link")
     description   = ""
     Log.Debug("AniDB resources link")
+    try:   description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')) + "\n" # Remove wiki-style links to staff, characters etc
+    except Exception, e: Log.Debug("Exception: " + str(e))
+    else:
+      if description == "": error_log['AniDB'].append("Aid: %s No summary present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB")) 
     if UseWebLinks:
-      ### Anidb resources links ###
+      Log.Debug("AniDB - TVDB - ANN links") 
+      description += "\nAniDB.net: " +                      WEB_LINK % (ANIDB_SERIE_URL    % metadata.id, "serie page"    ) +" - "
+      description +=                                        WEB_LINK % (ANIDB_RELATION_URL % metadata.id, "relation graph") +"\n"
+      if tvdbid.isdigit(): description += "TheTVDB.com: " + WEB_LINK % (TVDB_SERIE_URL     % tvdbid,      "serie page"    ) +"\n"
       try: #works but uses all length of the description field (html code takes more length than displayed chars)
-        Log.Debug("AniDB - ANN link") 
         ann_id       = anime.xpath("resources/resource[@type='1']/externalentity/identifier")[0].text
         description += "AnimeNewsNetwork.com: " + WEB_LINK % (AniDB_Resources["1"][0] % ann_id, "serie page") +"\n"
       except: pass
-      description += "AniDB.net: " +        WEB_LINK % (ANIDB_SERIE_URL    % metadata.id, "serie page") +" - "
-      description +=                        WEB_LINK % (ANIDB_RELATION_URL % metadata.id, "relation graph") +"\n"
-      if tvdbid.isdigit():
-        description += "TheTVDB.com: " +    WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "serie page") +"<BR/>\n"
-    try:   description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')) + "\n" + description       # Remove wiki-style links to staff, characters etc
-    except Exception, e: Log.Debug("Exception: " + str(e))
-    else:
-      metadata.summary = description
-      if description == "": error_log['AniDB'].append("Aid: %s No summary present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB")) 
-
+    metadata.summary = description
+    
     if not movie: ### TV Serie specific #################################################################################################################
       numEpisodes   = 0
       totalDuration = 0
