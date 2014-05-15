@@ -19,7 +19,8 @@ New features
    <LI> using Studio from mapping file as often missing from AniDB.net
    <LI> Separate language order selection for the serie name and episode titles
    <LI> TVDB and AniDB serie, season and episode link integrated in summary
-   <LI> Warnings in Serie or Episode description (no poster available, episode summary empty, TVDB id not in mapping file) to allow the community to update more easily the mapping XML or TVDB
+   <LI> International support: kanjis in titles and folder names supported
+   <LI> Warnings in Serie or Episode description (no poster available, episode summary empty, TVDB id not in mapping file) to allow the community to update more easily the mapping XML or TVDB, list of missing episodes
 </UL>
 
 Improvements
