@@ -57,34 +57,39 @@ Get the latest zip package in the thread: https://forums.plex.tv/index.php?app=c
 
 Copy the agent folder ("Hama.bundle") in: (Source: https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-)
 
-     - Windows Windows XP, Server 2003, Home Server: C:\Documents and Settings\yourusername\Local Settings\Application Data\Plex Media Server\Plug-Ins\
-     - Windows Vista, Windows 7, Windows 8:          %LOCALAPPDATA%\Plex Media Server\Plug-Ins\ (%LOCALAPPDATA% = C:\Users\XXXXX\AppData\Local\)
-     - Mac OS X:                                     ~/Library/Application Support/Plex Media Server/Plug-Ins
-     - Linux:                                        $PLEX_HOME/Library/Application Support/Plex Media Server/Plug-Ins
-     - QNAP:                                         /share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/Plug-ins
-                                                     /root/Library/Plex Media Server/Plug-ins (also present here If running only)
-     - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins
-                                                     Plex/Library/Application Support/Plex Media Server/Plug-ins (In File Station, no console needed)
+<UL>
+   <LI>      - Windows Windows XP, Server 2003, Home Server: C:\Documents and Settings\yourusername\Local Settings\Application Data\Plex Media Server\Plug-Ins\</LI>
+   <LI>     - Windows Vista, Windows 7, Windows 8:          %LOCALAPPDATA%\Plex Media Server\Plug-Ins\ (%LOCALAPPDATA% = C:\Users\XXXXX\AppData\Local\)</LI>
+   <LI>     - Mac OS X:                                     ~/Library/Application Support/Plex Media Server/Plug-Ins</LI>
+   <LI>     - Linux:                                        $PLEX_HOME/Library/Application Support/Plex Media Server/Plug-Ins</LI>
+   <LI>     - QNAP:                                         /share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/Plug-ins</LI>
+                                                     /root/Library/Plex Media Server/Plug-ins (also present here If running only)</LI>
+   <LI>     - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins</LI>
+   <LI>                                                     Plex/Library/Application Support/Plex Media Server/Plug-ins (In File Station, no console needed)</LI>
+</UL>
 
 Go into the agent data folder ("com.plexapp.agents.hama") in ("plug-in Support/Data"):
      - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama
 
 Create the following folders in it:
-   . AniDB Posters
-   . Theme Songs
-   . XMLs
-   . TVDB:
-     - "_cache/fanart/original"
-     - "fanart/original"
-     - "fanart/vignette"
-     - "graphical"
-     - "posters"
-     - "seasons"
-     - "text"
-The XMLs are downloaded (cached for 2 weeks) and a copy is saved here and used in case of internet issue
-   . anime-titles.xml        AniDB HTTP API, contain all anime titles, downloaded from http://anidb.net/api/anime-titles.xml.gz
-   . anime-list-master.xml   ScudLee's AniDB to TVDB xml mapping file, give studio and episode mapping list for te episode overview, downloaded from https://raw.github.com/ScudLee/anime-lists/master/anime-list-master.xml
-   . anime-movieset-list.xml ScudLee's movie collection (Because XBMC only support movie collection and the files were develloped for AniDB mod XBMC plugin), downloaded from https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml
+<UL>
+   <LI> "AniDB Posters"</LI>
+   <LI> "Theme Songs"</LI>
+   <LI> "XMLs"</LI>
+   <LI> "TVDB/_cache/fanart/original"</LI>
+   <LI> "TVDB/fanart/original"</LI>
+   <LI> "TVDB/fanart/vignette"</LI>
+   <LI> "TVDB/graphical"</LI>
+   <LI> "TVDB/posters"</LI>
+   <LI> "TVDB/seasons"</LI>
+   <LI> "TVDB/text"</LI>
+</UL>
+The XMLs are downloaded (cached for 2 weeks) and a copy is saved here and used in case of internet issue:
+<UL>
+   <LI> anime-titles.xml        AniDB HTTP API, contain all anime titles, downloaded from http://anidb.net/api/anime-titles.xml.gz</LI>
+   <LI> anime-list-master.xml   ScudLee's AniDB to TVDB xml mapping file, give studio and episode mapping list for te episode overview, downloaded from https://raw.github.com/ScudLee/anime-lists/master/anime-list-master.xml</LI>
+   <LI> anime-movieset-list.xml ScudLee's movie collection (Because XBMC only support movie collection and the files were develloped for AniDB mod XBMC plugin), downloaded from https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml</LI>
+</UL>
 
 Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunatly (if i am wrong, let me know)
 I use theses folders to cache all pictures, theme songs, since they are not cached by plex.
@@ -104,22 +109,27 @@ Troubleshooting:
 Check the data folders are created and the agent is where it should be, paste the agent logs relevant section
 
 Plex Logs:
-   . Synology:                                       Agent logs:        /volume1/Plex/Library/Application Support/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log
-                                                     Media Server logs: /volume1/Plex/Library/Application Support/Plex Media Server/Logs/Plex Media Server.log
-                                                     Media Scannerlogs: /volume1/Plex/Library/Application Support/Plex Media Server/Logs/Plex Media Scanner.log
+<UL>
+   <LI> Agent logs:        /volume1/Plex/Library/Application Support/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log</LI>
+   <LI> Media Server logs: /volume1/Plex/Library/Application Support/Plex Media Server/Logs/Plex Media Server.log</LI>
+   <LI> Media Scannerlogs: /volume1/Plex/Library/Application Support/Plex Media Server/Logs/Plex Media Scanner.log</LI>
+</UL> 
 
 Hama specific html logs to allow to update databases for missing info or to list missing episodes
-   . /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
-   . /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
-   . /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
-   . /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
-   . /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
+<UL>
+   <LI> /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm</LI>
+   <LI> /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm</LI>
+   <LI> /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm</LI>
+   <LI> /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm</LI>
+   <LI> /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
+</UL>
 
 To Do
 =====
-   . Package of Studio Logos (see post https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061). Will not work on that but somebody else can
-   . Package of Theme Songs supported, but none exist (name convention: anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. will not work on that but local loading works
-   . Need to ammend the code so that not putting folders still download posters albeit without caching
-   . Need to splig logs created so each contain one type of issue only (as overview missing in thetvdb flood poster missing messages for example)
-   . Should i cache locally anidb XML? they are cached for 2 weeks so even if banned for a day, will allow to finish the next day...
+<UL>
+   <LI> Package of Studio Logos (see post https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061). Will not work on that but somebody else can</LI>
+   <LI> Package of Theme Songs supported, but none exist (name convention: anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. will not work on that but local loading works</LI>
+   <LI> Need to ammend the code so that not putting folders still download posters albeit without caching</LI>
+   <LI> Need to splig logs created so each contain one type of issue only (as overview missing in thetvdb flood poster missing messages for example)</LI>
+   <LI> Should i cache locally anidb XML? they are cached for 2 weeks so even if banned for a day, will allow to finish the next day...
 
