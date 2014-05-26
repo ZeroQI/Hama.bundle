@@ -169,6 +169,9 @@ class HamaCommonAgent:
       Log.Debug( "SearchByName - HAD TO RELOAD AniDB Tree, so not kept in memory ###########" )
       AniDB_title_tree = self.xmlElementFromFile(ANIDB_ANIME_TITLES, ANIDB_ANIME_TITLES_URL)
     
+    ### Clear cache manually ###
+    if origTitle.startswith("clear-cache"): HTTP.ClearCache()
+
     ### aid:xxxxx Fetch the exact serie XML form AniDB (Caching it) from the anime-id ###
     origTitle = origTitle.encode('utf-8')
     if origTitle.startswith("aid:"): #NEEDS UTF-8
@@ -304,7 +307,8 @@ class HamaCommonAgent:
     MinimumWeight   = Prefs['MinimumWeight'    ]
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
     EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
-    error_log                 = { 'AniDB': [], 'TVDB': [], 'anime-list': [], 'themes': [], 'Missing Episodes': [] }
+    error_log                 = { 'AniDB posters missing':   [], 'TVDB posters missing':   [], 'anime-list anidbid missing': [], 
+                                  'AniDB summaries missing': [], 'TVDB summaries missing': [], 'anime-list tvdbid missing':  [], 'anime-list studio logos': [], 'Plex themes missing': [], 'Missing episodes': [] }
     global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
     
     Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
@@ -422,7 +426,7 @@ class HamaCommonAgent:
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
         tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaulttvdbseason)
-        if tvdbposternumber == 0: error_log['TVDB'].append("tvdbid: %s '%s' No English poster" % (tvdbid.zfill(6), title) + WEB_LINK % (TVDB_SERIE_URL % tvdbid, metadata.title) + WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters", "Restrictions"))
+        if tvdbposternumber == 0: error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL  % tvdbid.zfill(6)) + "" + title )
      
       ### TVDB - Load serie XML ###
       try:    tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid) ).xpath('/Data')[0]
@@ -446,7 +450,7 @@ class HamaCommonAgent:
           numbering       = " s" + SeasonNumber + "e" + EpisodeNumber
           episodeWarning  = ""
           if Overview=="":
-            error_log['TVDB'].append("aid:%s tvdbid:%s %s " % (metadata.id, tvdbid, numbering) + WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "Overview Empty"))
+            error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id))
             summary_missing.append(numbering)
           else: summary_present.append(numbering)
           if UseWebLinks: Overview = WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "TVDB") + " " + Overview
@@ -474,20 +478,23 @@ class HamaCommonAgent:
               pass
             else:
               Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, and download suceeded: %s" % url)
-              Data.Save(filename, theme_song)
+              try: Data.Save(filename, theme_song)
+              except:
+                Log.Debug("Plugin Data Folder not created, no local cache")
+                pass
               metadata.themes[url] = Proxy.Media(theme_song)
           else:
             Log.Debug("parseAniDBXml - Theme song - Theme song not present on Plex servers for tvdbid: %s" % tvdbid)
             try:     tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
             except:
               tvdb_title= "title error, Not in serie XML"
-              error_log ['TVDB'].append("Aid: %s '%s' tvdbid: %s title error, Not in serie XML, %s" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), "N/A", WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") ) )
+              error_log ['anime-list tvdbid missing'].append("anidbid: %s, title: '%s', tvdbid: %s, title error, Not in serie XML, %s" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), "N/A", WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") ) )
               pass
-            error_log ['themes'].append("Aid: %s '%s' tvdbid: %s '%s' Missing theme song <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) + " " + WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") )
+            error_log ['Plex themes missing'].append("anidbid: %s, title: '%s', tvdbid: %s, title: '%s' <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) )
         
     ### AniDB Posters ###
     Log.Debug("AniDB Poster")
-    if getElementText(anime, 'picture') == "": error_log['AniDB'].append("Aid: %s No poster present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB"))
+    if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id) + "" + metadata.title)
     elif GetAnidbPoster: # or tvdbposternumber == 0:
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');
       if not bannerRealUrl in metadata.posters:
@@ -496,7 +503,10 @@ class HamaCommonAgent:
           poster = Data.Load(filename)
         else:
           poster   = HTTP.Request(bannerRealUrl, cacheTime=None).content
-          Data.Save(filename, poster)
+          try: Data.Save(filename, poster)
+          except:
+            Log.Debug("Plugin Data Folder not created, no local cache")
+            pass
         try:    metadata.posters[ bannerRealUrl ] = Proxy.Media(poster, sort_order=99) # metadata.posters[ bannerRealUrl ] = Proxy.Media(HTTP.Request(bannerRealUrl, cacheTime=None).content, sort_order=99)
         except: pass
       
@@ -507,7 +517,7 @@ class HamaCommonAgent:
     try:   description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')) + "\n" # Remove wiki-style links to staff, characters etc
     except Exception, e: Log.Debug("Exception: " + str(e))
     else:
-      if description == "": error_log['AniDB'].append("Aid: %s No summary present" % metadata.id + WEB_LINK % (ANIDB_SERIE_URL % metadata.id, "AniDB")) 
+      if description == "": error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id) + " " + metadata.title) 
     if UseWebLinks:
       Log.Debug("AniDB - TVDB - ANN links") 
       description += "\nAniDB.net: " +                      WEB_LINK % (ANIDB_SERIE_URL    % metadata.id, "serie page"    ) +" - "
@@ -605,7 +615,7 @@ class HamaCommonAgent:
             numEpisodes   += 1
             totalDuration += episodeObj.duration
       
-      if len(missing_eps)>0:  error_log['Missing Episodes'].append("aid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
+      if len(missing_eps)>0:  error_log['Missing episodes'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
 
       convert      = lambda text: int(text) if text.isdigit() else text 
       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
@@ -617,11 +627,14 @@ class HamaCommonAgent:
     ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ### 
     for log in error_log:
       if error_log[log] != []:
-        string  = ( Data.Load(log+".htm") if Data.Exists(log+".htm") else "" )
+        if not Data.Exists(log+".htm"): 
+          string=""
+          if log == 'TVDB posters missing': string = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + "<BR />\n"
+          if log == 'Plex themes missing':  string = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<BR />\n"
+        else:  string = Data.Load(log+".htm")
         for entry in error_log[log]:
-          if entry not in string: string += entry + "<BR />\r\n"
-        Data.Save(log+".htm", string)
-      	
+          if entry not in string:  Data.Save(log+".htm", string + entry + "<BR />\r\n")
+          	
     Log.Debug('--- end -------------------------------------------------------------------------------------------------')
 
   ### Pull down the XML (and cache it) for a given anime ID ############################################################################################################
@@ -686,7 +699,7 @@ class HamaCommonAgent:
         
         if not tvdbid.isdigit():
           if tvdbid=="" or tvdbid=="unknown":
-            error_log ['anime-list'].append("Aid: %s '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, tvdbid) + \
+            error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, tvdbid) + \
             WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report") )
             Log("anidbTvdbMapping - Missing tvdbid for anidbid %s" % metadata.id);
             # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring
@@ -703,14 +716,14 @@ class HamaCommonAgent:
         try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
         except: mapping_studio  = ""
         else:   metadata.studio = mapping_studio
-        if studio + mapping_studio == "":           error_log['anime-list'].append("Aid: %s '%s' AniDB and anime-list are both missing the studio" % (metadata.id.zfill(5), name) )
-        elif studio != "" and mapping_studio != "": error_log['anime-list'].append("Aid: %s '%s' AniDB have studio '%s' and XML have '%s'"         % (metadata.id.zfill(5), name, studio, mapping_studio) + \
+        if studio + mapping_studio == "":           error_log['anime-list studio logos'].append("Aid: %s '%s' AniDB and anime-list are both missing the studio" % (metadata.id.zfill(5), name) )
+        elif studio != "" and mapping_studio != "": error_log['anime-list studio logos'].append("Aid: %s '%s' AniDB have studio '%s' and XML have '%s'"         % (metadata.id.zfill(5), name, studio, mapping_studio) + \
           WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report (need GIT account)"))
          
         Log.Debug("AniDB-TVDB Mapping - anidb:%s tvbdid: %s studio: %s defaulttvdbseason: %s" % (metadata.id, tvdbid, mapping_studio, str(defaulttvdbseason)) )
         return tvdbid, defaulttvdbseason, mappingList, mapping_studio
 
-    error_log['anime-list'].append("Aid: %s anime-list is missing the anidbid" % metadata.id.zfill(5))
+    error_log['anime-list anidbid missing'].append("anidbid: " + metadata.id.zfill(5))
     Log.Debug('anidbTvdbMapping('+metadata.id+') found no matching anidbid...')
     return "", "",[], ""
 
@@ -788,13 +801,16 @@ class HamaCommonAgent:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename): poster = Data.Load(filename)
           else:
-            try:    
-              poster = HTTP.Request(bannerThumbUrl, cacheTime=None).content
-              Data.Save(filename, poster)
+            try:  poster = HTTP.Request(bannerThumbUrl, cacheTime=None).content
             except: 
               Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
               pass
-            else:  Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
+            else:
+              try: Data.Save(filename, poster)
+              except:
+                Log.Debug("Plugin Data Folder not created, no local cache")
+                pass
+              Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
           if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
@@ -859,7 +875,10 @@ class HamaCommonAgent:
         pass
       else:
         Log.Debug("xmlElementFromFile - Loading XML file from url worked: " + url)
-        Data.Save(filename, string)
+        try: Data.Save(filename, string)
+        except:
+          Log.Debug("Plugin Data Folder not created, no local cache")
+          pass
         return element
     else:  Log.Debug("xmlElementFromFile - No url provided")
     
