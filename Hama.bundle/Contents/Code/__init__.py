@@ -550,6 +550,7 @@ class HamaCommonAgent:
           continue                                                                         
         Log.Debug("Season: '%s', Episode: '%s' => '%s' Present on disk" % (season, epNum.text, epNumVal))
         episodeObj = metadata.seasons[season].episodes[epNumVal]
+        #if season not in metadata.seasons
         
         ### AniDB Writers, Producers, Directors ###
         if not all(x in writers for x in episodeObj.writers):
