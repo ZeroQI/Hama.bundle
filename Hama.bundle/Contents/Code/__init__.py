@@ -41,10 +41,10 @@ TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seas
 TVDB_SEARCH_URL              = 'http://thetvdb.com/?tab=listseries&function=Search&string=%s'              #
 
 ANIDB_TVDB_MAPPING           = 'XMLs/anime-list-master.xml'                                                # ScudLee mapping file local
-ANIDB_TVDB_MAPPING_URL       = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'    # ScudLee mapping file url
-ANIDB_TVDB_MAPPING_FEEDBACK  = 'https://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'        # ScudLee mapping file git feedback url
+ANIDB_TVDB_MAPPING_URL       = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'     # ScudLee mapping file url
+ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'         # ScudLee mapping file git feedback url
 ANIDB_COLLECTION_MAPPING     = 'XMLs/anime-movieset-list.xml'                                              # ScudLee AniDB movies collections XML mapping file
-ANIDB_COLLECTION_MAPPING_URL = 'https://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'  # ScudLee collection mapping file
+ANIDB_COLLECTION_MAPPING_URL = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'   # ScudLee collection mapping file
 
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                        # Plex TV Theme url
 
