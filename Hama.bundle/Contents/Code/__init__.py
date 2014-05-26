@@ -1,6 +1,6 @@
 ######################################################################
 # HTTP Anidb Metadata Agent (HAMA) v0.4 for plex By Atomicstrawberry #
-# Forked+maintained from v0.5 by ZeroQI  V0.5 beta 2014-04-08 xxhxx #
+# Forked+maintained from v0.5 by ZeroQI  V0.5 beta 2014-05-26 02h16 #
 ######################################################################
 
 ### Global initialisation ################################################################################################################################################
@@ -317,7 +317,7 @@ class HamaCommonAgent:
     ### AniDB Serie MXL ###
     Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id)
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-    except: raise ValueError
+    except: raise ValueEr  ror
     
     ### AniDB Movie setting ### 
     movie2 = (True if getElementText(anime, 'type')=='Movie' else False)
@@ -647,7 +647,7 @@ class HamaCommonAgent:
         if delta.seconds < SECONDS_BETWEEN_REQUESTS: time.sleep(SECONDS_BETWEEN_REQUESTS - delta.seconds)
       lastRequestTime = datetime.datetime.utcnow()
       result          = HTTP.Request(url, headers={'Accept-Encoding':''}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 )
-    except Exception, e: Log("anidbLoadXml(" + url + ") - Error: " + e.code)
+    except Exception, e: Log("urlLoadXml(" + url + ") - Error: " + e.code)
     else:
       if result == "<error>Banned</error>": Log("urlLoadXml - You have been Banned by AniDB") #to test
       else: return XML.ElementFromString(result)
@@ -882,10 +882,16 @@ class HamaCommonAgent:
         return element
     else:  Log.Debug("xmlElementFromFile - No url provided")
     
-    try:    element = XML.ElementFromString( Data.Load(filename) ) #Resource.Load(filename)
+    try:    element = XML.ElementFromString( Data.Load(filename) )
     except:
       Log.Debug("xmlElementFromFile - Loading XML file from Data folder failed: " + filename)
-      raise ValueError
+      try:     Resource.Load(filename)
+      except:
+        Log.Debug("xmlElementFromFile - Loading XML file from Ressource folder failed: " + filename)
+        raise ValueError
+      else:
+        Log.Debug("xmlElementFromFile - Loading XML file from Ressource folder worked: " + filename)
+        pass
     else:
       Log.Debug("xmlElementFromFile - Loading XML file from Data folder worked")
       return element
