@@ -436,8 +436,11 @@ class HamaCommonAgent:
         if tvdbposternumber == 0: error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL  % tvdbid.zfill(6)) + "" + title )
      
       ### TVDB - Load serie XML ###
+      Log.Debug("TVDB - loading serie xml: " + tvdbid)
       try:    tvdbanime = self.urlLoadXml( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid), TVDB_SERIE_CACHE+"/"+tvdbid+".xml" ).xpath('/Data')[0]
-      except: tvdbanime = None
+      except: 
+      	tvdbanime = None
+        pass
       else:
         tvdbtitle = getElementText(tvdbanime, 'Series/SeriesName')
         Log.Debug("TVDB - loaded serie xml: " + tvdbid + " " + tvdbtitle)
@@ -820,10 +823,13 @@ class HamaCommonAgent:
               Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
               pass
             else:
-              try: Data.Save(filename, poster)
+              try:
+              	Data.Save(filename, poster)
               except:
                 Log.Debug("Plugin Data Folder not created, no local cache")
                 pass
+              except IOError:
+              	Log.Debug("Plugin "TVDB" data Folder not created, no local cache")
               Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
           if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
