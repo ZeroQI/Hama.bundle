@@ -318,7 +318,7 @@ class HamaCommonAgent:
     ### AniDB Serie MXL ###
     Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id)
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-    except: raise ValueEr  ror
+    except: raise ValueError
     
     ### AniDB Movie setting ### 
     movie2 = (True if getElementText(anime, 'type')=='Movie' else False)
