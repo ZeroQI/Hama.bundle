@@ -313,13 +313,17 @@ class HamaCommonAgent:
     global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree
     
     Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
-    Log.Debug("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
+    #Log.Debug("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
 
     ### AniDB Serie MXL ###
-    Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id)
+    Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" )
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-    except: raise ValueError
+    except: 
+      Log.Debug("AniDB Serie XML: Exception raised" )
+      raise ValueError
+    else:  Log.Debug("AniDB Serie XML: Loaded OK" )
     
+    	 
     ### AniDB Movie setting ### 
     movie2 = (True if getElementText(anime, 'type')=='Movie' else False)
     # if movie and not movie2:   #metadata = TV_Serie ???? #Load metadata for TV shows instead of selected Movie    category. Can it be done (ie do like the tv show folder setting was selected)
@@ -327,7 +331,9 @@ class HamaCommonAgent:
       
     ### AniDB Title ###
     try:    title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
-    except: raise ValueError
+    except:
+      Log.Debug("AniDB Title: Exception raised" )
+      raise ValueError
     else:
       title=title.encode("utf-8")
       orig =orig.encode("utf-8")
@@ -653,10 +659,11 @@ class HamaCommonAgent:
     else:
       if result == "<error>Banned</error>": Log("urlLoadXml - You have been Banned by AniDB") #to test
       else:
-      	if not filename=="":#and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
+      	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
+        else:
       	  try:    Data.Save(filename)
       	  except: pass
-      	  else:   Log.Debug("urlLoadXml - Saved Serie XML locally") 
+      	  else:   Log.Debug("urlLoadXml: Saved Serie XML locally") 
       	return XML.ElementFromString(result)
     finally: networkLock.release()
 
