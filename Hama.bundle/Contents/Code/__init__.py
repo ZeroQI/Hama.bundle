@@ -651,6 +651,8 @@ class HamaCommonAgent:
   ### Pull down the XML (and cache it) for a given anime ID ############################################################################################################
   def urlLoadXml(self, url, filename=""):
     global lastRequestTime
+
+    Log.Debug ("urlLoadXml - url: %s, filename: %s" % (url, filename))
     try:
       networkLock.acquire()
       if lastRequestTime is not None:
@@ -665,8 +667,10 @@ class HamaCommonAgent:
       	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
         else:
       	  try:    Data.Save(filename)
-      	  except: pass
-      	  else:   Log.Debug("urlLoadXml: Saved Serie XML locally") 
+      	  except: 
+      	       Log.Debug("urlLoadXml: Serie XML could not be saved locally") 
+      	       pass
+      	  else:   Log.Debug("urlLoadXml: Serie XML saved locally successfully") 
       	return XML.ElementFromString(result)
     finally: networkLock.release()
 
