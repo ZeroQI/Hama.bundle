@@ -160,10 +160,9 @@ def all(iterable):
 class HamaCommonAgent:
 
   ### Local search ###
-  def searchByName(self, results, manual, origTitle, year):
+  def searchByName(self, results, lang, origTitle, year):
   
-    if manual: Log.Debug("=== searchByName - Begin - MANUAL search ==================================================================================")
-    else:      Log.Debug("=== searchByName - Begin - Automated search ===============================================================================")
+    Log.Debug("=== searchByName - Begin - ================================================================================================")
     
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
@@ -256,7 +255,7 @@ class HamaCommonAgent:
     Log.Debug("=== searchByName - End - =================================================================================================")
 	
   ### Parse the AniDB anime title XML ##################################################################################################################################
-  def parseAniDBXml(self, metadata, media, force, movie):
+  def parseAniDBXml(self, metadata, media, lang, movie):
    
     # -------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
     # TSEMAGT   Metadata Model Classes    Description - Source: http://dev.plexapp.com/docs/agents/models.html 
@@ -837,7 +836,7 @@ class HamaCommonAgent:
                 Log.Debug("Plugin Data Folder not created, no local cache")
                 pass
               except IOError:
-              	Log.Debug("Plugin "TVDB" data Folder not created, no local cache")
+              	Log.Debug("Plugin 'TVDB' data Folder not created, no local cache")
               Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
           metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
           if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
@@ -969,8 +968,8 @@ class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
  
-  def search(self, results,  media, lang, manual): self.searchByName(results,   manual,   media.show, media.year)
-  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,    force,      False     )
+  def search(self, results,  media, lang, manual): self.searchByName(results,   lang,   media.show, media.year)
+  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,    lang,      False     )
 
 ### Movie Agent declaration ############################################################################################################################################
 class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
@@ -981,6 +980,6 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
 
-  def search(self, results,  media, lang, manual): self.searchByName (results, manual,   media.name, media.year)
-  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,   force,      True      )
+  def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year)
+  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,   lang,      True      )
   
