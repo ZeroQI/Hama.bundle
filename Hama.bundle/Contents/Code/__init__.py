@@ -160,11 +160,15 @@ def all(iterable):
 class HamaCommonAgent:
 
   ### Local search ###
-  def searchByName(self, results, lang, origTitle, year):
+  def searchByName(self, results, manual, origTitle, year):
   
-    Log.Debug("=== searchByName - Begin - ================================================================================================")
+    if manual: Log.Debug("=== searchByName - Begin - MANUAL search ==================================================================================")
+    else:      Log.Debug("=== searchByName - Begin - Automated search ===============================================================================")
+    
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
+    if year not None: origTitle=origTitle+" (%s)" % str(year)
+    
     global AniDB_title_tree
     if not AniDB_title_tree:
       Log.Debug( "SearchByName - HAD TO RELOAD AniDB Tree, so not kept in memory ###########" )
@@ -482,7 +486,7 @@ class HamaCommonAgent:
           metadata.themes[filename] = Proxy.Media(theme_song)
         elif Prefs['GetPlexThemes']:
           if self.http_status_code(THEME_URL % tvdbid) == 200:
-            try: theme_song = HTTP.Request(url, cacheTime=CACHE_1HOUR * 24 * 7 * 52)
+            try: theme_song = HTTP.Request(url, cacheTime=None)
             except Exception, e:
               Log.Debug("parseAniDBXml - Theme song - not added previously and not present locally but on Plex servers, however download failed: %s" % url)
               pass
@@ -512,7 +516,7 @@ class HamaCommonAgent:
         if Data.Exists(filename):
           poster = Data.Load(filename)
         else:
-          poster   = HTTP.Request(bannerRealUrl, cacheTime=CACHE_1HOUR * 24 * 7 * 52).content
+          poster   = HTTP.Request(bannerRealUrl, cacheTime=None).content
           try: Data.Save(filename, poster)
           except:
             Log.Debug("Plugin Data Folder not created, no local cache")
@@ -788,7 +792,7 @@ class HamaCommonAgent:
     GetTvdbBanners = Prefs['GetTvdbBanners'];
     #getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
     
-    try:    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=(CACHE_1HOUR * 720)) # don't bother with the full zip, all we need is the banners 
+    try:    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=CACHE_1HOUR * 24 * 7 * 30) # don't bother with the full zip, all we need is the banners 
     except: return
     num        = 0
     posternum  = 0
@@ -822,7 +826,7 @@ class HamaCommonAgent:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename): poster = Data.Load(filename)
           else:
-            try:  poster = HTTP.Request(bannerThumbUrl, cacheTime=CACHE_1HOUR * 24 * 7 * 52).content
+            try:  poster = HTTP.Request(bannerThumbUrl, cacheTime=None).content
             except: 
               Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
               pass
@@ -965,8 +969,8 @@ class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
  
-  def search(self, results,  media, lang, manual): self.searchByName(results,  lang,   media.show, media.year)
-  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media, force,      False     )
+  def search(self, results,  media, lang, manual): self.searchByName(results,   manual,   media.show, media.year)
+  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,    force,      False     )
 
 ### Movie Agent declaration ############################################################################################################################################
 class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
@@ -977,6 +981,6 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
 
-  def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year)
-  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media, force,      True      )
+  def search(self, results,  media, lang, manual): self.searchByName (results, manual,   media.name, media.year)
+  def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,   force,      True      )
   
