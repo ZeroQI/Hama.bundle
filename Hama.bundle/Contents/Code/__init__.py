@@ -166,7 +166,7 @@ class HamaCommonAgent:
     
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
-    Log.Debug("SearchByName - Filename: " + os.path.dirname(media.items[0].parts[0].file))
+    #Log.Debug("SearchByName - Filename: " + os.path.dirname(media.items[0].parts[0].file))
     if year is not None: origTitle=origTitle+" (%s)" % str(year)
     
     global AniDB_title_tree
