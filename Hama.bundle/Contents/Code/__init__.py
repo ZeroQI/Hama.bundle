@@ -166,6 +166,7 @@ class HamaCommonAgent:
     
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
+    Log.Debug("SearchByName - Filename: " + os.path.dirname(media.items[0].parts[0].file))
     if year is not None: origTitle=origTitle+" (%s)" % str(year)
     
     global AniDB_title_tree
@@ -477,7 +478,7 @@ class HamaCommonAgent:
       url      = THEME_URL % tvdbid
       if    url in metadata.themes:  Log.Debug("parseAniDBXml - Theme song - already added")
       else:
-        filename = "Theme Songs/%s.mp3" % metadata.id
+        filename = "Plex/%s.mp3" % metadata.id
         if Data.Exists(filename):
           Log.Debug("parseAniDBXml - Theme song - not added but present locally: adding it from local file")
           theme_song = Data.Load(filename)
