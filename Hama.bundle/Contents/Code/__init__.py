@@ -22,12 +22,12 @@ FILTER_SEARCH_WORDS          = [                                                
 ]
 
 ### AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###########################################################################
-ANIDB_ANIME_TITLES           = 'XMLs/anime-titles.xml'                                                     # AniDB title database decompressed in Hama.bundle\Contents\Resources
+ANIDB_ANIME_TITLES           = 'anime-titles.xml'                                                          # AniDB title database decompressed in Hama.bundle\Contents\Resources
 ANIDB_ANIME_TITLES_URL       = 'http://anidb.net/api/anime-titles.xml.gz'                                  # AniDB title database file contain all ids, all languages
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                         # AniDB picture directory
 ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                    # AniDB link to the anime
-ANIDB_SERIE_CACHE            = 'XMLs/AniDB'                                                                # AniDB link to the anime
+ANIDB_SERIE_CACHE            = 'AniDB'                                                                     # AniDB link to the anime
 ANIDB_EPISODE_URL            = 'http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'                       # AniDB link to the episode
 ANIDB_RELATION_URL           = 'http://anidb.net/perl-bin/animedb.pl?show=rel&aid=%s'                      # AniDB link to the relation graph
 
@@ -36,15 +36,15 @@ TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/%s/series/%s/all/en.xml' 
 TVDB_BANNERS_URL             = 'http://thetvdb.com/api/%s/series/%s/banners.xml'                           # TVDB Serie pictures xml: fanarts, posters, banners   
 TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                               # TVDB picture directory
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                      #
-TVDB_SERIE_CACHE             = 'XMLs/TVDB'                                                                 #
+TVDB_SERIE_CACHE             = 'TVDB'                                                                      #
 TVDB_SEASON_URL              = 'http://thetvdb.com/?tab=season&seriesid=%s&seasonid=%s'                    #
 TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'             #
 TVDB_SEARCH_URL              = 'http://thetvdb.com/?tab=listseries&function=Search&string=%s'              #
 
-ANIDB_TVDB_MAPPING           = 'XMLs/anime-list-master.xml'                                                # ScudLee mapping file local
+ANIDB_TVDB_MAPPING           = 'anime-list-master.xml'                                                     # ScudLee mapping file local
 ANIDB_TVDB_MAPPING_URL       = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'     # ScudLee mapping file url
 ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'         # ScudLee mapping file git feedback url
-ANIDB_COLLECTION_MAPPING     = 'XMLs/anime-movieset-list.xml'                                              # ScudLee AniDB movies collections XML mapping file
+ANIDB_COLLECTION_MAPPING     = 'anime-movieset-list.xml'                                                   # ScudLee AniDB movies collections XML mapping file
 ANIDB_COLLECTION_MAPPING_URL = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'   # ScudLee collection mapping file
 
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                        # Plex TV Theme url
@@ -319,14 +319,13 @@ class HamaCommonAgent:
     #Log.Debug("parseAniDBXml (%s, %s, %s)" % (metadata, media, force) )
 
     ### AniDB Serie MXL ###
-    Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" )
+    Log.Debug("AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id + ", " + ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" )
     try:    anime = self.urlLoadXml( ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" ).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
     except: 
       Log.Debug("AniDB Serie XML: Exception raised" )
       raise ValueError
     else:  Log.Debug("AniDB Serie XML: Loaded OK" )
-    
-    	 
+     
     ### AniDB Movie setting ### 
     movie2 = (True if getElementText(anime, 'type')=='Movie' else False)
     # if movie and not movie2:   #metadata = TV_Serie ???? #Load metadata for TV shows instead of selected Movie    category. Can it be done (ie do like the tv show folder setting was selected)
@@ -436,7 +435,7 @@ class HamaCommonAgent:
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
         tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaulttvdbseason)
-        if tvdbposternumber == 0: error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL  % tvdbid.zfill(6)) + "" + title )
+        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, title))
      
       ### TVDB - Load serie XML ###
       Log.Debug("TVDB - loading serie xml: " + tvdbid)
@@ -501,7 +500,7 @@ class HamaCommonAgent:
             try:     tvdb_title = getElementText(tvdbanime, '/Data/Series/SeriesName')
             except:
               tvdb_title= "title error, Not in serie XML"
-              error_log ['anime-list tvdbid missing'].append("anidbid: %s, title: '%s', tvdbid: %s, title error, Not in serie XML, %s" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), "N/A", WEB_LINK % (TVDB_SERIE_URL  % tvdbid, "TVDB") ) )
+              error_log ['anime-list tvdbid missing'].append("anidbid: %s, title: '%s', tvdbid: %s, Not in serie XML, %s" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), WEB_LINK % (TVDB_SERIE_URL % tvdbid, "TVDB") ) )
               pass
             error_log ['Plex themes missing'].append("anidbid: %s, title: '%s', tvdbid: %s, title: '%s' <a href='mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;'>Upload</a>" % (metadata.id.zfill(5), orig, tvdbid.zfill(5), tvdb_title, tvdb_title, tvdbid) )
         
@@ -511,7 +510,7 @@ class HamaCommonAgent:
     elif GetAnidbPoster: # or tvdbposternumber == 0:
       bannerRealUrl = ANIDB_PIC_BASE_URL + getElementText(anime, 'picture');
       if not bannerRealUrl in metadata.posters:
-        filename = "AniDB Posters/%s" % getElementText(anime, 'picture')
+        filename = "AniDB/%s" % getElementText(anime, 'picture')
         if Data.Exists(filename):
           poster = Data.Load(filename)
         else:
@@ -562,6 +561,7 @@ class HamaCommonAgent:
           continue                                                                         
         Log.Debug("Season: '%s', Episode: '%s' => '%s' Present on disk" % (season, epNum.text, epNumVal))
         episodeObj = metadata.seasons[season].episodes[epNumVal]
+        Log.Debug("Season end")
         #if season not in metadata.seasons
         
         ### AniDB Writers, Producers, Directors ###
@@ -653,9 +653,9 @@ class HamaCommonAgent:
 
   ### Pull down the XML (and cache it) for a given anime ID ############################################################################################################
   def urlLoadXml(self, url, filename=""):
-    global lastRequestTime
-
     Log.Debug ("urlLoadXml - url: %s, filename: %s" % (url, filename))
+    
+    global lastRequestTime
     try:
       networkLock.acquire()
       if lastRequestTime is not None:
@@ -663,15 +663,21 @@ class HamaCommonAgent:
         if delta.seconds < SECONDS_BETWEEN_REQUESTS: time.sleep(SECONDS_BETWEEN_REQUESTS - delta.seconds)
       lastRequestTime = datetime.datetime.utcnow()
       result          = HTTP.Request(url, headers={'Accept-Encoding':''}, timeout=60, cacheTime=CACHE_1HOUR * 24 * 7 * 2 )
-    except Exception, e: Log("urlLoadXml(" + url + ") - Error: " + e.code)
+    except URLError as e:
+      if   hasattr(e, 'reason'):  Log("urlLoadXml - We failed to reach a server: " + e.reason)
+      elif hasattr(e, 'code'  ):  Log("urlLoadXml - The server couldn't fulfill the request: " + e.code)
+      pass
     else:
       if result == "<error>Banned</error>": Log("urlLoadXml - You have been Banned by AniDB") #to test
       else:
       	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
         else:
-      	  try:    Data.Save(filename)
-      	  except: 
-      	       Log.Debug("urlLoadXml: Serie XML could not be saved locally") 
+      	  if filename == "TVDB/252688.xml": Log.Debug(result)
+          try:    
+            Log.Debug("urlLoadXml: Before Data.Save: Filename: " + filename) 
+            Data.Save(filename, result)
+      	  except Exception, e:  #Catch ALL
+      	       Log.Debug("urlLoadXml: Serie XML could not be saved locally" + e) 
       	       pass
       	  else:   Log.Debug("urlLoadXml: Serie XML saved locally successfully") 
       	return XML.ElementFromString(result)
@@ -823,23 +829,23 @@ class HamaCommonAgent:
          GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not bannerRealUrl in metaType:
           filename = "TVDB/" + bannerPath
-          if Data.Exists(filename): poster = Data.Load(filename)
+          if Data.Exists(filename):
+            Log.Debug("getImagesFromTVDB - Loading locally: " + filename)
+            poster = Data.Load(filename)
           else:
             try:  poster = HTTP.Request(bannerThumbUrl, cacheTime=None).content
             except: 
               Log.Debug('getImagesFromTVDB - error downloading banner url1: %s, url2: %s' % (bannerRealUrl, bannerThumbUrl))
               pass
             else:
+              Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
               try:
               	Data.Save(filename, poster)
-              except:
-                Log.Debug("Plugin Data Folder not created, no local cache")
-                pass
               except IOError:
-              	Log.Debug("Plugin 'TVDB' data Folder not created, no local cache")
-              Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
-          metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
-          if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
+              	Log.Debug("Plugin data Folder not created, no local cache")
+                pass
+            metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
+            if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
     
