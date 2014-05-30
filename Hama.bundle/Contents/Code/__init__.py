@@ -165,7 +165,7 @@ class HamaCommonAgent:
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     
     SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
-    Log("SearchByName (%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year) ))
+    Log("SearchByName (%s,%s,%s,%s,%s)" % (results, lang, origTitle.encode('utf-8'), str(year), filename ))
     #Log.Debug("SearchByName - Filename: " + os.path.dirname(media.items[0].parts[0].file))
     if year is not None: origTitle=origTitle+" (%s)" % str(year)
     
@@ -975,7 +975,7 @@ class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
  
-  def search(self, results,  media, lang, manual): self.searchByName(results,   lang,   media.show, media.year)
+  def search(self, results,  media, lang, manual): self.searchByName(results,   lang,   media.show, media.year )
   def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,    lang,      False     )
 
 ### Movie Agent declaration ############################################################################################################################################
@@ -987,6 +987,6 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   fallback_agent   = False
   contributes_to   = None
 
-  def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year)
+  def search(self, results,  media, lang, manual): self.searchByName (results, lang,   media.name, media.year )
   def update(self, metadata, media, lang, force ): self.parseAniDBXml(metadata, media,   lang,      True      )
   
