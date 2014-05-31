@@ -69,8 +69,8 @@ Copy the agent folder ("Hama.bundle") in: (Source: https://support.plex.tv/hc/en
    <LI>                                                     Plex/Library/Application Support/Plex Media Server/Plug-ins (In File Station, no console needed)</LI>
 </UL>
 
-Go into the agent data folder ("com.plexapp.agents.hama") in ("plug-in Support/Data"):
-     - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama
+Go into the agent data folder ("plug-in Support/Data/com.plexapp.agents.hama/DataItems"):
+     - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems
 
 Create the following folders in it:
 <UL>
