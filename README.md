@@ -92,9 +92,12 @@ The XMLs are downloaded (cached for 2 weeks) and a copy is saved here and used i
    <LI> anime-movieset-list.xml ScudLee's movie collection (Because XBMC only support movie collection and the files were develloped for AniDB mod XBMC plugin), downloaded from https://raw.github.com/ScudLee/anime-lists/master/anime-movieset-list.xml</LI>
 </UL>
 
-Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunatly (if i am wrong, let me know)
+Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunatly
 I use theses folders to cache all pictures, theme songs, since they are not cached by plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
+
+it downloads the XMLs from the internet (using pelx cache for 1 week), then local, then ressource folder
+For pictures and theme songs, it takes from the cache first, then the internet
 
 Updating:
    . replace __init__.py with the latest on https://github.com/ZeroQI/Hama/blob/master/Hama.bundle/Contents/Code/__init__.py
