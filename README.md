@@ -74,15 +74,15 @@ Go into the agent data folder ("com.plexapp.agents.hama") in ("plug-in Support/D
 
 Create the following folders in it:
 <UL>
-   <LI> "AniDB Posters"</LI>
-   <LI> "Theme Songs"</LI>
-   <LI> "XMLs"</LI>
+   <LI> "AniDB"</LI>
+   <LI> "Plex"</LI>
    <LI> "TVDB/_cache/fanart/original"</LI>
    <LI> "TVDB/fanart/original"</LI>
    <LI> "TVDB/fanart/vignette"</LI>
    <LI> "TVDB/graphical"</LI>
    <LI> "TVDB/posters"</LI>
    <LI> "TVDB/seasons"</LI>
+   <LI> "TVDB/seasonswide"</LI>
    <LI> "TVDB/text"</LI>
 </UL>
 The XMLs are downloaded (cached for 2 weeks) and a copy is saved here and used in case of internet issue:
