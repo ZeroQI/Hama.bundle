@@ -435,7 +435,7 @@ class HamaCommonAgent:
     
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, defaulttvdbseason)
+        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, defaulttvdbseason)
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, title))
      
       ### TVDB - Load serie XML ###
@@ -759,7 +759,7 @@ class HamaCommonAgent:
     return "", "",[], ""
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, defaulttvdbseason=1):
+  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, defaulttvdbseason=1):
 
     # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
     # theTVDB.com banners.xml Tags         Used by   Values         Description
@@ -805,16 +805,17 @@ class HamaCommonAgent:
     log_string = ""
     for banner in bannersXml.xpath('Banner'):
       num += 1
-      Language       = banner.xpath('Language'   )[0].text
-      #if Language not in ['en', 'jp']: continue #might add selected title languages in that
+      Language       = banner.xpath('Language'   )[0].text      #if Language not in ['en', 'jp']: continue #might add selected title languages in that
       id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text
       bannerType2    = banner.xpath('BannerType2')[0].text
       bannerPath     = banner.xpath('BannerPath' )[0].text
       #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
       season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
+
+      if movie and not bannerType in ('fanart', 'poster'): continue
       if season and not defaulttvdbseason == season: continue
-      if not season in metadata.seasons: season = "1"
+      if not movie and not season in metadata.seasons: season = "1"
       proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
       bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
@@ -826,8 +827,8 @@ class HamaCommonAgent:
         posternum += 1
         log_string += id + ", " 
       if GetTvdbFanart  and   bannerType == 'fanart' or \
-         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season'    ) or \
-         GetTvdbBanners and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
+         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' and movie == False ) or \
+         GetTvdbBanners and movie == False and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not bannerRealUrl in metaType:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename):
@@ -846,7 +847,7 @@ class HamaCommonAgent:
               	Log.Debug("Plugin data Folder not created, no local cache")
                 pass
             metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
-            if metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
+            if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
     
