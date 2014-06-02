@@ -673,9 +673,7 @@ class HamaCommonAgent:
       else:
       	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
         else:
-      	  if filename == "TVDB/252688.xml": Log.Debug(result)
-          try:    
-            Log.Debug("urlLoadXml: Before Data.Save: Filename: " + filename) 
+      	  try:    
             Data.Save(filename, result)
       	  except Exception, e:  #Catch ALL
       	       Log.Debug("urlLoadXml: Serie XML could not be saved locally" + e) 
@@ -797,9 +795,11 @@ class HamaCommonAgent:
     GetTvdbFanart  = Prefs['GetTvdbFanart' ];
     GetTvdbBanners = Prefs['GetTvdbBanners'];
     #getElementText    = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-    
+
     try:    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=CACHE_1HOUR * 24 * 7 * 30) # don't bother with the full zip, all we need is the banners 
     except: return
+    else:   Log.Debug("getImagesFromTVDB - Loading XML: " + TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid))
+    
     num        = 0
     posternum  = 0
     log_string = ""
@@ -813,8 +813,12 @@ class HamaCommonAgent:
       #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
       season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
 
-      if movie and not bannerType in ('fanart', 'poster'): continue
-      if season and not defaulttvdbseason == season: continue
+      if movie and not bannerType in ('fanart', 'poster'):
+        #Log.Debug("getImagesFromTVDB - skipping banner as it's a movie and not fanart or poster: " + id)
+        continue
+      if season and not defaulttvdbseason == season:
+        #Log.Debug("getImagesFromTVDB - skipping season poster as not defaulttvdbseason so wrong season: " + id)
+        continue
       if not movie and not season in metadata.seasons: season = "1"
       proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
       bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
@@ -827,8 +831,8 @@ class HamaCommonAgent:
         posternum += 1
         log_string += id + ", " 
       if GetTvdbFanart  and   bannerType == 'fanart' or \
-         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' and movie == False ) or \
-         GetTvdbBanners and movie == False and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
+         GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
+         GetTvdbBanners and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         if not bannerRealUrl in metaType:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename):
@@ -846,8 +850,8 @@ class HamaCommonAgent:
               except IOError:
               	Log.Debug("Plugin data Folder not created, no local cache")
                 pass
-            metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
-            if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num) #Add season posters to posters
+          metaType[bannerRealUrl] = proxyFunc(poster, sort_order=num)
+          #if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num+50) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
     
