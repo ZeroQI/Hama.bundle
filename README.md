@@ -1,60 +1,55 @@
 HTTP Anidb Metadata Agent (HAMA)
 ================================
-Created By Atomicstrawberry and maintained until v0.4 <br />
+HAMA was created By Atomicstrawberry, and the latest version he released was v0.4 <br />
 <UL>
  <LI>http://forums.plexapp.com/index.php/topic/66918-release-http-anidb-metadata-agent-hama/</LI>
 </UL>
-Forked from v0.4 and maintained since by ZeroQI <br />
+ZeroQI (me) took over starting at v0.5 and maintained since <br />
 <UL>
  <LI>http://forums.plexapp.com/index.php/topic/77636-release-http-anidb-metadata-agent-hama/</LI>
 </UL>
  <br />
-Here are the changes Between v0.5 and v0.4:<BR />
+Here are the features:<BR />
 
-New features
 <UL>
-   <LI> Search part entirely local <BR />Location: Hama.bundle\Contents\Resources\anime-titles.xml
-   <LI> AniDB id to TVDB id matching (with studio and episode mapping list) with ScudLee's xml mapping file <BR />location: Hama.bundle\Contents\Resources\anime-list-full.xml
-   <LI> Episode summary downloaded from theTVDB.com in english only through episode mapping
-   <LI> using Studio from mapping file as often missing from AniDB.net
-   <LI> Separate language order selection for the serie name and episode titles
-   <LI> TVDB and AniDB serie, season and episode link integrated in summary
-   <LI> International support: kanjis in titles and folder names supported
+   <LI> Separate language order selection for the serie name and episode titles in Agent Settings (Supports Kanjis in folders, filenames, titles)
+   <LI> Episode summary courtesy of TVDB in english only through episode mapping
+   <LI> using Studio from mapping file then AniDB (as often missing from AniDB)
+   <LI> Search part entirely local through AniDB HTML API database file anime-titles.xml
+   <LI> AniDB id to TVDB/TMDB id matching (with studio and episode mapping list) with ScudLee's xml mapping file (anime-list-full.xml)
    <LI> Warnings in Serie or Episode description (no poster available, episode summary empty, TVDB id not in mapping file) to allow the community to update more easily the mapping XML or TVDB, list of missing episodes
-</UL>
-
-Improvements
-<UL>
-   <LI> Changed theTVDB.com picture function to reflect how the XML behaves, removing most un-necessary "thumbnail not available" logs.
-   <LI> Changed theTVDB.com picture function to put season posters on seasons only [still in progress]
-   <LI> Reduced the number of functions: searchByName and parseAnimeXml are directly called by the agent now
-   <LI> Commented source code.
-   <LI> Normalised Logging
-   <LI> imported movie bolean from AniDB.net xml
-   <LI> Commented some file formats in the source for clarity when reading
 </UL>
 
 ScudLee xml mapping files
 ==========================
 I use the following XML files from ScudLee with his approval:
 <UL>
-   <LI> anime-list-full.xml: maps the AniDB id to the TVDB id, providing the studio and episode mapping matrix</LI>
+   <LI> anime-list-full.xml:     maps the AniDB id to the TVDB id, providing the studio and episode mapping matrix</LI>
    <LI> anime-movieset-list.xml: allow to group movies together</LI>
 </UL>
 Source, format, contributing: https://github.com/ScudLee/anime-lists/blob/master/README.md
-XBMC Forum thread: http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010
+XBMC Forum thread:            http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010
 
+I also use AniDB HTTP title database file
+<UL>
+   <LI> anime-titles.xml      mentionned http://wiki.anidb.net/w/API and downloadable http://anidb.net/api/anime-titles.xml.gz once a day MAXIMUM</LI>
+</UL>
 
 Better ABsolute Scanner (BABS)
 ==============================
-I also use that scanner cojointly as it allows for absolute numbering, a requirement with AniDB.
-http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/
+I recommend installing that scanner as it supports absolute numbering, a requirement with AniDB and anime in general.
+Please note all user specific scanner type directories are NOT created by default
+Source:   http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/
 
+Installation Folder:
+   . Ubuntu:   ~/Library/Application Support/Plex Media Server/Scanners/Series/BABS.py 
+   . Synology: (/volume1) /Plex/Library/Application Support/Plex Media Server/Scanners/Series/BABS.py
+   
 Installation
 ============
 
 Get the latest zip package in the thread: https://forums.plex.tv/index.php?app=core&module=attach&section=attach&attach_id=29291. It does contain most data folders to create, or download all files there.
-
+I am workign to create release packages on GitHub currently
 
 Copy the agent folder ("Hama.bundle") in: (Source: https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-)
 
@@ -65,10 +60,10 @@ Copy the agent folder ("Hama.bundle") in: (Source: https://support.plex.tv/hc/en
    <LI>     - Linux:                                        $PLEX_HOME/Library/Application Support/Plex Media Server/Plug-Ins</LI>
    <LI>     - QNAP:                                         /share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/Plug-ins</LI>
                                                      /root/Library/Plex Media Server/Plug-ins (also present here If running only)</LI>
-   <LI>     - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins</LI>
-   <LI>                                                     Plex/Library/Application Support/Plex Media Server/Plug-ins (In File Station, no console needed)</LI>
+   <LI>     - Synology:                                     (/volume1) Plex/Library/Application Support/Plex Media Server/Plug-ins</LI> 
 </UL>
 
+(Optional) Data folders if you want local cache for images and theme songs
 Go into the agent data folder ("plug-in Support/Data/com.plexapp.agents.hama/DataItems"):
      - Synology:                                     /volume1/Plex/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems
 
@@ -136,4 +131,3 @@ To Do
    <LI> Need to ammend the code so that not putting folders still download posters albeit without caching</LI>
    <LI> Need to splig logs created so each contain one type of issue only (as overview missing in thetvdb flood poster missing messages for example)</LI>
    <LI> Should i cache locally anidb XML? they are cached for 2 weeks so even if banned for a day, will allow to finish the next day...
-
