@@ -127,7 +127,7 @@ To Do
 =====
 <UL>
    <LI> Package of Studio Logos (see post https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061). Will not work on that but somebody else can</LI>
-   <LI> Package of Theme Songs supported, but none exist (name convention: anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. will not work on that but local loading works</LI>
-   <LI> Need to ammend the code so that not putting folders still download posters albeit without caching</LI>
-   <LI> Need to splig logs created so each contain one type of issue only (as overview missing in thetvdb flood poster missing messages for example)</LI>
-   <LI> Should i cache locally anidb XML? they are cached for 2 weeks so even if banned for a day, will allow to finish the next day...
+   <LI> Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. will not work on that but local loading works</LI>
+   <LI> Add TMDB poster and fanart support for Anime Movies (https://github.com/plexinc-agents/TheMovieDB.bundle)</LI>
+   <LI> Add rss links to anidb missing episodes summary</LI>
+</UL>
