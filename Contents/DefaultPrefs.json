@@ -1,31 +1,55 @@
 [
   {
     "id"      : "GetTvdbFanart",
-    "label"   : "Attempt to fetch Fanart images from TVDB",
+    "label"   : "Fetch Fanart images from TVDB",
     "type"    : "bool",
     "default" : "true"
   },
   {
     "id"      : "GetTvdbPosters",
-    "label"   : "Attempt to fetch Poster images from TVDB",
+    "label"   : "Fetch Poster images from TVDB",
     "type"    : "bool",
     "default" : "true"
   },
   {
     "id"      : "GetTvdbBanners",
-    "label"   : "Attempt to fetch series Banner images from TVDB",
+    "label"   : "Fetch series Banner images from TVDB",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetAnidbPoster",
+    "label"   : "Fetch AniDB's poster",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetTmdbFanart",
+    "label"   : "Fetch Fanart images from The Movie Database",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetTmdbPoster",
+    "label"   : "Fetch poster images from The Movie Database",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "localart",
+    "label"   : "Prefer artwork based on section language",
+    "type"    : "bool",
+    "default" : "true"
+  },
+  {
+    "id"      : "adult",
+    "label"   : "Include adult content",
     "type"    : "bool",
     "default" : "false"
   },
   {
     "id"      : "GetPlexThemes",
     "label"   : "Download Themes from PLEX",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetAnidbPoster",
-    "label"   : "Get AniDB's poster",
     "type"    : "bool",
     "default" : "false"
   },
