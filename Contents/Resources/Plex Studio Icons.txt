@@ -1,0 +1,43 @@
+For studio icons, for a comparison, XBMC uses png file, white-on-clear, sized 161px x 109px, and are saved in 'skin.aeon.nox"/media/flags/studios/' for example. 
+Already created ones: https://github.com/BigNoid/Aeon-Nox/tree/master/media/flags/studios.
+(http://forum.xbmc.org/showthread.php?tid=70398 show two sources for icons)
+ 
+On Plex however, it uses 512x288px .png located in '/volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/Studio/'.
+substitutions.xml file in parent folder contain the mappings and needs amending
+ 
+<match name="Animal_Planet" expression="animalplanet" />
+<match name="Animal_Planet" expression="Animal_Planet" />
+<match name="Animal_Planet" expression="animal planet" />
+ 
+   . name is the name of the pnd, spaces and hyphens are mostly converted to underscores (remember reading about spaces not being allowed for filename but could spot exceptions in the xml)
+   . expression is the name in the databases (since logos are used by plex, so movies and series agents will also use them) [one line per expression, can point to the same name]
+Video and audio codecs also have logos (Hi10p and FLAC logos would be cool but dunno if feasible on scanner side to enable their useage)
+ 
+Studio logos from http://forum.xbmc.org/showthread.php?tid=70398 [https://sites.google.com/site/anidblist/AnimeStudios.zip] seem to work but are tiny. after playing, it seems:
+  . no logos name in folder include dots, dash, exclamation point but can contain + and some contain spaces
+ . if a logo\\NAS\Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\Studio
+is detected, if you replace it in PMS, it won't refresh even after clearing the browser cache...
+ 
+After some research, to update Plex, the Media-Flags.bundle is here: https://github.com/plexinc-plugins/Media-Flags.bundle/tree/master/Contents/Resources Source: http://forums.plexapp.com/index.php/topic/65514-studio-logos/
+The substitutions.xml XML file [Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\substitutions.xml] format is below, and can help mapping if the logo doesn't show:
+ 
+<MediaFlagSubstitutions>
+    <Studio>
+        <match name="20th_Century_Fox" expression="20th century fox" />
+        <match name="20th_Century_Fox" expression="fox 2000" />
+        <match name="20th_Century_Fox" expression="fox film corp" />
+        <match name="20th_Century_Fox" expression="twentieth century fox" />        [...]
+        [...]
+    </Studio>
+    <VideoCodec>
+        <match name="divx" expression=".*divx.*" />
+        [...]
+    </VideoCodec>
+    <AudioCodec>
+        <match name="dolbydigital" expression="a_ac3" />
+        [...]
+    </AudioCodec>
+</MediaFlagSubstitutions>
+
+
+Found unrelated nice config file here: https://oldwiki.plexapp.com/index.php?title=Advancedsettings.xml
