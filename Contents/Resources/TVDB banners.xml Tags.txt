@@ -1,0 +1,31 @@
+    # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
+    # theTVDB.com banners.xml Tags         Used by   Values         Description
+    # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
+    # Banners
+    #   Banner
+    #     id                               ALL                      TVDB serie ID
+    #     BannerPath                       ALL       path           Can be appended to <mirrorpath>/banners/ to determine the actual location of the artwork.
+    #     BannerType                       ALL       fanart         ...  
+    #                                                poster         ...  
+    #                                                series         ...  
+    #                                                season         ...     
+    #     BannerType2                      fanart    1280x720       ...
+    #                                                1920x1080      ...
+    #                                      poster    680x1000       ...
+    #                                      series    blank          will leave the title and show logo off the banner
+    #                                                text           will show the series name as plain text in an Arial font
+    #                                                graphical      will show the series name in the show's official font or will display the actual logo for the show
+    #                                      season    season         will be the same dimensions as standard DVD cover format
+    #                                                seasonwide     will be the same dimensions as the series banners
+    #     Colors                           fanart    Null/rx|gx|bx  These are colors the artist picked that go well with the image.
+    #                                                               In order they are Light Accent Color, Dark Accent Color and Neutral Midtone Color. 
+    #                                                               It's meant to be used if you want to write something over the image, it gives you a good idea of what colors may work and show up well.
+    #     Language                         ALL       en, ...        Some banners list the series name in a foreign language. The language abbreviation will be listed here.
+    #     Season                           ?         season         If the banner is for a specific season, that season number will be listed here.
+    #     Rating                           ALL                      Returns either null or a decimal with four decimal places. The rating the banner currently has on the site.
+    #     RatingCount                      ALL       unsigned int   Number of people who have rated the image.
+    #     SeriesName                       fanart    Bolean         Indicates if the seriesname is included in the image or not.
+    #     ThumbnailPath                    fanart    path           Path to the thumbnail pic, diplayed if fanart only
+    #     VignettePath                     fanart    path           Used exactly the same way as BannerPath, only shows if BannerType is fanart.
+    # ----------------------------------   -------   ------------   -------------------------------------------------------------------------------------------------------
+    
