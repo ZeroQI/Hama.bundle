@@ -692,6 +692,7 @@ class HamaCommonAgent:
     num        = 0
     posternum  = 0
     log_string = ""
+    valid_names = list()
     for banner in bannersXml.xpath('Banner'):
       num += 1
       Language       = banner.xpath('Language'   )[0].text      #if Language not in ['en', 'jp']: continue #might add selected title languages in that
@@ -717,7 +718,7 @@ class HamaCommonAgent:
       if GetTvdbFanart  and   bannerType == 'fanart' or \
          GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
          GetTvdbBanners and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-        if bannerRealUrl in metaType and not force: Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'*" % (bannerRealUrl, 1 if str(num) == defaulttvdbseason else num +1))
+        if bannerRealUrl in metaType and not force: Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%s'*" % (bannerRealUrl, "1" if str(num) == defaulttvdbseason else str(num +1)))
         else:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename):
@@ -730,8 +731,10 @@ class HamaCommonAgent:
               Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
               try:             Data.Save(filename, poster)
               except IOError:  Log.Debug("Plugin data Folder not created, no local cache")
-          metaType[bannerRealUrl] = proxyFunc(poster, sort_order= (1 if str(num) == defaulttvdbseason else num +1))
-          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, 1 if str(num) == defaulttvdbseason else num +1))
+          metaType[bannerRealUrl] = proxyFunc(poster, sort_order= ("1" if str(num) == defaulttvdbseason else str(num +1)))
+          valid_names.append(bannerRealUrl)
+          metadata.posters.validate_keys( valid_names )
+          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, "1" if str(num) == defaulttvdbseason else str(num +1)))
           #if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num+50) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
