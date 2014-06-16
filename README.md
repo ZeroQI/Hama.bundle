@@ -71,6 +71,8 @@ Create the following folders in it:
 <UL>
    <LI> "AniDB"</LI>
    <LI> "Plex"</LI>
+   <LI> "OMDB"</LI>
+   <LI> "TVDB"</LI>
    <LI> "TVDB/_cache/fanart/original"</LI>
    <LI> "TVDB/fanart/original"</LI>
    <LI> "TVDB/fanart/vignette"</LI>
