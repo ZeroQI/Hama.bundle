@@ -183,8 +183,7 @@ class HamaCommonAgent:
     
     ### Clear cache manually ###
     if origTitle.startswith("clear-cache"):   HTTP.ClearCache()
-    if origTitle.startswith("test-message"):  MessageContainer('Success', "HAMA started")
-
+    
     ### aid:xxxxx Fetch the exact serie XML form AniDB (Caching it) from the anime-id ###
     origTitle = origTitle.encode('utf-8')
     if origTitle.startswith("aid:"): #NEEDS UTF-8
@@ -405,7 +404,7 @@ class HamaCommonAgent:
     
       ### TVDB - Fanart, Poster and Banner ###
       if GetTvdbPosters or GetTvdbFanart or GetTvdbBanners:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, defaulttvdbseason)
+        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, defaulttvdbseason, force)
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, title))
      
       ### TVDB - Load serie XML ###
@@ -522,7 +521,6 @@ class HamaCommonAgent:
         Log.Debug("parseAniDBXml - Season: '%s', Episode: '%s' => '%s' Present on disk" % (season, epNum.text, epNumVal))
         episodeObj = metadata.seasons[season].episodes[epNumVal]
         Log.Debug("parseAniDBXml - Season end")
-        #if season not in metadata.seasons
         
         ### AniDB Writers, Producers, Directors ###
         if not all(x in writers for x in episodeObj.writers):
@@ -538,10 +536,11 @@ class HamaCommonAgent:
         try:    rating = getElementText(episode, 'rating')
         except: pass
         else:
-          if rating != "" and rating != episodeObj.rating:
-            Log.Debug("parseAniDBXml - Rating: '%s'" % str( float(rating) ) )
-            episodeObj.rating = float(rating)
-          else: Log.Debug("parseAniDBXml - Rating: '%s'*" % str( float(rating) ) )
+          if rating != "":
+            if rating != episodeObj.rating:
+              Log.Debug("parseAniDBXml - Rating: '%s'" % str( float(rating) ) )
+              episodeObj.rating = float(rating)
+            else: Log.Debug("parseAniDBXml - Rating: '%s'*" % str( float(rating) ) )
         
         ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
         airdate = getElementText(episode, 'airdate')
@@ -679,7 +678,7 @@ class HamaCommonAgent:
     return False
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, defaulttvdbseason=1):
+  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, defaulttvdbseason=1, force=False):
     GetAnidbPoster = Prefs['GetAnidbPoster'];
     GetTvdbPosters = Prefs['GetTvdbPosters'];
     GetTvdbFanart  = Prefs['GetTvdbFanart' ];
@@ -718,7 +717,8 @@ class HamaCommonAgent:
       if GetTvdbFanart  and   bannerType == 'fanart' or \
          GetTvdbPosters and ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
          GetTvdbBanners and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-        if not bannerRealUrl in metaType:
+        if bannerRealUrl in metaType and not force: Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'*" % (bannerRealUrl, 1 if str(num) == defaulttvdbseason else num +1))
+        else:
           filename = "TVDB/" + bannerPath
           if Data.Exists(filename):
             Log.Debug("getImagesFromTVDB - Loading locally: " + filename)
@@ -730,8 +730,8 @@ class HamaCommonAgent:
               Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
               try:             Data.Save(filename, poster)
               except IOError:  Log.Debug("Plugin data Folder not created, no local cache")
-          metaType[bannerRealUrl] = proxyFunc(poster, sort_order= (1 if num == defaulttvdbseason else num +1))
-          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, 1 if num == defaulttvdbseason else num +1))
+          metaType[bannerRealUrl] = proxyFunc(poster, sort_order= (1 if str(num) == defaulttvdbseason else num +1))
+          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, 1 if str(num) == defaulttvdbseason else num +1))
           #if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num+50) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
