@@ -739,7 +739,8 @@ class HamaCommonAgent:
               Log.Debug("getImagesFromTVDB - adding url: " + bannerRealUrl)
               try:             Data.Save(filename, poster)
               except IOError:  Log.Debug("Plugin data Folder not created, no local cache")
-          metaType[bannerRealUrl] = proxyFunc(poster, sort_order = 1 if num == defaulttvdbseason else num +1)
+          metaType[bannerRealUrl] = proxyFunc(poster, 1 if num == defaulttvdbseason else num +1)
+          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, 1 if num == defaulttvdbseason else num +1))
           #if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num+50) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
