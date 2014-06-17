@@ -169,14 +169,9 @@ class HamaCommonAgent:
     pathlist = media.filename.Unquote().decode('utf-8').split(os.sep)
     if len(pathlist) > 0 and "(" in pathlist [len(pathlist)-1] or len(pathlist) > 1 and "(" in pathlist [len(pathlist)-2]: origTitle = pathlist[len(pathlist)-2] #If () in filename or folder use the folder name as it most lieklly contain a year which Plex scapped
     year                    = media.year
+    if year is not None: origTitle=origTitle+" (%s)" % str(year)
     SERIE_LANGUAGE_PRIORITY = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
     Log("SearchByName - filename: (%s,%s,%s,%s) title: %s, filename: %s" % (results, lang, str(media), str(manual), media.name, media.filename.Unquote() ))  #  with media.items[0].parts[0].file.decode('utf-8') as filename: / with media.seasons[1].episodes[1].items[0].parts[0] as filename:
-    if manual == False: ### Automatic mode ###
-      name   = String.Unquote(media.filename)
-      path = name.split('/')
-      origTitle = path[ len(path)-2 ]
-      Log.Debug("SearchByName - Filename: " + path[ len(path)-2 ] )
-    if year is not None: origTitle=origTitle+" (%s)" % str(year)
     
     global AniDB_title_tree
     if not AniDB_title_tree:
