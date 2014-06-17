@@ -165,13 +165,16 @@ class HamaCommonAgent:
   def searchByName(self, results, media, lang, manual, movie):
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
-    origTitle               = ( media.title if movie else media.show )
-    pathlist = media.filename.Unquote().decode('utf-8').split(os.sep)
-    if len(pathlist) > 0 and "(" in pathlist [len(pathlist)-1] or len(pathlist) > 1 and "(" in pathlist [len(pathlist)-2]: origTitle = pathlist[len(pathlist)-2] #If () in filename or folder use the folder name as it most lieklly contain a year which Plex scapped
+    Log("SearchByName - filename: (%s,%s,%s,%s) title: %s, filename: %s" % (results, lang, str(media), str(manual), media.name, media.filename ))  #  with media.items[0].parts[0].file.decode('utf-8') as filename: / with media.seasons[1].episodes[1].items[0].parts[0] as filename:
+    origTitle = ( media.title if movie else media.show )
+    if media.filename is not None: #only when auto-match
+      filename = String.Unquote(media.filename)
+      pathlist = filename.split(os.sep)
+      if len(pathlist) > 0 and "(" in pathlist [len(pathlist)-1] or len(pathlist) > 1 and "(" in pathlist [len(pathlist)-2]: origTitle = pathlist[len(pathlist)-2] #If () in filename or folder use the folder name as it most lieklly contain a year which Plex scapped
+    else: Log.Debug("Filename empty")
     year                    = media.year
     if year is not None: origTitle=origTitle+" (%s)" % str(year)
     SERIE_LANGUAGE_PRIORITY = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
-    Log("SearchByName - filename: (%s,%s,%s,%s) title: %s, filename: %s" % (results, lang, str(media), str(manual), media.name, media.filename.Unquote() ))  #  with media.items[0].parts[0].file.decode('utf-8') as filename: / with media.seasons[1].episodes[1].items[0].parts[0] as filename:
     
     global AniDB_title_tree
     if not AniDB_title_tree:
@@ -731,7 +734,7 @@ class HamaCommonAgent:
           metaType[bannerRealUrl] = proxyFunc(poster, sort_order= ("1" if str(num) == defaulttvdbseason else str(num +1)))
           valid_names.append(bannerRealUrl)
           metadata.posters.validate_keys( valid_names )
-          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%d'" % (bannerRealUrl, "1" if str(num) == defaulttvdbseason else str(num +1)))
+          Log.Debug("getImagesFromTVDB - pic url: '%s', sort order: '%s'" % (bannerRealUrl, "1" if str(num) == defaulttvdbseason else str(num +1)))
           #if not movie and metaType == metadata.seasons[season].posters:  metadata.posters[bannerRealUrl] = proxyFunc(poster, sort_order=num+50) #Add season posters to posters
     Log.Debug("getImagesFromTVDB - Item number: %s, posters: %s, Poster ids: %s" % (str(num), str(posternum), log_string))
     return posternum
