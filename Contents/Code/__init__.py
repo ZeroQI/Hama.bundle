@@ -166,9 +166,11 @@ class HamaCommonAgent:
   
     Log.Debug("=== searchByName - Begin - ================================================================================================")
     origTitle               = ( media.title if movie else media.show )
+    pathlist = media.filename.Unquote().decode('utf-8').split(os.sep)
+    if len(pathlist) > 0 and "(" in pathlist [len(pathlist)-1] or len(pathlist) > 1 and "(" in pathlist [len(pathlist)-2]: origTitle = pathlist[len(pathlist)-2] #If () in filename or folder use the folder name as it most lieklly contain a year which Plex scapped
     year                    = media.year
     SERIE_LANGUAGE_PRIORITY = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]
-    Log("SearchByName (%s,%s,%s,%s) title: %s, filename: %s" % (results, lang, str(media), str(manual), media.name, media.filename ))
+    Log("SearchByName - filename: (%s,%s,%s,%s) title: %s, filename: %s" % (results, lang, str(media), str(manual), media.name, media.filename.Unquote() ))  #  with media.items[0].parts[0].file.decode('utf-8') as filename: / with media.seasons[1].episodes[1].items[0].parts[0] as filename:
     if manual == False: ### Automatic mode ###
       name   = String.Unquote(media.filename)
       path = name.split('/')
@@ -811,18 +813,18 @@ class HamaCommonAgent:
     if url in metatype:
       Log.Debug("image_download - url: %s, num: %d, filename: %s already present in Plex" % (url, num, filename))
       return
+
     #Log.Debug("metadata_download - url: %s, num: %d, filename: %s " % (url, num, filename))
     if not filename == "" and Data.Exists(filename):
       Log.Debug("image_download - url: '%s', num: '%d', filename: '%s' was not in plex, was in Hama local disk cache" % (url, num, filename))
       image = Data.Load(filename)
-    else:
-      #if self.http_status_code(url) == 200:
-      try:
+    else:      
+      try: #if self.http_status_code(url) == 200:
         file = HTTP.Request( (url if url_thumbnail is None else url_thumbnail) , cacheTime=None).content
         Data.Save(filename, file)
       except Exception, e:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed - exception e: %s" % (filename, e))
       else:                 Log.Debug("metadata_download - url: '%s', num: '%d', filename: '%s' was not in plex, was not in HAMA disk cache" % (url, num, filename))
-    try:     metatype[ url ] = (Proxy.Media if url_thumbnail is None else Proxy.Preview) (image, sort_order=num)
+    try:     metatype[ url ] = (Proxy.Media if url_thumbnail is None else Proxy.Preview) (image, sort_order=str(num)) #sort_order needs to be a string 2014-06-16
     except:  Log.Debug("metadata_download - issue adding picture to plex")
     return
 
