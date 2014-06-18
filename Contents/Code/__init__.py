@@ -800,9 +800,11 @@ class HamaCommonAgent:
         Log.Debug("Poster: '%s', Background: '%s'" % (image_url, thumb_url) )
         valid_names.append(image_url)
         if not image_url in metatype:
-          try:     metadata_download (metatype, image_url, num, "TMDBb/%s.jpg" % imdbid)  #metatype[image_url] = Proxy.Preview(HTTP.Request(thumb_url), sort_order=90)
+          try:
+            metatype[image_url] = Proxy.Preview(HTTP.Request(thumb_url), sort_order=90)
           except:  Log.Debug("failed")
           else:    Log.Debug("getImagesFromTBDBbyIMDBID - " + image_url)
+        else:  Log.Debug("metadata_download - url: %s, num: %d, filename: %s, " % (image_url, num, "TMDB/%s.jpg" % imdbid)) # metadata_download (metatype, image_url, num, "TMDB/%s.jpg" % imdbid)  #
         #metatype.validate_keys(valid_names)
     else:  Log.Debug("getImagesFromTMDBbyIMDBID - tmdb_json is None")
     
@@ -812,30 +814,33 @@ class HamaCommonAgent:
     try:         #with self.get_json(OMDB_HTTP_API_URL + tmdbid, cache_time=CACHE_1WEEK * 56) as OMDB:  metadata_download (metadata.posters, OMDB['Poster'], num, filename="OMDB/%s.jpg" % imdbid)
       OMDB = self.get_json(OMDB_HTTP_API_URL + imdbid, cache_time=CACHE_1WEEK * 56)
       Log.Debug("getImagesFromOMDB - test" + OMDB['Poster'])
-      if not OMDB['Poster'] in metadata.posters:  metadata.posters[ OMDB['Poster'] ] = Proxy.Media( HTTP.Request(OMDB['Poster'], cacheTime=None).content, sort_order=num) #metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
+      if not OMDB['Poster'] in metadata.posters:
+        self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid) #metadata.posters[ OMDB['Poster'] ] = Proxy.Media( HTTP.Request(OMDB['Poster'], cacheTime=None).content, sort_order=num) #
     except:  Log.Debug("getImagesFromOMDB - url: failed")
     else:    Log.Debug("getImagesFromOMDB - url: '%s' downloaded" % OMDB['Poster'])
 
   #########################################################################################################################################################
-  def metadata_download (metatype, url, num=99, filename="", url_thumbnail=None):
+  def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):
 
+    Log.Debut ("here")
     if url in metatype:
       Log.Debug("image_download - url: %s, num: %d, filename: %s already present in Plex" % (url, num, filename))
       return
-
-    #Log.Debug("metadata_download - url: %s, num: %d, filename: %s " % (url, num, filename))
+    Log.Debug("metadata_download - url: %s, num: %d, filename: %s " % (url, num, filename))
     if not filename == "" and Data.Exists(filename):
       Log.Debug("image_download - url: '%s', num: '%d', filename: '%s' was not in plex, was in Hama local disk cache" % (url, num, filename))
-      image = Data.Load(filename)
-    else:      
+      try:     image = Data.Load(filename)
+      except:  pass
+    if image == None:      
       try: #if self.http_status_code(url) == 200:
         file = HTTP.Request( (url if url_thumbnail is None else url_thumbnail) , cacheTime=None).content
         Data.Save(filename, file)
       except Exception, e:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed - exception e: %s" % (filename, e))
       else:                 Log.Debug("metadata_download - url: '%s', num: '%d', filename: '%s' was not in plex, was not in HAMA disk cache" % (url, num, filename))
-    try:     metatype[ url ] = (Proxy.Media if url_thumbnail is None else Proxy.Preview) (image, sort_order=str(num)) #sort_order needs to be a string 2014-06-16
+    try:
+      if url_thumbnail is None:  metatype[ url ] = Proxy.Media  (image, sort_order=str(num)) #sort_order needs to be a string 2014-06-16
+      else:                      metatype[ url ] = Proxy.Preview(image, sort_order=str(num)) #sort_order needs to be a string 2014-06-16
     except:  Log.Debug("metadata_download - issue adding picture to plex")
-    return
 
   ### get_json file, TMDB API supports only JSON now ######################################################################################################
   def get_json(self, url, cache_time=CACHE_1MONTH):
