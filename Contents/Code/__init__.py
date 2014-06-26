@@ -868,9 +868,11 @@ class HamaCommonAgent:
       else:
       	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
         else:
-      	  try:                  Data.Save(filename, result)
-      	  except Exception, e:  Log.Debug("urlLoadXml: Serie XML could not be saved locally" + e)  #Catch ALL
-      	  else:                 Log.Debug("urlLoadXml: Serie XML saved locally successfully") 
+      	  try:     Data.Save(filename, result)
+      	  except:  
+      	    Log.Debug("urlLoadXml: Serie XML could not be saved locally")  #Catch ALL
+      	    pass
+      	  else:    Log.Debug("urlLoadXml: Serie XML saved locally successfully") 
       	return XML.ElementFromString(result)
     finally: networkLock.release()
 
