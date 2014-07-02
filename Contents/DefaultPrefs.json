@@ -67,21 +67,21 @@
   },
   {
     "id"      : "SerieLanguage1",
-    "label"   : "First Language preference for the Serie title",
+    "label"   : "First Language preference for the Series title",
     "type"    : "enum",
     "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "main"
   },
   {
     "id"      : "SerieLanguage2",
-    "label"   : "Second Language preference for the Serie title",
+    "label"   : "Second Language preference for the Series title",
     "type"    : "enum",
     "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "x-jat"
   },
   {
     "id"      : "SerieLanguage3",
-    "label"   : "Third Language preference for the Serie title",
+    "label"   : "Third Language preference for the Series title",
     "type"    : "enum",
     "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "en"
