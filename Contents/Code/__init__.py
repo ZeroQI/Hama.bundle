@@ -866,14 +866,14 @@ class HamaCommonAgent:
     else:
       if result == "<error>Banned</error>": Log("urlLoadXml - You have been Banned by AniDB") #to test
       else:
-      	if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
+        if filename=="": Log.Debug("urlLoadXml: Filename empty") #and Prefs['TVDB-Local-cache']==true: #to enable when json file updated
         else:
-      	  try:     Data.Save(filename, result)
-      	  except:
-      	    Log.Debug("urlLoadXml: Serie XML could not be saved locally")  #Catch ALL
-      	    pass
-      	  else:    Log.Debug("urlLoadXml: Serie XML saved locally successfully")
-      	return XML.ElementFromString(result)
+          try:     Data.Save(filename, result)
+          except:
+            Log.Debug("urlLoadXml: Serie XML could not be saved locally")  #Catch ALL
+            pass
+          else:    Log.Debug("urlLoadXml: Serie XML saved locally successfully")
+        return XML.ElementFromString(result)
     finally: networkLock.release()
 
   ### Import XML file from 'Data' folder into an XML element ##############################################################################################
