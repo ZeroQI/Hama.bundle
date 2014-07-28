@@ -118,5 +118,4 @@ To Do
 
    * Package of Studio Logos (see post https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061). Will not work on that but somebody else can
    * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. will not work on that but local loading works
-   * Add TMDB poster and fanart support for Anime Movies (https://github.com/plexinc-agents/TheMovieDB.bundle)
    * Add rss links to anidb missing episodes summary
