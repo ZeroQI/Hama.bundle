@@ -442,20 +442,48 @@ class HamaCommonAgent:
         totalDuration = 0
         mapped_eps    = []
         missing_eps   = []
-        specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
+        ending_table  = {} 
+        specials      = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
+        op_nb         = None ###
         for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
 
           eid         = episode.get('id')
           epNum       = episode.xpath('epno')[0]
           epNumType   = epNum.get('type')
           season      = ("1" if epNumType == "1" else "0" ) #Type 1 Episodes 2 Specials 3 C (Openings, Endings) 4 Trailers
+          ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
+          
           epNumVal    = (epNum.text if epNumType == "1" else str( int(epNum.text[1:]) + specials[ epNum.text[0] ][0] ) )
-
+          if epNumType=="3" and ep_title.startswith("Ending"): ###workaround for endings starting at 150
+            if  op_nb is None:  op_nb = int(epNum.text[1:])-1
+            epNumVal = str( int(epNumVal) + 50 - op_nb )
+          Log.Debug("epNumVal: '%s'" % epNumVal)
           if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("parseAniDBXml - Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
             if epNumType == "1": missing_eps.append(" s" + season + "e" + epNumVal )
             continue
           episodeObj = metadata.seasons[season].episodes[epNumVal]
         
+          ### AniDB Get the correct episode title ###
+          if ep_title == "":                  episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #on one line?
+          elif ep_title != episodeObj.title:  episodeObj.title = ep_title  #Log.Debug("parseAniDBXml - Ep title: '%s'" % ep_title )
+          #else: Log.Debug("parseAniDBXml - Ep title: '%s' *" % ep_title )
+
+          ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
+          airdate = getElementText(episode, 'airdate')
+          if airdate != "":
+            match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", airdate)
+            if match:
+              try:   episodeObj.originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+              except ValueError, e: Log.Debug("parseAniDBXml - AniDB parseAirDate - Date out of range: " + str(e))
+
+          ### AniDB Duration ###
+          duration = getElementText(episode, 'length')
+          if duration != "":
+            episodeObj.duration = int(duration) * 1000 * 60 # Plex save duration in millisecs, AniDB stores it in minutes
+            if season == "1":
+              numEpisodes   += 1
+              totalDuration += episodeObj.duration
+
           ### AniDB Writers, Producers, Directors ###
           if not all(x in writers for x in episodeObj.writers):
             episodeObj.writers.clear()
@@ -473,29 +501,7 @@ class HamaCommonAgent:
             if rating != "" and rating != episodeObj.rating:  episodeObj.rating = float(rating)
               #Log.Debug("parseAniDBXml - Rating: '%s'" % str( float(rating) ) )
               #else: Log.Debug("parseAniDBXml - Rating: '%s'*" % str( float(rating) ) )
-
-          ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
-          airdate = getElementText(episode, 'airdate')
-          if airdate != "":
-            match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", airdate)
-            if match:
-              try:   episodeObj.originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
-              except ValueError, e: Log.Debug("parseAniDBXml - AniDB parseAirDate - Date out of range: " + str(e))
-
-          ### AniDB Get the correct episode title ###
-          ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
-          if ep_title == "":                  episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #on one line?
-          elif ep_title != episodeObj.title:  episodeObj.title = ep_title  #Log.Debug("parseAniDBXml - Ep title: '%s'" % ep_title )
-          #else: Log.Debug("parseAniDBXml - Ep title: '%s' *" % ep_title )
-
-          ### AniDB Duration ###
-          duration = getElementText(episode, 'length')
-          if duration != "":
-            episodeObj.duration = int(duration) * 1000 * 60 # Plex save duration in millisecs, AniDB stores it in minutes
-            if season == "1":
-              numEpisodes   += 1
-              totalDuration += episodeObj.duration
-
+          
           ### TVDB mapping episode summary ###
           anidb_ep = 's' + season + 'e' + epNumVal
           tvdb_ep  = ""
@@ -621,31 +627,27 @@ class HamaCommonAgent:
     except:  return
     else:    Log.Debug("getImagesFromTVDB - Loading XML: " + TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid))
 
-    locked = networkLock.acquire()
+    locked     = networkLock.acquire()
     posternum  = 0
-    num = 0
+    num        = 0
     for banner in bannersXml.xpath('Banner'):
       num += 1      #Language       = banner.xpath('Language'   )[0].text #if Language not in ['en', 'jp']: continue  # id             = banner.xpath('id'         )[0].text
       bannerType     = banner.xpath('BannerType' )[0].text
       bannerType2    = banner.xpath('BannerType2')[0].text
       bannerPath     = banner.xpath('BannerPath' )[0].text #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
-      season         =(banner.xpath('Season'     )[0].text if banner.xpath('season') else "")
-
-      if movie and not bannerType in ('fanart', 'poster') or season and not defaulttvdbseason == season:  continue  #skipping banner as it's a movie and not fanart or poster, skipping season poster as not defaulttvdbseason so wrong season
-      if not movie and not season in metadata.seasons: season = "1"
-      proxyFunc      =(Proxy.Preview if bannerType=='fanart' else Proxy.Media)
-      bannerRealUrl  = TVDB_IMAGES_URL + bannerPath
-      bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
-      metatype       = (metadata.art                     if bannerType=='fanart' else \
-                        metadata.posters                 if bannerType=='poster' else \
-                        metadata.banners                 if bannerType=='series' or  bannerType2=='seasonwide' else \
-                        metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season'     else None)
+      season         = banner.xpath('Season'     )[0].text if banner.xpath('Season') else ""
+      if movie and not bannerType in ('fanart', 'poster') or season!="" and season not in media.seasons:  continue  # or and not defaulttvdbseason == season #skipping banner as it's a movie and not fanart or poster, skipping season poster as not defaulttvdbseason so wrong season
       if bannerType == 'poster':  posternum += 1
       if Prefs['GetTvdbFanart' ] and   bannerType == 'fanart' or \
          Prefs['GetTvdbPosters'] and ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
          Prefs['GetTvdbBanners'] and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
+        metatype     = (metadata.art                     if bannerType=='fanart' else \
+                        metadata.posters                 if bannerType=='poster' else \
+                        metadata.banners                 if bannerType=='series' or  bannerType2=='seasonwide' else \
+                        metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season'     else None)
         rank = 1 if defaulttvdbseason == (posternum if metatype == metadata.posters else num) else (posternum if metatype == metadata.posters else num) + 1
-        self.metadata_download (metatype, bannerRealUrl, rank, "TVDB/"+bannerPath, bannerThumbUrl)
+        bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
+        self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
     Log("getImagesFromTVDB - Item number: %s, posters: %s" % (str(num), str(posternum)))
     if locked:  networkLock.release()
     return posternum
