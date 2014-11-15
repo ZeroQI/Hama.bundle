@@ -263,7 +263,7 @@ class HamaCommonAgent:
     error_log      = { 'anime-list anidbid missing': [], 'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'Missing episodes'       : [],
                        'anime-list tvdbid missing':  [], 'TVDB summaries missing'    : [], 'TVDB posters missing'     : [], 'Plex themes missing'    : [],
                        'anime-list studio logos':    []}
-    getElementText = lambda el, xp : el.xpath(xp)[0].text if el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
+    getElementText = lambda el, xp : el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
     
     Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
     Log.Debug("update2 - AniDB ID: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id, metadata.title, "[...]", "[...]", force) )
@@ -281,7 +281,13 @@ class HamaCommonAgent:
       
       ### TVDB - Load serie XML ###
       Log.Debug("update2 - TVDB - loading serie xml: " + tvdbid)
-      try:     tvdbanime = self.xmlElementFromFile ( TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid), TVDB_SERIE_CACHE+"/"+tvdbid+".xml", False, CACHE_1HOUR * 24 * 7 * 30).xpath('/Data')[0]
+      try:
+        url = TVDB_HTTP_API_URL % (TVDB_API_KEY, tvdbid)
+        if self.http_status_code(url) != 200:
+          Log.Debug("update2 - metadata_download failed, url: '%s'" % url)
+          error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie probably a duplicate deleted from thetvdb")
+          tvdbanime = None
+        else:  tvdbanime = self.xmlElementFromFile ( url, TVDB_SERIE_CACHE+"/"+tvdbid+".xml", False, CACHE_1HOUR * 24 * 7 * 30).xpath('/Data')[0]
       except:  tvdbanime = None
       tvdbtitle      = getElementText(tvdbanime, 'Series/SeriesName')
       tvdbNetwork    = getElementText(tvdbanime, 'Series/Network')
@@ -296,18 +302,17 @@ class HamaCommonAgent:
       Log.Debug("### TVDB - Build 'tvdb_table' ###")
       summary_missing = []
       summary_present = []
-      for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
-        numbering       = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-        Overview        = getElementText(episode, 'Overview')
-        seasonid        = getElementText(episode, 'seasonid')
-        if Overview=="":  summary_missing.append(numbering)
-        else:             summary_present.append(numbering)
-        if Prefs['UseWebLinks']: Overview = WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "TVDB") + " " + Overview
-        tvdb_table [numbering] = { #'absolute_number') if defaulttvdbseason=="a" else
-          'EpisodeName': getElementText(episode, 'EpisodeName'),
-          'FirstAired':  getElementText(episode, 'FirstAired' ), 
-          'Rating':      getElementText(episode, 'Rating'     ),
-          'Overview':    Overview
+      if tvdbanime is not None:
+        for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
+          numbering       = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+          Overview        = getElementText(episode, 'Overview')
+          seasonid        = getElementText(episode, 'seasonid')
+          if Overview=="":  summary_missing.append(numbering)
+          else:             summary_present.append(numbering)
+          if Prefs['UseWebLinks']:  Overview      = WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, getElementText(tvdbanime, 'Series/seasonid'), getElementText(tvdbanime, 'Series/id')), "TVDB") + " " + Overview
+          tvdb_table [numbering] = { #'absolute_number') if defaulttvdbseason=="a" else
+            'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ), 
+            'Rating':      getElementText(episode, 'Rating'     ), 'Overview':    Overview
           }
       Log.Debug("update2 - TVDB - Build 'tvdb_table': " + str(sorted(summary_present)) )
       Log.Debug("update2 - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
@@ -325,7 +330,7 @@ class HamaCommonAgent:
     elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, "97")  #The Movie Database is least prefered by the mapping file, only when imdbid missing
  
     ### TVDB mode when a season 2 or more exist ############################################################################################################
-    if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:
+    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):
       Log.Debug("MODE TVDB DETECTED" )
       metadata.title    = tvdbtitle     #works
       metadata.summary  = tvdbOverview  #works
@@ -374,8 +379,10 @@ class HamaCommonAgent:
       ### AniDB Serie MXL ##################################################################################################################################
       Log.Debug("update - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id + ", " + ANIDB_SERIE_CACHE +"/"+metadata.id+".xml" )
       try:    anime = self.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata.id, ANIDB_SERIE_CACHE +"/"+metadata.id+".xml", True, CACHE_1HOUR * 24 * 7).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-      except: Log.Error("update - AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile")
- 
+      except:
+        Log.Error("update - AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile")
+        anime = None
+        #return #if banned return ?
       if anime is not None:  #if getElementText(anime, 'type')=='Movie' usefull for something in the future ??
 
         ### AniDB Title ###
