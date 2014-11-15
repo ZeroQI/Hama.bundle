@@ -299,6 +299,7 @@ class HamaCommonAgent:
       for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
         numbering       = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
         Overview        = getElementText(episode, 'Overview')
+        seasonid        = getElementText(episode, 'seasonid')
         if Overview=="":  summary_missing.append(numbering)
         else:             summary_present.append(numbering)
         if Prefs['UseWebLinks']: Overview = WEB_LINK % (TVDB_EPISODE_URL%(tvdbid, seasonid, id), "TVDB") + " " + Overview
