@@ -804,7 +804,7 @@ class HamaCommonAgent:
       type = title.get('type')                                                                   # IF Serie: Main, official, Synonym, short. If episode: None
       lang = title.get('{http://www.w3.org/XML/1998/namespace}lang')                             # Get the language, 'xml:lang' attribute need hack to read properly
       if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
-      if lang in languages and type in ['main', 'official', None]:                        langTitles [ languages.index( lang ) ] = title.text  # type==none is for mapping file language
+      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  # type==none is for mapping file language
 
     for index in range( len(languages) ):
       if langTitles [ index ] != '' :
