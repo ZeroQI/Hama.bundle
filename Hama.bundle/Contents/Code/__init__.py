@@ -137,9 +137,9 @@ def Start():
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree                                            # only this one to make search after start faster
   time.strptime("30 Nov 00", "%d %b %y")                                                                             # Avoid "AttributeError: _strptime" on first call [http://bugs.python.org/issue7980]
   HTTP.CacheTime                   = CACHE_1HOUR * 24 * 7                                                            # Cache time for Plex XML and html pages
-  AniDB_title_tree                 = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES_URL,       ANIDB_ANIME_TITLES,       True,  CACHE_1HOUR * 24 * 7 * 30) # AniDB's:   anime-titles.xml
-  AniDB_TVDB_mapping_tree          = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING_URL,       ANIDB_TVDB_MAPPING,       False, CACHE_1HOUR * 24 * 7 * 30) # ScudLee's: anime-list-master.xml
-  AniDB_collection_tree            = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING_URL, ANIDB_COLLECTION_MAPPING, False, CACHE_1HOUR * 24 * 7 * 30) # ScudLee's: anime-movieset-list.xml
+  AniDB_title_tree                 = HamaCommonAgent().xmlElementFromFile(ANIDB_ANIME_TITLES_URL,       ANIDB_ANIME_TITLES,       True,  CACHE_1HOUR * 24 * 7) # AniDB's:   anime-titles.xml
+  AniDB_TVDB_mapping_tree          = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING_URL,       ANIDB_TVDB_MAPPING,       False, CACHE_1HOUR * 24 * 7) # ScudLee's: anime-list-master.xml
+  AniDB_collection_tree            = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING_URL, ANIDB_COLLECTION_MAPPING, False, CACHE_1HOUR * 24 * 7) # ScudLee's: anime-movieset-list.xml
   Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Ended ################################################################################################################')
 
 ### Common metadata agent ################################################################################################################################################
@@ -287,7 +287,7 @@ class HamaCommonAgent:
           Log.Debug("update2 - metadata_download failed, url: '%s'" % url)
           error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie probably a duplicate deleted from thetvdb")
           tvdbanime = None
-        else:  tvdbanime = self.xmlElementFromFile ( url, TVDB_SERIE_CACHE+"/"+tvdbid+".xml", False, CACHE_1HOUR * 24 * 7 * 30).xpath('/Data')[0]
+        else:  tvdbanime = self.xmlElementFromFile ( url, TVDB_SERIE_CACHE+"/"+tvdbid+".xml", False, CACHE_1HOUR * 24 * 7).xpath('/Data')[0]
       except:  tvdbanime = None
       tvdbtitle      = getElementText(tvdbanime, 'Series/SeriesName')
       tvdbNetwork    = getElementText(tvdbanime, 'Series/Network')
@@ -446,14 +446,20 @@ class HamaCommonAgent:
           "Script"            : [ "writers",   'writers'  , "writer"   ], 
           "Screenplay"        : [ "writers",   'writers'  , "writer"   ]
           }
-        if movie: 
-          for role in roles [1:3]: roles[role][0].clear()
+        if movie: ###github for role in roles [1:3]: roles[role][0].clear()
+          metadata.writers.clear()
+          metadata.producers.clear()
+          metadata.directors.clear()
+          Log.Debug("before for")
+          #test = {"directors", 'producers', 'writers'}
+          #for role in test:  metadata.test[role].clear() 
+          #for role in ["directors", 'producers', 'writers']:  metadata.role.clear() #role2[role].clear() #TypeError: unhashable type
         log_string = "AniDB Creator data: "
         for creator in anime.xpath('creators/name'):
           for role in roles: 
             if role in creator.get('type'):
               if roles[ role ][1]=='studio':  metadata.studio = creator.text
-              elif     movie:                 metadata.roles[role][0].add(creator.text)
+              elif     movie:                 plex_role [ roles[role][1] ].append(creator.text) #metadata.roles[role][1].append(creator.text)
               elif not movie:                 plex_role [ roles[role][1] ].append(creator.text)
               log_string += "%s is a %s, " % (creator.text, roles[role][2] )
         if metadata.studio == "" and mapping_studio != "":  metadata.studio = mapping_studio
@@ -500,17 +506,20 @@ class HamaCommonAgent:
             ep_title, main               = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
             epNumVal                     = (epNum.text if epNumType == "1" else str( int(epNum.text[1:]) + specials[ epNum.text[0] ][0] ) )
             if epNumType=="3":
-              if ep_title.startswith("Ending"):  epNumVal = str( 150 + int(epNum.text[1:]) - op_nb )
+              if ep_title.startswith("Ending"):  epNumVal = str( 150 + int(ep_title[7:]) ) #int(epNum.text[1:] gives 103 for ed2 with 2 op before that
               else:                              op_nb   +=1
+              Log.Debug("AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
+            
             if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("update - Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
               if epNumType == "1": missing_eps.append(" s" + season + "e" + epNumVal )
               continue
             episodeObj = metadata.seasons[season].episodes[epNumVal]
         
             ### AniDB Get the correct episode title ###
-            if ep_title == "":                  episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #on one line?
-            elif ep_title != episodeObj.title:  episodeObj.title = ep_title
-            
+            if ep_title == "":                  episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #make title from first letter of type
+            elif ep_title != episodeObj.title:  episodeObj.title = ep_title                                            #if different update with ep_title
+            else:                               Log.Debug("AniDB specials title - ep_title not empty and ep_title == episodeObj.title")
+
             ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
             airdate = getElementText(episode, 'airdate')
             if airdate != "":
@@ -623,7 +632,7 @@ class HamaCommonAgent:
   def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
     related_anime_list = []
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'): related_anime_list.append(relatedAnime.get('id'))
-    global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY # if not AniDB_collection_tree: AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING_URL, ANIDB_COLLECTION_MAPPING, False, CACHE_1HOUR * 24 * 7 * 30)
+    global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY # if not AniDB_collection_tree: AniDB_collection_tree = self.xmlElementFromFile(ANIDB_COLLECTION_MAPPING_URL, ANIDB_COLLECTION_MAPPING, False, CACHE_1HOUR * 24 * 7)
     for element in AniDB_collection_tree.iter("anime"):
       if element.get('anidbid') == metadata.id or element.get('anidbid') in related_anime_list + anidbid_table:
         set         = element.getparent()
@@ -635,7 +644,7 @@ class HamaCommonAgent:
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, tvdbid, movie, defaulttvdbseason=1, force=False):
-    try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=CACHE_1HOUR * 24 * 7 * 30) # don't bother with the full zip, all we need is the banners
+    try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=CACHE_1HOUR * 24 * 7) # don't bother with the full zip, all we need is the banners
     except:  return
     else:    Log.Debug("getImagesFromTVDB - Loading XML: " + TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid))
 
@@ -710,12 +719,12 @@ class HamaCommonAgent:
     if url in metatype:
       Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename))
       return
-    Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename))
+    Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'" % (url, str(num), filename))
     file = None
     if not filename == "" and Data.Exists(filename):
       Log.Debug("media_download - url: '%s', num: '%s', filename: '%s' was not in plex, was in Hama local disk cache" % (url, str(num), filename))
       try:     file = Data.Load(filename)
-      except:  pass
+      except:  Log.Debug("media_download - could not load file in cache")
     if file == None:
       if self.http_status_code(url) != 200:
         Log.Debug("metadata_download failed, url: '%s', num: '%s', filename: %s" % (url, str(num), filename))
@@ -727,8 +736,8 @@ class HamaCommonAgent:
       else:    Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s' was not in plex, was not in HAMA disk cache" % (url, str(num), filename))
     try:
       metatype[ url ] = Proxy.Media  (file, sort_order=str(num)) if url_thumbnail is None else Proxy.Preview(file, sort_order=str(num))
-      metadata.posters.validate_keys( [bannerRealUrl] )
-    except:  Log.Debug("metadata_download - issue adding picture to plex")  #metatype.validate_keys(valid_names)
+      #metadata.posters.validate_keys( [bannerRealUrl] )
+    except:  Log.Debug("metadata_download - issue adding picture to plex - url downloaded: '%s', image size: '%d'" % ((url if url_thumbnail is None else url_thumbnail), length(file)))
     
   ### get_json file, TMDB API supports only JSON now ######################################################################################################
   def get_json(self, url, cache_time=CACHE_1MONTH):
@@ -804,7 +813,7 @@ class HamaCommonAgent:
       type = title.get('type')                                                                   # IF Serie: Main, official, Synonym, short. If episode: None
       lang = title.get('{http://www.w3.org/XML/1998/namespace}lang')                             # Get the language, 'xml:lang' attribute need hack to read properly
       if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
-      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  # type==none is for mapping file language
+      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:                        langTitles [ languages.index( lang ) ] = title.text  #Applede Korean synonym fix
 
     for index in range( len(languages) ):
       if langTitles [ index ] != '' :
