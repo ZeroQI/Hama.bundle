@@ -57,7 +57,7 @@
     "id"      : "MinimumWeight",
     "label"   : "Map categories at or above the minimum weight selected",
     "type"    : "text",
-    "default" : "200"
+    "default" : "400"
   },
   {
     "id"      : "SerieLanguage1",
