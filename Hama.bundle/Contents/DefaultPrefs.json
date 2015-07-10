@@ -54,12 +54,6 @@
     "default" : "false"
   },
   {
-    "id"      : "UseWebLinks",
-    "label"   : "Display links to ANN-AniDB-TVDB in tv serie/Movie summary and episode overview page on tile view, breaks Details views",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
     "id"      : "MinimumWeight",
     "label"   : "Map categories at or above the minimum weight selected",
     "type"    : "text",
