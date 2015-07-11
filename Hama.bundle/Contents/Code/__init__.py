@@ -1,13 +1,8 @@
-#################################################################################
-# HTTP Anidb Metadata Agent (HAMA) By ZeroQI, Forked from Atomicstrawberry v0.4 #
-#################################################################################
-
+# -*- coding: utf-8 -*-
+### HTTP Anidb Metadata Agent (HAMA) By ZeroQI, Forked from Atomicstrawberry after v0.4
 ### To-Do List Agent:
-#   . Specials summaries taken wrongly for specials from season 1...
 #   . trailers function support, start with importing trailer episode range
-#   . anidb reverse apostrophe removal in titles AND text, code not working
 #   . multi guid: tvdb:xxxxx anidb:xxxx tmdb:xxx
-#   . genre weight 400 by default
 
 ### Global initialisation ################################################################################################################################################
 import os, re, time, datetime, string, thread, threading, urllib # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
@@ -154,11 +149,11 @@ class HamaCommonAgent:
   
   ### Local search ###
   def search2(self, results, media, lang, manual, movie):
-    Log.Debug("=== search - Begin - ================================================================================================")
+    Log.Debug("=== Search - Begin - ================================================================================================")
     Log.Info("search2 - Title: '%s', name: '%s', filename: '%s', manual:'%s'" % (media.title if movie else media.show, media.name, media.filename, str(manual)))      #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
     origTitle = ( media.title if movie else media.show )
     if origTitle is None or origTitle == "":
-      Log.Debug("=== search - End - ================================================================================================")
+      Log.Debug("=== Search - End - ================================================================================================")
       return
 
     ### Clear cache manually ###
@@ -175,7 +170,7 @@ class HamaCommonAgent:
       else:                    langTitle, mainTitle = self.getMainTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % aid), SERIE_LANGUAGE_PRIORITY)
       Log.Debug( "search - aid: %s, Main title: %s, Title: %s" % (aidstring[1], mainTitle, langTitle) )
       results.Append(MetadataSearchResult(id=aid, name=langTitle, year=media.year, lang=Locale.Language.English, score=100))
-      Log.Debug("=== search - End - =================================================================================================")
+      Log.Debug("=== Search - End - =================================================================================================")
       return
   
     ### Local exact search ###
@@ -204,7 +199,7 @@ class HamaCommonAgent:
       results.Append(MetadataSearchResult(id=aid, name=langTitle, year=media.year, lang=Locale.Language.English, score=match[2]))
     if len(results)>=1:
       results.Sort('score', descending=True)
-      Log.Debug("=== search - End - =================================================================================================")
+      Log.Debug("=== Search - End - =================================================================================================")
       return
 
     ### local keyword search ###
@@ -216,7 +211,7 @@ class HamaCommonAgent:
     Log.Debug(log_string[:-2]) #remove last 2 chars
     if len(words)==0: # or len( self.splitByChars(origTitle, SPLIT_CHARS) )<=1:
       Log.Debug("search: Local exact search - NO KEYWORD: title: '%s'" % (origTitle))
-      Log.Debug("=== search - End - =================================================================================================")
+      Log.Debug("=== Search - End - =================================================================================================")
       return None # No result found
 
     for title in AniDB_title_tree_elements:
@@ -238,11 +233,11 @@ class HamaCommonAgent:
     for key, value in matchedWords.iteritems(): log_string += key + " (" + str(len(value)) + "), "
     Log.Debug(log_string)
     if len(matchedTitles)==0:
-      Log.Debug("=== search - End - =================================================================================================")
+      Log.Debug("=== Search - End - =================================================================================================")
       return None
 
     ### calculate scores + Buid results ###
-    log_string = "search - similarity with '%s': " % origTitle
+    log_string = "Search - similarity with '%s': " % origTitle
     for match in matchedTitles:
       scores = []
       for title in match[2]: # Calculate distance without space and characters
@@ -253,7 +248,7 @@ class HamaCommonAgent:
       log_string += match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
     Log.Debug(log_string)
     results.Sort('score', descending=True)
-    Log.Debug("=== search - End - =================================================================================================")
+    Log.Debug("=== Search - End - =================================================================================================")
     return
 
   ### Parse the AniDB anime title XML ##################################################################################################################################
@@ -264,7 +259,7 @@ class HamaCommonAgent:
                        'anime-list tvdbid missing':  [], 'TVDB summaries missing'    : [], 'TVDB posters missing'     : [], 'Plex themes missing'    : [],
                        'anime-list studio logos':    []}
     getElementText = lambda el, xp : el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-    Log.Debug('--- Begin -------------------------------------------------------------------------------------------')
+    Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
     Log.Debug("update2 - AniDB ID: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id, metadata.title, "[...]", "[...]", force) )
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
@@ -352,10 +347,12 @@ class HamaCommonAgent:
       if anime is not None:  #if getElementText(anime, 'type')=='Movie' usefull for something in the future ??
 
         ### AniDB Title ###
-        try:     title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
+        try:
+          title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
+          title = title.replace("`", "'")
         except:  Log.Debug("update - AniDB Title: Exception raised" )
         else:
-          title, orig = title.encode("utf-8"), orig.encode("utf-8")
+          title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8")
           if title == str(metadata.title):  Log.Debug("update - AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
           elif title != "": #If title diffeerent but not empty [Failsafe]
             Log.Debug("update - AniDB title changed: '%s' original title: '%s'" % (title, orig) )
@@ -426,7 +423,7 @@ class HamaCommonAgent:
         except:  Log.Debug("Exception ")
       
         if description == "":                  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id) + " " + metadata.title)
-        elif metadata.summary != description:  metadata.summary = description
+        elif metadata.summary != description:  metadata.summary = description.replace("`", "'")
 
         ### AniDB Posters ###
         Log.Debug("update - AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
@@ -439,8 +436,9 @@ class HamaCommonAgent:
           #Log.Debug("### AniDB mappingList: '%s'" % str(mappingList))  #Log.Debug("### AniDB tvdb_table:  '%s'" % str(tvdb_table))   
           for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
             ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
-            eid, epNum     = episode.get('id'), episode.xpath('epno')[0]
-            season, epNumType, epNumVal = "1" if epNumType == "1" else "0", epNum.get('type'), epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
+            epNum, eid = episode.xpath('epno')[0], episode.get('id')
+            epNumType  = epNum.get('type')
+            season, epNumVal = "1" if epNumType == "1" else "0", epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
             if epNumType=="3":
               if ep_title.startswith("Ending"):
                 if op_nb==0: op_nb = int(epNum.text[1:])-1                                      #first type 3 is first ending so epNum.text[1:] -1 = nb openings
@@ -486,10 +484,11 @@ class HamaCommonAgent:
             if tvdbid.isdigit():
               if anidb_ep in mappingList  and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
               elif defaulttvdbseason=="a" and              epNumVal in tvdb_table:  tvdb_ep = epNumVal
-              elif              "s"+defaulttvdbseason+"e"+epNumVal  in tvdb_table:  tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
-              summary = "TVDB summary missing" if tvdb_ep=="" else tvdb_table [tvdb_ep] ['Overview']
+              elif season=="0":                                                     tvdb_ep = "s"+season+"e"+epNumVal
+              else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
+              summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-            Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title) )
+            Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview']) if tvdb_ep in tvdb_table else "not in")
             episodeObj.summary = summary.replace("`", "'")
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
@@ -513,7 +512,7 @@ class HamaCommonAgent:
           if log == 'Plex themes missing':  string = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<br />\n"
         for entry in error_log[log]:
           if entry not in string:  Data.Save(log+".htm", string + entry + "<br />\r\n")
-    Log.Debug('--- end -------------------------------------------------------------------------------------------------')
+    Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
   def anidbTvdbMapping(self, metadata, error_log):
