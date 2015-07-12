@@ -265,6 +265,7 @@ class HamaCommonAgent:
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
     tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, error_log)
+    Log.Debug("mappingList: '%s'" % str(mappingList))
     tvdbposternumber, tvdb_table = 0, {}
     if tvdbid.isdigit(): ### TVDB ID exists ####
 
@@ -326,7 +327,7 @@ class HamaCommonAgent:
           if ep in tvdb_table:
             if 'Overview'    in tvdb_table[ep]:
               try:     metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
-              except:  Log.Debug("Error addign summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
+              except:  Log.Debug("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
             if 'EpisodeName' in tvdb_table[ep]: metadata.seasons[media_season].episodes[media_episode].title   = tvdb_table [ep] ['EpisodeName']
             if 'Rating'      in tvdb_table[ep]:
               try:     metadata.seasons[media_season].episodes[media_episode].rating  = float(tvdb_table [ep] ['Rating'])
@@ -525,23 +526,20 @@ class HamaCommonAgent:
   def anidbTvdbMapping(self, metadata, error_log):
     global AniDB_TVDB_mapping_tree    #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING_URL, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24 * 7) # Load XML file
     poster_id_array, mappingList, mapping_studio = {}, {}, ""
-    for anime in AniDB_TVDB_mapping_tree.iterchildren('anime'):
+    for anime in AniDB_TVDB_mapping_tree.iter('anime'):
       anidbid, tvdbid  = anime.get("anidbid"), anime.get('tvdbid' )
       if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0
-      if metadata.id == anidbid:
-        try:    name      = anime.xpath("name")[0].text
-        except: name      = ""
-        if anime.get('tvdbid').isdigit():
+      if metadata.id == anidbid: #manage all formats latter
+        name = anime.xpath("name")[0].text
+        if tvdbid.isdigit():
           try: ### mapping list ###
-            for season in anime.iterchildren('mapping-list'):
-              for string in season.text.split(';'):
-                if string=="": continue
-                mappingList [ 's' + season.get("anidbseason") + 'e' + eps[0] ], eps = 's' + season.get("tvdbseason") + 'e' + eps[1], string.split('-')   #save mapping in the format s1e123
-          except: mappingList = {}
-        #else:
-        #  if anime.get('tvdbid')=="" or anime.get('tvdbid')=="unknown":
-        #    error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, anime.get('tvdbid')) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
-        #    Log.Debug("anidbTvdbMapping - Missing tvdbid for anidbid %s" % metadata.id)  # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring  #dict = {';':"%3B", '\n':"%0A", '	':"%09"} for item in dict: temp.replace(item, list[item]) description += temp
+            for season in anime.iter('mapping'):
+              for string in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string.split('-')[1]
+          except: Log.Debug("exception") #mappingList = {}
+        else:
+          if anime.get('tvdbid')=="" or anime.get('tvdbid')=="unknown":
+            error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (metadata.id.zfill(5), name, anime.get('tvdbid')) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (metadata.id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
+            Log.Debug("anidbTvdbMapping - Missing tvdbid for anidbid %s" % metadata.id)  # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring  #dict = {';':"%3B", '\n':"%0A", '	':"%09"} for item in dict: temp.replace(item, list[item]) description += temp
         try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
         except: mapping_studio  = ""
         Log.Debug("anidbTvdbMapping - AniDB-TVDB Mapping - anidb:%s tvbdid: %s studio: %s defaulttvdbseason: %s" % (metadata.id, anime.get('tvdbid'), mapping_studio, str(anime.get('defaulttvdbseason'))) )
