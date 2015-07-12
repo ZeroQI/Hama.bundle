@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI, Forked from Atomicstrawberry after v0.4
 ### To-Do List Agent:
+#   . screenshots
 #   . trailers function support, start with importing trailer episode range
 #   . multi guid: tvdb:xxxxx anidb:xxxx tmdb:xxx
 
@@ -292,8 +293,13 @@ class HamaCommonAgent:
         for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
           numbering, Overview = getElementText(episode, 'absolute_number') if defaulttvdbseason=="a" else "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber'), getElementText(episode, 'Overview')
           if Overview=="":  summary_missing.append(numbering)
-          else:             summary_present.append(numbering)  #seasonid      = getElementText(episode, 'seasonid')
-          tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ), 'Rating':      getElementText(episode, 'Rating'), 'Overview': Overview }
+          else:             summary_present.append(numbering)
+          tvdb_table [numbering] = {
+            'EpisodeName': getElementText(episode, 'EpisodeName'),
+            'FirstAired':  getElementText(episode, 'FirstAired' ),
+            'Rating':      getElementText(episode, 'Rating'), 
+            'filename':    getElementText(episode, 'filename'), # filename = episode.xpath('filename')[0].text
+            'Overview':    Overview }              
       Log.Debug("update2 - TVDB - Build 'tvdb_table': "       + str(sorted(summary_present)) )
       Log.Debug("update2 - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
 
@@ -480,7 +486,7 @@ class HamaCommonAgent:
                 episodeObj.rating = float(rating)
             
             ### TVDB mapping episode summary ###
-            anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary" #epNum
+            anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
             if tvdbid.isdigit():
               if anidb_ep in mappingList  and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
               elif defaulttvdbseason=="a" and              epNumVal in tvdb_table:  tvdb_ep = epNumVal
@@ -488,8 +494,9 @@ class HamaCommonAgent:
               else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
               summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-            Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview']) if tvdb_ep in tvdb_table else "not in")
-            episodeObj.summary = summary.replace("`", "'")
+              if tvdb_table[tvdb_ep]['filename']:  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], "1", "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
+            Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'].strip() if tvdb_ep in tvdb_table else "") )
+            episodeObj.summary = summary.replace("`", "'")            
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
@@ -565,10 +572,10 @@ class HamaCommonAgent:
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
+    locked, posternum, num, poster_total = networkLock.acquire(), 0, 0, 0
     try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid), cacheTime=CACHE_1HOUR * 24 * 7) # don't bother with the full zip, all we need is the banners
     except:  Log.Debug("getImagesFromTVDB - Loading picture XML failed: " + TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid));  return
     else:    Log.Debug("getImagesFromTVDB - Loading picture XML: " + TVDB_BANNERS_URL % (TVDB_API_KEY, tvdbid))
-    locked, posternum, num, poster_total = networkLock.acquire(), 0, 0, 0
     for banner in bannersXml.xpath('Banner'):
       if banner.xpath('BannerType')[0].text=="poster":  poster_total +=1
     for banner in bannersXml.xpath('Banner'):
@@ -590,7 +597,7 @@ class HamaCommonAgent:
 
   ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
   def  getImagesFromTMDB(self, metadata, id, num="90"):
-    config_dict = self.get_json(TMDB_CONFIG_URL,                   cache_time=CACHE_1WEEK * 2)
+    config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
     images={}
     if id.startswith("tt"):
       Log.Debug("getImagesFromTMDB - by IMDBID - url: " + TMDB_SEARCH_URL_BY_IMDBID % id)
@@ -630,23 +637,22 @@ class HamaCommonAgent:
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num="99", filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
     Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'" % (url, str(num), filename))
-    file = None
-    if not filename == "" and Data.Exists(filename):
-      #Log.Debug("media_download - url: '%s', num: '%s', filename: '%s' was in Hama local disk cache" % (url, str(num), filename))
+    file = None #if filename empty no local save
+    if filename and Data.Exists(filename):  ### if stored locally load it# Log.Debug("media_download - url: '%s', num: '%s', filename: '%s' was in Hama local disk cache" % (url, str(num), filename))
       try:     file = Data.Load(filename)
       except:  Log.Debug("media_download - could not load file present in cache")
-    if file == None:
-      if self.http_status_code(url) != 200:
-        Log.Debug("media_download - not loadable from cache, metadata_download failed, url: '%s', num: '%s', filename: %s" % (url, str(num), filename))
-        return
-      try:
-        file = HTTP.Request( (url if url_thumbnail is None else url_thumbnail), cacheTime=None).content
-        if not filename == "": Data.Save(filename, file)
-      except:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed ##########" % (filename))  #else:    Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s' was not in HAMA disk cache" % (url, str(num), filename))
-    try:
-      metatype[ url ] = Proxy.Media  (file, sort_order=str(num)) if url_thumbnail is None else Proxy.Preview(file, sort_order=str(num))  #metadata.posters.validate_keys( [bannerRealUrl] )
-    except:  Log.Debug("metadata_download - issue adding picture to plex - url downloaded: '%s', image size: '%d'" % ((url if url_thumbnail is None else url_thumbnail), length(file)))
-    
+    if file == None: ### if not loaded locally download it
+      if self.http_status_code(url) != 200:  Log.Debug("metadata_download - metadata_download failed, url: '%s', num: '%s', filename: %s" % (url, str(num), filename));  return
+      try:     file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
+      except:  Log.Debug("metadata_download - 200 but error downloading"); return
+      else:  ### if downloaded, try saving in cache but folders need to exist
+        if not filename == "":
+          try:     Data.Save(filename, file)
+          except:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed ##########" % (filename))
+    try:    metatype[ url ] = Proxy.Preview(file, sort_order=str(num)) if url_thumbnail is None else Proxy.Media(file, sort_order=str(num))
+    except: Log.Debug("metadata_download - issue adding picture to plex - url downloaded: '%s', filename: '%s'" % (url_thumbnail if url_thumbnail else url, filename))
+    metatype.validate_keys( url_thumbnail if url_thumbnail else url )
+      
   ### get_json file, TMDB API supports only JSON now ######################################################################################################
   def get_json(self, url, cache_time=CACHE_1MONTH):
     try:     tmdb_dict = JSON.ObjectFromURL(url, sleep=2.0, cacheTime=cache_time)
