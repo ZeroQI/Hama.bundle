@@ -457,7 +457,7 @@ class HamaCommonAgent:
             episodeObj = metadata.seasons[season].episodes[epNumVal]
             
             ### AniDB Get the correct episode title ###            #Log.Debug("AniDB correct episode title")  #if ep_title == "":                    episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #make title from first letter of type            #elif
-            if episodeObj.title != ep_title:  episodeObj.title = ep_title                                            #if different update with ep_title          #else:                               Log.Debug("AniDB specials title - ep_title not empty and ep_title == episodeObj.title")
+            if episodeObj.title != ep_title:  episodeObj.title = ep_title.replace("`", "'")
             
             ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
             airdate = getElementText(episode, 'airdate')
