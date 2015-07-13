@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI, Forked from Atomicstrawberry after v0.4
 ### To-Do List Agent:
-#   . screenshots
-#   . trailers function support, start with importing trailer episode range
 #   . multi guid: tvdb:xxxxx anidb:xxxx tmdb:xxx
 
-### Global initialisation ################################################################################################################################################
 import os, re, time, datetime, string, thread, threading, urllib # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
-
 ### AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###########################################################################
 ANIDB_TVDB_MAPPING           = 'anime-list-master.xml'                                                                        # ScudLee mapping file local
 ANIDB_TVDB_MAPPING_URL       = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'                        # ScudLee mapping file url
@@ -20,25 +16,6 @@ ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                            # AniDB picture directory
 ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                       # AniDB link to the anime
 ANIDB_SERIE_CACHE            = 'AniDB'                                                                                        # AniDB link to the anime
-ANIDB_EPISODE_URL            = 'http://anidb.net/perl-bin/animedb.pl?show=ep&eid=%s'                                          # AniDB link to the episode
-ANIDB_RELATION_URL           = 'http://anidb.net/perl-bin/animedb.pl?show=rel&aid=%s'                                         # AniDB link to the relation graph
-AniDB_Resources              = {                                                                                              ### AniDB resources (external links) translation dictionary ###
-                                  "1":["http://www.animenewsnetwork.com/encyclopedia/anime.php?id=%s", "ANN"               ], # Anime News Network
-                                  "2":["http://myanimelist.net/anime/%s"                             , "MAL"               ], # My Anime List
-                                  "3":["http://www.animenfo.com/animetitle,%s,%s,a.html"             , "AnimeNfo"          ], # Anime NFO
-                                  "4":["%s"                                                          , "Official page (jp)"], # Official page (jp)
-                                  "5":["%s"                                                          , "Official page (en)"], # Official page (en)
-                                  "6":["http://en.wikipedia.org/wiki/%s"                             , "Wiki (en)"         ], # Wiki (en)
-                                  "7":["http://ja.wikipedia.org/wiki/%s"                             , "Wiki (jp)"         ], # Wiki (jp)
-                                  "8":["http://cal.syoboi.jp/tid/%s/time"                            , "Schedule"          ], # Airing Schedule
-                                  "9":["http://www.allcinema.net/prog/show_c.php?num_c=%s"           , "Allcinema"         ], # All cinema
-                                 "10":["http://anison.info/data/program/%s.html"                     , "Anison"            ], # Anison
-                                 "11":["http://lain.gr.jp/%s"                                        , ".lain"             ], # Lain
-                                 "14":["http://vndb.org/v%s"                                         , "VNDB"              ], # VNDB
-                                 "15":["http://www.anime.marumegane.com/%s.html"                     , "Marumegane"        ], # Anime Marumegane
-                                 "19":["http://ko.wikipedia.org/wiki/%s"                             , "Wiki (ko)"         ], # Wiki (ko)
-                                 "20":["http://zh.wikipedia.org/wiki/%s"                             , "Wiki (zh)"         ]  # Wiki (zh)
-                                } # Analysed the AniDB serie page output and compared to the XML file to extract above values
 
 TVDB_API_KEY                 = 'A27AD9BE0DA63333'                                                                             # TVDB API key register URL: http://thetvdb.com/?tab=apiregister
 TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/%s/series/%s/all/en.xml'                                               # TVDB Serie XML for episodes sumaries for now
@@ -46,7 +23,6 @@ TVDB_BANNERS_URL             = 'http://thetvdb.com/api/%s/series/%s/banners.xml'
 TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                  # TVDB picture directory
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                         #
 TVDB_SERIE_CACHE             = 'TVDB'                                                                                         #
-TVDB_EPISODE_URL             = 'http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s'                                #
 
 TMDB_BASE_URL                = 'https://api.tmdb.org/3/'
 TMDB_CONFIG_URL              = TMDB_BASE_URL + 'configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
@@ -102,12 +78,8 @@ FILTER_SEARCH_WORDS          = [                                                
 ]
 
 ### Global variables ###
-networkLock               = Thread.Lock() #ValueError if in Start()
-lastRequestTime           = None
-AniDB_title_tree          = None
-AniDB_collection_tree     = None
-AniDB_TVDB_mapping_tree   = None
-SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'), Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
+networkLock, lastRequestTime, AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = Thread.Lock(), None, None, None, None  #ValueError if in Start()
+SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'),   Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
 EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
 
 ### Language Priorities ###
@@ -356,10 +328,10 @@ class HamaCommonAgent:
         ### AniDB Title ###
         try:
           title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
-          title = title.replace("`", "'")
+          title, orig = title.replace("`", "'"), orig.replace("`", "'")
         except:  Log.Debug("update - AniDB Title: Exception raised" )
         else:
-          title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8")
+          title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8").replace("`", "'")
           if title == str(metadata.title):  Log.Debug("update - AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
           elif title != "": #If title diffeerent but not empty [Failsafe]
             Log.Debug("update - AniDB title changed: '%s' original title: '%s'" % (title, orig) )
@@ -426,7 +398,7 @@ class HamaCommonAgent:
         ### AniDB Serie/Movie description + link ###
         Log.Debug("update - AniDB description + link")
         description = ""
-        try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')) + "\n" # Remove wiki-style links to staff, characters etc
+        try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") + "\n" # Remove wiki-style links to staff, characters etc
         except:  Log.Debug("Exception ")
       
         if description == "":                  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id) + " " + metadata.title)
@@ -443,6 +415,7 @@ class HamaCommonAgent:
           #Log.Debug("### AniDB mappingList: '%s'" % str(mappingList))  #Log.Debug("### AniDB tvdb_table:  '%s'" % str(tvdb_table))   
           for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
             ep_title, main = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
+            ep_title, main = ep_title.replace("`", "'"), main.replace("`", "'")
             epNum, eid = episode.xpath('epno')[0], episode.get('id')
             epNumType  = epNum.get('type')
             season, epNumVal = "1" if epNumType == "1" else "0", epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
@@ -458,7 +431,7 @@ class HamaCommonAgent:
             episodeObj = metadata.seasons[season].episodes[epNumVal]
             
             ### AniDB Get the correct episode title ###            #Log.Debug("AniDB correct episode title")  #if ep_title == "":                    episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #make title from first letter of type            #elif
-            if episodeObj.title != ep_title:  episodeObj.title = ep_title.replace("`", "'")
+            if episodeObj.title != ep_title:  episodeObj.title = ep_title
             
             ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
             airdate = getElementText(episode, 'airdate')
@@ -495,7 +468,7 @@ class HamaCommonAgent:
               else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
               summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-              if tvdb_table[tvdb_ep]['filename']:  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], "1", "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
+              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], "1", "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
             Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'].strip() if tvdb_ep in tvdb_table else "") )
             episodeObj.summary = summary.replace("`", "'")            
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
@@ -644,7 +617,7 @@ class HamaCommonAgent:
       try:     file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
       except:  Log.Debug("metadata_download - 200 but error downloading"); return
       else:  ### if downloaded, try saving in cache but folders need to exist
-        if not filename == "":
+        if not filename == "" and not filename.endswith("/"):
           try:     Data.Save(filename, file)
           except:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed ##########" % (filename))
     try:    metatype[ url ] = Proxy.Preview(file, sort_order=str(num)) if url_thumbnail is None else Proxy.Media(file, sort_order=str(num))
