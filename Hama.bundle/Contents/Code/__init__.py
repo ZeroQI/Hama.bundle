@@ -284,9 +284,9 @@ class HamaCommonAgent:
   
     ### Movie posters including imdb from TVDB - Load serie XML ###
     if imdbid.isalnum():
-      self.getImagesFromTMDB                      (metadata, imdbid, "97")  #The Movie Database is least prefered by the mapping file, only when imdbid missing
-      self.getImagesFromOMDB                      (metadata, imdbid, "98")  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-    elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, "97")  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+      self.getImagesFromTMDB                      (metadata, imdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+      self.getImagesFromOMDB                      (metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
  
     ### TVDB mode when a season 2 or more exist ############################################################################################################
     if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):
@@ -407,7 +407,7 @@ class HamaCommonAgent:
         ### AniDB Posters ###
         Log.Debug("update - AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
         if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id, metadata.id) + "" + metadata.title)
-        elif Prefs['GetAnidbPoster']:  self.metadata_download (metadata.posters, ANIDB_PIC_BASE_URL + getElementText(anime, 'picture'), "99", "AniDB/%s" % getElementText(anime, 'picture')) 
+        elif Prefs['GetAnidbPoster']:  self.metadata_download (metadata.posters, ANIDB_PIC_BASE_URL + getElementText(anime, 'picture'), 99, "AniDB/%s" % getElementText(anime, 'picture')) 
 
         if not movie: ### TV Serie specific #################################################################################################################
           numEpisodes, totalDuration, mapped_eps, missing_eps, ending_table, op_nb = 0, 0, [], [], {}, 0 
@@ -468,7 +468,7 @@ class HamaCommonAgent:
               else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
               summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], "1", "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
+              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
             Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'].strip() if tvdb_ep in tvdb_table else "") )
             episodeObj.summary = summary.replace("`", "'")            
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
@@ -558,16 +558,15 @@ class HamaCommonAgent:
          Prefs['GetTvdbFanart' ] and   bannerType == 'fanart' or Prefs['GetTvdbBanners'] and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
         metatype     = (metadata.art if bannerType=='fanart' else metadata.posters if bannerType=='poster' else metadata.banners if bannerType=='series' or  bannerType2=='seasonwide' \
                         else metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season' else None)
-        if metatype == metadata.posters:
-          rank = "1" if posternum == divmod(poster_id, poster_total)[1] + 1 else str(posternum+1) #fmod #Why '%' not working
-        else:                            rank = str(num+1)
+        if metatype == metadata.posters:  rank = 1 if posternum == divmod(poster_id, poster_total)[1] + 1 else posternum+1 #fmod #Why '%' not working
+        else:                             rank = num+1
         bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
         self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
     if locked:  networkLock.release() 
     return posternum
 
   ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
-  def  getImagesFromTMDB(self, metadata, id, num="90"):
+  def  getImagesFromTMDB(self, metadata, id, num=90):
     config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
     images={}
     if id.startswith("tt"):
@@ -578,7 +577,7 @@ class HamaCommonAgent:
           for index, poster in enumerate(tmdb_json[type]):
             if 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ]!="null":  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
             if 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path']!="null":  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
-      rank="90"
+      rank=90
     else:
       Log.Debug("getImagesFromTMDB - by TMDBID - url: " + TMDB_IMAGES_URL % id)
       tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2) # Log.Debug("getImagesFromTMDB - by IMDBID - tmdb_json: '%s'" % str(tmdb_json))
@@ -588,7 +587,7 @@ class HamaCommonAgent:
       if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
         for index, poster in enumerate(tmdb_json['backdrops']):
           if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path']!="null":  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
-      rank="95" #   Log.Debug("getImagesFromTMDB - images: '%s'" % str(images))
+      rank=95  # Log.Debug("getImagesFromTMDB - images: '%s'" % str(images))
     if len(images):
       for filename in images.keys():
          if filename is None:  Log.Debug("Filename: 'None'" )
@@ -597,32 +596,33 @@ class HamaCommonAgent:
            self.metadata_download (images[filename], image_url, rank, "TMDB/%s.jpg" % id, thumb_url) 
    
   ### Fetch the IMDB poster using OMDB HTTP API ###########################################################################################################
-  def getImagesFromOMDB(self, metadata, imdbid, num="99"):
+  def getImagesFromOMDB(self, metadata, imdbid, num=99):
     Log.Debug("getImagesFromOMDB - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
     try:
       OMDB = self.get_json(OMDB_HTTP_API_URL + imdbid, cache_time=CACHE_1WEEK * 56)
-      if 'Poster' in OMDB and OMDB['Poster']!="N/A":  self.metadata_download (metadata.posters, OMDB['Poster'], str(num), "OMDB/%s.jpg" % imdbid)
+      if 'Poster' in OMDB and OMDB['Poster']!="N/A":  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
       else:                                           Log.Debug("getImagesFromOMDB - No poster to download")
     except: Log.Debug("getImagesFromOMDB - issue - OMDB: '%s' " % OMDB)
 
   #########################################################################################################################################################
-  def metadata_download (self, metatype, url, num="99", filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
-    Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'" % (url, str(num), filename))
+  def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
+    Log.Debug("metadata_download - url: '%s', num: '%d', filename: '%s'" % (url, num, filename))
     file = None #if filename empty no local save
     if filename and Data.Exists(filename):  ### if stored locally load it# Log.Debug("media_download - url: '%s', num: '%s', filename: '%s' was in Hama local disk cache" % (url, str(num), filename))
       try:     file = Data.Load(filename)
       except:  Log.Debug("media_download - could not load file present in cache")
     if file == None: ### if not loaded locally download it
-      if self.http_status_code(url) != 200:  Log.Debug("metadata_download - metadata_download failed, url: '%s', num: '%s', filename: %s" % (url, str(num), filename));  return
+      if self.http_status_code(url) != 200:  Log.Debug("metadata_download - metadata_download failed, url: '%s', num: '%d', filename: %s" % (url, num, filename));  return
       try:     file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
       except:  Log.Debug("metadata_download - 200 but error downloading"); return
       else:  ### if downloaded, try saving in cache but folders need to exist
         if not filename == "" and not filename.endswith("/"):
           try:     Data.Save(filename, file)
           except:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed ##########" % (filename))
-    try:    metatype[ url ] = Proxy.Preview(file, sort_order=str(num)) if url_thumbnail is None else Proxy.Media(file, sort_order=str(num))
+    #if url not in metatype:
+    try:    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail is None else Proxy.Media(file, sort_order=num)
     except: Log.Debug("metadata_download - issue adding picture to plex - url downloaded: '%s', filename: '%s'" % (url_thumbnail if url_thumbnail else url, filename))
-    metatype.validate_keys( url_thumbnail if url_thumbnail else url )
+    #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) remove many posters, to avoid
       
   ### get_json file, TMDB API supports only JSON now ######################################################################################################
   def get_json(self, url, cache_time=CACHE_1MONTH):
