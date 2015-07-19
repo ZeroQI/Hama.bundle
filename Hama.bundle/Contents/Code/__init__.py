@@ -77,7 +77,7 @@ WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
 def ValidatePrefs():
   result, msg = ('Success', 'HAMA - Provided preference values are ok')
   for key in ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'GetAnidbPoster', 'MinimumWeight', 'SerieLanguage1', 'SerieLanguage2', 'SerieLanguage3', 'EpisodeLanguage1', 'EpisodeLanguage2']: #for key, value in enumerate(settings):
-    try:    temp = Prefs[key]
+    try:    temp = Prefs[key] 
     except: result, msg = ('Error', "Couldn't get values '%s', probably a missing/empty/outdated 'DefaultPrefs.json' so replace it" % key)
   if result=='Error':  Log.Error(msg)
   return MessageContainer(result, msg)
@@ -85,7 +85,7 @@ def ValidatePrefs():
 ### Pre-Defined Start function #########################################################################################################################################
 def Start():
   Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
-  msgContainer = ValidatePrefs()
+  msgContainer = ValidatePrefs()  ##if key not in Prefs: Log.Error("Couldn't get values '%s', probably a missing/empty/outdated 'DefaultPrefs.json' so replace it" % key)
   Log.Debug("getMainTitle - LANGUAGE_PRIORITY: " + str(SERIE_LANGUAGE_PRIORITY))
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
   HTTP.CacheTime                   = CACHE_1HOUR * 24 * 7                  # Cache time for Plex XML and html pages
@@ -390,7 +390,7 @@ class HamaCommonAgent:
         try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") + "\n" # Remove wiki-style links to staff, characters etc
         except:  Log.Debug("Exception ")
       
-        if description == "":                  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
+        if description == "":  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
         elif metadata.summary != description and description:  metadata.summary = description.replace("`", "'")
 
         ### AniDB Posters ###
@@ -400,11 +400,11 @@ class HamaCommonAgent:
 
         if not movie: ### TV Serie specific #################################################################################################################
           numEpisodes, totalDuration, mapped_eps, missing_eps, ending_table, op_nb = 0, 0, [], [], {}, 0 
-          specials      = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
+          specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
           #Log.Debug("### AniDB mappingList: '%s'" % str(mappingList))  #Log.Debug("### AniDB tvdb_table:  '%s'" % str(tvdb_table))   
           
           for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
-            ep_title, main   = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
+            ep_title, main   = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY);  
             ep_title, main   = ep_title.replace("`", "'"), main.replace("`", "'")
             epNum,    eid    = episode.xpath('epno')[0], episode.get('id')
             epNumType        = epNum.get('type')
@@ -675,7 +675,10 @@ class HamaCommonAgent:
     return  title.replace("`", "'").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
   ### Split a string per list of chars #################################################################################################################################
-  def splitByChars(self, string, separators=SPLIT_CHARS):  return (string.replace(" ", i) for i in separators if i in string).split()
+  def splitByChars(self, string, separators=SPLIT_CHARS): #AttributeError: 'generator' object has no attribute 'split'  #return (string.replace(" ", i) for i in separators if i in string).split()
+    for i in separators:
+      if i in string:  string.replace(" ", i)
+    return string.split()
     
   ### extract the series/movie/Episode title #################################################################################################################################
   def getMainTitle(self, titles, languages):
