@@ -259,7 +259,9 @@ class HamaCommonAgent:
       except:  tvdbanime = None
       tvdbtitle, tvdbNetwork        = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network')
       tvdbOverview, tvdbFirstAired  = getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
-      tvdbContentRating, tvdbRating = getElementText(tvdbanime, 'Series/ContentRating'), float(getElementText(tvdbanime, 'Series/Rating'))
+      tvdbContentRating = getElementText(tvdbanime, 'Series/ContentRating')
+      try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
+      except: tvdbRating = None 
       tvdbGenre                     = filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
       Log.Debug(tvdbGenre)
       if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Debug("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
