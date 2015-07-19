@@ -17,7 +17,9 @@ TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname=
 TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
 TVDB_SERIE_CACHE             = 'TVDB'                                                                                             #
-TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult='
+TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
+TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
+TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
 TMDB_SEARCH_URL_BY_IMDBID    = 'https://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'  #
 TMDB_CONFIG_URL              = 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                    #
 TMDB_IMAGES_URL              = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
@@ -56,9 +58,9 @@ GENRE_NAMES               = [
 
 ### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
 FILTER_SEARCH_WORDS          = [                                                                                                      # Lowercase only
-  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', # En
+  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me', # En
   'princess', 'theater',                                                                                                              # En Continued
-  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime',                                                   # Jp
+  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                    # Jp
   'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                # Fr
   'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi'                                # Roman digits
 ]
@@ -135,7 +137,7 @@ class HamaCommonAgent:
           parent_element, show , score = None, "", 0
         aid = element.get('aid')
       elif element.get('type') in ('main', 'official', 'syn', 'short'): #element.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or element.get('type') == 'main'):
-        title = element.text.encode('utf-8')
+        title = element.text #.encode('utf-8')
         if   title.lower()              == orig_title.lower() and 100                            > score:  parent_element, show , score = element.getparent(), title,         100; Log.Debug("search() - AniDB - temp score: '%3d', id: '%6s', title: '%s' " % (100, aid, show))  #match = [element.getparent(), show,         100]
         elif self.cleanse_title (title) == cleansedTitle      and  99                            > score:  parent_element, show , score = element.getparent(), cleansedTitle,  99  #match = [element.getparent(), cleansedTitle, 99]
         elif orig_title in title                              and 100*len(orig_title)/len(title) > score:  parent_element, show , score = element.getparent(), orig_title,    100*len(orig_title)/len(title)  #match = [element.getparent(), show, 100*len(orig_title)/len(element.text)]
@@ -145,7 +147,7 @@ class HamaCommonAgent:
       langTitle, mainTitle = self.getMainTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
       results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
     
-    ### TVDB serie search ###
+      ### TVDB serie search ###
     Log.Debug("maxi: '%d'" % maxi)
     if maxi<50:
       try:  TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), cacheTime=CACHE_1HOUR * 24 * 7)
@@ -171,11 +173,11 @@ class HamaCommonAgent:
           results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
           if '' in movie and movie['adult']!="null":  Log.Debug( "adult: '%s'" % movie['adult'])
           # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
-    
+
     if len(results)>=1:      #results.Sort('score', descending=True)
       Log.Debug("=== Search - End - =================================================================================================")
       return
-          
+    
     ### AniDB local keyword search ###
     matchedTitles, matchedWords, words  = [ ], { }, [ ]
     log_string     = "search - Keyword search - Matching '%s' with: " % orig_title
@@ -239,7 +241,31 @@ class HamaCommonAgent:
     if   metadata.id.startswith("tvdb"):  tvdbid = metadata.id [len("tvdb-"):]
     elif metadata.id.startswith("anidb"):
       anidbid=metadata.id[len("anidb-"):]
-      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)  # Log.Debug("mappingList: '%s'" % str(mappingList))
+      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
+    elif metadata.id.startswith("tmdb"):
+      tmdbid = metadata.id [len("tmdb-"):]
+      Log.Debug("update() - TMDB  - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)  #config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
+      try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+      except:  Log('update() - get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH % orig_title) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+      else:
+        metadata.title                   = tmdb_json['title']  #Log.Debug(tmdb_json['original_title'])
+        metadata.summary                 = tmdb_json['overview']
+        metadata.rating                  = tmdb_json['vote_average']  # if not ep.isdigit() and "." in ep and ep.split(".", 1)[0].isdigit() and ep.split(".")[1].isdigit():  
+        metadata.duration                = int(tmdb_json['runtime']) * 60 * 1000
+        metadata.originally_available_at = Datetime.ParseDate(tmdb_json['release_date']).date()
+        Log.Debug(tmdb_json['backdrop_path'])
+        Log.Debug(tmdb_json['poster_path'  ])
+        #if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection'] is not None:  metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
+        for genre in tmdb_json['genres']: metadata.genres.add(genre['name'].strip())
+        if not imdbid: imdbid = tmdb_json['imdb_id']
+        if tmdb_json['vote_count'] > 3: metadata.rating = tmdb_json['vote_average']
+        # Studio.
+        if 'production_companies' in tmdb_json and len(tmdb_json['production_companies']) > 0:
+          index, company = tmdb_json['production_companies'][0]['id'],""
+          for studio in tmdb_json['production_companies']:
+            if studio['id'] <= index:  index, company = studio['id'], studio['name'].strip()
+          metadata.studio = company
+        ###movies only         #if tmdb_json['tagline']: metadata.tagline = tmdb_json['tagline']         #metadata.year = metadata.originally_available_at.year
 
     if tvdbid.isdigit(): ### TVDB ID exists ####
 
@@ -593,17 +619,21 @@ class HamaCommonAgent:
       if tmdb_json is not None and 'poster'    in tmdb_json and len(tmdb_json['posters'  ]):
         for index, poster in enumerate(tmdb_json['posters']):
           if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path']!="null":  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
+        #if 'poster_path' in tmdb_json and tmdb_json['poster_path']: images[ tmdb_json['poster_path']] = metadata.posters #TMDB movie
       if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
+        #if tmdb_json is not None and 'backdrops' in tmdb_json and isinstance(tmdb_json['backdrops'], basestring): images[ tmdb_json['backdrops']] = metadata.art
+        #else:
         for index, poster in enumerate(tmdb_json['backdrops']):
           if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path']!="null":  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
+          
       rank=95  # Log.Debug("getImagesFromTMDB - images: '%s'" % str(images))
     if len(images):
       for filename in images.keys():
          if filename is None:  Log.Debug("Filename: 'None'" )
          else:
            image_url, thumb_url = config_dict['images']['base_url'] + 'original' + filename, config_dict['images']['base_url'] + 'w300'     + filename
-           self.metadata_download (images[filename], image_url, rank, "TMDB/%s.jpg" % id, thumb_url) 
-   
+           self.metadata_download (images[filename], image_url, rank, "TMDB/%s%s.jpg" % (id, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
+              
   ### Fetch the IMDB poster using OMDB HTTP API ###########################################################################################################
   def getImagesFromOMDB(self, metadata, imdbid, num=99):
     Log.Debug("getImagesFromOMDB - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
@@ -691,13 +721,14 @@ class HamaCommonAgent:
   def cleanse_title(self, title):
     try:    title=title.encode('utf-8')
     except: pass
+    title = " ".join(self.splitByChars(title))
     return  title.replace("`", "'").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
   ### Split a string per list of chars #################################################################################################################################
   def splitByChars(self, string, separators=SPLIT_CHARS): #AttributeError: 'generator' object has no attribute 'split'  #return (string.replace(" ", i) for i in separators if i in string).split()
     for i in separators:
-      if i in string:  string.replace(" ", i)
-    return string.split()
+      if i in string:  string = string.replace(i, " ")
+    return filter(None, string.split())
     
   ### extract the series/movie/Episode title #################################################################################################################################
   def getMainTitle(self, titles, languages):
