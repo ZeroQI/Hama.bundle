@@ -17,6 +17,7 @@ TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname=
 TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
 TVDB_SERIE_CACHE             = 'TVDB'                                                                                             #
+TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult='
 TMDB_SEARCH_URL_BY_IMDBID    = 'https://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'  #
 TMDB_CONFIG_URL              = 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                    #
 TMDB_IMAGES_URL              = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
@@ -155,10 +156,26 @@ class HamaCommonAgent:
           score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
           Log.Debug( "search() - TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, serie.xpath('seriesid')[0].text, serie.xpath('SeriesName')[0].text) )
           results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=Locale.Language.English, score=score) )
+ 
+    ### TMDB movie search ###
+    Log.Debug("search() - TMDB  - url: " + TMDB_MOVIE_SEARCH % orig_title)  #config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
+    try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH % orig_title.replace(" ", "%20"), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+    except:  Log('get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH % orig_title) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+    else:
+      if isinstance(tmdb_json, dict) and 'results' in tmdb_json:
+        for i, movie in enumerate(tmdb_json['results']):
+          a, b = orig_title, movie['title'].encode('utf-8')
+          score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
+          id = movie['id']
+          Log.Debug( "search() - TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
+          if '' in movie and movie['adult']!="null":  Log.Debug( "adult: '%s'" % movie['adult'])
+          # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
+    
     if len(results)>=1:      #results.Sort('score', descending=True)
       Log.Debug("=== Search - End - =================================================================================================")
       return
-
+          
     ### AniDB local keyword search ###
     matchedTitles, matchedWords, words  = [ ], { }, [ ]
     log_string     = "search - Keyword search - Matching '%s' with: " % orig_title
@@ -198,7 +215,7 @@ class HamaCommonAgent:
         a, b = self.cleanse_title(title), cleansedTitle
         scores.append( int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) )  #To-Do: LongestCommonSubstring(first, second). use that?
       bestScore = max(scores)
-      results.Append(MetadataSearchResult(id=match[0], name=match[1], year=media.year, lang=Locale.Language.English, score=bestScore))
+      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=Locale.Language.English, score=bestScore))
       log_string += match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
     Log.Debug(log_string)
     results.Sort('score', descending=True)
