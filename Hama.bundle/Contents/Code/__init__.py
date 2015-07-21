@@ -1,454 +1,773 @@
-2015-07-20 20:42:27,132 (-8e78940) :  INFO (core:347) - Starting framework core - Version: 2.6.2, Build: 9b6935b (Wed May 20 03:15:08 UTC 2015)
-2015-07-20 20:42:27,132 (-8e78940) :  DEBUG (core:359) - Using the standard policy
-2015-07-20 20:42:27,133 (-8e78940) :  DEBUG (core:448) - Starting runtime component.
-2015-07-20 20:42:27,136 (-8e78940) :  DEBUG (core:448) - Starting caching component.
-2015-07-20 20:42:27,136 (-8e78940) :  DEBUG (core:448) - Starting data component.
-2015-07-20 20:42:27,137 (-8e78940) :  DEBUG (core:448) - Starting networking component.
-2015-07-20 20:42:27,138 (-8e78940) :  DEBUG (networking:288) - Loaded HTTP cookies
-2015-07-20 20:42:27,141 (-8e78940) :  DEBUG (networking:458) - Setting the default network timeout to 20.0
-2015-07-20 20:42:27,143 (-8e78940) :  DEBUG (core:448) - Starting localization component.
-2015-07-20 20:42:27,144 (-8e78940) :  INFO (localization:408) - Setting the default locale to en-us
-2015-07-20 20:42:27,144 (-8e78940) :  DEBUG (core:448) - Starting messaging component.
-2015-07-20 20:42:27,145 (-8e78940) :  DEBUG (core:448) - Starting debugging component.
-2015-07-20 20:42:27,146 (-8e78940) :  DEBUG (core:448) - Starting services component.
-2015-07-20 20:42:27,147 (-8e78940) :  DEBUG (core:448) - Starting myplex component.
-2015-07-20 20:42:27,147 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/system/messaging/clear_events/com.plexapp.agents.hama'
-2015-07-20 20:42:27,147 (-8e78940) :  DEBUG (core:448) - Starting notifications component.
-2015-07-20 20:42:27,585 (-8e78940) :  DEBUG (accessor:68) - Creating a new model access point for provider com.plexapp.agents.hama in namespace 'metadata'
-2015-07-20 20:42:27,601 (-8e78940) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/:/plugins/com.plexapp.system/resourceHashes'
-2015-07-20 20:42:37,617 (-8e78940) :  CRITICAL (runtime:1293) - Exception getting hosted resource hashes (most recent call last):
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Versions/2/Python/Framework/components/runtime.py", line 1287, in get_resource_hashes
-    json = self._core.networking.http_request("http://127.0.0.1:32400/:/plugins/com.plexapp.system/resourceHashes", timeout=10).content
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Versions/2/Python/Framework/components/networking.py", line 269, in content
-    return self.__str__()
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Versions/2/Python/Framework/components/networking.py", line 247, in __str__
-    self.load()
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Versions/2/Python/Framework/components/networking.py", line 187, in load
-    f = self._opener.open(req, timeout=self._timeout)
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Platforms/Shared/Libraries/urllib2_new.py", line 438, in open
-    response = self._open(req, data)
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Platforms/Shared/Libraries/urllib2_new.py", line 456, in _open
-    '_open', req)
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Platforms/Shared/Libraries/urllib2_new.py", line 416, in _call_chain
-    result = func(*args)
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Platforms/Shared/Libraries/urllib2_new.py", line 1217, in http_open
-    return self.do_open(httplib.HTTPConnection, req)
-  File "/volume2/Plex/Library/Application Support/Plex Media Server/Plug-ins/Framework.bundle/Contents/Resources/Platforms/Shared/Libraries/urllib2_new.py", line 1192, in do_open
-    raise URLError(err)
-URLError: <urlopen error timed out>
+# -*- coding: utf-8 -*-
+### HTTP Anidb Metadata Agent (HAMA) By ZeroQI, Forked from Atomicstrawberry after v0.4
 
-2015-07-20 20:42:37,642 (-b1f8490) :  DEBUG (services:265) - Plug-in is not daemonized - loading services from system
-2015-07-20 20:42:37,642 (-8e78940) :  DEBUG (runtime:1111) - Created a thread named 'load_all_services'
-2015-07-20 20:42:37,644 (-8e78940) :  DEBUG (runtime:1111) - Created a thread named 'get_server_info'
-2015-07-20 20:42:37,645 (-8e78940) :  DEBUG (core:150) - Finished starting framework core
-2015-07-20 20:42:37,645 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/:/plugins/com.plexapp.system/messaging/function/X0J1bmRsZVNlcnZpY2U6QWxsU2VydmljZXM_/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMApyMAo_'
-2015-07-20 20:42:37,645 (-b8ee490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400'
-2015-07-20 20:42:37,646 (-8e78940) :  DEBUG (core:558) - Loading plug-in code
-2015-07-20 20:42:38,586 (-b8ee490) :  DEBUG (core:536) - Machine identifier is 00cefa69b70a51e33830a9e679ca10f35ac8f1e4
-2015-07-20 20:42:38,592 (-b8ee490) :  DEBUG (core:537) - Server version is 0.9.12.4.1192-9a47d21
-2015-07-20 20:42:39,469 (-8e78940) :  DEBUG (core:564) - Finished loading plug-in code
-2015-07-20 20:42:39,816 (-b1f8490) :  DEBUG (services:362) - Loaded services
-2015-07-20 20:42:39,828 (-b600490) :  DEBUG (services:438) - No shared code to load
-2015-07-20 20:42:39,829 (-8e78940) :  DEBUG (preferences:258) - Loaded preferences from DefaultPrefs.json
-2015-07-20 20:42:39,831 (-8e78940) :  DEBUG (preferences:178) - Loaded the user preferences for com.plexapp.agents.hama
-2015-07-20 20:42:39,833 (-8e78940) :  DEBUG (agentkit:1094) - Creating new agent class called HamaTVAgent
-2015-07-20 20:42:39,834 (-8e78940) :  DEBUG (agentkit:912) - Updating agent information: [{'media_types': ['TV_Show'], 'accepts_from': ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles'], 'fallback_agent': False, 'contributes_to': None, 'languages': ['en'], 'persist_stored_files': True, 'version': 0, 'primary_provider': True, 'prefs': True, 'name': 'HamaTV'}]
-2015-07-20 20:42:39,836 (-8e78940) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/:/plugins/com.plexapp.system/messaging/function/X0FnZW50U2VydmljZTpVcGRhdGVJbmZv/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQo2CmRpY3QKbGlzdApkaWN0Cmxpc3QKbGlzdApsaXN0CjIKczIzCmNvbS5wbGV4YXBwLmFnZW50cy5oYW1hczEwCmlkZW50aWZpZXJyMQpzMTAKYWdlbnRfaW5mbzEKcjIKMTAKcjMKczExCm1lZGlhX3R5cGVzcjQKczEyCmFjY2VwdHNfZnJvbWIwczE0CmZhbGxiYWNrX2FnZW50bnMxNApjb250cmlidXRlc190b3I1CnM5Cmxhbmd1YWdlc2IxczIwCnBlcnNpc3Rfc3RvcmVkX2ZpbGVzaTAKczcKdmVyc2lvbmIxczE2CnByaW1hcnlfcHJvdmlkZXJiMXM1CnByZWZzczYKSGFtYVRWczQKbmFtZTEKczcKVFZfU2hvdzIKczI5CmNvbS5wbGV4YXBwLmFnZW50cy5sb2NhbG1lZGlhczMyCmNvbS5wbGV4YXBwLmFnZW50cy5vcGVuc3VidGl0bGVzMQpzMgplbnIwCg__'
-2015-07-20 20:42:39,866 (-8e78940) :  DEBUG (agentkit:1094) - Creating new agent class called HamaMovieAgent
-2015-07-20 20:42:39,867 (-8e78940) :  DEBUG (agentkit:912) - Updating agent information: [{'media_types': ['TV_Show'], 'accepts_from': ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles'], 'fallback_agent': False, 'contributes_to': None, 'languages': ['en'], 'persist_stored_files': True, 'version': 0, 'primary_provider': True, 'prefs': True, 'name': 'HamaTV'}, {'media_types': ['Movie'], 'accepts_from': ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles'], 'fallback_agent': False, 'contributes_to': None, 'languages': ['en'], 'persist_stored_files': True, 'version': 0, 'primary_provider': True, 'prefs': True, 'name': 'HamaMovies'}]
-2015-07-20 20:42:39,870 (-8e78940) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/:/plugins/com.plexapp.system/messaging/function/X0FnZW50U2VydmljZTpVcGRhdGVJbmZv/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxMApkaWN0Cmxpc3QKZGljdApsaXN0Cmxpc3QKbGlzdApkaWN0Cmxpc3QKbGlzdApsaXN0CjIKczIzCmNvbS5wbGV4YXBwLmFnZW50cy5oYW1hczEwCmlkZW50aWZpZXJyMQpzMTAKYWdlbnRfaW5mbzIKcjIKcjYKMTAKcjMKczExCm1lZGlhX3R5cGVzcjQKczEyCmFjY2VwdHNfZnJvbWIwczE0CmZhbGxiYWNrX2FnZW50bnMxNApjb250cmlidXRlc190b3I1CnM5Cmxhbmd1YWdlc2IxczIwCnBlcnNpc3Rfc3RvcmVkX2ZpbGVzaTAKczcKdmVyc2lvbmIxczE2CnByaW1hcnlfcHJvdmlkZXJiMXM1CnByZWZzczYKSGFtYVRWczQKbmFtZTEKczcKVFZfU2hvdzIKczI5CmNvbS5wbGV4YXBwLmFnZW50cy5sb2NhbG1lZGlhczMyCmNvbS5wbGV4YXBwLmFnZW50cy5vcGVuc3VidGl0bGVzMQpzMgplbjEwCnI3CnMxMQptZWRpYV90eXBlc3I4CnMxMgphY2NlcHRzX2Zyb21iMHMxNApmYWxsYmFja19hZ2VudG5zMTQKY29udHJpYnV0ZXNfdG9yOQpzOQpsYW5ndWFnZXNiMXMyMApwZXJzaXN0X3N0b3JlZF9maWxlc2kwCnM3CnZlcnNpb25iMXMxNgpwcmltYXJ5X3Byb3ZpZGVyYjFzNQpwcmVmc3MxMApIYW1hTW92aWVzczQKbmFtZTEKczUKTW92aWUyCnMyOQpjb20ucGxleGFwcC5hZ2VudHMubG9jYWxtZWRpYXMzMgpjb20ucGxleGFwcC5hZ2VudHMub3BlbnN1YnRpdGxlczEKczIKZW5yMAo_'
-2015-07-20 20:42:39,892 (-8e78940) :  DEBUG (__init__:90) - ### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################
-2015-07-20 20:42:39,895 (-8e78940) :  DEBUG (__init__:92) - getMainTitle - LANGUAGE_PRIORITY: ['main', 'x-jat', 'en']
-2015-07-20 20:42:39,916 (-8e78940) :  DEBUG (networking:167) - Fetching 'http://anidb.net/api/anime-titles.xml.gz' from the HTTP cache
-2015-07-20 20:42:39,941 (-8e78940) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://anidb.net/api/anime-titles.xml.gz, Data filename: anime-titles.xml
-2015-07-20 20:42:40,355 (-8e78940) :  DEBUG (networking:167) - Fetching 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml' from the HTTP cache
-2015-07-20 20:42:40,371 (-8e78940) :  DEBUG (__init__:718) - xmlElementFromFile - Serie XML could not be saved locally
-2015-07-20 20:42:40,371 (-8e78940) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml, Data filename: ('anime-list-master', '.xml')
-2015-07-20 20:42:40,511 (-8e78940) :  DEBUG (networking:167) - Fetching 'http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml' from the HTTP cache
-2015-07-20 20:42:40,525 (-8e78940) :  DEBUG (__init__:718) - xmlElementFromFile - Serie XML could not be saved locally
-2015-07-20 20:42:40,526 (-8e78940) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml, Data filename: ('anime-movieset-list', '.xml')
-2015-07-20 20:42:40,535 (-8e78940) :  DEBUG (__init__:98) - ### HTTP Anidb Metadata Agent (HAMA) Ended ################################################################################################################
-2015-07-20 20:42:40,542 (-8e78940) :  INFO (core:609) - Started plug-in
-2015-07-20 20:42:40,543 (-8e78940) :  DEBUG (socketinterface:160) - Starting socket server
-2015-07-20 20:42:40,544 (-8e78940) :  DEBUG (runtime:1111) - Created a thread named 'start'
-2015-07-20 20:42:40,545 (-8e78940) :  INFO (socketinterface:184) - Socket server started on port 50786
-2015-07-20 20:42:40,545 (-8e78940) :  INFO (pipeinterface:25) - Entering run loop
-2015-07-20 20:42:40,546 (-8e78940) :  DEBUG (runtime:717) - Handling request GET /:/prefixes
-2015-07-20 20:42:40,550 (-8e78940) :  DEBUG (runtime:814) - Found route matching /:/prefixes
-2015-07-20 20:42:40,552 (-8e78940) :  DEBUG (runtime:918) - Response: [200] MediaContainer, 148 bytes
-2015-07-20 20:42:40,619 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoyNHM3CmVwaXNvZGVzMTMKTGlnaHQgTXkgRmlyZXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMjcKQnViYmxlZ3VtIENyaXNpcyBUb2t5byAyMDQwczQKc2hvd3MxCjFzNgpzZWFzb25zMTg5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyMC0lMjAyNCUyMC0lMjBMaWdodCUyME15JTIwRmlyZSUyRW1rdnM4CmZpbGVuYW1lczQxCjBkYTM5YTNlZTVlNmI0YjBkMzI1NWJmZWY5NTYwMTg5MGFmZDgwNzA5czgKcGxleEhhc2hzMgotMXM4CmR1cmF0aW9uczYKMjg3Nzk0czIKaWRyMAo_
-2015-07-20 20:42:40,660 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoyNHM3CmVwaXNvZGVzMTMKTGlnaHQgTXkgRmlyZXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMjcKQnViYmxlZ3VtIENyaXNpcyBUb2t5byAyMDQwczQKc2hvd3MxCjFzNgpzZWFzb25zMTg5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyMC0lMjAyNCUyMC0lMjBMaWdodCUyME15JTIwRmlyZSUyRW1rdnM4CmZpbGVuYW1lczQxCjBkYTM5YTNlZTVlNmI0YjBkMzI1NWJmZWY5NTYwMTg5MGFmZDgwNzA5czgKcGxleEhhc2hzMgotMXM4CmR1cmF0aW9uczYKMjg3Nzk0czIKaWRyMAo_
-2015-07-20 20:42:40,661 (-b1f8490) :  INFO (agentkit:936) - Searching for matches for {'openSubtitlesHash': None, 'episode': '24', 'name': 'Light My Fire', 'episodic': '1', 'show': 'Bubblegum Crisis Tokyo 2040', 'season': '1', 'filename': '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FBubblegum%20Crisis%20Tokyo%202040%2FBubblegum%20Crisis%20Tokyo%202040%20-%2024%20-%20Light%20My%20Fire%2Emkv', 'plexHash': '0da39a3ee5e6b4b0d3255bfef95601890afd80709', 'duration': '-1', 'id': '287794'}
-2015-07-20 20:42:40,662 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/287794/tree'
-2015-07-20 20:42:40,689 (-b1f8490) :  DEBUG (__init__:107) - === Search - Begin - ================================================================================================
-2015-07-20 20:42:40,690 (-b1f8490) :  INFO (__init__:108) - search() - Title: 'Bubblegum Crisis Tokyo 2040', name: 'Light My Fire', filename: '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FBubblegum%20Crisis%20Tokyo%202040%2FBubblegum%20Crisis%20Tokyo%202040%20-%2024%20-%20Light%20My%20Fire%2Emkv', manual:'True'
-2015-07-20 20:42:40,908 (-b1f8490) :  DEBUG (__init__:213) - search() - AniDB - temp score: '100', id: '   345', title: 'Bubblegum Crisis Tokyo 2040' 
-2015-07-20 20:42:40,909 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: '100', id: '   345', title: 'Bubblegum Crisis Tokyo 2040' 
-2015-07-20 20:42:42,629 (-b1f8490) :  DEBUG (__init__:214) - === Search - End - =================================================================================================
-2015-07-20 20:42:42,642 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:42:42,643 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 668 bytes
-2015-07-20 20:42:43,633 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoyNHM3CmVwaXNvZGVzMTMKTGlnaHQgTXkgRmlyZXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMjcKQnViYmxlZ3VtIENyaXNpcyBUb2t5byAyMDQwczQKc2hvd3MxCjFzNgpzZWFzb25zMTg5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyMC0lMjAyNCUyMC0lMjBMaWdodCUyME15JTIwRmlyZSUyRW1rdnM4CmZpbGVuYW1lczQxCjBkYTM5YTNlZTVlNmI0YjBkMzI1NWJmZWY5NTYwMTg5MGFmZDgwNzA5czgKcGxleEhhc2hzMgotMXM4CmR1cmF0aW9uczYKMjg3Nzk0czIKaWRyMAo_
-2015-07-20 20:42:43,635 (-b1f8490) :  DEBUG (runtime:49) - Received packed state data (80 bytes)
-2015-07-20 20:42:43,637 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoyNHM3CmVwaXNvZGVzMTMKTGlnaHQgTXkgRmlyZXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMjcKQnViYmxlZ3VtIENyaXNpcyBUb2t5byAyMDQwczQKc2hvd3MxCjFzNgpzZWFzb25zMTg5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyRkJ1YmJsZWd1bSUyMENyaXNpcyUyMFRva3lvJTIwMjA0MCUyMC0lMjAyNCUyMC0lMjBMaWdodCUyME15JTIwRmlyZSUyRW1rdnM4CmZpbGVuYW1lczQxCjBkYTM5YTNlZTVlNmI0YjBkMzI1NWJmZWY5NTYwMTg5MGFmZDgwNzA5czgKcGxleEhhc2hzMgotMXM4CmR1cmF0aW9uczYKMjg3Nzk0czIKaWRyMAo_
-2015-07-20 20:42:43,638 (-b1f8490) :  INFO (agentkit:936) - Searching for matches for {'openSubtitlesHash': None, 'episode': '24', 'name': 'Light My Fire', 'episodic': '1', 'show': 'Bubblegum Crisis Tokyo 2040', 'season': '1', 'filename': '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FBubblegum%20Crisis%20Tokyo%202040%2FBubblegum%20Crisis%20Tokyo%202040%20-%2024%20-%20Light%20My%20Fire%2Emkv', 'plexHash': '0da39a3ee5e6b4b0d3255bfef95601890afd80709', 'duration': '-1', 'id': '287794'}
-2015-07-20 20:42:43,639 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/287794/tree'
-2015-07-20 20:42:43,665 (-b1f8490) :  DEBUG (__init__:107) - === Search - Begin - ================================================================================================
-2015-07-20 20:42:43,666 (-b1f8490) :  INFO (__init__:108) - search() - Title: 'Bubblegum Crisis Tokyo 2040', name: 'Light My Fire', filename: '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FBubblegum%20Crisis%20Tokyo%202040%2FBubblegum%20Crisis%20Tokyo%202040%20-%2024%20-%20Light%20My%20Fire%2Emkv', manual:'True'
-2015-07-20 20:42:43,865 (-b1f8490) :  DEBUG (__init__:213) - search() - AniDB - temp score: '100', id: '   345', title: 'Bubblegum Crisis Tokyo 2040' 
-2015-07-20 20:42:43,866 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: '100', id: '   345', title: 'Bubblegum Crisis Tokyo 2040' 
-2015-07-20 20:42:45,585 (-b1f8490) :  DEBUG (__init__:214) - === Search - End - =================================================================================================
-2015-07-20 20:42:45,599 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:42:45,599 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 668 bytes
-2015-07-20 20:42:48,323 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODc3OTRzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0Mwpjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTM0NT9sYW5nPWVuczQKZ3VpZHM5CmFuaWRiLTM0NXMyCmlkcjAK
-2015-07-20 20:42:48,327 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODc3OTRzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0Mwpjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTM0NT9sYW5nPWVuczQKZ3VpZHM5CmFuaWRiLTM0NXMyCmlkcjAK
-2015-07-20 20:42:48,328 (-b1f8490) :  DEBUG (model:32) - Loading model with GUID com.plexapp.agents.hama://anidb-345?lang=en
-2015-07-20 20:42:48,333 (-b1f8490) :  ERROR (model:201) - Cannot read model from /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/3/ace69abeede2e37fd2b302b1ca9bb5708de74eb.bundle/Contents/com.plexapp.agents.hama
-2015-07-20 20:42:48,334 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/287794/tree'
-2015-07-20 20:42:48,361 (-b1f8490) :  DEBUG (__init__:243) - --- Update Begin -------------------------------------------------------------------------------------------
-2015-07-20 20:42:48,361 (-b1f8490) :  DEBUG (__init__:244) - update2 - metadata ID: 'anidb-345', Title: 'None',([...], [...], True)
-2015-07-20 20:42:48,365 (-b1f8490) :  DEBUG (__init__:571) - anidbTvdbMapping - AniDB-TVDB Mapping - anidb:345 tvbdid: 76538 studio:  defaulttvdbseason: 1
-2015-07-20 20:42:48,371 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://tvthemes.plexapp.com/76538.mp3', num: '1', filename: 'Plex/anidb-345.mp3'
-2015-07-20 20:42:48,832 (-b1f8490) :  DEBUG (__init__:673) - metadata_download - metadata_download failed, url: 'http://tvthemes.plexapp.com/76538.mp3', num: '1', filename: Plex/anidb-345.mp3
-2015-07-20 20:42:48,832 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - loading serie xml: 76538
-2015-07-20 20:42:48,990 (-b1f8490) :  DEBUG (networking:167) - Fetching 'http://thetvdb.com/api/A27AD9BE0DA63333/series/76538/all/en.xml' from the HTTP cache
-2015-07-20 20:42:49,005 (-b1f8490) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://thetvdb.com/api/A27AD9BE0DA63333/series/76538/all/en.xml, Data filename: TVDB/76538.xml
-2015-07-20 20:42:49,012 (-b1f8490) :  DEBUG (__init__:545) - ['Action', 'Adventure', 'Animation', 'Science-Fiction']
-2015-07-20 20:42:49,013 (-b1f8490) :  DEBUG (__init__:545) - IMDB ID was empty, loaded through tvdb serie xml, IMDBID: 'tt0175385'
-2015-07-20 20:42:49,014 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - loaded serie xml: 76538 Bubblegum Crisis Tokyo 2040
-2015-07-20 20:42:49,015 (-b1f8490) :  DEBUG (__init__:545) - ### TVDB - Build 'tvdb_table' ###
-2015-07-20 20:42:49,067 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - tvdb_table: ['s1e1', 's1e10', 's1e11', 's1e12', 's1e13', 's1e14', 's1e15', 's1e16', 's1e17', 's1e18', 's1e19', 's1e2', 's1e20', 's1e21', 's1e22', 's1e23', 's1e24', 's1e25', 's1e26', 's1e3', 's1e4', 's1e5', 's1e6', 's1e7', 's1e8', 's1e9']
-2015-07-20 20:42:49,067 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - Episodes without Summary: []
-2015-07-20 20:42:49,113 (-b1f8490) :  DEBUG (networking:167) - Fetching 'http://thetvdb.com/api/A27AD9BE0DA63333/series/76538/banners.xml' from the HTTP cache
-2015-07-20 20:42:49,128 (-b1f8490) :  DEBUG (__init__:602) - getImagesFromTVDB - Loading picture XML worked: http://thetvdb.com/api/A27AD9BE0DA63333/series/76538/banners.xml
-2015-07-20 20:42:49,131 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/76538-1.jpg', num: '1', filename: 'TVDB/fanart/original/76538-1.jpg'
-2015-07-20 20:42:49,207 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/76538-3.jpg', num: '2', filename: 'TVDB/fanart/original/76538-3.jpg'
-2015-07-20 20:42:49,233 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/76538-2.jpg', num: '3', filename: 'TVDB/fanart/original/76538-2.jpg'
-2015-07-20 20:42:49,244 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/posters/76538-2.jpg', num: '2', filename: 'TVDB/posters/76538-2.jpg'
-2015-07-20 20:42:49,262 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/posters/76538-1.jpg', num: '3', filename: 'TVDB/posters/76538-1.jpg'
-2015-07-20 20:42:49,277 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/seasons/4343-1.jpg', num: '6', filename: 'TVDB/seasons/4343-1.jpg'
-2015-07-20 20:42:49,288 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/seasons/76538-0.jpg', num: '7', filename: 'TVDB/seasons/76538-0.jpg'
-2015-07-20 20:42:49,321 (-b1f8490) :  DEBUG (networking:167) - Fetching 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd' from the HTTP cache
-2015-07-20 20:42:49,336 (-b1f8490) :  DEBUG (__init__:626) - getImagesFromTMDB - by IMDBID - url: https://api.tmdb.org/3/find/tt0175385?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id
-2015-07-20 20:42:49,356 (-b1f8490) :  DEBUG (networking:167) - Fetching 'https://api.tmdb.org/3/find/tt0175385?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id' from the HTTP cache
-2015-07-20 20:42:49,371 (-b1f8490) :  DEBUG (__init__:657) - getImagesFromOMDB - imdbid: 'tt0175385', url: 'http://www.omdbapi.com/?i=tt0175385', filename: 'OMDB/tt0175385.jpg'
-2015-07-20 20:42:49,380 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://www.omdbapi.com/?i=tt0175385'
-2015-07-20 20:42:52,270 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://ia.media-imdb.com/images/M/MV5BMTY1MzM2MDE3Ml5BMl5BanBnXkFtZTcwODk3ODYxMQ@@._V1_SX300.jpg', num: '98', filename: 'OMDB/tt0175385.jpg'
-2015-07-20 20:42:52,314 (-b1f8490) :  DEBUG (__init__:407) - MODE AniDB DETECTED
-2015-07-20 20:42:52,314 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=345, AniDB/345.xml
-2015-07-20 20:42:52,348 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=345'
-2015-07-20 20:42:53,022 (-b1f8490) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=345, Data filename: AniDB/345.xml
-2015-07-20 20:42:53,026 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: loaded ok
-2015-07-20 20:42:53,027 (-b1f8490) :  ERROR (__init__:407) - update() - AniDB title
-2015-07-20 20:42:53,028 (-b1f8490) :  DEBUG (__init__:545) - update - AniDB title changed: 'Bubblegum Crisis Tokyo 2040' original title: 'Bubblegum Crisis Tokyo 2040'
-2015-07-20 20:42:53,033 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Start Date: 1998-10-08
-2015-07-20 20:42:53,034 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Ratings: 5.21
-2015-07-20 20:42:53,048 (-b1f8490) :  DEBUG (__init__:546) - update - genres: [('Sci-Fi', 600), ('Special Squads', 600), ('Mecha', 400), ('Action', 400), ('Adventure', 300), ('Romance', 200), ('Future', 200), ('Angst', 200), ('Tragedy', 200)] ['Sci-Fi', 'Special Squads', 'Mecha', 'Action', 'Adventure', 'Romance', 'Future', 'Angst', 'Tragedy']
-2015-07-20 20:42:53,050 (-b1f8490) :  DEBUG (__init__:546) - AniDB Genres (Weight): Sci-Fi (600) Special Squads (600) Mecha (400) Action (400) Adventure (300) Romance (200) Future (200) Angst (200) Tragedy (200) 
-2015-07-20 20:42:53,074 (-b1f8490) :  DEBUG (__init__:595) - anidbCollectionMapping - anidbid is not part of any collection, related_anime_list: '['68']'
-2015-07-20 20:42:53,075 (-b1f8490) :  DEBUG (__init__:546) - AniDB Creator data: AIC is a studio, Hayashi Hiroki is a director, Takaoka Jun`ichi is a director, Yamada Masaki is a director, 
-2015-07-20 20:42:53,075 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB description + link
-2015-07-20 20:42:53,078 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Poster, url: 'http://img7.anidb.net/pics/anime/150431.jpg'
-2015-07-20 20:42:53,083 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199250.jpg', num: '1', filename: 'TVDB/episodes/199250.jpg'
-2015-07-20 20:42:53,096 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e19', tvdb_ep: 's1e19', season: '1', epNumVal: '19', defaulttvdbseason: '1', title: 'Are You Experienced?', summary: 'The streets of Tokyo become ever more deserted as'
-2015-07-20 20:42:53,100 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199249.jpg', num: '1', filename: 'TVDB/episodes/199249.jpg'
-2015-07-20 20:42:53,109 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e18', tvdb_ep: 's1e18', season: '1', epNumVal: '18', defaulttvdbseason: '1', title: 'We Built This City', summary: 'The ADP and the Knight Sabers have come to the res'
-2015-07-20 20:42:53,113 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199248.jpg', num: '1', filename: 'TVDB/episodes/199248.jpg'
-2015-07-20 20:42:53,129 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e17', tvdb_ep: 's1e17', season: '1', epNumVal: '17', defaulttvdbseason: '1', title: 'Moving Waves', summary: 'The ADP ""Totem Pole"" HQ is swarming with rogue b'
-2015-07-20 20:42:53,132 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199247.jpg', num: '1', filename: 'TVDB/episodes/199247.jpg'
-2015-07-20 20:42:53,150 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e16', tvdb_ep: 's1e16', season: '1', epNumVal: '16', defaulttvdbseason: '1', title: 'I Surrender', summary: 'Drawn to see Sylia by Galatea's powers, Linna, Pri'
-2015-07-20 20:42:53,153 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199246.jpg', num: '1', filename: 'TVDB/episodes/199246.jpg'
-2015-07-20 20:42:53,158 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e15', tvdb_ep: 's1e15', season: '1', epNumVal: '15', defaulttvdbseason: '1', title: 'Minute by Minute', summary: 'Whilst Mason takes control of the mysterious and p'
-2015-07-20 20:42:53,162 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199245.jpg', num: '1', filename: 'TVDB/episodes/199245.jpg'
-2015-07-20 20:42:53,174 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e14', tvdb_ep: 's1e14', season: '1', epNumVal: '14', defaulttvdbseason: '1', title: 'Shock Treatment', summary: 'Angered by Sylia's refusal to explain the dark sec'
-2015-07-20 20:42:53,178 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199240.jpg', num: '1', filename: 'TVDB/episodes/199240.jpg'
-2015-07-20 20:42:53,191 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e9', tvdb_ep: 's1e9', season: '1', epNumVal: '9', defaulttvdbseason: '1', title: 'My Nation Underground', summary: 'When reports come in of boomers disappearing aroun'
-2015-07-20 20:42:53,194 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199244.jpg', num: '1', filename: 'TVDB/episodes/199244.jpg'
-2015-07-20 20:42:53,215 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e13', tvdb_ep: 's1e13', season: '1', epNumVal: '13', defaulttvdbseason: '1', title: 'Atom Heart Mother', summary: 'Something dangerous is lurking in Sylia's father's'
-2015-07-20 20:42:53,219 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199239.jpg', num: '1', filename: 'TVDB/episodes/199239.jpg'
-2015-07-20 20:42:53,228 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e8', tvdb_ep: 's1e8', season: '1', epNumVal: '8', defaulttvdbseason: '1', title: 'Fire Ball', summary: 'Ever wanted to get to know Priss better? Her frien'
-2015-07-20 20:42:53,232 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199243.jpg', num: '1', filename: 'TVDB/episodes/199243.jpg'
-2015-07-20 20:42:53,249 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e12', tvdb_ep: 's1e12', season: '1', epNumVal: '12', defaulttvdbseason: '1', title: 'Made in Japan', summary: 'With Nene stuck at work and Linna out of town, Pri'
-2015-07-20 20:42:53,253 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199238.jpg', num: '1', filename: 'TVDB/episodes/199238.jpg'
-2015-07-20 20:42:53,254 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e7', tvdb_ep: 's1e7', season: '1', epNumVal: '7', defaulttvdbseason: '1', title: 'Look at Yourself', summary: 'When a remote controlled boomer working on n under'
-2015-07-20 20:42:53,258 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199242.jpg', num: '1', filename: 'TVDB/episodes/199242.jpg'
-2015-07-20 20:42:53,264 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e11', tvdb_ep: 's1e11', season: '1', epNumVal: '11', defaulttvdbseason: '1', title: 'Sheer Heart Attack', summary: 'Linna's job begins to dominate her life, with all'
-2015-07-20 20:42:53,268 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199237.jpg', num: '1', filename: 'TVDB/episodes/199237.jpg'
-2015-07-20 20:42:53,278 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e6', tvdb_ep: 's1e6', season: '1', epNumVal: '6', defaulttvdbseason: '1', title: 'Get It On', summary: 'Stuck in the factory, Linna, Priss and Nene are lo'
-2015-07-20 20:42:53,281 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199241.jpg', num: '1', filename: 'TVDB/episodes/199241.jpg'
-2015-07-20 20:42:53,378 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e10', tvdb_ep: 's1e10', season: '1', epNumVal: '10', defaulttvdbseason: '1', title: 'Woke Up with a Monster', summary: 'A  boomer-eating monster is stalking underground T'
-2015-07-20 20:42:53,381 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's0e2', tvdb_ep: 's0e2', season: '0', epNumVal: '2', defaulttvdbseason: '1', title: 'Still Alive and Well', summary: ''
-2015-07-20 20:42:53,385 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199236.jpg', num: '1', filename: 'TVDB/episodes/199236.jpg'
-2015-07-20 20:42:53,404 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e5', tvdb_ep: 's1e5', season: '1', epNumVal: '5', defaulttvdbseason: '1', title: 'Rough and Ready', summary: 'When a rogue boomer takes over a factory and start'
-2015-07-20 20:42:53,408 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's0e1', tvdb_ep: 's0e1', season: '0', epNumVal: '1', defaulttvdbseason: '1', title: 'Walking on the Moon', summary: ''
-2015-07-20 20:42:53,411 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199235.jpg', num: '1', filename: 'TVDB/episodes/199235.jpg'
-2015-07-20 20:42:53,420 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e4', tvdb_ep: 's1e4', season: '1', epNumVal: '4', defaulttvdbseason: '1', title: 'Machine Head', summary: 'When Priss is trapped in a cafe with a rogue boome'
-2015-07-20 20:42:53,423 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199255.jpg', num: '1', filename: 'TVDB/episodes/199255.jpg'
-2015-07-20 20:42:53,438 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e24', tvdb_ep: 's1e24', season: '1', epNumVal: '24', defaulttvdbseason: '1', title: 'Light My Fire', summary: 'Now fused with the upper levels of Genom Tower, Ga'
-2015-07-20 20:42:53,441 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199234.jpg', num: '1', filename: 'TVDB/episodes/199234.jpg'
-2015-07-20 20:42:53,443 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e3', tvdb_ep: 's1e3', season: '1', epNumVal: '3', defaulttvdbseason: '1', title: 'Keep Me Hanging On', summary: 'Whilst Nigel begins work on a hardsuit for the Kni'
-2015-07-20 20:42:53,448 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199254.jpg', num: '1', filename: 'TVDB/episodes/199254.jpg'
-2015-07-20 20:42:53,468 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e23', tvdb_ep: 's1e23', season: '1', epNumVal: '23', defaulttvdbseason: '1', title: 'Hydra', summary: 'From the heights of Genom Tower, Galatea has reach'
-2015-07-20 20:42:53,471 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199233.jpg', num: '1', filename: 'TVDB/episodes/199233.jpg'
-2015-07-20 20:42:53,492 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e2', tvdb_ep: 's1e2', season: '1', epNumVal: '2', defaulttvdbseason: '1', title: 'Fragile', summary: 'The mysterious rock singer and Knight Saber Priss'
-2015-07-20 20:42:53,496 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199253.jpg', num: '1', filename: 'TVDB/episodes/199253.jpg'
-2015-07-20 20:42:53,505 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e22', tvdb_ep: 's1e22', season: '1', epNumVal: '22', defaulttvdbseason: '1', title: 'Physical Graffiti', summary: 'As the Knight Sabers set about escaping from the b'
-2015-07-20 20:42:53,508 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199232.jpg', num: '1', filename: 'TVDB/episodes/199232.jpg'
-2015-07-20 20:42:53,517 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e1', tvdb_ep: 's1e1', season: '1', epNumVal: '1', defaulttvdbseason: '1', title: 'Can't Buy a Thrill', summary: 'In the 2030's, an earthquake destroyed most of Tok'
-2015-07-20 20:42:53,520 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199252.jpg', num: '1', filename: 'TVDB/episodes/199252.jpg'
-2015-07-20 20:42:53,522 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e21', tvdb_ep: 's1e21', season: '1', epNumVal: '21', defaulttvdbseason: '1', title: 'Close to the Edge', summary: 'As the giant boomer tries to fuse with Linna, Nene'
-2015-07-20 20:42:53,525 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/76538/199251.jpg', num: '1', filename: 'TVDB/episodes/199251.jpg'
-2015-07-20 20:42:53,550 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e20', tvdb_ep: 's1e20', season: '1', epNumVal: '20', defaulttvdbseason: '1', title: 'One of These Nights', summary: 'Galatea steps things up a notch when she takes con'
-2015-07-20 20:42:53,551 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C1', epNumVal: '101', ep_title: 'Opening'
-2015-07-20 20:42:53,552 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C2', epNumVal: '151', ep_title: 'Ending'
-2015-07-20 20:42:53,553 (-b1f8490) :  DEBUG (__init__:546) - update - DURATION: 36000000, numEpisodes: 24
-2015-07-20 20:42:53,553 (-b1f8490) :  DEBUG (__init__:549) - --- Update end -------------------------------------------------------------------------------------------------
-2015-07-20 20:42:53,711 (-b1f8490) :  DEBUG (model:225) - Serializing to /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/3/ace69abeede2e37fd2b302b1ca9bb5708de74eb.bundle/Contents/com.plexapp.agents.hama/Info.xml
-2015-07-20 20:42:53,714 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:42:53,714 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 16 bytes
-2015-07-20 20:43:56,470 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgo1MnM3CmVwaXNvZGVzMzAKVGhlIEVwaWNpc2ggQmF0dGxlIENvbW1lbmNldGghczQKbmFtZXMxCjFzOAplcGlzb2RpY3MxNgpDcmF5b24gU2hpbi1jaGFuczQKc2hvd3MxCjFzNgpzZWFzb25zMTc5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkNyYXlvbiUyMFNoaW4tY2hhbiUyRkNyYXlvbiUyMFNoaW4tY2hhbiUyMC0lMjAwNTIlMjAtJTIwVGhlJTIwRXBpY2lzaCUyMEJhdHRsZSUyMENvbW1lbmNldGghJTJFbXA0czgKZmlsZW5hbWVzNDEKMGRhMzlhM2VlNWU2YjRiMGQzMjU1YmZlZjk1NjAxODkwYWZkODA3MDlzOApwbGV4SGFzaHMyCi0xczgKZHVyYXRpb25zNgoyODgxNjdzMgppZHIwCg__
-2015-07-20 20:43:56,472 (-b1f8490) :  DEBUG (runtime:49) - Received packed state data (80 bytes)
-2015-07-20 20:43:56,475 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgo1MnM3CmVwaXNvZGVzMzAKVGhlIEVwaWNpc2ggQmF0dGxlIENvbW1lbmNldGghczQKbmFtZXMxCjFzOAplcGlzb2RpY3MxNgpDcmF5b24gU2hpbi1jaGFuczQKc2hvd3MxCjFzNgpzZWFzb25zMTc5CiUyRnZvbHVtZTIlMkZNZWdhUmFpZCUyRkFuaW1lJTJGSmFwJTIwU3ViJTIwRW4lMkZfdGVzdCUyMFVzZXJzJTJGbWFnbnVtZG9vbWd1eSUyRkNyYXlvbiUyMFNoaW4tY2hhbiUyRkNyYXlvbiUyMFNoaW4tY2hhbiUyMC0lMjAwNTIlMjAtJTIwVGhlJTIwRXBpY2lzaCUyMEJhdHRsZSUyMENvbW1lbmNldGghJTJFbXA0czgKZmlsZW5hbWVzNDEKMGRhMzlhM2VlNWU2YjRiMGQzMjU1YmZlZjk1NjAxODkwYWZkODA3MDlzOApwbGV4SGFzaHMyCi0xczgKZHVyYXRpb25zNgoyODgxNjdzMgppZHIwCg__
-2015-07-20 20:43:56,476 (-b1f8490) :  INFO (agentkit:936) - Searching for matches for {'openSubtitlesHash': None, 'episode': '52', 'name': 'The Epicish Battle Commenceth!', 'episodic': '1', 'show': 'Crayon Shin-chan', 'season': '1', 'filename': '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FCrayon%20Shin-chan%2FCrayon%20Shin-chan%20-%20052%20-%20The%20Epicish%20Battle%20Commenceth!%2Emp4', 'plexHash': '0da39a3ee5e6b4b0d3255bfef95601890afd80709', 'duration': '-1', 'id': '288167'}
-2015-07-20 20:43:56,477 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/288167/tree'
-2015-07-20 20:43:56,519 (-b1f8490) :  DEBUG (__init__:107) - === Search - Begin - ================================================================================================
-2015-07-20 20:43:56,520 (-b1f8490) :  INFO (__init__:108) - search() - Title: 'Crayon Shin-chan', name: 'The Epicish Battle Commenceth!', filename: '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FCrayon%20Shin-chan%2FCrayon%20Shin-chan%20-%20052%20-%20The%20Epicish%20Battle%20Commenceth!%2Emp4', manual:'True'
-2015-07-20 20:43:56,807 (-b1f8490) :  DEBUG (__init__:213) - search() - AniDB - temp score: '100', id: '   708', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:56,808 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: '100', id: '   708', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:56,851 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '   872', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,340 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  3106', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,341 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  3107', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,371 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  3316', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,583 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4622', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,585 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4624', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,586 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4625', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,587 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4626', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,588 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4627', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,600 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4703', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,602 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4704', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,603 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4705', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,604 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4706', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,606 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4707', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,642 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  4910', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,767 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 29', id: '  5858', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,859 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  6550', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:57,951 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: '  7254', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,063 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 26', id: '  8115', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,149 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 25', id: '  8780', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,244 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 25', id: '  9542', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,319 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 64', id: ' 10252', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,378 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: ' 22', id: ' 10843', title: 'Crayon Shin-chan' 
-2015-07-20 20:43:58,433 (-b1f8490) :  DEBUG (__init__:214) - === Search - End - =================================================================================================
-2015-07-20 20:43:58,455 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:43:58,455 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 9672 bytes
-2015-07-20 20:44:21,296 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODgxNjdzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0Mwpjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTcwOD9sYW5nPWVuczQKZ3VpZHM5CmFuaWRiLTcwOHMyCmlkcjAK
-2015-07-20 20:44:21,298 (-b1f8490) :  DEBUG (runtime:49) - Received packed state data (80 bytes)
-2015-07-20 20:44:21,300 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODgxNjdzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0Mwpjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTcwOD9sYW5nPWVuczQKZ3VpZHM5CmFuaWRiLTcwOHMyCmlkcjAK
-2015-07-20 20:44:21,302 (-b1f8490) :  DEBUG (model:32) - Loading model with GUID com.plexapp.agents.hama://anidb-708?lang=en
-2015-07-20 20:44:21,335 (-b1f8490) :  DEBUG (model:230) - Deserializing from /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/8/3165b2a7a69c275886c28e018032f11952ab340.bundle/Contents/com.plexapp.agents.hama/Info.xml
-2015-07-20 20:44:21,527 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/288167/tree'
-2015-07-20 20:44:21,579 (-b1f8490) :  DEBUG (__init__:243) - --- Update Begin -------------------------------------------------------------------------------------------
-2015-07-20 20:44:21,579 (-b1f8490) :  DEBUG (__init__:244) - update2 - metadata ID: 'anidb-708', Title: 'Crayon Shin-chan',([...], [...], True)
-2015-07-20 20:44:21,587 (-b1f8490) :  DEBUG (__init__:568) - anidbTvdbMapping - Missing tvdbid for anidbid 708
-2015-07-20 20:44:21,587 (-b1f8490) :  DEBUG (__init__:571) - anidbTvdbMapping - AniDB-TVDB Mapping - anidb:708 tvbdid: unknown studio:  defaulttvdbseason: 1
-2015-07-20 20:44:21,594 (-b1f8490) :  DEBUG (__init__:407) - MODE AniDB DETECTED
-2015-07-20 20:44:21,594 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=708, AniDB/708.xml
-2015-07-20 20:44:21,647 (-b1f8490) :  DEBUG (networking:167) - Fetching 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=708' from the HTTP cache
-2015-07-20 20:44:21,664 (-b1f8490) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=708, Data filename: AniDB/708.xml
-2015-07-20 20:44:21,694 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: loaded ok
-2015-07-20 20:44:21,694 (-b1f8490) :  ERROR (__init__:407) - update() - AniDB title
-2015-07-20 20:44:21,695 (-b1f8490) :  DEBUG (__init__:463) - update - AniDB title need no change: 'Crayon Shin-chan' original title: 'Crayon Shin-chan' metadata.title 'Crayon Shin-chan'
-2015-07-20 20:44:21,697 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Start Date: 1992-04-13
-2015-07-20 20:44:21,698 (-b1f8490) :  DEBUG (__init__:407) - update - AniDB Ratings: 5.60*
-2015-07-20 20:44:21,713 (-b1f8490) :  DEBUG (__init__:546) - AniDB Genres (Weight): [('Seinen', 600), ('4-koma', 600), ('Elementary School', 600), ('Manga', 600), ('Ecchi', 400), ('School Life', 400), ('Comedy', 400), ('Daily Life', 300), ('Friendship', 300), ('Present', 200)]*
-2015-07-20 20:44:21,721 (-b1f8490) :  DEBUG (__init__:593) - anidbCollectionMapping - anidbid (anidb-708) is part of collection: Crayon Shin-chan Collection', related_anime_list: '['3106', '872', '3107', '4624', '4627', '4703', '4705', '4707', '4625', '3316', '4622', '4626', '4704', '4706', '4910', '5858', '6550', '7254', '8070', '8115', '8780', '9542', '10252', '10843']', 
-2015-07-20 20:44:21,722 (-b1f8490) :  DEBUG (__init__:546) - AniDB Creator data: Usui Yoshito is a writer, Hongou Mitsuru is a director, Hara Keiichi is a director, Mutou Yuuji is a director, 
-2015-07-20 20:44:21,723 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB description + link
-2015-07-20 20:44:21,724 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Poster, url: 'http://img7.anidb.net/pics/anime/153029.jpg'
-2015-07-20 20:44:21,728 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e1', tvdb_ep: '', season: '1', epNumVal: '1', defaulttvdbseason: '1', title: 'Pee Strike!', summary: ''
-2015-07-20 20:44:21,731 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e2', tvdb_ep: '', season: '1', epNumVal: '2', defaulttvdbseason: '1', title: 'To Be a Man?', summary: ''
-2015-07-20 20:44:21,734 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e3', tvdb_ep: '', season: '1', epNumVal: '3', defaulttvdbseason: '1', title: 'Safe As a Dry Hump', summary: ''
-2015-07-20 20:44:21,736 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e4', tvdb_ep: '', season: '1', epNumVal: '4', defaulttvdbseason: '1', title: 'Get Your Hands Off My Happy Cake!', summary: ''
-2015-07-20 20:44:21,739 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e5', tvdb_ep: '', season: '1', epNumVal: '5', defaulttvdbseason: '1', title: 'Gigantic One-Eyed Monster', summary: ''
-2015-07-20 20:44:21,742 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e6', tvdb_ep: '', season: '1', epNumVal: '6', defaulttvdbseason: '1', title: 'Gum Is a Good Food to Eat', summary: ''
-2015-07-20 20:44:21,744 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e7', tvdb_ep: '', season: '1', epNumVal: '7', defaulttvdbseason: '1', title: 'A Mutha [BLEEP]ing Bunny!', summary: ''
-2015-07-20 20:44:21,747 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e8', tvdb_ep: '', season: '1', epNumVal: '8', defaulttvdbseason: '1', title: 'The Shin Must Poop On?', summary: ''
-2015-07-20 20:44:21,749 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e9', tvdb_ep: '', season: '1', epNumVal: '9', defaulttvdbseason: '1', title: 'Shady Real Estate Office, Ho!', summary: ''
-2015-07-20 20:44:21,752 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e20', tvdb_ep: '', season: '1', epNumVal: '20', defaulttvdbseason: '1', title: 'Gratuitous Child Nudity', summary: ''
-2015-07-20 20:44:21,754 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e28', tvdb_ep: '', season: '1', epNumVal: '28', defaulttvdbseason: '1', title: 'The Stalker Song', summary: ''
-2015-07-20 20:44:21,757 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e13', tvdb_ep: '', season: '1', epNumVal: '13', defaulttvdbseason: '1', title: 'Swimming, Diving Scuba Team', summary: ''
-2015-07-20 20:44:21,760 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e35', tvdb_ep: '', season: '1', epNumVal: '35', defaulttvdbseason: '1', title: 'AIDS Is Hilarious', summary: ''
-2015-07-20 20:44:21,762 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e26', tvdb_ep: '', season: '1', epNumVal: '26', defaulttvdbseason: '1', title: 'Gratuitous Grandparent Nudity', summary: ''
-2015-07-20 20:44:21,765 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e29', tvdb_ep: '', season: '1', epNumVal: '29', defaulttvdbseason: '1', title: 'Double Fried Flavor!', summary: ''
-2015-07-20 20:44:21,767 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e33', tvdb_ep: '', season: '1', epNumVal: '33', defaulttvdbseason: '1', title: 'Tummy Clock Says It's Three', summary: ''
-2015-07-20 20:44:21,770 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e18', tvdb_ep: '', season: '1', epNumVal: '18', defaulttvdbseason: '1', title: 'The Girls of 34C', summary: ''
-2015-07-20 20:44:21,773 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e27', tvdb_ep: '', season: '1', epNumVal: '27', defaulttvdbseason: '1', title: 'Shin Wars', summary: ''
-2015-07-20 20:44:21,775 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e19', tvdb_ep: '', season: '1', epNumVal: '19', defaulttvdbseason: '1', title: 'The Herpes Effect', summary: ''
-2015-07-20 20:44:21,778 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e23', tvdb_ep: '', season: '1', epNumVal: '23', defaulttvdbseason: '1', title: 'Your IQ's Like 5, Right?', summary: ''
-2015-07-20 20:44:21,780 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e21', tvdb_ep: '', season: '1', epNumVal: '21', defaulttvdbseason: '1', title: 'At Least They Pay for the Ouchie?', summary: ''
-2015-07-20 20:44:21,783 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e14', tvdb_ep: '', season: '1', epNumVal: '14', defaulttvdbseason: '1', title: 'More of a "Snug" Than a "Magnum"', summary: ''
-2015-07-20 20:44:21,785 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e10', tvdb_ep: '', season: '1', epNumVal: '10', defaulttvdbseason: '1', title: 'Can't Abort 'em When They're Not Yours', summary: ''
-2015-07-20 20:44:21,788 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e16', tvdb_ep: '', season: '1', epNumVal: '16', defaulttvdbseason: '1', title: 'Sticky's My Favorite Flavor', summary: ''
-2015-07-20 20:44:21,791 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e17', tvdb_ep: '', season: '1', epNumVal: '17', defaulttvdbseason: '1', title: 'OK, but I'm a Power Bottom', summary: ''
-2015-07-20 20:44:21,793 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e25', tvdb_ep: '', season: '1', epNumVal: '25', defaulttvdbseason: '1', title: 'Condescending Spanish for Heiresses', summary: ''
-2015-07-20 20:44:21,796 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e15', tvdb_ep: '', season: '1', epNumVal: '15', defaulttvdbseason: '1', title: 'In the Interest of Increased Ratings?', summary: ''
-2015-07-20 20:44:21,798 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e22', tvdb_ep: '', season: '1', epNumVal: '22', defaulttvdbseason: '1', title: 'Damn You, Telepathy!', summary: ''
-2015-07-20 20:44:21,801 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e30', tvdb_ep: '', season: '1', epNumVal: '30', defaulttvdbseason: '1', title: 'Miscarriage Return Policy', summary: ''
-2015-07-20 20:44:21,803 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e32', tvdb_ep: '', season: '1', epNumVal: '32', defaulttvdbseason: '1', title: 'It's Actually Better for Anal', summary: ''
-2015-07-20 20:44:21,806 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e34', tvdb_ep: '', season: '1', epNumVal: '34', defaulttvdbseason: '1', title: 'Green Like Good Boy Pills', summary: ''
-2015-07-20 20:44:21,808 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e24', tvdb_ep: '', season: '1', epNumVal: '24', defaulttvdbseason: '1', title: 'Stop Referencing the Show!', summary: ''
-2015-07-20 20:44:21,811 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e31', tvdb_ep: '', season: '1', epNumVal: '31', defaulttvdbseason: '1', title: 'Lucky Bastard Fever!', summary: ''
-2015-07-20 20:44:21,814 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e12', tvdb_ep: '', season: '1', epNumVal: '12', defaulttvdbseason: '1', title: 'Get Yours, or Die!', summary: ''
-2015-07-20 20:44:21,816 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e11', tvdb_ep: '', season: '1', epNumVal: '11', defaulttvdbseason: '1', title: 'Irregular Tampons on Sale!', summary: ''
-2015-07-20 20:44:21,819 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e36', tvdb_ep: '', season: '1', epNumVal: '36', defaulttvdbseason: '1', title: 'How to Bury a Smack-Addict Clown', summary: ''
-2015-07-20 20:44:21,821 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e37', tvdb_ep: '', season: '1', epNumVal: '37', defaulttvdbseason: '1', title: 'The Emperor's Love', summary: ''
-2015-07-20 20:44:21,824 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e38', tvdb_ep: '', season: '1', epNumVal: '38', defaulttvdbseason: '1', title: 'Her Little Gang-Bang Miracles', summary: ''
-2015-07-20 20:44:21,826 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e39', tvdb_ep: '', season: '1', epNumVal: '39', defaulttvdbseason: '1', title: 'Childrens Were Our Future', summary: ''
-2015-07-20 20:44:21,829 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e40', tvdb_ep: '', season: '1', epNumVal: '40', defaulttvdbseason: '1', title: 'Shin Chan: The High School Years', summary: ''
-2015-07-20 20:44:21,832 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e41', tvdb_ep: '', season: '1', epNumVal: '41', defaulttvdbseason: '1', title: 'Tell the Cops She Looked Eighteen', summary: ''
-2015-07-20 20:44:21,834 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e42', tvdb_ep: '', season: '1', epNumVal: '42', defaulttvdbseason: '1', title: 'I Can't Find Your %*#&ing Legs', summary: ''
-2015-07-20 20:44:21,837 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e43', tvdb_ep: '', season: '1', epNumVal: '43', defaulttvdbseason: '1', title: 'An Angel Gets Its Period', summary: ''
-2015-07-20 20:44:21,839 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e44', tvdb_ep: '', season: '1', epNumVal: '44', defaulttvdbseason: '1', title: 'Unlicensed Therapy', summary: ''
-2015-07-20 20:44:21,842 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e45', tvdb_ep: '', season: '1', epNumVal: '45', defaulttvdbseason: '1', title: 'A Total Jack Barnes Move', summary: ''
-2015-07-20 20:44:21,844 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e46', tvdb_ep: '', season: '1', epNumVal: '46', defaulttvdbseason: '1', title: 'Gonna Need More Fingers', summary: ''
-2015-07-20 20:44:21,847 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e47', tvdb_ep: '', season: '1', epNumVal: '47', defaulttvdbseason: '1', title: 'Sexy-Ass Wild Fartin' Cowboy', summary: ''
-2015-07-20 20:44:21,849 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e48', tvdb_ep: '', season: '1', epNumVal: '48', defaulttvdbseason: '1', title: 'Morning Vacuuming', summary: ''
-2015-07-20 20:44:21,852 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e49', tvdb_ep: '', season: '1', epNumVal: '49', defaulttvdbseason: '1', title: 'Unfortunately for You, I Had Ribs', summary: ''
-2015-07-20 20:44:21,854 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e50', tvdb_ep: '', season: '1', epNumVal: '50', defaulttvdbseason: '1', title: 'Domestic Abuse Isn't That Funny', summary: ''
-2015-07-20 20:44:21,857 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e51', tvdb_ep: '', season: '1', epNumVal: '51', defaulttvdbseason: '1', title: 'Box for Hire?', summary: ''
-2015-07-20 20:44:21,860 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e52', tvdb_ep: '', season: '1', epNumVal: '52', defaulttvdbseason: '1', title: 'The Epicish Battle Commenceth!', summary: ''
-2015-07-20 20:44:22,026 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C31', epNumVal: '151', ep_title: 'Ending 18'
-2015-07-20 20:44:22,027 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C30', epNumVal: '150', ep_title: 'Ending 17'
-2015-07-20 20:44:22,027 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C29', epNumVal: '149', ep_title: 'Ending 16'
-2015-07-20 20:44:22,028 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C28', epNumVal: '148', ep_title: 'Ending 15'
-2015-07-20 20:44:22,029 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C27', epNumVal: '147', ep_title: 'Ending 14'
-2015-07-20 20:44:22,030 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C26', epNumVal: '146', ep_title: 'Ending 13'
-2015-07-20 20:44:22,031 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C25', epNumVal: '145', ep_title: 'Ending 12'
-2015-07-20 20:44:22,031 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C24', epNumVal: '144', ep_title: 'Ending 11'
-2015-07-20 20:44:22,032 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C23', epNumVal: '143', ep_title: 'Ending 10'
-2015-07-20 20:44:22,033 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C22', epNumVal: '142', ep_title: 'Ending 9'
-2015-07-20 20:44:22,034 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C21', epNumVal: '141', ep_title: 'Ending 8'
-2015-07-20 20:44:22,035 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C20', epNumVal: '140', ep_title: 'Ending 7'
-2015-07-20 20:44:22,035 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C19', epNumVal: '139', ep_title: 'Ending 6'
-2015-07-20 20:44:22,036 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C18', epNumVal: '138', ep_title: 'Ending 5'
-2015-07-20 20:44:22,037 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C17', epNumVal: '137', ep_title: 'Ending 4'
-2015-07-20 20:44:22,038 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C16', epNumVal: '136', ep_title: 'Ending 3'
-2015-07-20 20:44:22,039 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C15', epNumVal: '135', ep_title: 'Ending 2'
-2015-07-20 20:44:22,039 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C14', epNumVal: '134', ep_title: 'Ending 1'
-2015-07-20 20:44:22,040 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C13', epNumVal: '113', ep_title: 'Opening 13'
-2015-07-20 20:44:22,041 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C12', epNumVal: '112', ep_title: 'Opening 12'
-2015-07-20 20:44:22,042 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C11', epNumVal: '111', ep_title: 'Opening 11'
-2015-07-20 20:44:22,042 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C10', epNumVal: '110', ep_title: 'Opening 10'
-2015-07-20 20:44:22,043 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C9', epNumVal: '109', ep_title: 'Opening 9'
-2015-07-20 20:44:22,044 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C8', epNumVal: '108', ep_title: 'Opening 8'
-2015-07-20 20:44:22,045 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C7', epNumVal: '107', ep_title: 'Opening 7'
-2015-07-20 20:44:22,046 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C6', epNumVal: '106', ep_title: 'Opening 6'
-2015-07-20 20:44:22,046 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C5', epNumVal: '105', ep_title: 'Opening 5'
-2015-07-20 20:44:22,047 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C4', epNumVal: '104', ep_title: 'Opening 4'
-2015-07-20 20:44:22,048 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C3', epNumVal: '103', ep_title: 'Opening 3'
-2015-07-20 20:44:22,049 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C2', epNumVal: '102', ep_title: 'Opening 2'
-2015-07-20 20:44:22,050 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C1', epNumVal: '101', ep_title: 'Opening 1'
-2015-07-20 20:44:22,089 (-b1f8490) :  DEBUG (__init__:546) - update - DURATION: 78000000, numEpisodes: 52
-2015-07-20 20:44:22,115 (-b1f8490) :  DEBUG (__init__:549) - --- Update end -------------------------------------------------------------------------------------------------
-2015-07-20 20:44:22,319 (-b1f8490) :  DEBUG (model:225) - Serializing to /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/8/3165b2a7a69c275886c28e018032f11952ab340.bundle/Contents/com.plexapp.agents.hama/Info.xml
-2015-07-20 20:44:22,322 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:44:22,323 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 16 bytes
-2015-07-20 20:46:09,307 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoxMnM3CmVwaXNvZGVzOApTdHlsaXNoIXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMTMKRGV2aWwgTWF5IENyeXM0CnNob3dzMQoxczYKc2Vhc29uczE0OAolMkZ2b2x1bWUyJTJGTWVnYVJhaWQlMkZBbmltZSUyRkphcCUyMFN1YiUyMEVuJTJGX3Rlc3QlMjBVc2VycyUyRm1hZ251bWRvb21ndXklMkZEZXZpbCUyME1heSUyMENyeSUyRkRldmlsJTIwTWF5JTIwQ3J5JTIwLSUyMDEyJTIwLSUyMFN0eWxpc2ghJTJFbWt2czgKZmlsZW5hbWVzNDEKMGRhMzlhM2VlNWU2YjRiMGQzMjU1YmZlZjk1NjAxODkwYWZkODA3MDlzOApwbGV4SGFzaHMyCi0xczgKZHVyYXRpb25zNgoyODgyNjlzMgppZHIwCg__
-2015-07-20 20:46:09,308 (-b1f8490) :  DEBUG (runtime:49) - Received packed state data (80 bytes)
-2015-07-20 20:46:09,311 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlNlYXJjaA__/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoyCmRpY3QKZGljdAo2CnMyCmVuczQKbGFuZ2IxczYKbWFudWFsYjFzNwpwcmltYXJ5aTAKczcKdmVyc2lvbnIxCnM2Cmt3YXJnc3M3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZTEwCm5zMTcKb3BlblN1YnRpdGxlc0hhc2hzMgoxMnM3CmVwaXNvZGVzOApTdHlsaXNoIXM0Cm5hbWVzMQoxczgKZXBpc29kaWNzMTMKRGV2aWwgTWF5IENyeXM0CnNob3dzMQoxczYKc2Vhc29uczE0OAolMkZ2b2x1bWUyJTJGTWVnYVJhaWQlMkZBbmltZSUyRkphcCUyMFN1YiUyMEVuJTJGX3Rlc3QlMjBVc2VycyUyRm1hZ251bWRvb21ndXklMkZEZXZpbCUyME1heSUyMENyeSUyRkRldmlsJTIwTWF5JTIwQ3J5JTIwLSUyMDEyJTIwLSUyMFN0eWxpc2ghJTJFbWt2czgKZmlsZW5hbWVzNDEKMGRhMzlhM2VlNWU2YjRiMGQzMjU1YmZlZjk1NjAxODkwYWZkODA3MDlzOApwbGV4SGFzaHMyCi0xczgKZHVyYXRpb25zNgoyODgyNjlzMgppZHIwCg__
-2015-07-20 20:46:09,312 (-b1f8490) :  INFO (agentkit:936) - Searching for matches for {'openSubtitlesHash': None, 'episode': '12', 'name': 'Stylish!', 'episodic': '1', 'show': 'Devil May Cry', 'season': '1', 'filename': '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FDevil%20May%20Cry%2FDevil%20May%20Cry%20-%2012%20-%20Stylish!%2Emkv', 'plexHash': '0da39a3ee5e6b4b0d3255bfef95601890afd80709', 'duration': '-1', 'id': '288269'}
-2015-07-20 20:46:09,313 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/288269/tree'
-2015-07-20 20:46:09,333 (-b1f8490) :  DEBUG (__init__:107) - === Search - Begin - ================================================================================================
-2015-07-20 20:46:09,334 (-b1f8490) :  INFO (__init__:108) - search() - Title: 'Devil May Cry', name: 'Stylish!', filename: '%2Fvolume2%2FMegaRaid%2FAnime%2FJap%20Sub%20En%2F_test%20Users%2Fmagnumdoomguy%2FDevil%20May%20Cry%2FDevil%20May%20Cry%20-%2012%20-%20Stylish!%2Emkv', manual:'True'
-2015-07-20 20:46:10,448 (-b1f8490) :  DEBUG (__init__:213) - search() - AniDB - temp score: '100', id: '  4776', title: 'Devil May Cry' 
-2015-07-20 20:46:10,449 (-b1f8490) :  DEBUG (__init__:214) - search() - AniDB - score: '100', id: '  4776', title: 'Devil May Cry' 
-2015-07-20 20:46:11,254 (-b1f8490) :  DEBUG (__init__:214) - === Search - End - =================================================================================================
-2015-07-20 20:46:11,267 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (104 bytes)
-2015-07-20 20:46:11,268 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 656 bytes
-2015-07-20 20:46:13,440 (-b1f8490) :  DEBUG (runtime:717) - Handling request GET /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODgyNjlzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0NApjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTQ3NzY%40bGFuZz1lbnM0Cmd1aWRzMTAKYW5pZGItNDc3NnMyCmlkcjAK
-2015-07-20 20:46:13,442 (-b1f8490) :  DEBUG (runtime:49) - Received packed state data (80 bytes)
-2015-07-20 20:46:13,444 (-b1f8490) :  DEBUG (runtime:814) - Found route matching /:/plugins/com.plexapp.agents.hama/messaging/function/X0FnZW50S2l0OlVwZGF0ZU1ldGFkYXRh/Y2VyZWFsMQoxCmxpc3QKMApyMAo_/Y2VyZWFsMQoxCmRpY3QKMTAKczIKZW5zNApsYW5nYjFzNQpmb3JjZWIwczgKcGVyaW9kaWNzNgoyODgyNjlzNApkYmlkaTAKczcKdmVyc2lvbm5zMTAKcGFyZW50R1VJRG5zOApwYXJlbnRJRHM3ClRWX1Nob3dzMTAKbWVkaWFfdHlwZXM0NApjb20ucGxleGFwcC5hZ2VudHMuaGFtYTovL2FuaWRiLTQ3NzY@bGFuZz1lbnM0Cmd1aWRzMTAKYW5pZGItNDc3NnMyCmlkcjAK
-2015-07-20 20:46:13,446 (-b1f8490) :  DEBUG (model:32) - Loading model with GUID com.plexapp.agents.hama://anidb-4776?lang=en
-2015-07-20 20:46:13,468 (-b1f8490) :  ERROR (model:201) - Cannot read model from /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/8/d0ec8403604cf66ad67c1704771193fe9a6f6c5.bundle/Contents/com.plexapp.agents.hama
-2015-07-20 20:46:13,469 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://127.0.0.1:32400/library/metadata/288269/tree'
-2015-07-20 20:46:13,488 (-b1f8490) :  DEBUG (__init__:243) - --- Update Begin -------------------------------------------------------------------------------------------
-2015-07-20 20:46:13,489 (-b1f8490) :  DEBUG (__init__:244) - update2 - metadata ID: 'anidb-4776', Title: 'None',([...], [...], True)
-2015-07-20 20:46:13,521 (-b1f8490) :  DEBUG (__init__:571) - anidbTvdbMapping - AniDB-TVDB Mapping - anidb:4776 tvbdid: 80224 studio:  defaulttvdbseason: 1
-2015-07-20 20:46:13,527 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://tvthemes.plexapp.com/80224.mp3', num: '1', filename: 'Plex/anidb-4776.mp3'
-2015-07-20 20:46:14,721 (-b1f8490) :  DEBUG (__init__:673) - metadata_download - metadata_download failed, url: 'http://tvthemes.plexapp.com/80224.mp3', num: '1', filename: Plex/anidb-4776.mp3
-2015-07-20 20:46:14,721 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - loading serie xml: 80224
-2015-07-20 20:46:15,660 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://thetvdb.com/api/A27AD9BE0DA63333/series/80224/all/en.xml'
-2015-07-20 20:46:16,084 (-b1f8490) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://thetvdb.com/api/A27AD9BE0DA63333/series/80224/all/en.xml, Data filename: TVDB/80224.xml
-2015-07-20 20:46:16,090 (-b1f8490) :  DEBUG (__init__:545) - ['Action', 'Adventure', 'Animation', 'Fantasy']
-2015-07-20 20:46:16,091 (-b1f8490) :  DEBUG (__init__:545) - IMDB ID was empty, loaded through tvdb serie xml, IMDBID: 'tt1048049'
-2015-07-20 20:46:16,092 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - loaded serie xml: 80224 Devil May Cry
-2015-07-20 20:46:16,093 (-b1f8490) :  DEBUG (__init__:545) - ### TVDB - Build 'tvdb_table' ###
-2015-07-20 20:46:16,120 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - tvdb_table: ['s1e1', 's1e10', 's1e11', 's1e12', 's1e2', 's1e3', 's1e4', 's1e5', 's1e6', 's1e7', 's1e8', 's1e9']
-2015-07-20 20:46:16,121 (-b1f8490) :  DEBUG (__init__:545) - update2 - TVDB - Episodes without Summary: ['s0e0']
-2015-07-20 20:46:16,130 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://thetvdb.com/api/A27AD9BE0DA63333/series/80224/banners.xml'
-2015-07-20 20:46:16,539 (-b1f8490) :  DEBUG (__init__:602) - getImagesFromTVDB - Loading picture XML worked: http://thetvdb.com/api/A27AD9BE0DA63333/series/80224/banners.xml
-2015-07-20 20:46:16,542 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-5.jpg', num: '1', filename: 'TVDB/fanart/original/80224-5.jpg'
-2015-07-20 20:46:16,571 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-4.jpg', num: '2', filename: 'TVDB/fanart/original/80224-4.jpg'
-2015-07-20 20:46:16,593 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-2.jpg', num: '3', filename: 'TVDB/fanart/original/80224-2.jpg'
-2015-07-20 20:46:16,605 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-3.jpg', num: '4', filename: 'TVDB/fanart/original/80224-3.jpg'
-2015-07-20 20:46:16,619 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-6.jpg', num: '5', filename: 'TVDB/fanart/original/80224-6.jpg'
-2015-07-20 20:46:16,621 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-1.jpg', num: '6', filename: 'TVDB/fanart/original/80224-1.jpg'
-2015-07-20 20:46:16,631 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/fanart/original/80224-7.jpg', num: '7', filename: 'TVDB/fanart/original/80224-7.jpg'
-2015-07-20 20:46:16,644 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/posters/80224-1.jpg', num: '2', filename: 'TVDB/posters/80224-1.jpg'
-2015-07-20 20:46:16,659 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/posters/80224-2.jpg', num: '3', filename: 'TVDB/posters/80224-2.jpg'
-2015-07-20 20:46:16,670 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/seasons/80224-1-2.jpg', num: '10', filename: 'TVDB/seasons/80224-1-2.jpg'
-2015-07-20 20:46:16,691 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/seasons/80224-1.jpg', num: '11', filename: 'TVDB/seasons/80224-1.jpg'
-2015-07-20 20:46:16,703 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/seasons/80224-1-3.jpg', num: '12', filename: 'TVDB/seasons/80224-1-3.jpg'
-2015-07-20 20:46:16,722 (-b1f8490) :  DEBUG (networking:167) - Fetching 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd' from the HTTP cache
-2015-07-20 20:46:16,737 (-b1f8490) :  DEBUG (__init__:626) - getImagesFromTMDB - by IMDBID - url: https://api.tmdb.org/3/find/tt1048049?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id
-2015-07-20 20:46:16,769 (-b1f8490) :  DEBUG (networking:172) - Requesting 'https://api.tmdb.org/3/find/tt1048049?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'
-2015-07-20 20:46:19,428 (-b1f8490) :  DEBUG (__init__:657) - getImagesFromOMDB - imdbid: 'tt1048049', url: 'http://www.omdbapi.com/?i=tt1048049', filename: 'OMDB/tt1048049.jpg'
-2015-07-20 20:46:19,436 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://www.omdbapi.com/?i=tt1048049'
-2015-07-20 20:46:23,870 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://ia.media-imdb.com/images/M/MV5BMTI4NTY0MDY3NV5BMl5BanBnXkFtZTcwMjk5MjA3MQ@@._V1_SX300.jpg', num: '98', filename: 'OMDB/tt1048049.jpg'
-2015-07-20 20:46:23,878 (-b1f8490) :  DEBUG (__init__:407) - MODE AniDB DETECTED
-2015-07-20 20:46:23,879 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=4776, AniDB/4776.xml
-2015-07-20 20:46:23,895 (-b1f8490) :  DEBUG (networking:172) - Requesting 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=4776'
-2015-07-20 20:46:24,626 (-b1f8490) :  DEBUG (__init__:728) - xmlElementFromFile - Serie XML url: http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=4776, Data filename: AniDB/4776.xml
-2015-07-20 20:46:24,631 (-b1f8490) :  DEBUG (__init__:407) - update() - AniDB Serie XML: loaded ok
-2015-07-20 20:46:24,632 (-b1f8490) :  ERROR (__init__:407) - update() - AniDB title
-2015-07-20 20:46:24,633 (-b1f8490) :  DEBUG (__init__:545) - update - AniDB title changed: 'Devil May Cry' original title: 'Devil May Cry'
-2015-07-20 20:46:24,634 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Start Date: 2007-06-14
-2015-07-20 20:46:24,635 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Ratings: 3.97
-2015-07-20 20:46:24,658 (-b1f8490) :  DEBUG (__init__:546) - update - genres: [('Parallel Universe', 600), ('Action Game', 600), ('Shounen', 600), ('Fantasy', 600), ('Game', 600), ('Fantasy World', 600), ('Action', 600), ('Alternative Present', 600), ('Swordplay', 600), ('Present', 600), ('Comedy', 200), ('Underworld', 200), ('Horror', 200)] ['Parallel Universe', 'Action Game', 'Shounen', 'Fantasy', 'Game', 'Fantasy World', 'Action', 'Alternative Present', 'Swordplay', 'Present', 'Comedy', 'Underworld', 'Horror']
-2015-07-20 20:46:24,660 (-b1f8490) :  DEBUG (__init__:546) - AniDB Genres (Weight): Parallel Universe (600) Action Game (600) Shounen (600) Fantasy (600) Game (600) Fantasy World (600) Action (600) Alternative Present (600) Swordplay (600) Present (600) Comedy (200) Underworld (200) Horror (200) 
-2015-07-20 20:46:24,683 (-b1f8490) :  DEBUG (__init__:595) - anidbCollectionMapping - anidbid is not part of any collection, related_anime_list: '[]'
-2015-07-20 20:46:24,684 (-b1f8490) :  DEBUG (__init__:546) - AniDB Creator data: Madhouse is a studio, Capcom is a writer, Itagaki Shin is a director, Inoue Toshiki is a producer, Abe Hisashi is a director, 
-2015-07-20 20:46:24,685 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB description + link
-2015-07-20 20:46:24,686 (-b1f8490) :  DEBUG (__init__:546) - update - AniDB Poster, url: 'http://img7.anidb.net/pics/anime/7804.jpg'
-2015-07-20 20:46:24,691 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330226.jpg', num: '1', filename: 'TVDB/episodes/330226.jpg'
-2015-07-20 20:46:24,701 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e1', tvdb_ep: 's1e1', season: '1', epNumVal: '1', defaulttvdbseason: '1', title: 'Devil May Cry', summary: 'Dante, a supernatural mercenary, is hired as the b'
-2015-07-20 20:46:24,705 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330227.jpg', num: '1', filename: 'TVDB/episodes/330227.jpg'
-2015-07-20 20:46:24,727 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e2', tvdb_ep: 's1e2', season: '1', epNumVal: '2', defaulttvdbseason: '1', title: 'Highway Star', summary: 'Dante reluctantly accepts a mission from Lady to s'
-2015-07-20 20:46:24,731 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330228.jpg', num: '1', filename: 'TVDB/episodes/330228.jpg'
-2015-07-20 20:46:24,738 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e3', tvdb_ep: 's1e3', season: '1', epNumVal: '3', defaulttvdbseason: '1', title: 'Not Love', summary: 'The daughter of the mayor starts seeing a mysterio'
-2015-07-20 20:46:24,741 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330229.jpg', num: '1', filename: 'TVDB/episodes/330229.jpg'
-2015-07-20 20:46:24,759 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e4', tvdb_ep: 's1e4', season: '1', epNumVal: '4', defaulttvdbseason: '1', title: 'Rolling Thunder', summary: 'Lady meets up with a strange demon-woman who has a'
-2015-07-20 20:46:24,763 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330230.jpg', num: '1', filename: 'TVDB/episodes/330230.jpg'
-2015-07-20 20:46:24,785 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e5', tvdb_ep: 's1e5', season: '1', epNumVal: '5', defaulttvdbseason: '1', title: 'In Private', summary: 'Dante finds himself followed by a customer from a'
-2015-07-20 20:46:24,789 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330231.jpg', num: '1', filename: 'TVDB/episodes/330231.jpg'
-2015-07-20 20:46:24,790 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e6', tvdb_ep: 's1e6', season: '1', epNumVal: '6', defaulttvdbseason: '1', title: 'Rock Queen', summary: 'Dante is hired to protect treasure hunters from a'
-2015-07-20 20:46:24,794 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/330232.jpg', num: '1', filename: 'TVDB/episodes/330232.jpg'
-2015-07-20 20:46:24,811 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e7', tvdb_ep: 's1e7', season: '1', epNumVal: '7', defaulttvdbseason: '1', title: 'Wishes Come True', summary: 'A man receives a visit from a demonic mask which c'
-2015-07-20 20:46:24,814 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/333703.jpg', num: '1', filename: 'TVDB/episodes/333703.jpg'
-2015-07-20 20:46:24,825 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e8', tvdb_ep: 's1e8', season: '1', epNumVal: '8', defaulttvdbseason: '1', title: 'Once Upon a Time', summary: 'A man named Aaron keep on insisting that Dante is'
-2015-07-20 20:46:24,829 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/333704.jpg', num: '1', filename: 'TVDB/episodes/333704.jpg'
-2015-07-20 20:46:24,841 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e9', tvdb_ep: 's1e9', season: '1', epNumVal: '9', defaulttvdbseason: '1', title: 'Death Poker', summary: 'Dante is hired by a woman to deter her brother's g'
-2015-07-20 20:46:24,845 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/333705.jpg', num: '1', filename: 'TVDB/episodes/333705.jpg'
-2015-07-20 20:46:24,847 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e10', tvdb_ep: 's1e10', season: '1', epNumVal: '10', defaulttvdbseason: '1', title: 'The Last Promise', summary: 'Dante is attacked by Barusa, a former servant of S'
-2015-07-20 20:46:24,850 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/333706.jpg', num: '1', filename: 'TVDB/episodes/333706.jpg'
-2015-07-20 20:46:24,872 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e11', tvdb_ep: 's1e11', season: '1', epNumVal: '11', defaulttvdbseason: '1', title: 'Showtime!', summary: 'Dante encounters Patty's mother, and Sid's careful'
-2015-07-20 20:46:24,876 (-b1f8490) :  DEBUG (__init__:666) - metadata_download - url: 'http://thetvdb.com/banners/episodes/80224/333707.jpg', num: '1', filename: 'TVDB/episodes/333707.jpg'
-2015-07-20 20:46:24,887 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's1e12', tvdb_ep: 's1e12', season: '1', epNumVal: '12', defaulttvdbseason: '1', title: 'Stylish!', summary: 'With Dante impaled and crucified in the demon dime'
-2015-07-20 20:46:24,888 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C2', epNumVal: '151', ep_title: 'Ending'
-2015-07-20 20:46:24,891 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's0e151', tvdb_ep: 's0e151', season: '0', epNumVal: '151', defaulttvdbseason: '1', title: 'Ending', summary: ''
-2015-07-20 20:46:24,892 (-b1f8490) :  DEBUG (__init__:546) - AniDB specials title - Season: '0', epNum.text: 'C1', epNumVal: '101', ep_title: 'Opening'
-2015-07-20 20:46:24,896 (-b1f8490) :  DEBUG (__init__:546) - TVDB mapping episode summary - anidb_ep: 's0e101', tvdb_ep: 's0e101', season: '0', epNumVal: '101', defaulttvdbseason: '1', title: 'Opening', summary: ''
-2015-07-20 20:46:24,897 (-b1f8490) :  DEBUG (__init__:546) - update - DURATION: 18000000, numEpisodes: 12
-2015-07-20 20:46:24,898 (-b1f8490) :  DEBUG (__init__:549) - --- Update end -------------------------------------------------------------------------------------------------
-2015-07-20 20:46:24,981 (-b1f8490) :  DEBUG (model:225) - Serializing to /volume2/Plex/Library/Application Support/Plex Media Server/Metadata/TV Shows/8/d0ec8403604cf66ad67c1704771193fe9a6f6c5.bundle/Contents/com.plexapp.agents.hama/Info.xml
-2015-07-20 20:46:24,986 (-b1f8490) :  DEBUG (runtime:106) - Sending packed state data (1064 bytes)
-2015-07-20 20:46:24,986 (-b1f8490) :  DEBUG (runtime:918) - Response: [200] str, 16 bytes
+import os, re, time, datetime, string, thread, threading, urllib # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+### AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###########################################################################
+ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages
+ANIDB_TVDB_MAPPING           = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'                            # ScudLee mapping file url
+ANIDB_COLLECTION_MAPPING     = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                          # ScudLee collection mapping file
+ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
+ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
+ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
+ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
+ANIDB_SERIE_CACHE            = 'AniDB'                                                                                            # AniDB link to the anime
+TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                     # TVDB Serie XML for episodes sumaries for now
+TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
+TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
+TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
+TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
+TVDB_SERIE_CACHE             = 'TVDB'                                                                                             #
+TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
+TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
+TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
+TMDB_SEARCH_URL_BY_IMDBID    = 'https://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'  #
+TMDB_CONFIG_URL              = 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                    #
+TMDB_IMAGES_URL              = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
+TMDB_ARTWORK_ITEM_LIMIT      = 15                                                                                                 #
+TMDB_SCORE_RATIO             = .3                                                                                                 # How much weight to give ratings vs. vote counts when picking best posters/backdrop. 0 means use only ratings.
+OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                                                                       #
+THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
+
+### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ####################
+RESTRICTED_CONTENT_RATING = "NC-17"
+RESTRICTED_GENRE_NAMES    = [ '18 Restricted', 'Pornography' ]
+GENRE_NAMES               = [
+  ### Audience categories - all useful but not used often ############################################################################################################
+  'Josei', 'Kodomo', 'Mina', 'Seinen', 'Shoujo', 'Shounen',
+  ### Elements - many useful #########################################################################################################################################
+  'Action', 'Martial Arts', 'Swordplay', 'Adventure', 'Angst', 'Anthropomorphism', 'Comedy', 'Parody', 'Slapstick', 'Super Deformed', 'Detective', 'Ecchi', 'Fantasy',
+  'Contemporary Fantasy', 'Dark Fantasy', 'Ghost', 'High Fantasy', 'Magic', 'Vampire', 'Zombie', 'Harem', 'Reverse Harem', 'Henshin', 'Horror', 'Incest',
+  'Mahou Shoujo', 'Pornography', 'Yaoi', 'Yuri', 'Romance', 'Love Polygon', 'Shoujo Ai', 'Shounen Ai', 'Sci-Fi', 'Alien', 'Mecha', 'Space Travel', 'Time Travel',
+  'Thriller', 'Western',
+  ### Fetishes. Leaving out most porn genres #########################################################################################################################
+  'Futanari', 'Lolicon', 'Shotacon', 'Tentacle', 'Trap', 'Reverse Trap',
+  ### Original Work - mainly useful ##################################################################################################################################
+  'Game', 'Action Game', 'Dating Sim - Visual Novel', 'Erotic Game', 'RPG', 'Manga', '4-koma', 'Movie', 'Novel',
+  ### Setting - most of the places aren't genres, some Time stuff is useful ##########################################################################################
+  'Fantasy World', 'Parallel Universe', 'Virtual Reality', 'Hell', 'Space', 'Mars', 'Space Colony', 'Shipboard', 'Alternative Universe', 'Past', 'Present', 'Future',
+  'Historical', '1920s', 'Bakumatsu - Meiji Period', 'Edo Period', 'Heian Period', 'Sengoku Period', 'Victorian Period', 'World War I', 'World War II', 'Alternative Present',
+  ### Themes - many useful ###########################################################################################################################################
+  'Anti-War', 'Art', 'Music', 'Band', 'Idol', 'Photography', 'Christmas', 'Coming of Age', 'Conspiracy', 'Cooking', 'Cosplay', 'Cyberpunk', 'Daily Life', 'Earthquake',
+  'Post-War', 'Post-apocalypse', 'War', 'Dystopia', 'Friendship', 'Law and Order', 'Cops', 'Special Squads', 'Military', 'Airforce', 'Feudal Warfare', 'Navy',
+  'Politics', 'Proxy Battles', 'Racism', 'Religion', 'School Life', 'All-boys School', 'All-girls School', 'Art School', 'Clubs', 'College', 'Delinquents',
+  'Elementary School', 'High School', 'School Dormitory', 'Student Council', 'Transfer Student', 'Sports', 'Acrobatics', 'Archery', 'Badminton', 'Baseball',
+  'Basketball', 'Board Games', 'Chess', 'Go', 'Mahjong', 'Shougi', 'Combat', 'Boxing', 'Judo', 'Kendo', 'Muay Thai', 'Wrestling', 'Cycling', 'Dodgeball', 'Fishing',
+  'Football', 'Golf', 'Gymnastics', 'Horse Riding', 'Ice Skating', 'Inline Skating', 'Motorsport', 'Formula Racing', 'Street Racing', 'Rugby', 'Swimming', 'Tennis',
+  'Track and Field', 'Volleyball', 'Steampunk', 'Summer Festival', 'Tragedy', 'Underworld', 'Assassin', 'Bounty Hunter', 'Mafia', 'Yakuza', 'Pirate', 'Terrorist',
+  'Thief']
+
+### These are words which cause extra noise due to being uninteresting for doing searches on ###########################################################################
+FILTER_SEARCH_WORDS          = [                                                                                                      # Lowercase only
+  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me', # En
+  'princess', 'theater',                                                                                                              # En Continued
+  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                    # Jp
+  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                # Fr
+  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi'                                # Roman digits
+]
+
+### Global variables ###
+networkLock, lastRequestTime, AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = Thread.Lock(), None, None, None, None  #ValueError if in Start()
+SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'].encode('utf-8'),   Prefs['SerieLanguage2'].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ] #override default language
+EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ] #override default language
+
+### Language Priorities ###
+SECONDS_BETWEEN_REQUESTS     = 2                                                    #Ban after 160 series if too short
+SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
+FILTER_CHARS                 = "\\/:*?<>|~-; "
+WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
+
+### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
+def ValidatePrefs():
+  result, msg = ('Success', 'HAMA - Provided preference values are ok')
+  for key in ['GetTvdbFanart', 'GetTvdbPosters', 'GetTvdbBanners', 'GetAnidbPoster', 'MinimumWeight', 'SerieLanguage1', 'SerieLanguage2', 'SerieLanguage3', 'EpisodeLanguage1', 'EpisodeLanguage2']: #for key, value in enumerate(settings):
+    try:    temp = Prefs[key] 
+    except: result, msg = ('Error', "Couldn't get values '%s', probably a missing/empty/outdated 'DefaultPrefs.json' so replace it" % key)
+  if result=='Error':  Log.Error(msg)
+  return MessageContainer(result, msg)
+   
+### Pre-Defined Start function #########################################################################################################################################
+def Start():
+  Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
+  msgContainer = ValidatePrefs()  ##if key not in Prefs: Log.Error("Couldn't get values '%s', probably a missing/empty/outdated 'DefaultPrefs.json' so replace it" % key)
+  Log.Debug("getMainTitle - LANGUAGE_PRIORITY: " + str(SERIE_LANGUAGE_PRIORITY))
+  global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
+  HTTP.CacheTime                   = CACHE_1HOUR * 24 * 7                  # Cache time for Plex XML and html pages
+  AniDB_title_tree                 = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES,             os.path.splitext(os.path.basename(ANIDB_TITLES))[0],          True,  CACHE_1HOUR * 24 * 7)
+  AniDB_TVDB_mapping_tree          = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,       os.path.splitext(os.path.basename(ANIDB_TVDB_MAPPING)),       False, CACHE_1HOUR * 24 * 7)
+  AniDB_collection_tree            = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION_MAPPING, os.path.splitext(os.path.basename(ANIDB_COLLECTION_MAPPING)), False, CACHE_1HOUR * 24 * 7)
+  Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Ended ################################################################################################################')
+  time.strptime("30 Nov 00", "%d %b %y")  # Avoid "AttributeError: _strptime" on first call [http://bugs.python.org/issue7980]
+  
+### Common metadata agent ################################################################################################################################################
+class HamaCommonAgent:
+  
+  ### Serie search ###
+  def search2(self, results, media, lang, manual, movie):
+    global SERIE_LANGUAGE_PRIORITY
+    Log.Debug("=== Search - Begin - ================================================================================================")
+    Log.Info("search() - Title: '%s', name: '%s', filename: '%s', manual:'%s'" % (media.title if movie else media.show, media.name, media.filename, str(manual)))      #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
+    orig_title = ( media.title if movie else media.show ).encode('utf-8')  # NEEDS UTF-8
+    if not orig_title:  return  #Log.Debug("=== Search - End - Empty ================================================================================================")
+
+    ### Clear Plex http cache manually by searching a serei named "clear-cache" ###
+    if orig_title.startswith("clear-cache"):   HTTP.ClearCache()
+    
+    ### Check if a guid is specified "Show name [anidb-id]" ###
+    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
+    if match:  ###metadata id provided
+      source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
+      if source=="anidb":  show, mainTitle = self.getMainTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
+      Log.Debug( "search - source: '%s', id: '%s', show from id: '%s' provided in foldername: '%s'" % (source, guid, show, orig_title) )
+      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=Locale.Language.English, score=100))
+      Log.Debug("=== Search - End - =================================================================================================")
+      return
+  
+    ### AniDB Local exact search ###
+    cleansedTitle = self.cleanse_title (orig_title).encode('utf-8')
+    if media.year is not None: orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
+    parent_element, show , score, maxi = None, "", 0, 0
+    AniDB_title_tree_elements = list(AniDB_title_tree.iterdescendants())
+    for element in AniDB_title_tree_elements: #list(AniDB_title_tree.iterdescendants())
+      if element.get('aid'): #or </animetitles>
+        if score: #only when match found and it skipped to next serie in file, then add
+          if score>maxi: maxi=score
+          Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
+          langTitle, mainTitle = self.getMainTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
+          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+          parent_element, show , score = None, "", 0
+        aid = element.get('aid')
+      elif element.get('type') in ('main', 'official', 'syn', 'short'): #element.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or element.get('type') == 'main'):
+        title = element.text #.encode('utf-8')
+        if   title.lower()              == orig_title.lower() and 100                            > score:  parent_element, show , score = element.getparent(), title,         100; Log.Debug("search() - AniDB - temp score: '%3d', id: '%6s', title: '%s' " % (100, aid, show))  #match = [element.getparent(), show,         100]
+        elif self.cleanse_title (title) == cleansedTitle      and  99                            > score:  parent_element, show , score = element.getparent(), cleansedTitle,  99  #match = [element.getparent(), cleansedTitle, 99]
+        elif orig_title in title                              and 100*len(orig_title)/len(title) > score:  parent_element, show , score = element.getparent(), orig_title,    100*len(orig_title)/len(title)  #match = [element.getparent(), show, 100*len(orig_title)/len(element.text)]
+        else:  continue #no match 
+    if score: #last serie detected, added on next serie OR here
+      Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
+      langTitle, mainTitle = self.getMainTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
+      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+    
+    if len(results)>=1:      #results.Sort('score', descending=True)
+      Log.Debug("=== Search - End - =================================================================================================")
+      return
+
+      ### TVDB serie search ###
+    Log.Debug("maxi: '%d'" % maxi)
+    if maxi<50:
+      try:  TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), cacheTime=CACHE_1HOUR * 24 * 7)
+      except:  Log.Debug("search() - TVDB Loading search XML failed: ")
+      else:
+        for serie in TVDBsearchXml.xpath('Series'):
+          a, b = orig_title, serie.xpath('SeriesName')[0].text.encode('utf-8') #a, b  = cleansedTitle, self.cleanse_title (serie.xpath('SeriesName')[0].text)
+          score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
+          Log.Debug( "search() - TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, serie.xpath('seriesid')[0].text, serie.xpath('SeriesName')[0].text) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=Locale.Language.English, score=score) )
+ 
+    if len(results)>=1:      #results.Sort('score', descending=True)
+      Log.Debug("=== Search - End - =================================================================================================")
+      return
+
+    ### TMDB movie search ###
+    Log.Debug("search() - TMDB  - url: " + TMDB_MOVIE_SEARCH % orig_title)  #config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
+    try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH % orig_title.replace(" ", "%20"), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+    except:  Log('get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH % orig_title) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+    else:
+      if isinstance(tmdb_json, dict) and 'results' in tmdb_json:
+        for i, movie in enumerate(tmdb_json['results']):
+          a, b = orig_title, movie['title'].encode('utf-8')
+          score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
+          id = movie['id']
+          Log.Debug( "search() - TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
+          if '' in movie and movie['adult']!="null":  Log.Debug( "adult: '%s'" % movie['adult'])
+          # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
+
+    if len(results)>=1:      #results.Sort('score', descending=True)
+      Log.Debug("=== Search - End - =================================================================================================")
+      return
+    
+    ### AniDB local keyword search ###
+    matchedTitles, matchedWords, words  = [ ], { }, [ ]
+    log_string     = "search - Keyword search - Matching '%s' with: " % orig_title
+    for word in self.splitByChars(orig_title, SPLIT_CHARS):
+      word = self.cleanse_title (word)
+      if word and word not in FILTER_SEARCH_WORDS and len(word) > 1:  words.append (word.encode('utf-8'));  log_string += "'%s', " % word
+    Log.Debug(log_string[:-2]) #remove last 2 chars
+    if len(words)==0: # or len( self.splitByChars(orig_title, SPLIT_CHARS) )<=1:
+      Log.Debug("search: Local exact search - NO KEYWORD: title: '%s'" % (orig_title))
+      Log.Debug("=== Search - End - =================================================================================================")
+      return None # No result found
+
+    for title in AniDB_title_tree_elements:
+      if title.get('aid'): aid = "anidb-"+title.get('aid')
+      elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
+        sample = self.cleanse_title (title.text).encode('utf-8')
+        for word in words:
+          if word in sample:
+            index  = len(matchedTitles)-1
+            if index >=0 and matchedTitles[index][0] == "anidb-"+aid:
+              if title.get('type') == 'main':               matchedTitles[index][1] = title.text #aid.zfill(5) + ' ' + title.text
+              if not title.text in matchedTitles[index][2]: matchedTitles[index][2].append(title.text)
+            else:
+              matchedTitles.append([aid, title.text, [title.text] ]) #aid.zfill(5) + ' ' + title.text
+              if word in matchedWords: matchedWords[word].append(sample) ##### remove str
+              else:                    matchedWords[word]=[sample]       ##### remove str
+    log_string="search - Keywords: "
+    for key, value in matchedWords.iteritems(): log_string += key + " (" + str(len(value)) + "), "
+    Log.Debug(log_string)
+    if len(matchedTitles)==0: Log.Debug("=== Search - End - ================================================================================================="); return None
+    
+    ### calculate scores + Buid results ###
+    log_string = "Search - similarity with '%s': " % orig_title
+    for match in matchedTitles:
+      scores = []
+      for title in match[2]: # Calculate distance without space and characters
+        a, b = self.cleanse_title(title), cleansedTitle
+        scores.append( int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) )  #To-Do: LongestCommonSubstring(first, second). use that?
+      bestScore = max(scores)
+      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=Locale.Language.English, score=bestScore))
+      log_string += match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
+    Log.Debug(log_string)
+    results.Sort('score', descending=True)
+    Log.Debug("=== Search - End - =================================================================================================")
+    return
+
+  ### Parse the AniDB anime title XML ##################################################################################################################################
+  def update2(self, metadata, media, lang, force, movie):
+
+    global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
+    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'    : [],
+                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': []}
+    getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
+    
+    Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
+    Log.Debug("update2 - metadata ID: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id, metadata.title, "[...]", "[...]", force) )
+
+    ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
+    tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", {}, []
+    tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired = 0, {}, "", "", "", ""
+    if   metadata.id.startswith("tvdb"):  tvdbid = metadata.id [len("tvdb-"):]
+    elif metadata.id.startswith("anidb"):
+      anidbid=metadata.id[len("anidb-"):]
+      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
+    elif metadata.id.startswith("tmdb"):
+      tmdbid = metadata.id [len("tmdb-"):]
+      Log.Debug("update() - TMDB  - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)  #config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
+      try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+      except:  Log('update() - get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+      else:
+        Log('update() - get_json - worked: ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+        if 'title'        in tmdb_json and tmdb_json['title']:                            metadata.title                   = tmdb_json['title']
+        if 'overview'     in tmdb_json and tmdb_json['overview']:                         metadata.summary                 = tmdb_json['overview']
+        if 'vote_average' in tmdb_json and isinstance(tmdb_json['vote_average'], float):  metadata.rating                  = tmdb_json['vote_average']  # if not ep.isdigit() and "." in ep and ep.split(".", 1)[0].isdigit() and ep.split(".")[1].isdigit():  
+        if 'runtime'      in tmdb_json and isinstance(tmdb_json['runtime'     ], int):    metadata.duration                = int(tmdb_json['runtime']) * 60 * 1000
+        if 'release_date' in tmdb_json and tmdb_json['release_date']:                     metadata.originally_available_at = Datetime.ParseDate(tmdb_json['release_date']).date()
+        if 'imdb_id'      in tmdb_json and tmdb_json['imdb_id'] and not imdbid:    imdbid                           = tmdb_json['imdb_id']
+        if 'vote_average' in tmdb_json and tmdb_json['vote_average'] and 'vote_count' in tmdb_json and tmdb_json['vote_count'] > 3: metadata.rating = tmdb_json['vote_average']
+        if 'genres'       in tmdb_json and tmdb_json['genres']!=[]:
+          for genre in tmdb_json['genres']: metadata.genres.add(genre['name'].strip())
+        # Studio.
+        if 'production_companies' in tmdb_json and len(tmdb_json['production_companies']) > 0:
+          index, company = tmdb_json['production_companies'][0]['id'],""
+          for studio in tmdb_json['production_companies']:
+            if studio['id'] <= index:  index, company = studio['id'], studio['name'].strip()
+          metadata.studio = company
+        #if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection'] is not None:  metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
+        #Log.Debug(tmdb_json['backdrop_path']) #Log.Debug(tmdb_json['poster_path'  ])
+        ###movies only         #if tmdb_json['tagline']: metadata.tagline = tmdb_json['tagline']         #metadata.year = metadata.originally_available_at.year
+
+    if tvdbid.isdigit(): ### TVDB ID exists ####
+
+      ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
+      if THEME_URL % tvdbid in metadata.themes:  Log.Debug("update2 - Theme song - already added")
+      else:                                      self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")
+      
+      ### TVDB - Load serie XML ###
+      Log.Debug("update2 - TVDB - loading serie xml: " + tvdbid)
+      try:
+        url = TVDB_HTTP_API_URL % tvdbid
+        if self.http_status_code(url) != 200:
+          Log.Debug("update2 - metadata_download failed, url: '%s'" % url)
+          error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie probably a duplicate deleted from thetvdb")
+          tvdbanime = None
+        else:  tvdbanime = self.xmlElementFromFile ( url, TVDB_SERIE_CACHE+"/"+tvdbid+".xml", False, CACHE_1HOUR * 24 * 7).xpath('/Data')[0]
+      except:  tvdbanime = None
+      tvdbtitle, tvdbNetwork        = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network')
+      tvdbOverview, tvdbFirstAired  = getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
+      tvdbContentRating = getElementText(tvdbanime, 'Series/ContentRating') # getElementText(tvdbanime, 'Series/ContentRating')
+      if '.' in getElementText(tvdbanime, 'Series/Rating'): ###tvdbRating   # isinstance(tmdb_json['vote_average'], float)
+        try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
+        except: tvdbRating = None 
+      else: tvdbRating = None
+      tvdbGenre                     = filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
+      Log.Debug(tvdbGenre)
+      if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Debug("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
+      Log.Debug("update2 - TVDB - loaded serie xml: " + tvdbid + " " + tvdbtitle)
+
+      ### TVDB - Build 'tvdb_table' ###
+      Log.Debug("### TVDB - Build 'tvdb_table' ###")
+      summary_missing, summary_present = [], []
+      if tvdbanime is not None:
+        for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
+          numbering, Overview = getElementText(episode, 'absolute_number') if defaulttvdbseason=="a" else "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber'), getElementText(episode, 'Overview')
+          if Overview=="":  summary_missing.append(numbering)
+          else:             summary_present.append(numbering)
+          tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'),
+                                     'FirstAired':  getElementText(episode, 'FirstAired' ),
+                                     'Rating':      getElementText(episode, 'Rating') if '.' in getElementText(episode, 'Rating') else None,
+                                     'filename':    getElementText(episode, 'filename'), # episode.xpath('filename')[0].text
+                                     'Overview':    Overview }              
+      Log.Debug("update2 - TVDB - tvdb_table: "               + str(sorted(summary_present)) )
+      Log.Debug("update2 - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
+
+      ### TVDB - Fanart, Poster and Banner ###
+      if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
+        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
+        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
+    ### End of "if tvdbid.isdigit():" ###
+  
+    ### Movie posters including imdb from TVDB - Load serie XML ###
+    if imdbid.isalnum():
+      self.getImagesFromTMDB                      (metadata, imdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+      self.getImagesFromOMDB                      (metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+ 
+    ### TVDB mode when a season 2 or more exist ############################################################################################################
+    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb-")):
+      Log.Debug("using TVDB numbering mode (seasons)" )
+      if tvdbtitle:          metadata.title                   = tvdbtitle
+      if tvdbOverview:       metadata.summary                 = tvdbOverview
+      if tvdbNetwork:        metadata.studio                  = tvdbNetwork
+      if tvdbRating:         metadata.rating                  = tvdbRating
+      if tvdbFirstAired:     metadata.originally_available_at = Datetime.ParseDate( tvdbFirstAired ).date()
+      if tvdbContentRating:  metadata.content_rating          = tvdbContentRating 
+      if tvdbGenre:
+        for genre in tvdbGenre: metadata.genres.add(genre)
+      list_eps = ""
+      for media_season in media.seasons:
+        metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
+        for media_episode in media.seasons[media_season].episodes:
+          ep, episode_count = "s%se%s" % (media_season, media_episode), 0
+          if ep in tvdb_table:
+            if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
+              try:     metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
+              except:  Log.Debug("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
+            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']: metadata.seasons[media_season].episodes[media_episode].title   = tvdb_table [ep] ['EpisodeName']
+            if 'Rating'      in tvdb_table[ep] and tvdb_table [ep] ['Rating']:
+              try:     metadata.seasons[media_season].episodes[media_episode].rating  = float(tvdb_table [ep] ['Rating'])
+              except:  Log.Debug("float issue: '%s'" % tvdb_table [ep] ['Rating']) #ValueError
+            if 'FirstAired'  in tvdb_table[ep] and tvdb_table [ep] ['FirstAired']:
+              match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", tvdb_table [ep] ['FirstAired'])
+              if match:
+                try:   metadata.seasons[media_season].episodes[media_episode].originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+                except ValueError, e: Log.Debug("update - TVDB parseAirDate - Date out of range: " + str(e))
+          for media_item in media.seasons[media_season].episodes[media_episode].items:
+            for item_part in media_item.parts:  Log("File: '%s'" % item_part.file)
+          episode_count, list_eps = episode_count + 1, list_eps + ep + ", "
+        metadata.seasons[media_season].episode_count = episode_count #An integer specifying the number of episodes in the season.
+      if list_eps !="":  Log.Debug("List_eps: " + list_eps)    
+      Log.Debug("TVDB table: '%s'" % str(tvdb_table))   
+      
+    elif metadata.id.startswith("anidb-"): 
+      ### AniDB Serie XML ##################################################################################################################################
+      Log.Debug("MODE AniDB DETECTED")
+      Log.Debug("update() - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id[len("anidb-"):] + ", " + ANIDB_SERIE_CACHE +"/"+metadata.id[len("anidb-"):]+".xml" )
+      try:    anime = self.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata.id[len("anidb-"):], ANIDB_SERIE_CACHE +"/"+metadata.id[len("anidb-"):]+".xml", True, CACHE_1HOUR * 24 * 7).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
+      except:
+        Log.Error("update() - AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile")
+        anime = None         #return #if banned return ?
+      else: Log.Debug("update() - AniDB Serie XML: loaded ok")
+      
+      if anime is not None:
+        ### AniDB Title ###
+        Log.Error("update() - AniDB title")
+        try:
+          title, orig = self.getMainTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
+          title, orig = title.replace("`", "'"), orig.replace("`", "'")
+        except:  Log.Debug("update - AniDB Title: Exception raised" )
+        else:
+          title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8").replace("`", "'")
+          if title == str(metadata.title):  Log.Debug("update - AniDB title need no change: '%s' original title: '%s' metadata.title '%s'" % (title, orig, metadata.title) )
+          elif title != "": #If title diffeerent but not empty [Failsafe]
+            Log.Debug("update - AniDB title changed: '%s' original title: '%s'" % (title, orig) )
+            metadata.title = title
+            if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie, Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
+            
+        ### AniDB Start Date ###
+        if getElementText(anime, 'startdate') == "":                                  Log.Debug("update - AniDB Start Date: None")
+        elif metadata.originally_available_at == getElementText(anime, 'startdate'):  Log.Debug("update - AniDB Start Date: " + str(metadata.originally_available_at) + "*")
+        else:
+          metadata.originally_available_at = Datetime.ParseDate( getElementText(anime, 'startdate') ).date()
+          if movie: metadata.year          = metadata.originally_available_at.year
+          Log.Debug("update - AniDB Start Date: " + str(metadata.originally_available_at))
+        
+        ### AniDB Ratings ###
+        misc = getElementText(anime, 'ratings/permanent')
+        if misc=="":                                         Log.Debug("update - AniDB Ratings: None")   
+        elif '.' in misc and float(misc) == metadata.rating: Log.Debug("update - AniDB Ratings: " + misc + "*")
+        else:                                                Log.Debug("update - AniDB Ratings: " + misc);  metadata.rating = float( misc )
+        
+        ### AniDB Genres ###
+        genres = {}
+        for category in anime.xpath('categories/category'):
+          if getElementText(category, 'name') in GENRE_NAMES and category.get('weight') >= Prefs['MinimumWeight']:                genres [ getElementText(category, 'name') ] = int(category.get('weight')) # Remove genre whitelist
+          if getElementText(category, 'name') in RESTRICTED_GENRE_NAMES and metadata.content_rating != RESTRICTED_CONTENT_RATING: metadata.content_rating = RESTRICTED_CONTENT_RATING
+        sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
+        log_string, genres = "AniDB Genres (Weight): ", []
+        for genre in sortedGenres: genres.append(genre[0].encode("utf-8") )
+        if sorted(metadata.genres)==sorted(genres): Log.Debug(log_string+str(sortedGenres)+"*") # compare = lambda a,b: len(a)==len(b) and len(a)==sum([1 for i,j in zip(a,b) if i==j]) #if all(x in metadata.genres for x in genres): 
+        else:
+          Log.Debug("update - genres: " + str( sortedGenres) + " " + str(genres))
+          metadata.genres.clear()
+          for genre in sortedGenres:  metadata.genres.add(genre[0]);  log_string += "%s (%s) " % (genre[0], str(genre[1]))
+          Log.Debug(log_string)
+        
+        ### AniDB Collections ###
+        self.anidbCollectionMapping(metadata, anime, anidbid_table)
+        
+        ### AniDB Creator data -  Aside from the animation studio, none of this maps to Series entries, so save it for episodes ###
+        log_string, metadata.studio, plex_role = "AniDB Creator data: ", "", {'directors': [], 'producers': [], 'writers': []}
+        roles = { "Animation Work": ["studio",  'studio' , "studio"], "Direction": ["directors", 'directors', "director"], "Series Composition": ["producers", 'producers', "producer"],
+                  "Original Work" : ["writers", 'writers', "writer"], "Script"   : ["writers",   'writers'  , "writer"  ], "Screenplay"        : ["writers",   'writers'  , "writer"  ] }
+        if movie: ###github for role in roles [1:3]: roles[role][0].clear()
+          metadata.writers.clear()
+          metadata.producers.clear()
+          metadata.directors.clear()          #Log.Debug("before for") #test = {"directors", 'producers', 'writers'} #for role in test:  metadata.test[role].clear() #for role in ["directors", 'producers', 'writers']:  metadata.role.clear() #role2[role].clear() #TypeError: unhashable type
+        log_string = "AniDB Creator data: "
+        for creator in anime.xpath('creators/name'):
+          for role in roles: 
+            if role in creator.get('type'):
+              if roles[ role ][1]=='studio':  metadata.studio = creator.text
+              elif     movie:
+                if   roles[ role ][1]=='directors':  metadata.directors.add(creator.text)
+                elif roles[ role ][1]=='writers':    metadata.writers.add(creator.text)
+              else:                                  plex_role [ roles[role][1] ].append(creator.text) #not movie #for episodes
+              log_string += "%s is a %s, " % (creator.text, roles[role][2] )
+        if metadata.studio == "" and mapping_studio != "":  metadata.studio = mapping_studio
+        if metadata.studio != "" and mapping_studio != "":  error_log['anime-list studio logos'].append("Aid: %s AniDB have studio '%s' and XML have '%s'"         % (metadata.id[len("anidb-"):].zfill(5), metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
+        if metadata.studio == "" and mapping_studio == "":  error_log['anime-list studio logos'].append("Aid: %s AniDB and anime-list are both missing the studio" % (metadata.id[len("anidb-"):].zfill(5)) )
+        Log.Debug(log_string)
+
+        ### AniDB Serie/Movie description + link ###
+        Log.Debug("update - AniDB description + link")
+        description = ""
+        try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") + "\n" # Remove wiki-style links to staff, characters etc
+        except:  Log.Debug("Exception ")
+      
+        if description == "":  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
+        elif metadata.summary != description and description:  metadata.summary = description.replace("`", "'")
+
+        ### AniDB Posters ###
+        Log.Debug("update - AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
+        if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + "" + metadata.title)
+        elif Prefs['GetAnidbPoster']:  self.metadata_download (metadata.posters, ANIDB_PIC_BASE_URL + getElementText(anime, 'picture'), 99, "AniDB/%s" % getElementText(anime, 'picture')) 
+
+        if not movie: ### TV Serie specific #################################################################################################################
+          numEpisodes, totalDuration, mapped_eps, missing_eps, ending_table, op_nb = 0, 0, [], [], {}, 0 
+          specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
+          #Log.Debug("### AniDB mappingList: '%s'" % str(mappingList))  #Log.Debug("### AniDB tvdb_table:  '%s'" % str(tvdb_table))   
+          
+          for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
+            ep_title, main   = self.getMainTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY);  
+            ep_title, main   = ep_title.replace("`", "'"), main.replace("`", "'")
+            epNum,    eid    = episode.xpath('epno')[0], episode.get('id')
+            epNumType        = epNum.get('type')
+            season, epNumVal = "1" if epNumType == "1" else "0", epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
+            if epNumType=="3":
+              if ep_title.startswith("Ending"):
+                if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
+                epNumVal = str( int(epNumVal) +50-op_nb)   #shifted to 150 for 1st ending.  
+              Log.Debug("AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
+             
+            if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("update - Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
+              if epNumType == "1": missing_eps.append(" s" + season + "e" + epNumVal )
+              continue
+            episodeObj = metadata.seasons[season].episodes[epNumVal]
+            
+            ### AniDB Get the correct episode title ###            #Log.Debug("AniDB correct episode title")  #if ep_title == "":                    episodeObj.title = specials[ epNum.text[0] ][1] + ' ' + epNum.text[1:] #make title from first letter of type            #elif
+            if episodeObj.title != ep_title:  episodeObj.title = ep_title
+            
+            ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
+            airdate = getElementText(episode, 'airdate')
+            if airdate != "":
+              match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", airdate)
+              if match: ### error int here
+                try:                   episodeObj.originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+                except ValueError, e:  Log.Debug("update - AniDB parseAirDate - Date out of range: " + str(e))
+            
+            ### AniDB Duration ###
+            duration = getElementText(episode, 'length')
+            if duration != "":
+              episodeObj.duration = int(duration) * 1000 * 60 # Plex save duration in millisecs, AniDB stores it in minutes
+              if season == "1":   numEpisodes, totalDuration = numEpisodes + 1, totalDuration + episodeObj.duration
+            
+            ### AniDB Writers, Producers, Directors ###  #Log.Debug("### AniDB Writers, Producers, Directors ### ")
+            for role in plex_role:
+              for person in plex_role[role]:
+                if role=="writers":    episodeObj.writers.add  (person)
+                if role=="producers":  episodeObj.producers.add(person)
+                if role=="directors":  episodeObj.directors.add(person)
+              
+            ### Rating ###
+            rating = getElementText(episode, 'rating') #if rating =="":  Log.Debug(metadata.id + " Episode rating: ''") #elif rating == episodeObj.rating:  Log.Debug(metadata.id + " update - Episode rating: '%s'*" % rating )
+            if not rating =="" and '.' in rating and not rating == episodeObj.rating: episodeObj.rating = float(rating)#else:        #Log.Debug(metadata.id + " update - Episode rating: '%s'" % rating )
+            
+            ### TVDB mapping episode summary ###
+            anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
+            if tvdbid.isdigit():
+              if anidb_ep in mappingList  and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
+              elif defaulttvdbseason=="a" and              epNumVal in tvdb_table:  tvdb_ep = epNumVal
+              elif season=="0":                                                     tvdb_ep = "s"+season+"e"+epNumVal
+              else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
+              summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
+              mapped_eps.append( anidb_ep + ">" + tvdb_ep )
+              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
+            Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'][0:50].strip() if tvdb_ep in tvdb_table else "") )
+            episodeObj.summary = summary.replace("`", "'")            
+          ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
+
+          ### AniDB Missing Episodes ###
+          if len(missing_eps)>0:  error_log['Missing episodes'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.zfill(5), title, missing_eps))
+          convert      = lambda text: int(text) if text.isdigit() else text
+          alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+
+          ### AniDB Final post-episode titles cleanup ###
+          Log.Debug("update - DURATION: %s, numEpisodes: %s" %(str(totalDuration), str(numEpisodes)) )
+          if numEpisodes: metadata.duration = int(totalDuration) / int(numEpisodes) #if movie getting scrapped as episode number by scanner...
+        ### End of if anime is not None: ###
+
+    ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
+    for log in error_log:
+      if error_log[log] != []:
+        if Data.Exists(log+".htm"):  string = Data.Load(log+".htm")
+        else:
+          string=""
+          if log == 'TVDB posters missing': string = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + "<br />\n"
+          if log == 'Plex themes missing':  string = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<br />\n"
+        for entry in error_log[log]:
+          if entry not in string:  Data.Save(log+".htm", string + entry + "<br />\r\n")
+    Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
+        
+  ### Get the tvdbId from the AnimeId #######################################################################################################################
+  def anidbTvdbMapping(self, metadata, anidb_id, error_log):
+    global AniDB_TVDB_mapping_tree    #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24 * 7) # Load XML file
+    poster_id_array, mappingList, mapping_studio = {}, {}, ""
+    for anime in AniDB_TVDB_mapping_tree.iter('anime'):
+      anidbid, tvdbid  = anime.get("anidbid"), anime.get('tvdbid')
+      if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0
+      if anidb_id == anidbid: #manage all formats latter
+        name = anime.xpath("name")[0].text
+        if tvdbid.isdigit():
+          try: ### mapping list ###
+            for season in anime.iter('mapping'):
+              for string in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string.split('-')[1]
+          except: Log.Debug("exception") #mappingList = {}
+        else:
+          if anime.get('tvdbid')=="" or anime.get('tvdbid')=="unknown":
+            error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (anidb_id.zfill(5), name, anime.get('tvdbid')) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
+            Log.Debug("anidbTvdbMapping - Missing tvdbid for anidbid %s" % anidb_id)  # Semi-colon, %0A Line Feed, %09 Tab or ('	'), ```  code block # #xml.etree.ElementTree.tostring  #dict = {';':"%3B", '\n':"%0A", '	':"%09"} for item in dict: temp.replace(item, list[item]) description += temp
+        try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
+        except: mapping_studio  = ""
+        Log.Debug("anidbTvdbMapping - AniDB-TVDB Mapping - anidb:%s tvbdid: %s studio: %s defaulttvdbseason: %s" % (anidb_id, anime.get('tvdbid'), mapping_studio, str(anime.get('defaulttvdbseason'))) )
+        break
+    else:
+      error_log['anime-list anidbid missing'].append("anidbid: " + anidb_id.zfill(5))
+      Log.Debug('anidbTvdbMapping('+anidb_id+') found no matching anidbid...')
+      return "", "", "", "", [], "", [], "0"
+
+    anidbid_table = []
+    for anime2 in AniDB_collection_tree.iter("anime"):
+      if anime.get('tvdbid') == anime2.get('tvdbid'):  anidbid_table.append( anime2.get("anidbid") )
+    return tvdbid, anime.get('tmdbid'), anime.get("imdbid"), anime.get('defaulttvdbseason'), mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
+    
+  ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
+  def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
+    global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
+    related_anime_list = []
+    for relatedAnime in anime.xpath('/anime/relatedanime/anime'): related_anime_list.append(relatedAnime.get('id'))
+    for element in AniDB_collection_tree.iter("anime"):
+      if element.get('anidbid') == metadata.id or element.get('anidbid') in related_anime_list + anidbid_table:
+        set         = element.getparent()
+        title, main = self.getMainTitle(set.xpath('titles')[0], SERIE_LANGUAGE_PRIORITY)
+        metadata.collections.add(title) #metadata.collections.clear()
+        Log.Debug("anidbCollectionMapping - anidbid (%s) is part of collection: %s', related_anime_list: '%s', " % (metadata.id, title, str(related_anime_list)))
+        return
+    Log.Debug("anidbCollectionMapping - anidbid is not part of any collection, related_anime_list: '%s'" % str(related_anime_list)) 
+
+  ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
+  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
+    locked, posternum, num, poster_total = networkLock.acquire(), 0, 0, 0
+    try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24 * 7) # don't bother with the full zip, all we need is the banners
+    except:  Log.Debug("getImagesFromTVDB - Loading picture XML failed: " + TVDB_BANNERS_URL % tvdbid);  return
+    else:    Log.Debug("getImagesFromTVDB - Loading picture XML worked: " + TVDB_BANNERS_URL % tvdbid)
+    for banner in bannersXml.xpath('Banner'):
+      if banner.xpath('BannerType')[0].text=="poster":  poster_total +=1
+    for banner in bannersXml.xpath('Banner'):
+      num, bannerType, bannerType2, bannerPath  = num+1, banner.xpath('BannerType' )[0].text, banner.xpath('BannerType2')[0].text, banner.xpath('BannerPath' )[0].text  #rating         =(banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else "")
+      season = banner.xpath('Season'     )[0].text if banner.xpath('Season') else ""                                                                                    #Language       = banner.xpath('Language'   )[0].text #if Language not in ['en', 'jp']: continue                                        # id             = banner.xpath('id'         )[0].text
+      if bannerType == 'poster':  posternum += 1
+      if movie and not bannerType in ('fanart', 'poster') or season!="" and season not in media.seasons:  continue                                          # or and not defaulttvdbseason == season #skipping banner as it's a movie and not fanart or poster, skipping season poster as not defaulttvdbseason so wrong season
+      if Prefs['GetTvdbPosters'] and ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
+         Prefs['GetTvdbFanart' ] and   bannerType == 'fanart' or Prefs['GetTvdbBanners'] and not movie and ( bannerType == 'series' or bannerType2 == 'seasonwide'):
+        metatype     = (metadata.art if bannerType=='fanart' else metadata.posters if bannerType=='poster' else metadata.banners if bannerType=='series' or  bannerType2=='seasonwide' \
+                        else metadata.seasons[season].posters if bannerType=='season' and bannerType2=='season' else None)
+        if metatype == metadata.posters:  rank = 1 if poster_id and poster_total and posternum == divmod(poster_id, poster_total)[1] + 1 else posternum+1 #fmod #Why '%' not working #rank = 1 if posternum == divmod(poster_id, poster_total)[1] + 1 else poster_id if posternum==1 else posternum
+        else:                             rank = num
+        bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
+        self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
+    if locked:  networkLock.release() 
+    return posternum
+
+  ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
+  def  getImagesFromTMDB(self, metadata, id, num=90):
+    config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
+    images={}
+    if id.startswith("tt"):
+      Log.Debug("getImagesFromTMDB - by IMDBID - url: " + TMDB_SEARCH_URL_BY_IMDBID % id)
+      tmdb_json   = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %id, cache_time=CACHE_1WEEK * 2) # Log.Debug("getImagesFromTMDB - by IMDBID - tmdb_json: '%s'" % str(tmdb_json))
+      for type in ['movie_results', 'tv_results']:
+        if tmdb_json is not None and type in tmdb_json:
+          for index, poster in enumerate(tmdb_json[type]):
+            if 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
+            if 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
+      rank=90
+    else:
+      Log.Debug("getImagesFromTMDB - by TMDBID - url: " + TMDB_IMAGES_URL % id)
+      tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2) # Log.Debug("getImagesFromTMDB - by IMDBID - tmdb_json: '%s'" % str(tmdb_json))
+      if tmdb_json is not None and 'poster'    in tmdb_json and len(tmdb_json['posters'  ]):
+        for index, poster in enumerate(tmdb_json['posters']):
+          if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path']not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
+        #if 'poster_path' in tmdb_json and tmdb_json['poster_path']: images[ tmdb_json['poster_path']] = metadata.posters #TMDB movie
+      if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
+        #if tmdb_json is not None and 'backdrops' in tmdb_json and isinstance(tmdb_json['backdrops'], basestring): images[ tmdb_json['backdrops']] = metadata.art
+        #else:
+        for index, poster in enumerate(tmdb_json['backdrops']):
+          if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path']not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
+          
+      rank=95  # Log.Debug("getImagesFromTMDB - images: '%s'" % str(images))
+    if len(images):
+      for filename in images.keys():
+         if filename is None:  Log.Debug("Filename: 'None'" )
+         else:
+           image_url, thumb_url = config_dict['images']['base_url'] + 'original' + filename, config_dict['images']['base_url'] + 'w300'     + filename
+           self.metadata_download (images[filename], image_url, rank, "TMDB/%s%s.jpg" % (id, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
+              
+  ### Fetch the IMDB poster using OMDB HTTP API ###########################################################################################################
+  def getImagesFromOMDB(self, metadata, imdbid, num=99):
+    Log.Debug("getImagesFromOMDB - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
+    try:
+      OMDB = self.get_json(OMDB_HTTP_API_URL + imdbid, cache_time=CACHE_1WEEK * 56)
+      if 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
+      else:                                                             Log.Debug("getImagesFromOMDB - No poster to download")
+    except: Log.Debug("getImagesFromOMDB - issue - OMDB: '%s' " % OMDB)
+
+  #########################################################################################################################################################
+  def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
+    Log.Debug("metadata_download - url: '%s', num: '%d', filename: '%s'" % (url, num, filename))
+    file = None #if filename empty no local save
+    if filename and Data.Exists(filename):  ### if stored locally load it# Log.Debug("media_download - url: '%s', num: '%s', filename: '%s' was in Hama local disk cache" % (url, str(num), filename))
+      try:     file = Data.Load(filename)
+      except:  Log.Debug("media_download - could not load file present in cache")
+    if file == None: ### if not loaded locally download it
+      try:
+        if self.http_status_code(url) != 200:  Log.Debug("metadata_download - metadata_download failed, url: '%s', num: '%d', filename: %s" % (url, num, filename));  return
+        file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
+      except:  Log.Debug("metadata_download - error downloading"); return
+      else:  ### if downloaded, try saving in cache but folders need to exist
+        if not filename == "" and not filename.endswith("/"):
+          try:     Data.Save(filename, file)
+          except:  Log.Debug("metadata_download - Plugin Data Folder not created for filename '%s', no local cache, or download failed ##########" % (filename))
+    try:
+      proxy_item = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num)
+      if url not in metatype or metatype[ url ] != proxy_item:  metatype[ url ] = proxy_item
+    except: Log.Debug("metadata_download - issue adding picture to plex - url downloaded: '%s', filename: '%s'" % (url_thumbnail if url_thumbnail else url, filename))
+    #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) remove many posters, to avoid
+      
+  ### get_json file, TMDB API supports only JSON now ######################################################################################################
+  def get_json(self, url, cache_time=CACHE_1MONTH):
+    try:     tmdb_dict = JSON.ObjectFromURL(url, sleep=2.0, cacheTime=cache_time)
+    except:  Log('get_json - Error fetching JSON page')
+    else:    return tmdb_dict
+
+  ### Pull down the XML from web and cache it or from local cache for a given anime ID ####################################################################
+  def xmlElementFromFile (self, url, filename="", delay=True, cache=None):
+    locked = False
+    global lastRequestTime
+    if delay:
+      locked, now = networkLock.acquire(), datetime.datetime.utcnow()
+      if lastRequestTime is not None:
+        delta = now - lastRequestTime
+        if delta.seconds < SECONDS_BETWEEN_REQUESTS: time.sleep(SECONDS_BETWEEN_REQUESTS - delta.seconds)
+      lastRequestTime = now
+    try:
+      result = ""
+      try:     result = HTTP.Request(url, headers={'Accept-Encoding':''}, timeout=60, cacheTime=cache )  #
+      except:  Log("xmlElementFromFile - XML issue, result: '%s', url: '%s'" %(result, url) )
+      except URLError as e:
+        if   hasattr(e, 'reason'):  Log("xmlElementFromFile - We failed to reach a server: " + e.reason)
+        elif hasattr(e, 'code'  ):  Log("xmlElementFromFile - The server couldn't fulfill the request: " + e.code)      
+      if len(result)<1024:  # http issue or worked but returned banned string
+        Log("xmlElementFromFile - XML issue, result: '%s', url: '%s'" %(result, url) )
+        if Data.Exists(filename):
+          Log.Debug("xmlElementFromFile - Loading locally since banned (result page <1024 bytes)")
+          try:     return XML.ElementFromString(Data.Load(filename))
+          except:  Log("xmlElementFromFile - Error loading - url: '%s', filename: '%s'" % (url, filename))
+      else:
+        if filename!="":  #and Prefs['TVDB-Local-cache']==true:
+          try:     Data.Save(filename, result)
+          except:  Log.Debug("xmlElementFromFile - Serie XML could not be saved locally")  #Catch ALL #else:    Log.Debug("xmlElementFromFile - Serie XML saved locally successfully") 
+      Log.Debug ("xmlElementFromFile - Serie XML url: %s, Data filename: %s" % (url, filename))
+      try:     return XML.ElementFromString(result)
+      except:  Log.Error("result: " + result)
+
+    except:   
+      Log.Debug ("xmlElementFromFile - main loop except - url: %s, filename: %s" % (url, filename))
+      if Data.Exists(filename):
+        Log.Debug("xmlElementFromFile - Loading locally")
+        try:     return XML.ElementFromString(Data.Load(filename))
+        except:  Log("xmlElementFromFile - Error loading - url: '%s', filename: '%s'" % (url, filename))
+      
+    finally:
+      if delay and locked: networkLock.release()
+
+  ### http_code retrieves the http status code of a url by requesting header data only from the hos##########################################################
+  def http_status_code(self, url):
+    a=urllib.urlopen(url)
+    if a is not None: return a.getcode()
+
+  ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
+  def cleanse_title(self, title):
+    try:    title=title.encode('utf-8')
+    except: pass
+    title = " ".join(self.splitByChars(title))
+    return  title.replace("`", "'").translate(string.maketrans('', ''), FILTER_CHARS).lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
+
+  ### Split a string per list of chars #################################################################################################################################
+  def splitByChars(self, string, separators=SPLIT_CHARS): #AttributeError: 'generator' object has no attribute 'split'  #return (string.replace(" ", i) for i in separators if i in string).split()
+    for i in separators:
+      if i in string:  string = string.replace(i, " ")
+    return filter(None, string.split())
+    
+  ### extract the series/movie/Episode title #################################################################################################################################
+  def getMainTitle(self, titles, languages):
+    if not 'main' in languages:  languages.append('main')                                        # Add main to the selection if not present
+    langTitles = ["" for index in range(len(languages)+1)]                                       # languages: title order including main title, then choosen title
+    for title in titles:                                                                         # Loop through all languages listed in the anime XML
+      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')    # IF Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
+      if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
+      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  #Applede Korean synonym fix
+    for index in range( len(languages) ):
+      if langTitles[index] != '':         langTitles[len(languages)] = langTitles[index];  break #Log.Debug("getMainTitle - LANGUAGE titles: " + str(langTitles))  #else: Log.Debug("getMainTitle - Languages: '%s', langTitles: '%s'" % (str(languages), str(langTitles)))
+    if langTitles[len(languages)] == "":  langTitles[len(languages)] = langTitles[languages.index('main')]
+    return langTitles[len(languages)], langTitles[languages.index('main')]
+    
+### Agent declaration ###############################################################################################################################################
+class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
+  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles'] )
+  def search(self, results,  media, lang, manual): self.search2(results,  media, lang, manual, False )
+  def update(self, metadata, media, lang, force ): self.update2(metadata, media, lang, force,  False )
+
+class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
+  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia', 'com.plexapp.agents.opensubtitles'] )
+  def search(self, results,  media, lang, manual): self.search2(results,  media, lang, manual, True )
+  def update(self, metadata, media, lang, force ): self.update2(metadata, media, lang, force,  True )
