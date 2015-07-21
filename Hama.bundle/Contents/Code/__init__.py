@@ -199,17 +199,17 @@ class HamaCommonAgent:
       return None # No result found
 
     for title in AniDB_title_tree_elements:
-      if title.get('aid'): aid = "anidb-"+title.get('aid')
+      if title.get('aid'): aid = title.get('aid')
       elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
         sample = self.cleanse_title (title.text).encode('utf-8')
         for word in words:
           if word in sample:
             index  = len(matchedTitles)-1
-            if index >=0 and matchedTitles[index][0] == "anidb-"+aid:
-              if title.get('type') == 'main':               matchedTitles[index][1] = title.text #aid.zfill(5) + ' ' + title.text
+            if index >=0 and matchedTitles[index][0] == aid:
+              if title.get('type') == 'main':               matchedTitles[index][1] = title.text
               if not title.text in matchedTitles[index][2]: matchedTitles[index][2].append(title.text)
             else:
-              matchedTitles.append([aid, title.text, [title.text] ]) #aid.zfill(5) + ' ' + title.text
+              matchedTitles.append([aid, title.text, [title.text] ])
               if word in matchedWords: matchedWords[word].append(sample) ##### remove str
               else:                    matchedWords[word]=[sample]       ##### remove str
     log_string="search - Keywords: "
