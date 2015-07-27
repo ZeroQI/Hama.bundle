@@ -33,7 +33,7 @@ Better ABsolute Scanner (BABS) has been replaced by Absolute Series Scanner (ASS
 ==============================================================================================================================
 I recommend installing this scanner as it supports absolute numbering, a requirement with AniDB and anime in general.
 It supports nearly everything out of the box. Please note all user specific scanner type directories are NOT created by default
-[Source](http://forums.plexapp.com/index.php/topic/31081-better-absolute-scanner-babs/)
+[Source](https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Series/Absolute%20Series%20Scanner.py)
 
 Installation Folder:
 
