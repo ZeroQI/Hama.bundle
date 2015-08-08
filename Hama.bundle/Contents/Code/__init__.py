@@ -199,7 +199,7 @@ class HamaCommonAgent:
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
     tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", {}, []
-    tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbgenre = 0, {}, "", "", "", "", None, ()
+    tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
     if   metadata.id.startswith("tvdb-"):  tvdbid = metadata.id [len("tvdb-"):]
     elif metadata.id.startswith("anidb-"):
       anidbid=metadata.id[len("anidb-"):]
