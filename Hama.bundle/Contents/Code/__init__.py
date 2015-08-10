@@ -191,6 +191,7 @@ class HamaCommonAgent:
   def Update(self, metadata, media, lang, force, movie):
 
     Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
+    if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     Log.Debug("Update - metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id.split('-')[0], metadata.id.split('-')[1], metadata.title, "[...]", "[...]", force) )
     global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
     error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'    : [],
@@ -239,9 +240,9 @@ class HamaCommonAgent:
       ### TVDB - Load serie XML ###
       tvdbanime, summary_missing, summary_present, url = None, [], [], TVDB_HTTP_API_URL % tvdbid
       Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, url))
-      tvdbanime = self.xmlElementFromFile ( url, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24).xpath('/Data')[0]
-      if not tvdbanime:  Log.Debug("Update() - metadata_download failed, url: '%s'" % url);  error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie probably a duplicate deleted from thetvdb")
-      else: 
+      tvdbanime=self.xmlElementFromFile ( url, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
+      if tvdbanime:
+        tvdbanime = tvdbanime.xpath('/Data')[0]
         tvdbtitle, tvdbNetwork, tvdbOverview, tvdbFirstAired = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network'), getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
         tvdbContentRating = getElementText(tvdbanime, 'Series/ContentRating')
         tvdbGenre         = filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
@@ -259,6 +260,9 @@ class HamaCommonAgent:
                                      'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None }              
           if getElementText(episode, 'Overview'):  summary_present.append(numbering)
           else:                                    summary_missing.append(numbering)
+      else:
+        Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % url)
+        error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie deleted from thetvdb")
       Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)) )
       Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
 
@@ -571,7 +575,8 @@ class HamaCommonAgent:
     else:
       Log.Debug("getImagesFromTMDB() - using TMDBID  url: " + TMDB_IMAGES_URL % id)
       tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2)
-      if tmdb_json is not None and 'poster'    in tmdb_json and len(tmdb_json['posters'  ]):
+      if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
+        Log.Debug("poster")
         for index, poster in enumerate(tmdb_json['posters']):
           if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path']not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
       if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
@@ -623,9 +628,9 @@ class HamaCommonAgent:
     Log.Debug("xmlElementFromFile() - url: '%s', filename: '%s'" % (url, filename))
     if delay:  time.sleep(4) #2s between anidb requests but 2 threads                                                                                                   # Ban after 160 series if too short, ban also if same serie xml downloaded repetitively, delay for AniDB only for now     e #try:    a = urllib.urlopen(url)#if a is not None and a.getcode()==200:
     try:     result = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip', 'content-type':'charset=utf8'}, timeout=20, cacheTime=cache))  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except:  Log.Debug("xmlElementFromFile() - XML issue loading url: '%s'" % url )                                                      # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    except:  result = None #Log.Debug("xmlElementFromFile() - XML issue loading url: '%s'" % url )                                                      # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     
-    if len(result)>1024 and filename:  # if loaded OK save
+    if result and len(result)>1024 and filename:  # if loaded OK save else load from last saved file
       try:     Data.Save(filename, result)
       except:  Log.Debug("xmlElementFromFile() - url: '%s', filename: '%s' saving failed, probably missing folder" % (url, filename))
     elif filename and Data.Exists(filename):  # Loading locally if backup exists
@@ -638,9 +643,10 @@ class HamaCommonAgent:
       result_custom = Data.Load(ANIDB_TVDB_MAPPING_CUSTOM)
       result        = result_custom[:result_custom.rfind("</anime-list>")-1] + result[result.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
     
-    element, result = XML.ElementFromString(result), str(result)
-    if str(element).startswith("<Element error at "):  Log.Debug("xmlElementFromFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result)
-    else:                                              return element
+    if result:
+      element, result = XML.ElementFromString(result), str(result)
+      if str(element).startswith("<Element error at "):  Log.Debug("xmlElementFromFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result)
+      else:                                              return element
     
   ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
   def cleanse_title(self, title):
