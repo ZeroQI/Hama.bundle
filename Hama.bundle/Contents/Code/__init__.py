@@ -493,10 +493,7 @@ class HamaCommonAgent:
   ### Get the tvdbId from the AnimeId #######################################################################################################################
   def anidbTvdbMapping(self, metadata, anidb_id, error_log):
     global AniDB_TVDB_mapping_tree    #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
-    poster_id_array, mappingList = {}, {}
-    #AniDB_TVDB_mapping_misc = xmlElementFromFile(ANIDB_TVDB_MAPPING, os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24)
-    #
-    #
+    poster_id_array, mappingList = {}, {}  #AniDB_TVDB_mapping_misc = xmlElementFromFile(ANIDB_TVDB_MAPPING, os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24)
     for anime in AniDB_TVDB_mapping_tree.iter('anime') if AniDB_TVDB_mapping_tree else []:
       anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason')
       if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0  # Count posters to have a unique poster per anidbid
@@ -510,7 +507,7 @@ class HamaCommonAgent:
         elif tvdbid in ("", "unknown"):  error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (anidb_id.zfill(5), name, tvdbid) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
         except: mapping_studio  = ""
-        Log.Debug("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s'" % (anidbid, tvdbid, tmdbid, imdbid, mapping_studio, defaulttvdbseason) )
+        Log.Debug("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (anidbid, tvdbid, tmdbid, imdbid, mapping_studio, defaulttvdbseason, name) )
         anidbid_table = []
         for anime2 in AniDB_collection_tree.iter("anime"):
           if tvdbid == anime2.get('tvdbid'):  anidbid_table.append( anime2.get("anidbid") ) #collection gathering
@@ -576,12 +573,11 @@ class HamaCommonAgent:
       Log.Debug("getImagesFromTMDB() - using TMDBID  url: " + TMDB_IMAGES_URL % id)
       tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2)
       if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
-        Log.Debug("poster")
         for index, poster in enumerate(tmdb_json['posters']):
-          if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path']not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
+          if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
       if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
         for index, poster in enumerate(tmdb_json['backdrops']):
-          if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path']not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
+          if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
       rank=95
     if len(images):
       for filename in images.keys():
@@ -595,8 +591,8 @@ class HamaCommonAgent:
     try:    OMDB = self.get_json(OMDB_HTTP_API_URL + imdbid, cache_time=CACHE_1WEEK * 56)
     except: Log.Debug("getImagesFromOMDB() - Exception - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
     else:
-      if 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
-      else:                                                             Log.Debug("getImagesFromOMDB() - No poster to download - " + OMDB_HTTP_API_URL + imdbid)
+      if OMDB and 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
+      else:                                                                      Log.Debug("getImagesFromOMDB() - No poster to download - " + OMDB_HTTP_API_URL + imdbid)
     
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
