@@ -238,9 +238,9 @@ class HamaCommonAgent:
       else:                                      self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")  #if local, load it ?
       
       ### TVDB - Load serie XML ###
-      tvdbanime, summary_missing, summary_present, url = None, [], [], TVDB_HTTP_API_URL % tvdbid
-      Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, url))
-      tvdbanime=self.xmlElementFromFile ( url, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
+      tvdbanime, summary_missing, summary_present = None, [], []
+      Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % tvdbid))
+      tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % tvdbid, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
       if tvdbanime:
         tvdbanime = tvdbanime.xpath('/Data')[0]
         tvdbtitle, tvdbNetwork, tvdbOverview, tvdbFirstAired = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network'), getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
@@ -262,7 +262,7 @@ class HamaCommonAgent:
           else:                                    summary_missing.append(numbering)
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % url)
-        error_log['anime-list tvdbid missing'].append(url + " - xml not downloadable so serie deleted from thetvdb")
+        error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
       Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)) )
       Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
 
@@ -640,7 +640,7 @@ class HamaCommonAgent:
       result        = result_custom[:result_custom.rfind("</anime-list>")-1] + result[result.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
     
     if result:
-      element, result = XML.ElementFromString(result), str(result)
+      element = XML.ElementFromString(result)
       if str(element).startswith("<Element error at "):  Log.Debug("xmlElementFromFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result)
       else:                                              return element
     
