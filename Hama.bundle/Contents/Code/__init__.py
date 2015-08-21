@@ -1,682 +1,382 @@
 # -*- coding: utf-8 -*-
-### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
-ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages
-ANIDB_TVDB_MAPPING           = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-list-master.xml'                            # ScudLee mapping file url
-ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
-ANIDB_COLLECTION             = 'http://rawgithub.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                          # ScudLee collection mapping file
-ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
-ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
-ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
-ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
-TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                     # TVDB Serie XML for episodes sumaries for now
-TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
-TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
-TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
-TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
-TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
-TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
-TMDB_SEARCH_URL_BY_IMDBID    = 'https://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'  #
-TMDB_CONFIG_URL              = 'https://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                    #
-TMDB_IMAGES_URL              = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
-OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                                                                       #
-THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
-RESTRICTED_CONTENT_RATING    = "NC-17"
-RESTRICTED_GENRE_NAMES       = [ '18 Restricted', 'Pornography' ]
-FILTER_CHARS                 = "\\/:*?<>|~-; "
-SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
-WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
-GENRE_NAMES                  = [  ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ####################
-  ### Audience categories - all useful but not used often ############################################################################################################
-  'Josei', 'Kodomo', 'Mina', 'Seinen', 'Shoujo', 'Shounen',
-  ### Elements - many useful #########################################################################################################################################
-  'Action', 'Martial Arts', 'Swordplay', 'Adventure', 'Angst', 'Anthropomorphism', 'Comedy', 'Parody', 'Slapstick', 'Super Deformed', 'Detective', 'Ecchi', 'Fantasy',
-  'Contemporary Fantasy', 'Dark Fantasy', 'Ghost', 'High Fantasy', 'Magic', 'Vampire', 'Zombie', 'Harem', 'Reverse Harem', 'Henshin', 'Horror', 'Incest',
-  'Mahou Shoujo', 'Pornography', 'Yaoi', 'Yuri', 'Romance', 'Love Polygon', 'Shoujo Ai', 'Shounen Ai', 'Sci-Fi', 'Alien', 'Mecha', 'Space Travel', 'Time Travel',
-  'Thriller', 'Western',
-  ### Fetishes. Leaving out most porn genres #########################################################################################################################
-  'Futanari', 'Lolicon', 'Shotacon', 'Tentacle', 'Trap', 'Reverse Trap',
-  ### Original Work - mainly useful ##################################################################################################################################
-  'Game', 'Action Game', 'Dating Sim - Visual Novel', 'Erotic Game', 'RPG', 'Manga', '4-koma', 'Movie', 'Novel',
-  ### Setting - most of the places aren't genres, some Time stuff is useful ##########################################################################################
-  'Fantasy World', 'Parallel Universe', 'Virtual Reality', 'Hell', 'Space', 'Mars', 'Space Colony', 'Shipboard', 'Alternative Universe', 'Past', 'Present', 'Future',
-  'Historical', '1920s', 'Bakumatsu - Meiji Period', 'Edo Period', 'Heian Period', 'Sengoku Period', 'Victorian Period', 'World War I', 'World War II', 'Alternative Present',
-  ### Themes - many useful ###########################################################################################################################################
-  'Anti-War', 'Art', 'Music', 'Band', 'Idol', 'Photography', 'Christmas', 'Coming of Age', 'Conspiracy', 'Cooking', 'Cosplay', 'Cyberpunk', 'Daily Life', 'Earthquake',
-  'Post-War', 'Post-apocalypse', 'War', 'Dystopia', 'Friendship', 'Law and Order', 'Cops', 'Special Squads', 'Military', 'Airforce', 'Feudal Warfare', 'Navy',
-  'Politics', 'Proxy Battles', 'Racism', 'Religion', 'School Life', 'All-boys School', 'All-girls School', 'Art School', 'Clubs', 'College', 'Delinquents',
-  'Elementary School', 'High School', 'School Dormitory', 'Student Council', 'Transfer Student', 'Sports', 'Acrobatics', 'Archery', 'Badminton', 'Baseball',
-  'Basketball', 'Board Games', 'Chess', 'Go', 'Mahjong', 'Shougi', 'Combat', 'Boxing', 'Judo', 'Kendo', 'Muay Thai', 'Wrestling', 'Cycling', 'Dodgeball', 'Fishing',
-  'Football', 'Golf', 'Gymnastics', 'Horse Riding', 'Ice Skating', 'Inline Skating', 'Motorsport', 'Formula Racing', 'Street Racing', 'Rugby', 'Swimming', 'Tennis',
-  'Track and Field', 'Volleyball', 'Steampunk', 'Summer Festival', 'Tragedy', 'Underworld', 'Assassin', 'Bounty Hunter', 'Mafia', 'Yakuza', 'Pirate', 'Terrorist',
-  'Thief']
-FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only #############################################################
-  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
-  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater',  # En Continued
-  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                                               # Fr
-  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                              # Roman digits
+### Log variables, regex, skipped folders, words to remove, character maps ###
+import sys, os, time, re, fnmatch, unicodedata, urllib2, Utils, VideoFiles, Media #import Stack ### Plex Media Server\Plug-ins\Scanners.bundle\Contents\Resources\Common ###
+from lxml import etree
+season_rx = [                                                                                                                                                           ### Seasons folder + skipped folders ### #http://www.zytrax.com/tech/web/regex.htm  # http://regex101.com/#python
+  'Specials',                                                                                                                                                           # Specials (season 0)
+  '(Season|Series|Book|Saison|Livre)[ _\-]*(?P<season>[0-9]{1,2}).*',                                                                                                   # Season|Series|Book|Saison|Livre xx
+  '(?P<season>[0-9]{1,2})a? Stagione.*',                                                                                                                                # 1a Stagione
+  '(([Ss]tory )?[Aa]r[kc]|[Vv]ideo).*']                                                                                                                                 # Arc|Story arc ...   #The last line matches are dropped
+series_rx = [                                                                                                                                                           ######### Series regex - "serie - xxx - title" ###
+  '(^|(?P<show>.*?)[ _\.\-]+)(?P<season>[0-9]{1,2})[Xx](?P<ep>[0-9]{1,3})((|[-_][0-9]{1,2})[Xx](?P<ep2>[0-9]{1,3}))?([ _\.\-]+(?P<title>.*))?$',                        #  0 # 1x01
+  '(^|(?P<show>.*?)[ _\.\-]+)s(?P<season>[0-9]{1,2})(e| e|ep| ep|-)(?P<ep>[0-9]{1,3})(([ _\.\-]|(e|ep)|[ _\.\-](e|ep))(?P<ep2>[0-9]{1,3}))?($|( | - |)(?P<title>.*?)$)',#  1 # s01e01-02 | ep01-ep02 | e01-02
+  '(?P<title>.*?) [\(]?(?P<season>(19|20)[0-9]{2})[\)]$',                                                                                                               #  2 # title (1932).ext
+  '(^|(?P<show>.*?)[ _\.\-]+)(?P<ep>[0-9]{1,3})[ _\.\-]?of[ _\.\-]?[0-9]{1,3}([ _\.\-]+(?P<title>.*?))?$',                                                              #  3 # 01 of 08 (no stacking for this one ?)
+  '^(?P<show>.*?) - (?P<ep>[0-9]{1,3}) - (?P<title>.*)$']                                                                                                               #  4 # Serie - xx - title.ext
+#   . Add year-month-day   = '(?P<year>[0-9]{4})[^0-9a-zA-Z]+(?P<month>[0-9]{2})[^0-9a-zA-Z]+(?P<day>[0-9]{2})([^0-9]|$)',                                              #    # 2009-02-10 #   . Add day-month-year   = '(?P<month>[0-9]{2})[^0-9a-zA-Z]+(?P<day>[0-9]{2})[^0-9a-zA-Z(]+(?P<year>[0-9]{4})([^0-9a-zA-Z]|$)',    # 02-10-2009
+AniDBOffset = [0, 100, 150, 200, 300, 400, 0]; anidb_rx  = [                                                                                                            ######### AniDB Specials regex ### 
+  '(^|(?P<show>.*?)[ _\.\-]+)(S|SP|SPECIAL|OAV) ?(?P<ep>\d{1,2}) ?(?P<title>.*)$',                                                                                      #  5 # 001-099 Specials
+  '(^|(?P<show>.*?)[ _\.\-]+)(OP|NCOP|OPENING) ?(?P<ep>\d{1,2}[a-z]?)? ?(v2|v3|v4|v5)?([ _\.\-]+(?P<title>.*))?$',                                                      #  6 # 100-149 Openings
+  '(^|(?P<show>.*?)[ _\.\-]+)(ED|NCED|ENDING) ?(?P<ep>\d{1,2}[a-z]?)? ?(v2|v3|v4|v5)?([ _\.\-]+(?P<title>.*))?$',                                                       #  7 # 150-199 Endings
+  '(^|(?P<show>.*?)[ _\.\-]+)(TRAILER|PROMO|PV|T) ?(?P<ep>\d{1,2}) ?(v2|v3|v4|v5)?([ _\.\-]+(?P<title>.*))?$',                                                          #  8 # 200-299 Trailer, Promo with a  number  '(^|(?P<show>.*?)[ _\.\-]+)((?<=E)P|PARODY|PARODIES?) ?(?P<ep>\d{1,2})? ?(v2|v3|v4|v5)?(?P<title>.*)$',                                                                        # 10 # 300-399 Parodies
+  '(^|(?P<show>.*?)[ _\.\-]+)(O|OTHERS?)(?P<ep>\d{1,2}) ?(v2|v3|v4|v5)?[ _\.\-]+(?P<title>.*)$',                                                                        # 09 # 400-499 Others
+  '(^|(?P<show>.*?)[ _\.\-]+)(e|ep|e |ep |e-|ep-)?(?P<ep>[0-9]{1,3})((e|ep|-e|-ep|-)(?P<ep2>[0-9]{1,3})|)? ?(v2|v3|v4|v5)?([ _\.\-]+(?P<title>.*?))?$']                 # 10 # E01 | E01-02| E01-E02 | E01E02 
+#roman_rx  = [".*? (L?X{0,3})(IX|IV|V?I{0,3})$"]                                                                                                                        # __ # look behind: (?<=S) < position < look forward: (?!S)
+ignore_dirs_rx  = [ 'lost\+found', '.AppleDouble','$Recycle.Bin', 'System Volume Information', 'Temporary Items', 'Network Trash Folder', '@eaDir', 'Extras', 'Samples?', 'bonus', '.*bonus disc.*', 'trailers?', '.*_UNPACK_.*', '.*_FAILED_.*', "VIDEO_TS"]# Filters.py  removed '\..*',        
+ignore_files_rx = ['[-\._ ]sample', 'sample[-\._ ]', '-Recap\.', 'OST', 'soundtrack', 'Thumbs.db']                                                                                                            # Skipped files (samples, trailers)                                                          
+ignore_exts     = ['plexignore', 'ssa', 'srt', 'ass', 'jpg', 'png', 'gif', 'mp3', 'wav', 'flac', 'pdf', 'db', 'nfo', 'ds_store', 'txt', 'zip', 'ini', "dvdmedia", "log", "bat", 'idx', 'sub']    # extensions dropped no warning (skipped list would be too long if showed)
+video_exts      = [ '3g2', '3gp', 'asf', 'asx', 'avc', 'avi', 'avs', 'bin', 'bivx', 'divx', 'dv', 'dvr-ms', 'evo', 'fli', 'flv', 'img', 'iso', 'm2t', 'm2ts', 'm2v', 'm4v', 'mkv', 'mov', 'mp4', # DVD: 'ifo', 'bup', 'vob'
+  'mpeg', 'mpg', 'mts', 'nrg', 'nsv', 'nuv', 'ogm', 'ogv', 'tp', 'pva', 'qt', 'rm', 'rmvb', 'sdp', 'swf', 'svq3', 'strm', 'ts', 'ty', 'vdr', 'viv', 'vp3', 'wmv', 'wpl', 'wtv', 'xsp', 'xvid', 'webm']
+FILTER_CHARS    = "\\/:*?<>|~;_." #.                                                                             # Windows file naming limitations + "~-,._" + ';' as plex cut title at this for the agent
+whack_pre_clean = ["x264-FMD Release", "x264-h65", "x264-mSD", "x264-BAJSKORV", "x264-MgB", "x264-SYS", "x264-FQM", "x264-ASAP", "x264-QCF", "x264-W4F", 'x264-w4f', 
+  'x264-2hd', "x264-ASAP", 'x264-bajskorv', 'x264-batv', "x264-BATV", "x264-EXCELLENCE", "x264-KILLERS", "x264-LOL", 'x264-MgB', 'x264-qcf', 'x264-SnowDoN', 'x264-xRed', 
+  "H.264-iT00NZ", "H.264.iT00NZ", 'H264-PublicHD', "H.264-BS", 'REAL.HDTV', "WEB.DL", "H_264_iT00NZ", "www.crazy-torrent.com", "ReourceRG Kids Release", "By UniversalFreedom", 
+  "XviD-2HD", "XviD-AFG", "xvid-aldi", 'xvid-asap', "XviD-AXED", "XviD-BiA-mOt", 'xvid-fqm', "xvid-futv", 'xvid-killer', "XviD-LMAO", 'xvid-pfa',
+  'xvid-saints', "XviD-T00NG0D", "XViD-ViCKY", "XviD-BiA", "XVID-FHW", "PROPER-LOL", "5Banime-koi_5d", "%5banime-koi%5d", "minitheatre.org", "mthd bd dual", "WEB_DL",
+  "HDTV-AFG", "HDTV-LMAO", "ResourceRG Kids", "kris1986k_vs_htt91",   'web-dl', "-Pikanet128", "hdtv-lol", "REPACK-LOL", " - DDZ", "OAR XviD-BiA-mOt", "3xR", "(-Anf-)",
+  "Anxious-He", "Coalgirls", "Commie", "DarkDream", "Doremi", "ExiledDestiny", "Exiled-Destiny", "Exiled Destiny", "FFF", "FFFpeeps", "Hatsuyuki", "HorribleSubs", 
+  "joseole99", "(II Subs)", "OAR HDTV-BiA-mOt", "Shimeji", "(BD)", "(RS)", "Rizlim", "Subtidal", "Seto-Otaku", "OCZ", "_dn92__Coalgirls__", 
+  "(BD 1280x720 Hi10P)", "(DVD_480p)","(1080p_10bit)", "(1080p_10bit_DualAudio)", "(Tri.Audio)", "(Dual.Audio)", "(BD_720p_AAC)", 
+  "BD 1080p", "BD 960p", "BD 720p", "BD_720p", "TV 720p", "DVD 480p", "DVD 476p", "DVD 432p", "DVD 336p",
+  "1920x1080", "1280x720", "848x480", "952x720", "(DVD 720x480 h264 AC3)", "(720p_10bit)", "(1080p_10bit)", "(1080p_10bit", "(BD.1080p.AAC)",
+  "H.264_AAC", "Hi10P", "Hi10", "x264", "BD 10-bit", "DXVA", "H.264", "(BD, 720p, FLAC)", "Blu-Ray", "Blu-ray",  "SD TV","SD DVD", "HD TV",  "-dvdrip", "dvd-jap", "(DVD)", 
+  "FLAC", "Dual Audio", "AC3", "AC3.5.1", "AC3-5.1", "AAC2.0", "AAC.2.0", "AAC2_0",  "AAC", 'DD5.1', "5.1",'divx5.1', "DD5_1", "TV-1", "TV-2", "TV-3", "TV-4", "TV-5", "(Exiled_Destiny)",
+  "1080p", "720p", "480p", "_BD", ".XVID", "(xvid)", 
+  "-Cd 1", "-Cd 2", "Vol 1", "Vol 2", "Vol 3", "Vol 4", "Vol 5", "Vol.1", "Vol.2", "Vol.3", "Vol.4", "Vol.5", "( )", "(  )", "(   )", "(    )", "(     )", "(_)", "%28", "%29", " (1)"] #include spaces, hyphens, dots, underscore, case insensitive
+whack = [ #lowercase                                                                                          ### Tags to remove ###
+  'x264', 'h264', 'dvxa', 'divx', 'xvid', 'divx51', 'mp4', "avi",                                             # Video Codecs
+  'hi10', 'hi10p', '10bit', 'crf24', 'crf 24',                                                                #       color depth and encoding
+  '480p', '576p', '720p', '1080p', '1080i', '1920x1080','1280x720',                                           #       Resolution
+  '24fps', '25fps', 'ntsc','pal', 'ntsc-u', 'ntsc-j',                                                         # Refresh rate, Format
+  'mp3', 'ogg','ogm', 'vorbis','aac','dts', 'ac3', '5.1ch','5.1', '7.1ch',  'qaac',                           # Audio Codecs, channels
+  'dc', 'se', 'extended', 'unrated', 'multi','multisubs', 'dubbed','subbed', "french", "fr", "dub",           # edition (dc = directors cut, se = special edition), subs and dubs
+  'custom', 'internal', 'repack', 'proper', 'rerip', "raw", "remastered", "uncensored",                       # format
+  'cd1', 'cd2', 'cd3', 'cd4', '1cd', '2cd', '3cd', '4cd', 'xxx', 'nfo', 'read.nfo', 'readnfo', 'nfofix',      # misc 1
+  'fragment','ps3avchd','remux','fs','ws', "- copy", "reenc", "hom",                                          # misc 2
+  'retail', 'webrip','web-dl', 'wp','workprint', "mkv",  "v1", "v2", "v3", "v4",                              # release type: retail, web, work print
+  'bdrc','bdrip','bluray','bd','brrip','hdrip','hddvd','hddvdrip', 'wsrip',                                   # Source: bluray
+  'ddc','dvdrip','dvd','r1','r3','r5',"dvd",'svcd','vcd', 'sd', 'hd', 'dvb', "release",                       # DVD, VCD, S-VCD
+  'dsr','dsrip','hdtv','pdtv','ppv','stv','tvrip','complete movie',"Hiei", "Metis", "NoRar",                  # dtv, stv
+  'cam','bdscr','dvdscr','dvdscreener','scr','screener','tc','telecine','ts','telesync', 'mp4',               # screener
+  "mthd", "thora", 'sickrage', 'brrip', 'ac3', "remastered", "yify", "tsr", "reidy", "(1280x720)", "(gerdhanse)", "(720p)", "(Commie)", #'limited', 
+  'rikou', 'HOMЯ', "iT00NZ", "nn92", "mthd", "elysium", "encodebyjosh", "krissy", "reidy", "it00nz", "s4a", "()", "(", ")", "(", ")", "[", "]", "{", "}"]   #
+CHARACTERS_MAP = { 14844057:"'", 14844051:'-', 14844070:'...', 15711386:':', 14846080:'∀',                   #['’' \xe2\x80\x99] ['–' \xe2\x80\x93] ['…' \xe2\x80\xa6] # '：' # 12770:'', # '∀ Gundam' no need #'´' ['\xc2', '\xb4']
+  50048:'A' , 50050:'A' , 50052:'Ä' , 50080:'a' , 50082:'a' , 50084:'a' , 50305:'a' , 50308:'A' , 50309:'a' , #'à' ['\xc3', '\xa0'] #'â' ['\xc3', '\xa2'] #'Ä' ['\xc3', '\x84'] #'ā' ['\xc4', '\x81'] #'À' ['\xc3', '\x80'] #'Â' ['\xc3', '\x82'] # 'Märchen Awakens Romance', 'Rozen Maiden Träumend'
+  50055:'C' , 50087:'c' , 50310:'C' , 50311:'c' ,                                                             #'Ç' ['\xc3', '\x87'] #'ç' ['\xc3', '\xa7'] 
+  50057:'E' , 50088:'e' , 50089:'e' , 50090:'e' , 50091:'e' , 50323:'e' , 50328:'E' , 50329:'e' ,             #'É' ['\xc3', '\x89'] #'è' ['\xc3', '\xa8'] #'é' ['\xc3', '\xa9'] #'ē' ['\xc4', '\x93'] #'ê' ['\xc3', '\xaa'] #'ë' ['\xc3', '\xab']
+  50094:'i' , 50095:'i' , 50347:'i' , 50561:'L' , 50562:'l' , 50563:'N' , 50564:'n' , 50097:'n' ,             #'î' ['\xc3', '\xae'] #'ï' ['\xc3', '\xaf'] #'ī' ['\xc4', '\xab'] #'ñ' ['\xc3', '\xb1']
+  50067:'O' , 50068:'Ô' , 50072:'O' , 50100:'o' , 50099:'o' , 50573:'o' , 50578:'OE', 50579:'oe',             #'Ø' ['', '']         #'Ô' ['\xc3', '\x94'] #'ô' ['\xc3', '\xb4'] #'ō' ['\xc5', '\x8d'] #'Œ' ['\xc5', '\x92'] #'œ' ['\xc5', '\x93']
+  53423:'Я' , 50586:'S' , 50587:'s' , 50079:'ss', 50105:'u' , 50107:'u' , 50108:'u' ,                         #'Я' ['\xd0', '\xaf'] #'ß' []               #'ù' ['\xc3', '\xb9'] #'û' ['\xc3', '\xbb'] #'ü' ['\xc3', '\xbc'] #'²' ['\xc2', '\xb2'] #'³' ['\xc2', '\xb3']
+  50071:'x' , #'×' ['\xc3', '\x97'],
+  50617:'Z' , 50618:'z' , 50619:'Z' , 50620:'z' ,                                                             #
+  49835:'«' , 49842:'²' , 49843:'³' , 49844:"'" , 49848:'¸',  49851:'»' , 49853:'½'}                          #'«' ['\xc2', '\xab'] #'»' ['\xc2', '\xbb']# 'R/Ranma ½ Nettou Hen'                                                                                                 #'¸' ['\xc2', '\xb8']  
 
-import os, re, time, datetime, string, thread, threading, urllib # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
-AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = None, None, None  #ValueError if in Start()
-SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'  ].encode('utf-8'), Prefs['SerieLanguage2'  ].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]  #override default language
-EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ]                                           #override default language
+### LOG_PATH calculated once for all calls ####################################################################                        #platform = sys.platform.lower() if "platform" in dir(sys) and callable(getattr(sys,'platform')) else "" 
+LOG_PATHS = { 'win32':  [ '%LOCALAPPDATA%\\Plex Media Server\\Logs',                                       #
+                          '%USERPROFILE%\\Local Settings\\Application Data\\Plex Media Server\\Logs' ],    #
+              'darwin': [ '$HOME/Library/Application Support/Plex Media Server/Logs' ],                    # LINE_FEED = "\r"
+              'linux':  [ '$PLEX_HOME/Library/Application Support/Plex Media Server/Logs',                 # Linux
+                          '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Logs',   # Debian, Fedora, CentOS, Ubuntu
+                          '/usr/local/plexdata/Plex Media Server/Logs',                                    # FreeBSD
+                          '/usr/pbi/plexmediaserver-amd64/plexdata/Plex Media Server/Logs',                # FreeNAS
+                          '${JAIL_ROOT}/var/db/plexdata/Plex Media Server/Logs/',                          # FreeNAS
+                          '/c/.plex/Library/Application Support/Plex Media Server/Logs',                   # ReadyNAS
+                          '/share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/Logs',          # QNAP
+                          '/volume1/Plex/Library/Application Support/Plex Media Server/Logs',              # Synology, Asustor
+                          '/volume2/Plex/Library/Application Support/Plex Media Server/Logs',              # Synology, if migrated a second raid volume as unique volume in new box         
+                          '/raid0/data/module/Plex/sys/Plex Media Server/Logs',                            # Thecus
+                          '/raid0/data/PLEX_CONFIG/Plex Media Server/Logs' ]}                              # Thecus Plex community version
+platform = sys.platform.lower() if "platform" in dir(sys) and not sys.platform.lower().startswith("linux") else "linux" if "platform" in dir(sys) else Platform.OS.lower()
+for LOG_PATH in LOG_PATHS[platform] if platform in LOG_PATHS else [ os.path.join(os.getcwd(),"Logs"), '$HOME']:
+  if '%' in LOG_PATH or '$' in LOG_PATH:  LOG_PATH = os.path.expandvars(LOG_PATH)  # % on win only, $ on linux
+  if os.path.isdir(LOG_PATH):             break                                    # os.path.exists(LOG_PATH)
+else: LOG_PATH = os.path.expanduser('~')                                           # logging.basicConfig(), logging.basicConfig(filename=os.path.join(path, 'Plex Media Scanner (custom ASS).log'), level=logging.INFO) #logging.error('Failed on {}'.format(filename))
+keep_zero_size_files = os.path.isfile(os.path.join(LOG_PATH, "keep_zero_size_files"))
+no_timestamp         = os.path.isfile(os.path.join(LOG_PATH, "no_timestamp"        ))
 
-### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
-def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
-  DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "localart", "adult", 
-                  "GetPlexThemes", "MinimumWeight", "SerieLanguage1", "SerieLanguage2", "SerieLanguage3", "EpisodeLanguage1", "EpisodeLanguage2")
-  try:  [Prefs[key] for key in DefaultPrefs]
-  except:  Log.Error("DefaultPrefs.json invalid" );  return MessageContainer ('Error', "Value '%s' missing from 'DefaultPrefs.json', update it" % key)
-  else:    Log.Info ("DefaultPrefs.json is valid");  return MessageContainer ('Success', 'HAMA - Provided preference values are ok')
-  
-### Pre-Defined Start function #########################################################################################################################################
-def Start():
-  msgContainer = ValidatePrefs();
-  if msgContainer.header == 'Error': return
-  Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
-  global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
-  AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES, os.path.splitext(os.path.basename(ANIDB_TITLES))[0]  , True,  CACHE_1HOUR * 24 * 2)
-  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,            os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
-  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION,              os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
-  HTTP.CacheTime          = CACHE_1HOUR * 24
-  
-class HamaCommonAgent:
-  
-  ### Serie search ######################################################################################################################################################
-  def Search(self, results, media, lang, manual, movie):
-    Log.Debug("=== Search - Begin - ================================================================================================")
-    orig_title = ( media.title if movie else media.show ).encode('utf-8')  # NEEDS UTF-8
-    if not orig_title:  return
-    if orig_title.startswith("clear-cache"):   HTTP.ClearCache()  ### Clear Plex http cache manually by searching a serie named "clear-cache" ###
-    Log.Info("search() - Title: '%s', name: '%s', filename: '%s', manual:'%s'" % (orig_title, media.name, media.filename, str(manual)))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
-    
-    ### Check if a guid is specified "Show name [anidb-id]" ###
-    global SERIE_LANGUAGE_PRIORITY
-    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
-    if match:  ###metadata id provided
-      source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
-      if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
-      Log.Debug( "search - source: '%s', id: '%s', show from id: '%s' provided in foldername: '%s'" % (source, guid, show, orig_title) )
-      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=Locale.Language.English, score=100))
-      return
-  
-    ### AniDB Local exact search ###
-    cleansedTitle = self.cleanse_title (orig_title).encode('utf-8')
-    if media.year is not None: orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
-    parent_element, show , score, maxi = None, "", 0, 0
-    AniDB_title_tree_elements = list(AniDB_title_tree.iterdescendants()) if AniDB_title_tree else []
-    for element in AniDB_title_tree_elements:
-      if element.get('aid'):
-        if score: #only when match found and it skipped to next serie in file, then add
-          if score>maxi: maxi=score
-          Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
-          langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
-          parent_element, show , score = None, "", 0
-        aid = element.get('aid')
-      elif element.get('type') in ('main', 'official', 'syn', 'short'):
-        title = element.text
-        if   title.lower()              == orig_title.lower() and 100                            > score:  parent_element, show , score = element.getparent(), title,         100; Log.Debug("search() - AniDB - temp score: '%3d', id: '%6s', title: '%s' " % (100, aid, show))  #match = [element.getparent(), show,         100]
-        elif self.cleanse_title (title) == cleansedTitle      and  99                            > score:  parent_element, show , score = element.getparent(), cleansedTitle,  99  #match = [element.getparent(), cleansedTitle, 99]
-        elif orig_title in title                              and 100*len(orig_title)/len(title) > score:  parent_element, show , score = element.getparent(), orig_title,    100*len(orig_title)/len(title)  #match = [element.getparent(), show, 100*len(orig_title)/len(element.text)]
-        else:  continue #no match 
-    if score: #last serie detected, added on next serie OR here
-      Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
-      langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
-    if len(results)>=1:  return  #results.Sort('score', descending=True)
+### Allow to log to the same folder Plex writes its logs in #############################################
+global LOG_FILE_LIBRARY
+LOG_FILE_LIBRARY = LOG_FILE = 'Plex Media Scanner (custom ASS).log'  # Log filename library will include the library name, LOG_FILE not and serve as reference
+def Log(entry, filename=None): 
+  global LOG_FILE_LIBRARY
+  with open(os.path.join(LOG_PATH, filename if filename else LOG_FILE_LIBRARY), 'a') as file:
+    file.write(("" if no_timestamp else time.strftime("%Y-%m-%d %H:%M:%S") + " ") + entry + "\n")
+    print entry  # when ran from console ### Allow to display ints even if equal to None at times ### def xint(s):   return str(s) if s is not None and not s=="" else "None"
 
-    ### AniDB local keyword search ###
-    matchedTitles, matchedWords, words  = [ ], { }, [ ]
-    log_string     = "search() - Keyword search - Matching '%s' with: " % orig_title
-    for word in self.splitByChars(orig_title, SPLIT_CHARS):
-      word = self.cleanse_title (word)
-      if word and word not in FILTER_SEARCH_WORDS and len(word) > 1:  words.append (word.encode('utf-8'));  log_string += "'%s', " % word
-    Log.Debug(log_string[:-2]) #remove last 2 chars  #if len(words)==0:
-    for title in AniDB_title_tree_elements:
-      if title.get('aid'): aid = title.get('aid')
-      elif title.get('{http://www.w3.org/XML/1998/namespace}lang') in SERIE_LANGUAGE_PRIORITY or title.get('type')=='main':
-        sample = self.cleanse_title (title.text).encode('utf-8')
-        for word in words:
-          if word in sample:
-            index  = len(matchedTitles)-1
-            if index >=0 and matchedTitles[index][0] == aid:
-              if title.get('type') == 'main':               matchedTitles[index][1] = title.text
-              if not title.text in matchedTitles[index][2]: matchedTitles[index][2].append(title.text)
-            else:
-              matchedTitles.append([aid, title.text, [title.text] ])
-              if word in matchedWords: matchedWords[word].append(sample) ## a[len(a):] = [x]
-              else:                    matchedWords[word]=[sample]       ## 
-    Log.Debug(", ".join( key+"(%d)" % len(value) for key, value in matchedWords.iteritems() )) #list comprehention
-    log_string = "Search - similarity with '%s': " % orig_title
-    for match in matchedTitles: ### calculate scores + Buid results ###
-      scores = []
-      for title in match[2]: # Calculate distance without space and characters
-        a, b = self.cleanse_title(title), cleansedTitle
-        scores.append( int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) )  #To-Do: LongestCommonSubstring(first, second). use that?
-      bestScore  = max(scores)
-      log_string = log_string + match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
-      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=Locale.Language.English, score=bestScore))
-    Log.Debug(log_string)    #results.Sort('score', descending=True)
-    return
+### import Plex token to have a library list to put hte library name on the log filename ###
+PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/?X-Plex-Token=ACCOUNT_TOKEN_HERE"  # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
+if os.path.isfile(os.path.join(LOG_PATH, "X-Plex-Token.id")):                                                    #Log("'X-Plex-Token.id' file present")
+  with open(os.path.join(LOG_PATH, "X-Plex-Token.id"), 'r') as token_file:  PLEX_LIBRARY_URL = PLEX_LIBRARY_URL.replace("ACCOUNT_TOKEN_HERE", token_file.read().strip())  #Log("PLEX_LIBRARY_URL: '%s', token: '%s'" % (PLEX_LIBRARY_URL, token))
+try:
+  library_xml = etree.fromstring(urllib2.urlopen(PLEX_LIBRARY_URL).read())
+  for library in library_xml.iterchildren('Directory'):
+    for path in library.iterchildren('Location'):  PLEX_LIBRARY[path.get("path")] = library.get("title")
+except:  Log("Place correct Plex token in X-Plex-Token.id file in logs folder or in PLEX_LIBRARY_URL variable to have a log per library - https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token")
 
-    ### TVDB serie search ###
-    Log.Debug("maxi: '%d'" % maxi)
-    if maxi<50:
-      try:  TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), cacheTime=CACHE_1HOUR * 24)
-      except:  Log.Debug("search() - TVDB Loading search XML failed: ")
-      else:
-        for serie in TVDBsearchXml.xpath('Series'):
-          a, b = orig_title, serie.xpath('SeriesName')[0].text.encode('utf-8') #a, b  = cleansedTitle, self.cleanse_title (serie.xpath('SeriesName')[0].text)
-          score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
-          Log.Debug( "search() - TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, serie.xpath('seriesid')[0].text, serie.xpath('SeriesName')[0].text) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=Locale.Language.English, score=score) )
-    if len(results)>=1:  return
+### xxxxxxxxxxxxxxxx ###
+def roman_to_int(string):  # Regex for matching #M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})
+  string, result = string.upper(), 0
+  for roman_number, value in [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40]['X',10],['IX',9],['V',5],['IV',4],['I',1]]:  # if you use {} the list will be in the wrong order 
+    while string.startswith(roman_number):  result, string = result+value, string[len(roman_number):]
+  return str(result)
 
-    ### TMDB movie search ###
-    Log.Debug("search() - TMDB  - url: " + TMDB_MOVIE_SEARCH % orig_title)  #config_dict = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2)
-    try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH % orig_title.replace(" ", "%20"), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
-    except:  Log('get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH % orig_title) # tmdb_json   = self.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
-    else:
-      if isinstance(tmdb_json, dict) and 'results' in tmdb_json:
-        for i, movie in enumerate(tmdb_json['results']):
-          a, b = orig_title, movie['title'].encode('utf-8')
-          score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
-          id = movie['id']
-          Log.Debug( "search() - TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
-          if '' in movie and movie['adult']!="null":  Log.Debug( "adult: '%s'" % movie['adult'])
-          # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
+### replace a string by another while retaining original string case ###############################################################################
+def replace_insensitive (ep, word, sep=" "):
+  if ep.lower()==word.lower(): return ""
+  position = ep.lower().find(word.lower())
+  if position > -1 and len(ep)>len(word):  return (""  if position==0 else ep[:position].lstrip()) + (sep if len(ep) < position+len(word) else ep[position+len(word):].lstrip())
 
-  ### Parse the AniDB anime title XML ##################################################################################################################################
-  def Update(self, metadata, media, lang, force, movie):
+### Turn a string into a list of string and number chunks  "z23a" -> ["z", 23, "a"] ###############################################################################
+def natural_sort_key(s, _nsre=re.compile('([0-9]+)')):  return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
 
-    Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
-    if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
-    Log.Debug("Update - metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id.split('-')[0], metadata.id.split('-')[1], metadata.title, "[...]", "[...]", force) )
-    global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
-    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'    : [],
-                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': []}
-    getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
+### Return number of bytes of Unicode characters ########################################################
+def unicodeLen (char):                                           # count consecutive 1 bits since it represents the byte numbers-1, less than 1 consecutive bit (128) is 1 byte , less than 23 bytes is 1
+  for x in range(1,6):                                           # start at 1, 6 times 
+    if ord(char) < 256-pow(2, 7-x)+(2 if x==6 else 0): return x  # 256-2pow(x) with x(7->0) = 128 192 224 240 248 252 254 255 = 1 to 8 bits at 1 from the left, 256-2pow(7-x) starts form left
 
-    ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
-    tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", {}, []
-    tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
-    if   metadata.id.startswith("tvdb-"):  tvdbid = metadata.id [len("tvdb-"):]
-    elif metadata.id.startswith("anidb-"):
-      anidbid=metadata.id[len("anidb-"):]
-      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
-    elif metadata.id.startswith("tmdb-"):
-      tmdbid = metadata.id [len("tmdb-"):]
-      Log.Debug("Update() - TMDB  - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-      try:     tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
-      except:  Log('Update() - get_json - Error fetching JSON page ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-      else:
-        Log('Update() - get_json - worked: ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-        if 'vote_average' in tmdb_json and isinstance(tmdb_json['vote_average'], float):  metadata.rating                  = tmdb_json['vote_average']  # if not ep.isdigit() and "." in ep and ep.split(".", 1)[0].isdigit() and ep.split(".")[1].isdigit():  
-        if 'runtime'      in tmdb_json and isinstance(tmdb_json['runtime'     ], int):    metadata.duration                = int(tmdb_json['runtime']) * 60 * 1000
-        if 'title'        in tmdb_json and tmdb_json['title']:                            metadata.title                   = tmdb_json['title']
-        if 'overview'     in tmdb_json and tmdb_json['overview']:                         metadata.summary                 = tmdb_json['overview']
-        if 'release_date' in tmdb_json and tmdb_json['release_date']:                     metadata.originally_available_at = Datetime.ParseDate(tmdb_json['release_date']).date()
-        if 'imdb_id'      in tmdb_json and tmdb_json['imdb_id'] and not imdbid:           imdbid                           = tmdb_json['imdb_id']
-        if 'vote_average' in tmdb_json and tmdb_json['vote_average'] and 'vote_count' in tmdb_json and tmdb_json['vote_count'] > 3: metadata.rating = tmdb_json['vote_average']
-        if 'genres'       in tmdb_json and tmdb_json['genres']!=[]:
-          for genre in tmdb_json['genres']: metadata.genres.add(genre['name'].strip()) #metadata.genres = tmdb_json['genres'] ???
-        if 'production_companies' in tmdb_json and len(tmdb_json['production_companies']) > 0:  # Studio.
-          index, company = tmdb_json['production_companies'][0]['id'],""
-          for studio in tmdb_json['production_companies']:
-            if studio['id'] <= index:  index, company = studio['id'], studio['name'].strip()
-          metadata.studio = company
-        if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection']:  metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
-        if movie:
-          if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
-          #if metadata.year = metadata.originally_available_at.year
-
-    if tvdbid.isdigit(): ### TVDB ID exists ####
-
-      ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
-      if THEME_URL % tvdbid in metadata.themes:  Log.Debug("Update() - Theme song - already added")
-      else:                                      self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")  #if local, load it ?
-      
-      ### TVDB - Load serie XML ###
-      tvdbanime, summary_missing, summary_present = None, [], []
-      Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % tvdbid))
-      tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % tvdbid, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
-      if tvdbanime:
-        tvdbanime = tvdbanime.xpath('/Data')[0]
-        tvdbtitle, tvdbNetwork, tvdbOverview, tvdbFirstAired = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network'), getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
-        tvdbContentRating = getElementText(tvdbanime, 'Series/ContentRating')
-        tvdbGenre         = filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
-        if '.' in getElementText(tvdbanime, 'Series/Rating'): ###tvdbRating   # isinstance(tmdb_json['vote_average'], float)
-          try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
-          except: tvdbRating = None 
-        else: tvdbRating = None
-        if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Debug("Update() - IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
-      
-        ### TVDB - Build 'tvdb_table' ###
-        for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
-          numbering = getElementText(episode, 'absolute_number') if defaulttvdbseason=="a" else "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-          tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
-                                     'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
-                                     'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None }              
-          if getElementText(episode, 'Overview'):  summary_present.append(numbering)
-          else:                                    summary_missing.append(numbering)
-      else:
-        Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % url)
-        error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
-      Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)) )
-      Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
-
-      ### TVDB - Fanart, Poster and Banner ###
-      if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
-        if tvdbposternumber == 0:
-          error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
-          Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
-  
-    ### Movie posters including imdb from TVDB - Load serie XML ###
-    if imdbid.isalnum():
-      self.getImagesFromTMDB                      (metadata, imdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
-      self.getImagesFromOMDB                      (metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-    elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+### Decode string back to Unicode ###   #Unicodize in utils?? #fixEncoding in unicodehelper
+def encodeASCII(string, language=None): #from Unicodize and plex scanner and other sources
+  if string=="": return ""
+  ranges = [ {"from": ord(u"\u3300"), "to": ord(u"\u33ff")}, {"from": ord(u"\ufe30"), "to": ord(u"\ufe4f")}, {"from": ord(u"\uf900"), "to": ord(u"\ufaff")},  # compatibility ideographs
+             {"from": ord(u"\u30a0"), "to": ord(u"\u30ff")}, {"from": ord(u"\u2e80"), "to": ord(u"\u2eff")}, # Japanese Kana    # cjk radicals supplement
+             {"from": ord(u"\u4e00"), "to": ord(u"\u9fff")}, {"from": ord(u"\u3400"), "to": ord(u"\u4dbf")}] # windows: TypeError: ord() expected a character, but string of length 2 found #{"from": ord(u"\U00020000"), "to": ord(u"\U0002a6df")}, #{"from": ord(u"\U0002a700"), "to": ord(u"\U0002b73f")}, #{"from": ord(u"\U0002b740"), "to": ord(u"\U0002b81f")}, #{"from": ord(u"\U0002b820"), "to": ord(u"\U0002ceaf")}, # included as of Unicode 8.0                             #{"from": ord(u"\U0002F800"), "to": ord(u"\U0002fa1f")}  # compatibility ideographs
+  encodings, encoding = ['iso8859-1', 'utf-16', 'utf-16be', 'utf-8'], ord(string[0])
+  if 0 <= encoding < len(encodings):  string = string[1:].decode('cp949') if encoding == 0 and language == 'ko' else string[1:].decode(encodings[encoding])      # If we're dealing with a particular language, we might want to try another code page.
+  if sys.getdefaultencoding() not in encodings:
+    try:     string = string.decode(sys.getdefaultencoding())
+    except:  pass
+  if not sys.getfilesystemencoding()==sys.getdefaultencoding():
+    try:     string = string.decode(sys.getfilesystemencoding())
+    except:  pass
+  string = string.strip('\0')
+  try:       string = unicodedata.normalize('NFKD', string)    # Unicode  to ascii conversion to corect most characters automatically
+  except:    pass
+  try:       string = re.sub(RE_UNICODE_CONTROL, '', string)   # Strip control characters.
+  except:    pass
+  try:       string = string.encode('ascii', 'replace')        # Encode into Ascii
+  except:    pass
  
-    ### TVDB mode when a season 2 or more exist ############################################################################################################
-    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb-")):
-      Log.Debug("using TVDB numbering mode (seasons)" )
-      if tvdbtitle:          metadata.title                   = tvdbtitle
-      if tvdbRating:         metadata.rating                  = tvdbRating
-      if tvdbOverview:       metadata.summary                 = tvdbOverview
-      if tvdbNetwork:        metadata.studio                  = tvdbNetwork
-      if tvdbContentRating:  metadata.content_rating          = tvdbContentRating 
-      if tvdbFirstAired:     metadata.originally_available_at = Datetime.ParseDate( tvdbFirstAired ).date()
-      if tvdbGenre:
-        for genre in tvdbGenre: metadata.genres.add(genre)
-        Log.Debug("Update() - TVDB - tvdbGenre: '%s'" % str(tvdbgenre))
-      list_eps = ""
-      for media_season in media.seasons:
-        metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
-        for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count = "s%se%s" % (media_season, media_episode), 0
-          if ep in tvdb_table:
-            if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
-              try:     metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
-              except:  Log.Debug("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
-            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']: metadata.seasons[media_season].episodes[media_episode].title   = tvdb_table [ep] ['EpisodeName']
-            if 'Rating'      in tvdb_table[ep] and tvdb_table [ep] ['Rating']:
-              try:     metadata.seasons[media_season].episodes[media_episode].rating  = float(tvdb_table [ep] ['Rating'])
-              except:  Log.Debug("float issue: '%s'" % tvdb_table [ep] ['Rating']) #ValueError
-            if 'FirstAired'  in tvdb_table[ep] and tvdb_table [ep] ['FirstAired']:
-              match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", tvdb_table [ep] ['FirstAired'])
-              if match:
-                try:   metadata.seasons[media_season].episodes[media_episode].originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
-                except ValueError, e: Log.Debug("update - TVDB parseAirDate - Date out of range: " + str(e))
-          for media_item in media.seasons[media_season].episodes[media_episode].items:
-            for item_part in media_item.parts:  Log("File: '%s'" % item_part.file)
-          episode_count, list_eps = episode_count + 1, list_eps + ep + ", "
-        metadata.seasons[media_season].episode_count = episode_count #An integer specifying the number of episodes in the season.
-      if list_eps !="":  Log.Debug("List_eps: " + list_eps)    
-      Log.Debug("TVDB table: '%s'" % str(tvdb_table))   
+  ### loop through unicode and replace special chars with spaces then map if found ###
+  original_string, string, i = string, list(string), 0
+  while i < len(string):
+    if ord(string[i])<128:  i = i+1
+    else: #non ascii char
+      char, char2, char3, char_len = 0, "", [], unicodeLen(string[i])
+      for x in range(0, char_len):
+        char = 256*char + ord(string[i+x]); char2 += string[i+x]; char3.append(string[i+x])
+        if not x==0: string[i] += string[i+x]; string[i+x]=''
+      try:    asian_language = any([mapping["from"] <= ord("".join(char3).decode('utf8')) <= mapping["to"] for mapping in ranges])
+      except: asian_language = False
+      if char in CHARACTERS_MAP:  string[i]=CHARACTERS_MAP.get( char )
+      elif not asian_language:    Log("*Character missing in CHARACTERS_MAP: %d:'%s'  , #'%s' %s, string: '%s'" % (char, char2, char2, char3, original_string))
+      i += char_len
+  return ''.join(string)
+
+### Allow to display ints even if equal to None at times ################################################
+def clean_string(string, no_parenthesis=False):
+  if not string: return ""
+  if "`"     in string:                                                    string = string.replace("`", "'")                                                         # translate anidb apostrophes into normal ones #s = s.replace('&', 'and')       
+  if no_parenthesis and "(" in string:                                     string = re.sub(r'\(.*?\)', ' ', string)                                                  # or not delete_parenthesis and not re.search('.*?\((19[0-9]{2}|20[0-2][0-9])\).*?', string, re.IGNORECASE) 
+  elif "(" in string and not " (" in string:                               string = string.replace("(", " (")
+  elif ")" in string and not ") " in string:                               string = string.replace(")", ") ")
+  if "[" in string or "{" in string:                                       string = re.sub(r'[\[\{](?![0-9]{1,3}[\]\}]).*?[\]\}]', '', string).replace("[", '').replace("]", '')    # remove "[xxx]" groups but ep numbers inside brackets as Plex cleanup keep inside () but not inside [] #look behind: (?<=S) < position < look forward: (?!S)
+  if string.endswith(", The"):                                             string = "The " + ''.join( string.split(", The", 1) )                                     # ", The" is rellocated in front
+  if string.endswith(", A"):                                               string = "A "   + ''.join( string.split(", A"  , 1) )                                     # ", A"   is rellocated in front
+  for word in whack_pre_clean:                                             string = replace_insensitive(string, word) if word.lower() in string.lower() else string  #
+  for char in  FILTER_CHARS:                                               string = string.replace(char, " ") if char in string else string                          # replace os forbidden chars with spaces
+  if re.match(".*?[\(\[\{]?[0-9a-fA-F]{8}[\[\)\}]?.*", string.split(" ")[-1]):  string = re.sub('[0-9a-fA-F]{8}', '', string) #" ".join(string.split(" ")[:-1])                                                 # CRCs removal
+  for rx in ("-", "_", "()", "[]", "{}"):                                  string = string[len(rx):   ] if string.startswith(rx) else string                         # In python 2.2.3: string = string.strip(string, " -_")#if string.startswith(("-")): string=string[1:]
+  for rx in ("-", "_", "()", "[]", "{}", "- copy"):                        string = string[ :-len(rx) ] if string.lower().endswith  (rx) else string                 # In python 2.2.3: string = string.strip(string, " -_")
+  string = encodeASCII(string)                                                                                                                                       # Translate them
+  return " ".join([word for word in filter(None, string.split()) if word.lower() not in whack]).strip()                                                              # remove double spaces + words present in "whack" list #filter(None, string.split())
+
+### Add files into Plex database ########################################################################
+def add_episode_into_plex(mediaList, files, file, root, path, show, season=1, ep=1, title="", year=None, ep2="", rx="", tvdb_mapping={}):
+  if title==title.lower() or title==title.upper() and title.count(" ")>0: title = title.title()  # capitalise if all caps or all lowecase and one space at least
+  if ep==0:    episode, season = 1, 0                                                            # s01e00 and S00e00 => s00e01
+  if not ep2:  ep2 = ep                                                                          # make ep2 same as ep for loop and tests
+  if ep > ep2 or show=="" and path:
+    Log("Warning - show: '%s', s%02de%03d-%03d, file: '%s' has ep1 > ep2, or show empty" % (show, season, ep, ep2, file))
+    ep2 = ep
+  if year =="": year=None
+  if not keep_zero_size_files and str(os.path.getsize(file))=="0":  return #do not keep dummy files by default unless this file present in Logs folder
+  if     os.path.isfile(os.path.join(LOG_PATH,"dummy.mp4")):  file = os.path.join(LOG_PATH,"dummy.mp4")                  #with dummy.mp4(not empy file) in Logs folder to get rid of Plex Media Scanner.log exceptions, it will remove most eps with size 0 which oculd remove series
+  if tvdb_mapping and ep  in tvdb_mapping:  season, ep  = tvdb_mapping[ep ]
+  if tvdb_mapping and ep2 in tvdb_mapping:  season, ep2 = tvdb_mapping[ep2]
+  for epn in range(ep, ep2+1):
+    if len(show) == 0: Log("add_episode_into_plex() - BAZINGA - show empty, report logs to dev ASAP")
+    else:
+      tv_show, tv_show.display_offset = Media.Episode(show, season, epn, title, year), (epn-ep)*100/(ep2-ep+1)
+      tv_show.parts.append(file); #
+      mediaList.append(tv_show)   # at this level otherwise only one episode per multi-episode is showing despite log below correct
+  index = str(series_rx.index(rx)) if rx in series_rx else str(anidb_rx.index(rx)+len(series_rx)) if rx in anidb_rx else ""  # rank of the regex used from 0
+  Log("\"%s\" s%04de%03d%s \"%s\"%s%s" % (show, season, ep, "" if ep==ep2 else "-%03d" % ep2, os.path.basename(file), " \"%s\"" % index if index else "", " \"%s\" " % title if title else ""))  #Stack.Scan(path, files, mediaList, [])
+
+### Add files into array ################################################################################
+def explore_path(root, subdir, file_tree, plexignore_files=[], plexignore_dirs=[]):
+  fullpath=os.path.join(subdir, ".plexignore")
+  if os.path.isfile(fullpath):
+    with open(fullpath, 'r') as plexignore:                                                      # Log(".plexignore")
+      for pattern in plexignore:                                                                 #
+        pattern = pattern.strip()                                                                # remove useless spaces at both ends
+        if pattern == '' or pattern[0] == '#': continue                                          # skip comment and emopy lines, go to next for iteration
+        if '/' not in pattern:  plexignore_files.append(fnmatch.translate(pattern))              # patterns for this folder gets converted and added to files.
+        elif pattern[0] != '/': plexignore_dirs.append(pattern)                                  # patterns for subfolders added to folders
+  files, dirs = [], []                                                                           ### Process all files and folders ###
+  for item in os.listdir(subdir):                                                                # Loop current folder files and folders
+    fullpath = os.path.join(subdir, item)                                                        #
+    if os.path.isdir(fullpath):                                                                  ### dirs
+      for rx in ignore_dirs_rx:                                                                  # Loop through unwanted folders list
+        if re.match(rx, item, re.IGNORECASE):  Log("Folder: '%s' match ignore_dirs_rx: '%s'" % (fullpath[len(root):], rx)); break   # If folder in list of skipped folder exit this loop
+      else:  dirs.append(fullpath)                                                               # .plexignore subfolder restrictions management
+    else: #if os.path.isfile(fullpath):                                                          ### is a file ###
+      for rx in ignore_files_rx+plexignore_files:                                                # Filter trailers and sample files
+        if re.match(rx, item, re.IGNORECASE):  Log("File:   '%s' match %s: '%s'" % (fullpath[len(root):], "ignore_files_rx" if rx in ignore_files_rx else "plexignore_files", rx)); break
+      else: 
+        if   '.' in item and item.lower().rsplit('.', 1)[1] in video_exts:       files.append(fullpath)
+        elif '.' in item and item.lower().rsplit('.', 1)[1] not in ignore_exts:  Log("File:   '%s' extension not in video_exts" %(fullpath[len(root):]))                                        ### files
+  dirs.sort(); files.sort(key=natural_sort_key)
+  for item in dirs:
+    plexignore_recursive_files = plexignore_recursive_dirs = []                                  # Split recursive entries, this one for next folder's subfolders
+    for rx in plexignore_dirs:                                                                   # On each patter string
+      pattern = rx.split("/")                                                                    # Create array splitting by / so all folders separated and patter last
+      if pattern[0].lower() == Utils.SplitPath(item)[-1].lower():                                # first folder the same
+        if len(pattern) == 2: plexignore_recursive_files.append(fnmatch.translate(pattern[1]))   # One folder, for next folder current files
+        if len(pattern) >= 3: plexignore_recursive_dirs.append( "",join(pattern[1:]))            # 2+ folders, for next folder subfolders
+    explore_path(root, item, file_tree, plexignore_recursive_files, plexignore_recursive_dirs)   # call next folder and will inherit restrictions
+  if files:  file_tree["" if subdir==root else subdir.replace(root, "")[1:]] = files             # add files to file_tree array
+
+### Look for episodes ###################################################################################
+def Scan(path, files, mediaList, subdirs, language=None, root=None, **kwargs):
+  if not path == "":  return  # Exit every other iteration than the root scan
+
+  ### Rename log file with library name if XML file can be accessed ###
+  global LOG_FILE_LIBRARY
+  LOG_FILE_LIBRARY = LOG_FILE[:-4] + " - " + PLEX_LIBRARY[root] + LOG_FILE[-4:] if root in PLEX_LIBRARY else LOG_FILE #LOG_FILE stays un-touched, and is used to custom update LOG_FILE_LIBRARY with the library name
+  Log(("=== Library Scan: \"%s\", Root: \"%s\", Skipped mediums ===" % (PLEX_LIBRARY[root] if root in PLEX_LIBRARY else "X-Plex-Token.id file missing", root)).ljust(157, '='))
+  file_tree = {}; explore_path(root, root, file_tree)                                                         # Build file_tree which output skipped medium in logs
+  with open(os.path.join(LOG_PATH, LOG_FILE_LIBRARY[:-4]+" - filelist"+LOG_FILE_LIBRARY[-4:]), 'w') as file:  ### Create a log with the library files relative path in logs folder for T/S 
+    for folder in sorted(file_tree):                                                                          # convert to ansi, then notepad++ to replace \r\n to \n if needed + batch to recreate dummy library for tests
+      for filename in file_tree[folder]:  file.write( filename.replace(root, "")[1:] + "\n")                  # for each folder, for each file, write the relative path with windows line ending 
+  Log("=== filelist created - now processing it ===".ljust(157, '='))
+  
+  ### Main loop for folders ###
+  for path in sorted(file_tree):                                                                              # Loop to add all series while on the root folder Scan call, which allows subfolders to work
+    files, folder_year, folder_season, reverse_path, AniDB_op, counter, folder_show = file_tree[path], None, None, list(reversed(Utils.SplitPath(path))), {}, 1, None #
+    
+    ### bluray folder management ###                                                                          # source: https://github.com/doublerebel/plex-series-scanner-bdmv/blob/master/Plex%20Series%20Scanner%20(with%20disc%20image%20support).py
+    if len(reverse_path) >= 3 and reverse_path[0].lower() == 'stream' and paths[1].lower() == 'bdmv':
+      if reverse_path[0].lower() == 'stream': reverse_path.pop(0)
+      if reverse_path[0].lower() == 'bdmv' :  reverse_path.pop(0)
+      ep = clean_string(reverse_path[0], True)
+      if len(reverse_path)>1:  reverse_path.pop(0)
+      Log("BluRay folder detected - using as equivalent to filename ep: '%s', reverse_path: '%s'" % (ep, reverse_path[0]))
+    
+    ### Extract season folder to reduce complexity and use folder as serie name ###
+    for folder in reverse_path[:-1]:                   # remove root folder from test, [:-1] Doesn't thow errors but gives an empty list if items don't exist, might not be what you want in other cases
+      for rx in season_rx :                            # in anime, more specials folders than season folders, so doing it first
+        match = re.match(rx, folder, re.IGNORECASE)
+        if match:
+          reverse_path.remove(folder)                  # All ways to remove: reverse_path.pop(-1), reverse_path.remove(thing|array[0])
+          if rx!=season_rx[-1]:  folder_season = season = int( match.group('season')) if match.groupdict().has_key('season') and match.group('season') else 0; break
+          match = None                                 # Continue as if nothing happend, will go to second folder
+      if match: break                                  # cascade break
+    else:  season = 1                                  # Season is 1 by default is season folder not present
+    
+    ### Capture title form anidb.id or use folder name ###
+    folder_show, guid, tvdb_mapping = reverse_path[0], "", {}
+    if not re.search(".*? ?\[(anidb|tvdb|tmdb|imdb)-(tt)?[0-9]{1,7}\]", folder_show, re.IGNORECASE):
+      for file_path in ("anidb.id", "Extras/anidb.id", "tvdb.id", "Extras/tvdb.id", "tmdb.id", "Extras/tmdb.id", "tsdb.id", "Extras/tsdb.id", "imdb.id", "Extras/imdb.id"):
+        if os.path.isfile(os.path.join(root, path, file_path)):
+          with open(os.path.join(root, path, file_path), 'r') as guid_file:
+            guid = guid_file.read().strip()
+            folder_show = "%s [%s-%s]" % (clean_string(reverse_path[0]), os.path.splitext(os.path.basename(file_path))[0], guid)
+          if guid and "tvdb" in file_path and not folder_season: 
+            try:
+              Log('http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml' % guid)
+              result    = urllib2.urlopen('http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml' % guid).read()
+              tvdbanime =  etree.fromstring(result)
+              for episode in tvdbanime.xpath('Episode'):
+                SeasonNumber    = episode.xpath('SeasonNumber'   )[0].text if episode.xpath('SeasonNumber'   )[0].text else ''
+                EpisodeNumber   = episode.xpath('EpisodeNumber'  )[0].text if episode.xpath('EpisodeNumber'  )[0].text else ''
+                absolute_number = episode.xpath('absolute_number')[0].text if episode.xpath('absolute_number')[0].text else ''
+                if absolute_number:  tvdb_mapping[int(absolute_number)] = (int(SeasonNumber), int(EpisodeNumber))
+            except: Log("tvdb xml loading issue")
+          break
+      else:  folder_show = folder_show.replace(" - ", " ").split(" ", 2)[2]  if folder_show.lower().startswith(("saison","season","series")) and len(folder_show.split(" ", 2))==3 else clean_string(folder_show) # Dragon Ball/Saison 2 - Dragon Ball Z/Saison 8 => folder_show = "Dragon Ball Z"
+    Log("\"%s\"%s%s" % (folder_show if path else "Root Folder (show name will be taken from filename)", " from foldername: \"%s\"" % path if path!=folder_show else "", ", Season: \"%d\"" % (folder_season) if folder_season is not None else "") )
+    
+    ### Main File loop to start adding files now ###
+    movie_list, counter = {}, 500
+    for file in files:                                                                                                                                                             # "files" is a list of media files full path, File is one of the entries
+      filename                                       = os.path.splitext(os.path.basename(file))[0]                                                                                 # remove folders and extension(mp4)
+      show, year, season, ep, ep2, title, folder_use = folder_show, folder_year, 1 if folder_season is None else folder_season, clean_string(filename, False), None, "", False     # misc, year      = VideoFiles.CleanName(filename_no_ext)
+      if ep==folder_show or len(files)==1 and ("movie" in ep.lower()+folder_show.lower() or "gekijouban" in folder_show.lower()):  ep, title = "01", folder_show                   ### Movies ### 
+      elif folder_show:                                                                                                                                                            ### Remove folder name from file name to reduce complexity and favor folder name over filename ### (who put crappy folder names and clean filenames anyway?)  # if not at root and containing folder exist and has name different from "_" (scrubed to "")
+        if ep.lower().startswith(folder_show.lower()):  ep, folder_use = ep[len(folder_show):].lstrip(), True                                                                      #remove cleansed folder name from cleansed filename and remove potential space
+        if folder_season > 1:
+          for prefix in ("%s s%d" % (folder_show, folder_season), "%s s%02d" % (folder_show, folder_season)):                                                                      #"%s %d " % (folder_show, folder_season), 
+            if ep.lower().startswith(prefix.lower()):  ep =  replace_insensitive(ep, prefix , "").lstrip()                                                                         # Series S2  like transformers (bad naming)  # Serie S2  in season folder, Anidb specials regex doesn't like
+        if ep.lower().startswith(("special", "picture drama", "omake")):                               season, title  = 0, ep.title()                                              ### If specials, season is 0 and if title empty use as title ### 
+        
+      words, misc = filter(None, ep.split()), " ".join( [clean_string(os.path.basename(x), True) for x in files]).lower()                                  # put all filenames in folder in a string to count if ep number valid or present in multiple files ###clean_string was true ###
+      for word in words:                     
+        ep=word.lower().strip()                                                                                                                             # cannot use words[words.index(word)] otherwise# if word=='': continue filter prevent "" on double spaces
+        if "(" in ep and len(ep)==6 and ep[0]=='(' and ep[5]==')' and ep[1:5].isdigit():  ep = ep [1:5]                                                     # remove parenthesis from year in parenthesis
+        if '-' in ep and len(filter(None, ep.split('-',1)))==2:                                                                                             # If separator in string
+          if re.match("^(ep?[ -]?)?(?P<ep>[0-9]{1,3})(-|ep?|-ep?)(?P<ep2>[0-9]{1,3})", ep, re.IGNORECASE):  ep="Skip"; break                                # if multi ep: make it non digit and exit so regex takes care of it
+          ep = ep.split('-',1)[0] if ''.join(letter for letter in ep.split('-',1)[0] if letter.isdigit()) else ep.split('-',1)[1]                           # otherwise all after separator becomes word#words.insert(words.index(word)+1, "-".join(ep.split("-",1)[1:])) #.insert(len(a), x) is equivalent to a.append(x). #???
+        if ep.endswith(("v1", "v2", "v3", "v4")):  ep=ep[:-2].rstrip('-')                                                                                   # 
+        if ep.upper().startswith(("ed", "op", "ncop", "nced")): break                                                                                       # "OP/ED xx" goes to regex
+        if "trailer" in ep:                                                             season, ep, title = 0, "201",               "Trailer";       break  # remove ?
+        if "." in ep and ep.split(".", 1)[0].isdigit() and ep.split(".")[1].isdigit():  season, ep, title = 0, ep.split(".", 1)[0], "Special " + ep; break  # ep 12.5 = "1" title "Special 12.5"
+        if   ep.isdigit() and len(ep)==4 and (int(ep)< 1900 or folder_season and int(ep[0:1])==folder_season):  season, ep = int(ep[0:2]), ep[2:4]          # 1206 could be season 12 episode 06  #Get assigned from left ot right
+        elif ep.isdigit() and len(ep)==4:  filename = clean_string( " ".join(words).replace(ep, "(%s)" % ep));  continue                                    # take everything after supposed episode number
+        else:                                                                                                                                               # 
+          if ''.join(letter for letter in ep if letter.isdigit())=="": continue                                                                               #
+          if ep in ("", "-") or ''.join(letter for letter in ep if letter.isdigit())=="" or path and misc.count(ep)>=3 or ep in clean_string(folder_show, True) and clean_string(filename, True).count(ep)!=2:  continue
+          for prefix in ["ep", "e", "act", "s"]:                                                                                                            #
+            if ep.startswith(prefix) and len(ep)>len(prefix) and ep[len(prefix):].isdigit(): ep, season = ep[len(prefix):], 0 if prefix=="s" else season    # E/EP/act before ep number ex: Trust and Betrayal OVA-act1 # to solve s00e002 "Code Geass Hangyaku no Lelouch S5 Picture Drama 02 'Stage 3.25'.mkv" "'Stage 3 25'" 
+        if not path:  show = clean_string( " ".join(words[:words.index(word)-1]) if len(words)-words.index(word)-1 >1 else "No title", False)               #  
+        title = clean_string( " ".join(words[ words.index(word)+1:]) if len(words)-words.index(word)>1 else "", False)                                      # take everything after supposed episode number
+        break
+      if ep.isdigit():  add_episode_into_plex(mediaList, files, file, root, path, show, season, int(ep), title, year, int(ep2) if ep2 and ep2.isdigit() else None, "None", tvdb_mapping);  continue
       
-    elif metadata.id.startswith("anidb-"): 
-      ### AniDB Serie XML ##################################################################################################################################
-      Log.Debug("Update() - AniDB mode - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata.id[len("anidb-"):] + ", " + "AniDB/"+metadata.id[len("anidb-"):]+".xml" )
-      anime = None         #return #if banned return ?
-      try:     anime = self.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata.id[len("anidb-"):], "AniDB/"+metadata.id[len("anidb-"):]+".xml", True, CACHE_1HOUR * 24).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-      except: Log.Error("Update() - AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile")
-      if anime:
-        
-        ### AniDB Title ###
-        try:     title, orig = self.getAniDBTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
-        except:  Log.Debug("Update() - AniDB Title: Exception raised" )
-        else:  # title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8").replace("`", "'")
-          if title == str(metadata.title):  Log.Debug("Update() - AniDB title: '%s', original title: '%s', metadata.title '%s'*" % (title, orig, metadata.title))
-          elif title != "": #If title different but not empty [Failsafe]
-            Log.Debug("Update() - AniDB title: '%s', original title: '%s', metadata.title '%s'" % (title, orig, metadata.title))
-            metadata.title = title
-            if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie, Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
-            
-        ### AniDB Start Date ###
-        if getElementText(anime, 'startdate') == "":                                  Log.Debug("Update() - AniDB Start Date: None")
-        elif metadata.originally_available_at == getElementText(anime, 'startdate'):  Log.Debug("Update() - AniDB Start Date: '%s'*" % str(metadata.originally_available_at))
-        else:
-          metadata.originally_available_at = Datetime.ParseDate( getElementText(anime, 'startdate') ).date()
-          if movie: metadata.year          = metadata.originally_available_at.year
-          Log.Debug("Update() - AniDB Start Date: '%s'" % str(metadata.originally_available_at))
-        
-        ### AniDB Ratings ###
-        misc = getElementText(anime, 'ratings/permanent')
-        if misc=="":                                         Log.Debug("update() - AniDB Ratings:    'None'")   
-        elif '.' in misc and float(misc) == metadata.rating: Log.Debug("update() - AniDB Ratings:    '%s'*" % misc)
-        else:                                                Log.Debug("update() - AniDB Ratings:    '%s'"  % misc);  metadata.rating = float( misc )
-        
-        ### AniDB Genres ###
-        genres = {}
-        for category in anime.xpath('categories/category'):
-          if getElementText(category, 'name') in GENRE_NAMES and category.get('weight') >= Prefs['MinimumWeight']:                 genres [ getElementText(category, 'name') ] = int(category.get('weight')) # Remove genre whitelist
-          if getElementText(category, 'name') in RESTRICTED_GENRE_NAMES and metadata.content_rating != RESTRICTED_CONTENT_RATING:  metadata.content_rating = RESTRICTED_CONTENT_RATING
-        sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
-        log_string, genres = "AniDB Genres (Weight): ", []
-        for genre in sortedGenres: genres.append(genre[0].encode("utf-8") )
-        if sorted(metadata.genres)==sorted(genres): Log.Debug(log_string+str(sortedGenres)+"*") 
-        else:
-          Log.Debug("Update() - genres: " + str(sortedGenres) + " " + str(genres))
-          metadata.genres.clear()
-          for genre in sortedGenres:
-            metadata.genres.add(genre[0])
-            log_string += "%s (%s) " % (genre[0], str(genre[1]))
-          Log.Debug(log_string)
-        
-        ### AniDB Collections ###
-        self.anidbCollectionMapping(metadata, anime, anidbid_table)
-        
-        ### AniDB Creator data -  Aside from the animation studio, none of this maps to Series entries, so save it for episodes ###
-        log_string, metadata.studio, plex_role = "AniDB Creator data: ", "", {'directors': [], 'producers': [], 'writers': []}
-        roles = { "Animation Work": ["studio",  'studio' , "studio"], "Direction": ["directors", 'directors', "director"], "Series Composition": ["producers", 'producers', "producer"],
-                  "Original Work" : ["writers", 'writers', "writer"], "Script"   : ["writers",   'writers'  , "writer"  ], "Screenplay"        : ["writers",   'writers'  , "writer"  ] }
-        if movie: ###github for role in roles [1:3]: roles[role][0].clear()
-          metadata.writers.clear #   a = sum(getattr(t, name, 0) for name in "xyz")
-          metadata.producers.clear()
-          metadata.directors.clear()          #Log.Debug("before for") #test = {"directors", 'producers', 'writers'} #for role in test:  metadata.test[role].clear() #for role in ["directors", 'producers', 'writers']:  metadata.role.clear() #role2[role].clear() #TypeError: unhashable type
-        log_string = "AniDB Creator data: "
-        for creator in anime.xpath('creators/name'):
-          for role in roles: 
-            if role in creator.get('type'):
-              if roles[ role ][1]=='studio':  metadata.studio = creator.text
-              elif     movie:
-                if   roles[ role ][1]=='directors':  metadata.directors.add(creator.text)
-                elif roles[ role ][1]=='writers':    metadata.writers.add(creator.text)
-              else:                                  plex_role [ roles[role][1] ].append(creator.text) #not movie #for episodes
-              log_string += "%s is a %s, " % (creator.text, roles[role][2] )
-        if metadata.studio == "" and mapping_studio != "":  metadata.studio = mapping_studio
-        if metadata.studio != "" and mapping_studio != "":  error_log['anime-list studio logos'].append("Aid: %s AniDB have studio '%s' and XML have '%s'"         % (metadata.id[len("anidb-"):].zfill(5), metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
-        if metadata.studio == "" and mapping_studio == "":  error_log['anime-list studio logos'].append("Aid: %s AniDB and anime-list are both missing the studio" % (metadata.id[len("anidb-"):].zfill(5)) )
-        Log.Debug(log_string)
-
-        ### AniDB Serie/Movie description ###
-        try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
-        except:  description = ""; Log.Debug("Exception ")
-        if description == "":  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
-        if metadata.summary != description and description:  metadata.summary = description.replace("`", "'")
-        
-        ### AniDB Posters ###
-        Log.Debug("Update() - AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
-        if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + "" + metadata.title)
-        elif Prefs['GetAnidbPoster']:  self.metadata_download (metadata.posters, ANIDB_PIC_BASE_URL + getElementText(anime, 'picture'), 99, "AniDB/%s" % getElementText(anime, 'picture')) 
-
-        if not movie: ### TV Serie specific #################################################################################################################
-          numEpisodes, totalDuration, mapped_eps, missing_eps, ending_table, op_nb = 0, 0, [], [], {}, 0 
-          specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
-          
-          for episode in anime.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
-            ep_title, main   = self.getAniDBTitle (episode.xpath('title'), EPISODE_LANGUAGE_PRIORITY)
-            epNum,    eid    = episode.xpath('epno')[0], episode.get('id')
-            epNumType        = epNum.get('type')
-            season, epNumVal = "1" if epNumType == "1" else "0", epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
-            if epNumType=="3":
-              if ep_title.startswith("Ending"):
-                if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
-                epNumVal = str( int(epNumVal) +50-op_nb)   #shifted to 150 for 1st ending.  
-              Log.Debug("Update() - AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
-             
-            if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("update - Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
-              if epNumType == "1": missing_eps.append(" s" + season + "e" + epNumVal )
-              continue
-            episodeObj = metadata.seasons[season].episodes[epNumVal]
-            
-            ### AniDB Get the correct episode title ###
-            if episodeObj.title == ep_title:  Log.Debug("Update() - AniDB episode title: '%s'*" % ep_title) 
-            else:                             Log.Debug("Update() - AniDB episode title: '%s'"  % ep_title); episodeObj.title = ep_title
-            
-            ### AniDBN turn the YYYY-MM-DD airdate in each episode into a Date ###
-            airdate, originally_available_at = getElementText(episode, 'airdate'), None
-            if airdate:
-              match = re.match("([1-2][0-9]{3})-([0-1][0-9])-([0-3][0-9])", airdate)
-              if match:
-                try:                   originally_available_at = datetime.date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
-                except ValueError, e:  Log.Debug("Update() - AniDB parseAirDate - Date out of range: " + str(e))
-            if originally_available_at == episodeObj.originally_available_at: Log.Debug("Update() - AniDB AirDate '%s'*" % airdate)
-            else:                                                             Log.Debug("Update() - AniDB AirDate '%s'"  % airdate);  episodeObj.originally_available_at = originally_available_at
-            
-            ### AniDB Duration ###
-            if getElementText(episode, 'length'):
-              duration = int(getElementText(episode, 'length')) * 1000 * 60  # Plex save duration in millisecs, AniDB stores it in minutes
-              if episodeObj.duration == duration:  Log.Debug("Update() - AniDB duration: '%d'*" % duration)
-              else:                                Log.Debug("Update() - AniDB duration: '%d'"  % duration);  episodeObj.duration = duration;               
-              if season == "1": numEpisodes, totalDuration = numEpisodes + 1, totalDuration + episodeObj.duration
-            
-            ### AniDB Writers, Producers, Directors ###  #Log.Debug("### AniDB Writers, Producers, Directors ### ")
-            for role in plex_role:
-              for person in plex_role[role]:
-                if role=="writers":    episodeObj.writers.add  (person)
-                if role=="producers":  episodeObj.producers.add(person)
-                if role=="directors":  episodeObj.directors.add(person)
-            
-            ### Rating ###
-            rating = getElementText(episode, 'rating') #if rating =="":  Log.Debug(metadata.id + " Episode rating: ''") #elif rating == episodeObj.rating:  Log.Debug(metadata.id + " update - Episode rating: '%s'*" % rating )
-            if not rating =="" and re.match("^\d+?\.\d+?$", rating):  episodeObj.rating = float(rating) #try: float(element) except ValueError:     print "Not a float"
-            
-            ### TVDB mapping episode summary ###
-            if tvdbid.isdigit():
-              anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
-              if anidb_ep in mappingList  and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
-              elif defaulttvdbseason=="a" and              epNumVal in tvdb_table:  tvdb_ep = epNumVal
-              elif season=="0":                                                     tvdb_ep = "s"+season+"e"+epNumVal
-              else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
-              summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
-              mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
-              Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'][0:50].strip() if tvdb_ep in tvdb_table else "") )
-              episodeObj.summary = summary.replace("`", "'")            
-          ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
-
-          ### AniDB Missing Episodes ###
-          if len(missing_eps)>0:  error_log['Missing episodes'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.split("-")[1].zfill(5), title, missing_eps))
-          convert      = lambda text: int(text) if text.isdigit() else text
-          alphanum_key = lambda key:  [ convert(c) for c in re.split('([0-9]+)', key) ]
-
-          ### AniDB Final post-episode titles cleanup ###
-          Log.Debug("Update() - DURATION: %s, numEpisodes: %s" %(str(totalDuration), str(numEpisodes)) )
-          if numEpisodes: metadata.duration = int(totalDuration) / int(numEpisodes) #if movie getting scrapped as episode number by scanner...
-        ### End of if anime is not None: ###
-
-    ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
-    for log in error_log:
-      if error_log[log] != []:
-        if Data.Exists(log+".htm"):  string = Data.Load(log+".htm")
-        else:
-          string=""
-          if log == 'TVDB posters missing': string = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + "<br />\n"
-          if log == 'Plex themes missing':  string = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<br />\n"
-        for entry in error_log[log]:
-          if entry not in string:  Data.Save(log+".htm", string + entry + "<br />\r\n")
-    Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
-        
-  ### Get the tvdbId from the AnimeId #######################################################################################################################
-  def anidbTvdbMapping(self, metadata, anidb_id, error_log):
-    global AniDB_TVDB_mapping_tree    #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
-    poster_id_array, mappingList = {}, {}  #AniDB_TVDB_mapping_misc = xmlElementFromFile(ANIDB_TVDB_MAPPING, os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24)
-    for anime in AniDB_TVDB_mapping_tree.iter('anime') if AniDB_TVDB_mapping_tree else []:
-      anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason')
-      if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0  # Count posters to have a unique poster per anidbid
-      if anidbid == anidb_id: #manage all formats latter
-        name = anime.xpath("name")[0].text 
-        if tvdbid.isdigit():
-          try: ### mapping list ###
-            for season in anime.iter('mapping'):
-              for string in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string.split('-')[1]
-          except: Log.Debug("anidbTvdbMapping() - mappingList creation exception")
-        elif tvdbid in ("", "unknown"):  error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (anidb_id.zfill(5), name, tvdbid) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
-        try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
-        except: mapping_studio  = ""
-        Log.Debug("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (anidbid, tvdbid, tmdbid, imdbid, mapping_studio, defaulttvdbseason, name) )
-        anidbid_table = []
-        for anime2 in AniDB_collection_tree.iter("anime"):
-          if tvdbid == anime2.get('tvdbid'):  anidbid_table.append( anime2.get("anidbid") ) #collection gathering
-        return tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
-    else:
-      Log.Debug("anidbTvdbMapping() - anidbid '%s' not found in file" % anidb_id)
-      error_log['anime-list anidbid missing'].append("anidbid: " + anidb_id.zfill(5))
-      return "", "", "", "", [], "", [], "0"
-    
-  ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
-  def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
-    global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
-    related_anime_list = []
-    for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
-    for element in AniDB_collection_tree.iter("anime"):
-      if element.get('anidbid') in related_anime_list + anidbid_table + [metadata.id.split('-')[1]] :
-        set         = element.getparent()
-        title, main = self.getAniDBTitle(set.xpath('titles')[0], SERIE_LANGUAGE_PRIORITY)
-        metadata.collections.add(title) #metadata.collections.clear()
-        Log.Debug("anidbCollectionMapping() - anidbid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (metadata.id.split('-')[1], title, str(related_anime_list)))
-        return
-    Log.Debug("anidbCollectionMapping() - anidbid is not part of any collection, related_anime_list: '%s'" % str(related_anime_list)) 
-
-  ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
-    posternum, num, poster_total = 0, 0, 0
-    try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24) # don't bother with the full zip, all we need is the banners
-    except:  Log.Debug("getImagesFromTVDB() - Loading picture XML failed: " + TVDB_BANNERS_URL % tvdbid);  return
-    else:    Log.Debug("getImagesFromTVDB() - Loaded picture XML: '%s'" % (TVDB_BANNERS_URL % tvdbid))
-    for banner in bannersXml.xpath('Banner'): 
-      if banner.xpath('BannerType')[0].text=="poster":  poster_total +=1
-    for banner in bannersXml.xpath('Banner'): #rating   = banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else ""  #Language = banner.xpath('Language'   )[0].text #if Language not in ['en', 'jp']: continue  #id       = banner.xpath('id'         )[0].text
-      num, bannerType, bannerType2, bannerPath  = num+1, banner.xpath('BannerType' )[0].text, banner.xpath('BannerType2')[0].text, banner.xpath('BannerPath' )[0].text
-      if bannerType == 'poster':  posternum += 1
-      season = banner.xpath('Season')[0].text if banner.xpath('Season') else ""
-      if movie and not bannerType in ('fanart', 'poster') or season and season not in media.seasons:  continue
-      if Prefs['GetTvdbPosters'] and                  ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
-         Prefs['GetTvdbFanart' ] and                    bannerType == 'fanart' or \
-         Prefs['GetTvdbBanners'] and not movie and    ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-        metatype = (metadata.art                     if bannerType == 'fanart' else \
-                    metadata.posters                 if bannerType == 'poster' else \
-                    metadata.banners                 if bannerType == 'series' or bannerType2=='seasonwide' else \
-                    metadata.seasons[season].posters if bannerType == 'season' and bannerType2=='season' else None)
-        if metatype == metadata.posters:  rank = 1 if poster_id and poster_total and posternum == divmod(poster_id, poster_total)[1] + 1 else posternum+1
-        else:                             rank = num
-        bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
-        self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
-    return posternum
-
-  ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
-  def  getImagesFromTMDB(self, metadata, id, num=90):
-    config_dict, images = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2), {}
-    if id.startswith("tt"):
-      Log.Debug("getImagesFromTMDB() - using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % id)
-      tmdb_json = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %id, cache_time=CACHE_1WEEK * 2) # Log.Debug("getImagesFromTMDB - by IMDBID - tmdb_json: '%s'" % str(tmdb_json))
-      for type in ['movie_results', 'tv_results']:
-        if tmdb_json is not None and type in tmdb_json:
-          for index, poster in enumerate(tmdb_json[type]):
-            if 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
-            if 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
-      rank=90
-    else:
-      Log.Debug("getImagesFromTMDB() - using TMDBID  url: " + TMDB_IMAGES_URL % id)
-      tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2)
-      if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
-        for index, poster in enumerate(tmdb_json['posters']):
-          if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
-      if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
-        for index, poster in enumerate(tmdb_json['backdrops']):
-          if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
-      rank=95
-    if len(images):
-      for filename in images.keys():
-        if filename:
-          image_url, thumb_url = config_dict['images']['base_url'] + 'original' + filename, config_dict['images']['base_url'] + 'w300'     + filename
-          self.metadata_download (images[filename], image_url, rank, "TMDB/%s%s.jpg" % (id, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
-        
-  ### Fetch the IMDB poster using OMDB HTTP API ###########################################################################################################
-  def getImagesFromOMDB(self, metadata, imdbid, num=99):
-    Log.Debug("getImagesFromOMDB() - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
-    try:    OMDB = self.get_json(OMDB_HTTP_API_URL + imdbid, cache_time=CACHE_1WEEK * 56)
-    except: Log.Debug("getImagesFromOMDB() - Exception - imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
-    else:
-      if OMDB and 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
-      else:                                                                      Log.Debug("getImagesFromOMDB() - No poster to download - " + OMDB_HTTP_API_URL + imdbid)
-    
-  #########################################################################################################################################################
-  def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("metadata_download - url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
-    if url not in metatype:
-      file = None
-      if filename and Data.Exists(filename):  ### if stored locally load it
-        try:     file = Data.Load(filename)
-        except:  Log.Debug("metadata_download() - media_download - could not load file '%s' present in cache" % filename)
-      if file == None: ### if not loaded locally download it
-        try:     file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
-        except:  Log.Debug("metadata_download() - metadata_download - error downloading"); return
-        else:  ### if downloaded, try saving in cache but folders need to exist
-          if filename and not filename.endswith("/"):
-            try:     Data.Save(filename, file)
-            except:  Log.Debug("metadata_download() - metadata_download - could not write filename '%s' in Plugin Data Folder" % (filename)); return
-      if file:
-        try:    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
-        except: Log.Debug("metadata_download() - metadata_download - issue adding picture to plex - url downloaded: '%s', filename: '%s'" % (url_thumbnail if url_thumbnail else url, filename))  #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) # remove many posters, to avoid
-        else:   Log.Debug("metadata_download() - url: '%s', num: '%d', filename: '%s'" % (url, num, filename))
-    else:  Log.Debug("metadata_download() - url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
-
-  ### get_json file, TMDB API supports only JSON now ######################################################################################################
-  def get_json(self, url, cache_time=CACHE_1MONTH):
-    try:     return JSON.ObjectFromURL(url, sleep=2.0, cacheTime=cache_time)
-    except:  Log("get_json() - Error fetching JSON url: '%s'" % url )
-
-  ### Pull down the XML from web and cache it or from local cache for a given anime ID ####################################################################
-  def xmlElementFromFile (self, url, filename="", delay=True, cache=None):
-    Log.Debug("xmlElementFromFile() - url: '%s', filename: '%s'" % (url, filename))
-    if delay:  time.sleep(4) #2s between anidb requests but 2 threads                                                                                                   # Ban after 160 series if too short, ban also if same serie xml downloaded repetitively, delay for AniDB only for now     e #try:    a = urllib.urlopen(url)#if a is not None and a.getcode()==200:
-    try:     result = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip', 'content-type':'charset=utf8'}, timeout=20, cacheTime=cache))  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except:  result = None #Log.Debug("xmlElementFromFile() - XML issue loading url: '%s'" % url )                                                      # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-    
-    if result and len(result)>1024 and filename:  # if loaded OK save else load from last saved file
-      try:     Data.Save(filename, result)
-      except:  Log.Debug("xmlElementFromFile() - url: '%s', filename: '%s' saving failed, probably missing folder" % (url, filename))
-    elif filename and Data.Exists(filename):  # Loading locally if backup exists
-      Log.Debug("xmlElementFromFile() - Loading locally since banned or empty file (result page <1024 bytes)")
-      try:     result = Data.Load(filename)
-      except:  Log.Debug("xmlElementFromFile() - Loading locally failed but data present - url: '%s', filename: '%s'" % (url, filename)); return
+      ### Check for series_rx + anidb_rx + roman_rx ###
+      ep = clean_string(filename, False)
+      for rx in series_rx + anidb_rx: # + roman_rx:        #if rx in roman_rx:  ep = clean_string(ep.rsplit(' ', 1)[1] if ' ' in ep else ep) ### move that to chech from the beginning ?
+        match = re.search(rx, ep, re.IGNORECASE)
+        if match:
+          if match.groupdict().has_key('show'  ) and match.group('show'  ) and not path:  show   = clean_string( match.group('show' )) # Mainly if file at root or _ folder
+          if match.groupdict().has_key('title' ) and match.group('title' ):               title  = clean_string( match.group('title'))
+          if match.groupdict().has_key('season') and match.group('season'):               season = int(match.group('season'))
+          if match.groupdict().has_key('ep2'   ) and match.group('ep2'   ):               ep2    = match.group('ep2') 
+          if match.groupdict().has_key('ep'    ) and match.group('ep'    ):               ep     = match.group('ep')
+          elif rx not in anidb_rx[:-1]:                                               # if no ep in regex
+            movie_list[season] = movie_list[season]+1 if season in movie_list else 1  #add movies using year as season, starting at 1
+            ep = str(movie_list[season])                                              # Year alone is season Year and ep incremented, good for series, bad for movies but cool for movies in series folder...
+          else: ep = "01"                                                             #No ep number, anidb usefull ?????
+          if rx in anidb_rx[:-1]:                                                     ### AniDB Specials ################################################################
+            offset, season = AniDBOffset [ anidb_rx.index(rx) ], 0                    # offset = 100 for OP, 150 for ED, etc... #Log("ep: '%s', rx: '%s', file: '%s'" % (ep, rx, file))
+            if not ep.isdigit() and len(ep)>1 and ep[:-1].isdigit():                  ### OP/ED with letter version Example: op2a
+              AniDB_op [ offset + int(ep[:-1]) ] = ord( ep[-1:].lower() ) - ord('a')  # {101: 0 for op1a / 152: for ed2b} and the distance between a and the version we have here
+              ep, offset  = str( int( ep[:-1] ) ), offset + sum( AniDB_op.values() )  # "if xxx isdigit() else 1" implied since OP1a for example... # get the offset (100, 150, 200, 300, 400) + the sum of all the mini offset caused by letter version (1b, 2b, 3c = 4 mini offset)
+            ep = str( offset + int(ep))                                               # Add episode number to the offset, 01 by default from the match group above
+          #elif rx in roman_rx:  ep = roman_to_int(ep)                                ### Roman numbers ### doesn't work is ep title present
+          add_episode_into_plex(mediaList, files, file, root, path, show, season, int(ep), title, year, int(ep2) if ep2 and ep2.isdigit() else None, rx, tvdb_mapping)
+          break
+      if match: continue  # next file iteration
       
-    if url==ANIDB_TVDB_MAPPING and Data.Exists(ANIDB_TVDB_MAPPING_CUSTOM):  # Special case: if importing anidb tvdb mapping, load custom mapping entries first
-      Log.Debug("xmlElementFromFile() - Loading local custom mapping - url: '%s'" % ANIDB_TVDB_MAPPING_CUSTOM)
-      result_custom = Data.Load(ANIDB_TVDB_MAPPING_CUSTOM)
-      result        = result_custom[:result_custom.rfind("</anime-list>")-1] + result[result.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
-    
-    if result:
-      element = XML.ElementFromString(result)
-      if str(element).startswith("<Element error at "):  Log.Debug("xmlElementFromFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result)
-      else:                                              return element
-    
-  ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
-  def cleanse_title(self, title):
-    try:    title=title.encode('utf-8')
-    except: pass
-    title = " ".join(self.splitByChars(title))
-    return  title.replace("`", "'").lower() # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
+      if "-" in ep and len(ep.split("-"))>1:  title=ep.split("-")[1]                                     # Log("*no episode number found for ep: \"%s\", filename: \"%s\", word: '%s'" % (ep, filename, word))
+      for word in ep.split(" "):                                                                         #
+        if word in folder_show:  ep = replace_insensitive (ep, word, sep=" ")                            # title.replace(word, "", 1)
+      title, counter = ep.strip(), counter +1                                                            #
+      add_episode_into_plex(mediaList, files, file, root, path, show, 0, counter, title, year, None, "") # Log("ep: '%s', clean filename ep: '%s', file: '%s'" % (ep, clean_string(filename, False), file))
+    Log("".ljust(157, '-'))                                                                              # Scan(path, files, mediaList, [])
+  Log("")                                                                                                # VideoFiles.Scan(path, files, mediaList, [], root) # Filter out bad stuff and duplicates.
 
-  ### Split a string per list of chars #################################################################################################################################
-  def splitByChars(self, string, separators=SPLIT_CHARS): #AttributeError: 'generator' object has no attribute 'split'  #return (string.replace(" ", i) for i in separators if i in string).split()
-    for i in separators:
-      if i in string:  string = string.replace(i, " ")
-    return filter(None, string.split())
-    
-  ### Extract the series/movie/Episode title from AniDB ########################################################################################################################
-  def getAniDBTitle(self, titles, languages):
-    if not 'main' in languages:  languages.append('main')                                                                                      # Add main to the selection if not present
-    langTitles = ["" for index in range(len(languages)+1)]                                                                                     # languages: title order including main title, then choosen title
-    for title in titles:                                                                                                                       # Loop through all languages listed in the anime XML
-      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')                                                  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
-      if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
-      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  # 'Applede' Korean synonym fix
-    for index in range( len(languages) ):                                                                                                      # Loop through title result array
-      if langTitles[index]:  langTitles[len(languages)] = langTitles[index];  break                                               # If title present we're done
-    else: langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
-    return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
-    
-### Agent declaration ###############################################################################################################################################
-class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
-  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
-  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
-  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
-
-class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
-  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
-  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
-  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+if __name__ == '__main__':
+  print "Absolute Series Scanner:"
+  path, files, media = sys.argv[1], [os.path.join(path, file) for file in os.listdir(path)], []
+  Scan(path[1:], files, media, [])
+  print "Media:", media
