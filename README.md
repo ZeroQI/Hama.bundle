@@ -3,15 +3,27 @@ Absolute Series Scanner (ASS):
 Better ABsolute Scanner (BABS) has been replaced by Absolute Series Scanner (ASS), which i have entirely re-written.
 I recommend installing the "Absolute Series Scanner" as it supports nearly everything out of the box, normal season numbering, absolute numbering (a requirement with AniDB and anime in general), grouping folders, DVD folders (limited)...
 
-Here are Absolute Series Scanner features:
-    * direct matching by putting in the serie (or serie/Extras folder) an *.id file with the series id (anidb, tvdb, tmdb) 
-    * direct matching by putting at the end of the serie folder name " [anidb-12345]" or " [tvdb-1234567]" with the sereis id
-    * Giving a tvdb id will make the absolute series show with tvdb seasons transparently.
-    * Clever episode number detection
-    * DVD    folder support (some vob seem protected, pendign feedback on proportion from users)
-    * BluRay folder support (some vob seem protected, pendign feedback on proportion from users)
-    * Support 
+Here are Absolute Series Scanner features: [!] = Exclusive to this scanner
 
+    * [!] Allow grouping of series+movies in a parent folder (ex: Zero no tsukaima/[1] Princess no Rondo)
+    * [!] Give episode titles extracted from the filename
+    * [!] Support AniDB OP, ED, trailer, NCOP, etc... specials numbering
+    * [!] DVD    folder support (some vob seem protected, pendign feedback on proportion from users)
+    * [!] BluRay folder support (some vob seem protected, pendign feedback on proportion from users)
+    * [!] create a filelist of the library for me to be able to re-create it with dummy files
+    * [!] create a readable log of all fiels to be able to check for matching errors easilly (and skipped files/folder)
+    * [!] direct matching passthrough with an *.id file with the series id (anidb, tvdb, tmdb) in serie or Extras Extras folder
+    * [!] direct matching passthrough by appending to folder serie name folder " [anidb-12345]" or " [tvdb-1234567]" with serie id
+    * [!] Giving a tvdb id will make the absolute series show with tvdb seasons transparently.
+    * [!] Add all un-matched files as season 0 episodes 501+
+    * Support Seasons/Sereis/saison/livre/Book for seasons
+    * supports plexignore files
+    * Clever episode number detection
+    * Allow transparent use of Skip Ark/Story/Video folders
+    * re-map specials characters
+    * Manages multi-episodes (01-02, 01e02, 01-e02)
+    * Manages movies and series in a single library together with the agent
+    
 HTTP Anidb Metadata Agent (HAMA)
 ================================
 HAMA was initially created By Atomicstrawberry until v0.4 included.
