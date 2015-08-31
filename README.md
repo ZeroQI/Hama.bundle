@@ -122,12 +122,15 @@ This way, even if you recreate the whole Plex anime folder entry, you do not hav
 Updating:
 =========
 If no folder in data was created or data moved there and no new option was added to the agent settings, it will work.
-   . Update scanner file with the latest from https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Series/Absolute%20Series%20Scanner.py
-   . replace agent "_ _init_ _.py" with the latest from https://github.com/ZeroQI/Hama/blob/master/Hama.bundle/Contents/Code/__init__.py
+
+    * Update scanner file with the latest from https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Series/Absolute%20Series%20Scanner.py
+    * replace agent "_ _init_ _.py" with the latest from https://github.com/ZeroQI/Hama/blob/master/Hama.bundle/Contents/Code/__init__.py
+    
 If it doesn't, get latest zip and start from scratch, but no need to delete "Plug-in Support" folder
 
 After restarting Plex servers, the new agent will be loaded and you will find all agents settings in the official framework agent settings window:
-   * "Plex > Settings > Server > Agents > TV Shows > HamaTV > Agent settings"
+
+    * "Plex > Settings > Server > Agents > TV Shows > HamaTV > Agent settings"
 
 Troubleshooting:
 ================
@@ -151,12 +154,11 @@ Hama specific html logs:    [...]/Plex Media Server/Plug-in Support/Data/com.ple
                             [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
                             [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
 
-To Do (if anybody is motivated)
+To Do
 =====
 
-   * Package of Studio Logos. Will not work on that but somebody else can
+    * Package of Studio Logos. Will not work on that but somebody else can
 	https://forums.plex.tv/discussion/120618/new-studio-logos-for-media-flags-bundle
 	https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061
-
-   * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
-   * Add RSS links to AniDB missing episodes summary ?
+    * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
+    * Add RSS links to AniDB missing episodes summary ?
