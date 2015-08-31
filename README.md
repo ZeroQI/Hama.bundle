@@ -11,7 +11,7 @@ Here are Absolute Series Scanner features: [!] = Exclusive to this scanner
     * [!] DVD    folder support (some vob seem protected, pendign feedback on proportion from users)
     * [!] BluRay folder support (some vob seem protected, pendign feedback on proportion from users)
     * [!] create a filelist of the library for me to be able to re-create it with dummy files
-    * [!] create a readable log of all fiels to be able to check for matching errors easilly (and skipped files/folder)
+    * [!] create a readable log of all files in last scan to allow checking for matching errors (and log skipped medias)
     * [!] direct matching passthrough with an *.id file with the series id (anidb, tvdb, tmdb) in serie or Extras Extras folder
     * [!] direct matching passthrough by appending to folder serie name folder " [anidb-12345]" or " [tvdb-1234567]" with serie id
     * [!] Giving a tvdb id will make the absolute series show with tvdb seasons transparently.
