@@ -2,7 +2,8 @@ HTTP Anidb Metadata Agent (HAMA)
 ================================
 HAMA was initially created By Atomicstrawberry until v0.4 included.
 
-The support thread is located [here](http://forums.plexapp.com/index.php/topic/77636-release-http-anidb-metadata-agent-hama/)
+Support thread for Scanner: https://forums.plex.tv/discussion/113967/absolute-series-scanner-for-anime-mainly/#latest
+Support thread for agent:   https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
 
 Here are the features:
 
@@ -56,10 +57,7 @@ Copy the agent folder ("Hama.bundle") in to your Plug-Ins folder. You can find o
                                                 /root/Library/Plex Media Server/Plug-ins (also present here If running only)
     * Synology:                                 (/volume1)/Plex/Library/Application Support/Plex Media Server/Plug-ins 
 
-(Optional) If you want a local cache for images and theme songs:
-
-Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and create the following folders in it:
-
+MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and create the following folders in it: (folders are included in Zip archive on thread, i recently added "TVDB/episodes" folder for TVDB screenshots)
     * "AniDB"
     * "Plex"
     * "OMDB"
@@ -94,6 +92,8 @@ Updating:
 After restarting Plex servers, the new agent will be loaded and you will find all agents settings in the official framework agent settings window:
    * "Plex > Settings > Server > Agents > TV Shows > HamaTV > Agent settings"
 
+I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
+You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]"
 
 Troubleshooting:
 ================
@@ -114,7 +114,7 @@ Hama specific html logs to allow to update databases for missing info or to list
     * [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
     * [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
 
-To Do
+To Do (if anybody is motivated)
 =====
 
    * Package of Studio Logos. Will not work on that but somebody else can
@@ -122,4 +122,4 @@ To Do
 	https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061
 
    * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
-   * Add RSS links to AniDB missing episodes summary
+   * Add RSS links to AniDB missing episodes summary ?
