@@ -176,3 +176,36 @@ To Do
 	https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061
     * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
     * Add RSS links to AniDB missing episodes summary ?
+    
+    Studio icons
+==========
+For studio icons, for a comparison, XBMC uses png file, white-on-clear, sized 161px x 109px, and are saved in 'skin.aeon.nox"/media/flags/studios/' for example. 
+ 
+On Plex however, it uses 512x288px .png located in '/volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/Studio/'. substitutions.xml file in parent folder contain the mappings and needs amendind
+ 
+Studio logos from http://forum.xbmc.or...d.php?tid=70398 [https://sites.google...imeStudios.zip] seem to work but are tiny. after playing with logos a bit, it seems:
+  . no logos name in folder include dots, dash, exclamation point but can contain + and some contain spaces
+ . if a logo\\NAS\Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\Studio
+is detected, if you replace it in PMS, it won't refresh even after clearing the browser cache...
+ 
+After some research, to update Plex, the Media-Flags.bundle is here: https://github.com/p...tents/Resources Source: http://forums.plexap...4-studio-logos/. That would allow many to work on it and be included in the next release for everybody's benefits
+ 
+There is an index file that needs ammending called substitutions.xml XML file [Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\substitutions.xml] format is below:
+ 
+<MediaFlagSubstitutions>
+    <Studio>
+        <match name="20th_Century_Fox" expression="20th century fox" />
+        <match name="20th_Century_Fox" expression="fox 2000" />
+        <match name="20th_Century_Fox" expression="fox film corp" />
+        <match name="20th_Century_Fox" expression="twentieth century fox" />        [...]
+        [...]
+    </Studio>
+    <VideoCodec>
+        <match name="divx" expression=".*divx.*" />
+        [...]
+    </VideoCodec>
+    <AudioCodec>
+        <match name="dolbydigital" expression="a_ac3" />
+        [...]
+    </AudioCodec>
+</MediaFlagSubstitutions>
