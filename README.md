@@ -154,6 +154,20 @@ Hama specific html logs:    [...]/Plex Media Server/Plug-in Support/Data/com.ple
                             [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
                             [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
 
+Here is the feedback logs description and one example of every feedback:
+   . AniDB.htm        
+        - Aid: 00002 No poster present
+ 
+   . Anime-list.htm    ScudLee;s XML file feedback
+       - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
+       - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
+       - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
+       - Aid: 00002 anime-list is missing the anidbid
+ 
+   . Themes.htm       Plex TV theme support whose filename is based on TheTVDB.com id and last 30s max. Wouldn't mind somebody a package will all complete mp3 theme songs whose name would be the AniDB ID (to account for the seasons different songs)...
+        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme song 3x3 Eyes' No English poster
+        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
+        - aid: 00002 tvdbid:70973 s1e1 Overview Empty
 To Do
 =====
 
