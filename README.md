@@ -191,7 +191,7 @@ is detected, if you replace it in PMS, it won't refresh even after clearing the 
 After some research, to update Plex, the Media-Flags.bundle is here: https://github.com/p...tents/Resources Source: http://forums.plexap...4-studio-logos/. That would allow many to work on it and be included in the next release for everybody's benefits
  
 There is an index file that needs ammending called substitutions.xml XML file [Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\substitutions.xml] format is below:
- 
+```XML
 <MediaFlagSubstitutions>
     <Studio>
         <match name="20th_Century_Fox" expression="20th century fox" />
@@ -209,3 +209,4 @@ There is an index file that needs ammending called substitutions.xml XML file [P
         [...]
     </AudioCodec>
 </MediaFlagSubstitutions>
+```
