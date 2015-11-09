@@ -135,6 +135,9 @@ After restarting Plex servers, the new agent will be loaded and you will find al
 Troubleshooting:
 ================
 
+Install issue under linux are generally permission issues:
+ OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
+ 
 If nothing is scanned or episodes are missing, or file or series not geting into the GUI, that is the scanner doing...
 Include the following logs then:
 
