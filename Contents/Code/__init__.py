@@ -457,10 +457,11 @@ class HamaCommonAgent:
             ### TVDB mapping episode summary ###
             if tvdbid.isdigit():
               anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
-              if anidb_ep in mappingList  and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
-              elif defaulttvdbseason=="a" and              epNumVal in tvdb_table:  tvdb_ep = epNumVal
-              elif season=="0":                                                     tvdb_ep = "s"+season+"e"+epNumVal
-              else:                                                                 tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal
+              if anidb_ep in mappingList and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
+              elif 's'+season in mappingList and epNumVal >= mappingList['s'+season][0] and epNumVal <= mappingList['s'+season][1]: tvdb_ep = mappingList['s'+season][2] + epNumVal  # season offset + ep number
+              elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = epNumVal + ( mappingList [ 'episodeoffset' ] if 'episodeoffset' in mappingList else 0 )
+              elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
+              else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal + ( mappingList [ 'episodeoffset' ] if 'episodeoffset' in mappingList else 0 )
               summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
               if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
@@ -495,13 +496,14 @@ class HamaCommonAgent:
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
     poster_id_array, mappingList = {}, {}
     for anime in AniDB_TVDB_mapping_tree.iter('anime') if AniDB_TVDB_mapping_tree else []:
-      anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason')
+      anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList['episodeoffset'] = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason'), anime.get('episodeoffset')
       if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0  # Count posters to have a unique poster per anidbid
       if anidbid == anidb_id: #manage all formats latter
         name = anime.xpath("name")[0].text 
         if tvdbid.isdigit():
           try: ### mapping list ###
             for season in anime.iter('mapping'):
+              if anime.get("offset"):  mappingList[ 's'+season.get("tvdbseason")] = [anime.get("start"), anime.get("end"), anime.get("offset")]
               for string in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string.split('-')[1]
           except: Log.Debug("anidbTvdbMapping() - mappingList creation exception")
         elif tvdbid in ("", "unknown"):  error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (anidb_id.zfill(5), name, tvdbid) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
