@@ -502,7 +502,7 @@ class HamaCommonAgent:
         name = anime.xpath("name")[0].text 
         if tvdbid.isdigit():
           try: ### mapping list ###
-            for season in anime.iter('mapping'):
+            for season in anime.iter('mapping') if anime else []:
               if anime.get("offset"):  mappingList[ 's'+season.get("tvdbseason")] = [anime.get("start"), anime.get("end"), anime.get("offset")]
               for string in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string.split('-')[1]
           except: Log.Debug("anidbTvdbMapping() - mappingList creation exception")
@@ -511,7 +511,7 @@ class HamaCommonAgent:
         except: mapping_studio  = ""
         Log.Debug("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (anidbid, tvdbid, tmdbid, imdbid, mapping_studio, defaulttvdbseason, name) )
         anidbid_table = []
-        for anime2 in AniDB_collection_tree.iter("anime"):
+        for anime2 in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
           if tvdbid == anime2.get('tvdbid'):  anidbid_table.append( anime2.get("anidbid") ) #collection gathering
         return tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
     else:
@@ -524,7 +524,7 @@ class HamaCommonAgent:
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
     related_anime_list = []
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
-    for element in AniDB_collection_tree.iter("anime"):
+    for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
       if element.get('anidbid') in related_anime_list + anidbid_table + [metadata.id.split('-')[1]] :
         set         = element.getparent()
         title, main = self.getAniDBTitle(set.xpath('titles')[0], SERIE_LANGUAGE_PRIORITY)
