@@ -84,7 +84,9 @@ class HamaCommonAgent:
   ### Serie search ######################################################################################################################################################
   def Search(self, results, media, lang, manual, movie):
     Log.Debug("=== Search - Begin - ================================================================================================")
-    orig_title = ( media.title if movie else media.show ).encode('utf-8')  # NEEDS UTF-8
+    orig_title = ( media.title if movie else media.show )
+    try:    orig_title = orig_title.encode('utf-8')  # NEEDS UTF-8
+    except: Log("UTF-8 encode issue")
     if not orig_title:  return
     if orig_title.startswith("clear-cache"):   HTTP.ClearCache()  ### Clear Plex http cache manually by searching a serie named "clear-cache" ###
     Log.Info("search() - Title: '%s', name: '%s', filename: '%s', manual:'%s'" % (orig_title, media.name, media.filename, str(manual)))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
