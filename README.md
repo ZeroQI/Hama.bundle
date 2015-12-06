@@ -143,31 +143,33 @@ Include the following logs then:
 
 Support thread for Scanner: https://forums.plex.tv/discussion/113967/absolute-series-scanner-for-anime-mainly/#latest
 Scanner logs:
-
-```[...]/Plex Media Server/Logs/Plex Media Scanner.log                       (scanner crash info)```
-
-```[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log          (episodes info)```
-
-```[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)```
+<ul>
+  <li>[...]/Plex Media Server/Logs/Plex Media Scanner.log                       (scanner crash info)</li>
+  <li>[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log          (episodes info)</li>
+  <li>[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)</li>
+</ul>
 
 If files and series are showing in Plex GUI but no metadata is downloaded or some is but no poster, that is the Agent doing
 If posters are missing, check that all the data folders are created and the agent is where it should be:
 
-Support thread for agent:   ```https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest```
+Support thread for agent:
+<ul>
+  <li>https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest</li>
+</ul>
 
-Agent logs:                 ```[...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log```
+Agent logs:
+<ul>
+  <li>[...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log</li>
+</ul>
 
 Hama specific html logs:
-
-```[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm```
-
-```[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm```
-
-```[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm```
-
-```[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm```
-
-```[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm```
+<ul>
+  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm</li>
+  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm</li>
+  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm</li>
+  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm</li>
+  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm</li>
+</ul>
 
 Here is the feedback logs description and one example of every feedback:
    . AniDB.htm        
