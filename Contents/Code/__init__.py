@@ -463,7 +463,7 @@ class HamaCommonAgent:
               elif 's'+season in mappingList and epNumVal >= mappingList['s'+season][0] and epNumVal <= mappingList['s'+season][1]: tvdb_ep = mappingList['s'+season][2] + epNumVal  # season offset + ep number
               elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = epNumVal + ( mappingList [ 'episodeoffset' ] if 'episodeoffset' in mappingList else 0 )
               elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
-              else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+epNumVal + ( mappingList [ 'episodeoffset' ] if 'episodeoffset' in mappingList else 0 )
+              else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+ str(int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList else 0 ))
               summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
               mapped_eps.append( anidb_ep + ">" + tvdb_ep )
               if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
