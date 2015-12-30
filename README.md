@@ -138,6 +138,15 @@ Troubleshooting:
 Install issue under linux are generally permission issues:
  OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
  
+CRITICAL (storage:89) - Exception writing to /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/StoredValues (most recent call last):
+  File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save
+IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
+
+mkdir "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues"
+chmod 777 "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues"
+chown plex:plex "/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues"
+service plexmediaserver restart
+
 If nothing is scanned or episodes are missing, or file or series not geting into the GUI, that is the scanner doing...
 Include the following logs then:
 
