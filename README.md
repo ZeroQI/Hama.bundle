@@ -137,6 +137,7 @@ Troubleshooting:
 
 Install issue under linux are generally permission issues:
  OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
+ Synology: "chown -R plex:users" and "chmod -R 700" to solve posters missing
  
 CRITICAL (storage:89) - Exception writing to /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/StoredValues (most recent call last):
   File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save
