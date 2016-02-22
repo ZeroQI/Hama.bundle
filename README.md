@@ -152,7 +152,7 @@ If nothing is scanned or episodes are missing, or file or series not geting into
 Include the following logs then:
 
 Support thread for Scanner: https://forums.plex.tv/discussion/113967/absolute-series-scanner-for-anime-mainly/#latest
-Scanner logs:
+Scanner logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files
 <ul>
   <li>[...]/Plex Media Server/Logs/Plex Media Scanner.log                       (scanner crash info)</li>
   <li>[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log          (episodes info)</li>
