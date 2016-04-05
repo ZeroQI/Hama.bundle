@@ -262,7 +262,7 @@ class HamaCommonAgent:
             if '1' in media.seasons and len(media.seasons)==1:
               numbering = "s1e%s" % getElementText(episode, 'absolute_number')
             elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
-              if getElementText(episode, 'SeasonNumber') == 0:
+              if getElementText(episode, 'SeasonNumber') == '0':
                 numbering = "s0e" + getElementText(episode, 'EpisodeNumber')
               else:
                 numbering = "s1e" + getElementText(episode, 'absolute_number')
@@ -270,7 +270,10 @@ class HamaCommonAgent:
               if metadata.id.startswith("tvdb2-"):
                 numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
               elif metadata.id.startswith("tvdb3-"):
-                numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
+                if getElementText(episode, 'SeasonNumber') == '0':
+                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                else:
+                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
               else:
                 numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
           else:
@@ -321,16 +324,20 @@ class HamaCommonAgent:
         for media_episode in media.seasons[media_season].episodes:
           ep, episode_count = "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
+            metadata.seasons[media_season].episodes[media_episode].directors.clear()
+            metadata.seasons[media_season].episodes[media_episode].writers.clear()
             if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
               try:     metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
               except:  Log.Debug("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
             if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']: metadata.seasons[media_season].episodes[media_episode].title     = tvdb_table [ep] ['EpisodeName']
             if 'Director'    in tvdb_table[ep] and tvdb_table [ep] ['Director']:
               for this_director in re.split(',|\|', tvdb_table[ep]['Director']):
-                metadata.seasons[media_season].episodes[media_episode].directors.add(this_director)
+                if this_director not in metadata.seasons[media_season].episodes[media_episode].directors:
+                  metadata.seasons[media_season].episodes[media_episode].directors.add(this_director)
             if 'Writer'      in tvdb_table[ep] and tvdb_table [ep] ['Writer']:
               for this_writer in re.split(',|\|', tvdb_table[ep]['Writer']):
-                metadata.seasons[media_season].episodes[media_episode].writers.add(this_writer)
+                if this_writer not in metadata.seasons[media_season].episodes[media_episode].writers:
+                  metadata.seasons[media_season].episodes[media_episode].writers.add(this_writer)
             if 'Rating'      in tvdb_table[ep] and tvdb_table [ep] ['Rating']:
               try:     metadata.seasons[media_season].episodes[media_episode].rating  = float(tvdb_table [ep] ['Rating'])
               except:  Log.Debug("float issue: '%s'" % tvdb_table [ep] ['Rating']) #ValueError
@@ -478,29 +485,35 @@ class HamaCommonAgent:
               if season == "1": numEpisodes, totalDuration = numEpisodes + 1, totalDuration + episodeObj.duration
             
             ### AniDB Writers, Producers, Directors ###  #Log.Debug("### AniDB Writers, Producers, Directors ### ")
+            episodeObj.writers.clear()
+            episodeObj.producers.clear()
+            episodeObj.directors.clear()
             for role in plex_role:
               for person in plex_role[role]:
-                if role=="writers":    episodeObj.writers.add  (person)
-                if role=="producers":  episodeObj.producers.add(person)
-                if role=="directors":  episodeObj.directors.add(person)
+                if role=="writers"   and person not in episodeObj.writers:   episodeObj.writers.add  (person)
+                if role=="producers" and person not in episodeObj.producers: episodeObj.producers.add(person)
+                if role=="directors" and person not in episodeObj.directors: episodeObj.directors.add(person)
             
             ### Rating ###
             rating = getElementText(episode, 'rating') #if rating =="":  Log.Debug(metadata.id + " Episode rating: ''") #elif rating == episodeObj.rating:  Log.Debug(metadata.id + " update - Episode rating: '%s'*" % rating )
             if not rating =="" and re.match("^\d+?\.\d+?$", rating):  episodeObj.rating = float(rating) #try: float(element) except ValueError:     print "Not a float"
             
             ### TVDB mapping episode summary ###
-            if tvdbid.isdigit():
-              anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
-              if anidb_ep in mappingList and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
-              elif 's'+season in mappingList and int(epNumVal) >= int (mappingList['s'+season][0]) and int(epNumVal) <= int(mappingList['s'+season][1]): tvdb_ep = str( int(mappingList['s'+season][2]) + int(epNumVal) )  # season offset + ep number
-              elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = str( int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList else 0 ) )
-              elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
-              else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+ str(int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ))
-              summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
-              mapped_eps.append( anidb_ep + ">" + tvdb_ep )
-              if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
-              Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'][0:50].strip() if tvdb_ep in tvdb_table else "") )
-              episodeObj.summary = summary.replace("`", "'")            
+            try:
+              if tvdbid.isdigit():
+                anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
+                if anidb_ep in mappingList and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
+                elif 's'+season in mappingList and int(epNumVal) >= int (mappingList['s'+season][0]) and int(epNumVal) <= int(mappingList['s'+season][1]): tvdb_ep = str( int(mappingList['s'+season][2]) + int(epNumVal) )  # season offset + ep number
+                elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = str( int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList else 0 ) )
+                elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
+                else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+ str(int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ))
+                summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
+                mapped_eps.append( anidb_ep + ">" + tvdb_ep )
+                if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
+                Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'][0:50].strip() if tvdb_ep in tvdb_table else "") )
+                episodeObj.summary = summary.replace("`", "'")            
+            except:
+              Log.Error("Issue in 'TVDB mapping episode summary', epNumVal: '%s'", epNumVal)
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
