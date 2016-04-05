@@ -70,14 +70,18 @@ You can use anidb.id file in series or Series/Extras folder or in the serie name
 
 Installation
 ============
+Support thread: https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
 
-Get the latest zip package in (https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest).
+Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle/releases
+
 Archive folders to copy in Plex main folder:
 
     * "Scanners"         "Scanners" is the only that has to be created. "Series/Absolute series Scanner.py" goes inside. 
-    * "Plug-ins"         Hama agent "Hama.bundle" folder goes inside
-    * "Plug-ins support" Agent data folders (com.plexapp.agents.hama/DataItems/Anidb|OMDB|plex|TMDB|TVDB) goes inside
-    * "Logs"             "X-Plex-Token.id"      Put from an item view xml the url token inside to have a log per library
+    			 https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
+    * "Plug-ins"         "Source code (zip)" > "Hama.bundle-1.0.zip" copy "Hama.bundle-1.0" folder inside the zip in plug-ins folders but rename to "Hama.bundle" 
+    * "Plug-ins support" Plug-Ins.support.folders.7z Agent data folders (com.plexapp.agents.hama/DataItems/Anidb|OMDB|plex|TMDB|TVDB) goes inside
+    * "Logs"             Logs.folder.7z contain the following for the scanner
+    			 "X-Plex-Token.id"      Put from an item view xml the url token inside to have a log per library
                          "no_timestamp"         delete to have timestamps in logs)
                          "keep_zero_size_files" delete to have Plex skip empty files)
 
