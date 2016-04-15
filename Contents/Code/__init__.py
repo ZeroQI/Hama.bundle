@@ -329,7 +329,8 @@ class HamaCommonAgent:
             if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
               try:     metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
               except:  Log.Debug("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview']))                  
-            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']: metadata.seasons[media_season].episodes[media_episode].title     = tvdb_table [ep] ['EpisodeName']
+            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']:                                      metadata.seasons[media_season].episodes[media_episode].title     = tvdb_table [ep] ['EpisodeName']
+            if 'filename'    in tvdb_table[ep] and tvdb_table [ep] ['filename'] and tvdb_table [ep] ['filename'] != "":  self.metadata_download (metadata.seasons[media_season].episodes[media_episode].thumbs, TVDB_IMAGES_URL + tvdb_table[ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[ep]['filename']))
             if 'Director'    in tvdb_table[ep] and tvdb_table [ep] ['Director']:
               for this_director in re.split(',|\|', tvdb_table[ep]['Director']):
                 if this_director not in metadata.seasons[media_season].episodes[media_episode].directors:
@@ -504,7 +505,7 @@ class HamaCommonAgent:
                 anidb_ep, tvdb_ep, summary= 's' + season + 'e' + epNumVal, "", "No summary in TheTVDB.com" #epNum
                 if anidb_ep in mappingList and mappingList[anidb_ep] in tvdb_table:  tvdb_ep = mappingList [ anidb_ep ]
                 elif 's'+season in mappingList and int(epNumVal) >= int (mappingList['s'+season][0]) and int(epNumVal) <= int(mappingList['s'+season][1]): tvdb_ep = str( int(mappingList['s'+season][2]) + int(epNumVal) )  # season offset + ep number
-                elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = str( int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList else 0 ) )
+                elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = str( int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ) )
                 elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
                 else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+ str(int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ))
                 summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
@@ -512,8 +513,10 @@ class HamaCommonAgent:
                 if tvdb_ep in tvdb_table and 'filename' in tvdb_table[tvdb_ep] and tvdb_table[tvdb_ep]['filename']!="":  self.metadata_download (episodeObj.thumbs, TVDB_IMAGES_URL + tvdb_table[tvdb_ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[tvdb_ep]['filename']))            
                 Log.Debug("TVDB mapping episode summary - anidb_ep: '%s', tvdb_ep: '%s', season: '%s', epNumVal: '%s', defaulttvdbseason: '%s', title: '%s', summary: '%s'" %(anidb_ep, tvdb_ep, season, epNumVal, defaulttvdbseason, ep_title, tvdb_table [tvdb_ep] ['Overview'][0:50].strip() if tvdb_ep in tvdb_table else "") )
                 episodeObj.summary = summary.replace("`", "'")            
-            except:
+            except Exception as e:
               Log.Error("Issue in 'TVDB mapping episode summary', epNumVal: '%s'", epNumVal)
+              Log.Error("mappingList = %s" % mappingList)
+              Log.Error(e)
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
