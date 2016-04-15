@@ -197,7 +197,7 @@ class HamaCommonAgent:
     Log.Debug("Update - metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id.split('-')[0], metadata.id.split('-')[1], metadata.title, "[...]", "[...]", force) )
     global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
     error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'    : [],
-                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': []}
+                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': [], 'TVDB season posters missing'}
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
@@ -295,10 +295,10 @@ class HamaCommonAgent:
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
-        tvdbposternumber = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
-        if tvdbposternumber == 0:
-          error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
-          Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
+        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
+        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
+        if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
+        if tvdbposternumber * tvdbposternumber == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
   
     ### Movie posters including imdb from TVDB - Load serie XML ###
     if imdbid.isalnum():
@@ -585,7 +585,7 @@ class HamaCommonAgent:
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
-    posternum, num, poster_total = 0, 0, 0
+    posternum, seasonposternum, num, poster_total = 0, 0, 0, 0
     try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24) # don't bother with the full zip, all we need is the banners
     except:  Log.Debug("getImagesFromTVDB() - Loading picture XML failed: " + TVDB_BANNERS_URL % tvdbid);  return
     else:    Log.Debug("getImagesFromTVDB() - Loaded picture XML: '%s'" % (TVDB_BANNERS_URL % tvdbid))
@@ -593,7 +593,8 @@ class HamaCommonAgent:
       if banner.xpath('BannerType')[0].text=="poster":  poster_total +=1
     for banner in bannersXml.xpath('Banner'): #rating   = banner.xpath('Rating'     )[0].text if banner.xpath('Rating') else ""  #Language = banner.xpath('Language'   )[0].text #if Language not in ['en', 'jp']: continue  #id       = banner.xpath('id'         )[0].text
       num, bannerType, bannerType2, bannerPath  = num+1, banner.xpath('BannerType' )[0].text, banner.xpath('BannerType2')[0].text, banner.xpath('BannerPath' )[0].text
-      if bannerType == 'poster':  posternum += 1
+      if bannerType == 'poster':                            posternum       += 1
+      if bannerType == 'season' and bannerType2=='season':  seasonposternum += 1
       season = banner.xpath('Season')[0].text if banner.xpath('Season') else ""
       if movie and not bannerType in ('fanart', 'poster') or season and season not in media.seasons:  continue
       if Prefs['GetTvdbPosters'] and                  ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
@@ -607,7 +608,7 @@ class HamaCommonAgent:
         else:                             rank = num
         bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
         self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
-    return posternum
+    return posternum, seasonposternum
 
   ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
   def  getImagesFromTMDB(self, metadata, id, num=90):
