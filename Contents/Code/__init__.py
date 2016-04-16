@@ -196,8 +196,8 @@ class HamaCommonAgent:
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     Log.Debug("Update - metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id.split('-')[0], metadata.id.split('-')[1], metadata.title, "[...]", "[...]", force) )
     global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
-    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'    : [],
-                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': [], 'TVDB season posters missing'}
+    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'        : [],
+                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': [], 'TVDB season posters missing': []}
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
