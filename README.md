@@ -127,8 +127,8 @@ Updating:
 =========
 If no folder in data was created or data moved there and no new option was added to the agent settings, it will work.
 
-    * Update scanner file with the latest from https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Series/Absolute%20Series%20Scanner.py
-    * replace agent "_ _init_ _.py" with the latest from https://github.com/ZeroQI/Hama/blob/master/Hama.bundle/Contents/Code/__init__.py
+    * Update scanner file with the latest from https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
+    * replace agent "_ _init_ _.py" with the latest from https://github.com/ZeroQI/Hama.bundle/blob/master/Contents/Code/__init__.py
     
 If it doesn't, get latest zip and start from scratch, but no need to delete "Plug-in Support" folder
 
