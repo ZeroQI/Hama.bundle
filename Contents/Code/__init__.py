@@ -55,7 +55,7 @@ FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being
   'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                                               # Fr
   'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                              # Roman digits
 
-import os, re, time, datetime, string, thread, threading, urllib # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+import os, re, time, datetime, string, thread, threading, urllib, copy # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = None, None, None  #ValueError if in Start()
 SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'  ].encode('utf-8'), Prefs['SerieLanguage2'  ].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]  #override default language
 EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ]                                           #override default language
@@ -257,36 +257,62 @@ class HamaCommonAgent:
         if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Debug("Update() - IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
       
         ### TVDB - Build 'tvdb_table' ###
-        for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
-          if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
-            if '1' in media.seasons and len(media.seasons)==1:
-              numbering = "s1e%s" % getElementText(episode, 'absolute_number')
-            elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
-              if getElementText(episode, 'SeasonNumber') == '0':
-                numbering = "s0e" + getElementText(episode, 'EpisodeNumber')
+        abs_manual_placement_status = "success"
+        if max(map(int, media.seasons.keys()))==1 or metadata.id.startswith("tvdb3-"):
+          tvdbanime2 = copy.deepcopy(tvdbanime)
+          ep_count, abs_manual_placement_info, number_set = 0, [], "no"
+          for episode in tvdbanime2.xpath('Episode'):
+            if episode.xpath('SeasonNumber')[0].text != '0':
+              ep_count = ep_count + 1
+              if not episode.xpath('absolute_number')[0].text or episode.xpath('absolute_number')[0].text == '':
+                episode.xpath('absolute_number')[0].text = str(ep_count)
+                number_set = "yes"
+                if episode.xpath('EpisodeName')[0].text: episode.xpath('EpisodeName')[0].text = "(Guessed) " + episode.xpath('EpisodeName')[0].text
+                if episode.xpath('Overview')[0].text:    episode.xpath('Overview')[0].text = "(Guessed mapping as TVDB absolute numbering is missing)\n" + episode.xpath('Overview')[0].text
+                abs_manual_placement_info.append("s%se%s = abs %s" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text, episode.xpath('absolute_number')[0].text))
               else:
-                numbering = "s1e" + getElementText(episode, 'absolute_number')
-            else:
-              if metadata.id.startswith("tvdb2-"):
-                numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-              elif metadata.id.startswith("tvdb3-"):
-                if getElementText(episode, 'SeasonNumber') == '0':
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                if number_set == "no":
+                  ep_count = int(episode.xpath('absolute_number')[0].text)
                 else:
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
+                  Log.Error("An abs number has been found on ep (s%se%s) after starting to manually place our own abs numbers" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text) )
+                  abs_manual_placement_status = "failed"
+                  break
+          
+          Log.Info("abs_manual_placement_info = " + str(abs_manual_placement_info))
+          Log.Info("abs_manual_placement_status = %s" % abs_manual_placement_status)
+          if abs_manual_placement_status == "success": tvdbanime = tvdbanime2
+        
+        if abs_manual_placement_status == "success":
+          for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
+            if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
+              if '1' in media.seasons and len(media.seasons)==1:
+                numbering = "s1e%s" % getElementText(episode, 'absolute_number')
+              elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
+                if getElementText(episode, 'SeasonNumber') == '0':
+                  numbering = "s0e" + getElementText(episode, 'EpisodeNumber')
+                else:
+                  numbering = "s1e" + getElementText(episode, 'absolute_number')
+              else:
+                if metadata.id.startswith("tvdb2-"):
+                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                elif metadata.id.startswith("tvdb3-"):
+                  if getElementText(episode, 'SeasonNumber') == '0':
+                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                  else:
+                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
+                else:
+                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+            else:
+              if defaulttvdbseason=="a":
+                numbering = getElementText(episode, 'absolute_number')
               else:
                 numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-          else:
-            if defaulttvdbseason=="a":
-              numbering = getElementText(episode, 'absolute_number')
-            else:
-              numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-          tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
-                                     'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
-                                     'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
-                                     'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
-          if getElementText(episode, 'Overview'):  summary_present.append(numbering)
-          else:                                    summary_missing.append(numbering)
+            tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
+                                       'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
+                                       'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
+                                       'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
+            if getElementText(episode, 'Overview'):  summary_present.append(numbering)
+            else:                                    summary_missing.append(numbering)
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
