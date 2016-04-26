@@ -72,6 +72,18 @@ def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
 def Start():
   msgContainer = ValidatePrefs();
   if msgContainer.header == 'Error': return
+  
+  #if Prefs['https']:
+  #  https_list = [
+  #    'ANIDB_TITLES', 'ANIDB_TVDB_MAPPING', 'ANIDB_COLLECTION', 'ANIDB_HTTP_API_URL', 'ANIDB_PIC_BASE_URL', 'ANIDB_SERIE_URL',
+  #    'ANIDB_TVDB_MAPPING_FEEDBACK',
+  #    'TVDB_HTTP_API_URL', 'TVDB_BANNERS_URL', 'TVDB_SERIE_SEARCH', 'TVDB_SERIE_URL',
+  #    'TMDB_MOVIE_SEARCH', 'TMDB_MOVIE_SEARCH_BY_TMDBID', 'TMDB_SEARCH_URL_BY_IMDBID', 'TMDB_CONFIG_URL', 'TMDB_IMAGES_URL',
+  #    'OMDB_HTTP_API_URL',
+  #    'THEME_URL' ]
+  #  for value, key in globals(): #http://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops-in-python
+  #    if key in https_list: key = value.replace("http://", "https://" ) will prob not replace the string in orig variable
+    
   Log.Debug('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
   AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES, os.path.splitext(os.path.basename(ANIDB_TITLES))[0]  , True,  CACHE_1HOUR * 24 * 2)
