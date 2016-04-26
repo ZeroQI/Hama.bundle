@@ -93,5 +93,11 @@
     "type"    : "enum",
     "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
     "default" : "x-jat"
+  },
+  {
+    "id"      : "https",
+    "label"   : "Load metadata using https when available",
+    "type"    : "bool",
+    "default" : "false"
   }
 ]
