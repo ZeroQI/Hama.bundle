@@ -462,7 +462,9 @@ class HamaCommonAgent:
         ### AniDB Serie/Movie description ###
         try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
         except:  description = ""; Log.Debug("Exception ")
-        if description == "":  error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
+        if description == "":
+          error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
+          if tvdbOverview:  description = tvdbOverview;  Log.Debug("AniDB series summary is missing but TVDB has one availabe so using it.")
         if metadata.summary != description and description:  metadata.summary = description.replace("`", "'")
         
         ### AniDB Posters ###
