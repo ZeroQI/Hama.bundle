@@ -236,13 +236,16 @@ class HamaCommonAgent:
         if 'imdb_id'      in tmdb_json and tmdb_json['imdb_id'] and not imdbid:           imdbid                           = tmdb_json['imdb_id']
         if 'vote_average' in tmdb_json and tmdb_json['vote_average'] and 'vote_count' in tmdb_json and tmdb_json['vote_count'] > 3: metadata.rating = tmdb_json['vote_average']
         if 'genres'       in tmdb_json and tmdb_json['genres']!=[]:
+          metadata.genres.clear()
           for genre in tmdb_json['genres']: metadata.genres.add(genre['name'].strip()) #metadata.genres = tmdb_json['genres'] ???
         if 'production_companies' in tmdb_json and len(tmdb_json['production_companies']) > 0:  # Studio.
           index, company = tmdb_json['production_companies'][0]['id'],""
           for studio in tmdb_json['production_companies']:
             if studio['id'] <= index:  index, company = studio['id'], studio['name'].strip()
           metadata.studio = company
-        if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection']:  metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
+        if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection']:  
+          metadata.collections.clear()
+          metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
         if movie:
           if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
           #if metadata.year = metadata.originally_available_at.year
@@ -354,6 +357,7 @@ class HamaCommonAgent:
       if tvdbContentRating:  metadata.content_rating          = tvdbContentRating 
       if tvdbFirstAired:     metadata.originally_available_at = Datetime.ParseDate( tvdbFirstAired ).date()
       if tvdbGenre:
+        metadata.genres.clear()
         for genre in tvdbGenre: metadata.genres.add(genre)
         Log.Debug("Update() - TVDB - tvdbGenre: '%s'" % str(tvdbgenre))
       list_eps = ""
@@ -614,6 +618,7 @@ class HamaCommonAgent:
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
     related_anime_list = []
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
+    metadata.collections.clear()
     for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
       if element.get('anidbid') in related_anime_list + anidbid_table + [metadata.id.split('-')[1]] :
         set         = element.getparent()
