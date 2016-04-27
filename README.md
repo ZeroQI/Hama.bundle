@@ -79,7 +79,7 @@ Archive folders to copy in Plex main folder:
     * "Scanners"         "Scanners" is the only that has to be created. "Series/Absolute series Scanner.py" goes inside. 
     			 https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
     * "Plug-ins"         "Source code (zip)" > "Hama.bundle-1.0.zip" copy "Hama.bundle-1.0" folder inside the zip in plug-ins folders but rename to "Hama.bundle" 
-    * "Plug-ins support" Plug-Ins.support.folders.7z Agent data folders (com.plexapp.agents.hama/DataItems/Anidb|OMDB|plex|TMDB|TVDB) goes inside
+    * "Plug-ins support" Plug-Ins.support.folders.7z Agent data folders (com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
     * "Logs"             Logs.folder.7z contain the following for the scanner
     			 "X-Plex-Token.id"      Put from an item view xml the url token inside to have a log per library
                          "no_timestamp"         delete to have timestamps in logs)
@@ -106,6 +106,7 @@ MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agen
     * "AniDB"
     * "Plex"
     * "OMDB"
+    * "TMDB"
     * "TVDB"
     * "TVDB/_cache/fanart/original"
     * "TVDB/episodes"
