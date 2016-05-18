@@ -328,6 +328,7 @@ class HamaCommonAgent:
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
             if getElementText(episode, 'Overview'):  summary_present.append(numbering)
             else:                                    summary_missing.append(numbering)
+        if summary_missing:  error_log['TVDB summaries missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing eps: " + str(summary_missing))
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
