@@ -257,7 +257,7 @@ class HamaCommonAgent:
       else:                                      self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")  #if local, load it ?
       
       ### TVDB - Load serie XML ###
-      tvdbanime, summary_missing, summary_present = None, [], []
+      tvdbanime, tvdb_episode_missing, summary_missing, summary_present = None, [], [], []
       Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % tvdbid))
       tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % tvdbid, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
       if tvdbanime:
@@ -299,36 +299,50 @@ class HamaCommonAgent:
         
         if abs_manual_placement_status == "success":
           for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
+            currentSeasonNum = getElementText(episode, 'SeasonNumber')
+            currentEpNum     = getElementText(episode, 'EpisodeNumber')
+            currentAbsNum    = getElementText(episode, 'absolute_number')
+			
             if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
               if '1' in media.seasons and len(media.seasons)==1:
-                numbering = "s1e%s" % getElementText(episode, 'absolute_number')
+                numbering = "s1e%s" % currentAbsNum
               elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
-                if getElementText(episode, 'SeasonNumber') == '0':
-                  numbering = "s0e" + getElementText(episode, 'EpisodeNumber')
+                if currentSeasonNum == '0':
+                  numbering = "s0e" + currentEpNum
                 else:
-                  numbering = "s1e" + getElementText(episode, 'absolute_number')
+                  numbering = "s1e" + currentAbsNum
               else:
                 if metadata.id.startswith("tvdb2-"):
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                  numbering = "s" + currentSeasonNum + "e" + currentEpNum
                 elif metadata.id.startswith("tvdb3-"):
-                  if getElementText(episode, 'SeasonNumber') == '0':
-                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                  if currentSeasonNum == '0':
+                    numbering = "s" + currentSeasonNum + "e" + currentEpNum
                   else:
-                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
+                    numbering = "s" + currentSeasonNum + "e" + currentAbsNum
                 else:
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                  numbering = "s" + currentSeasonNum + "e" + currentEpNum
             else:
               if defaulttvdbseason=="a":
-                numbering = getElementText(episode, 'absolute_number')
+                numbering = currentAbsNum
               else:
-                numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+                numbering = "s" + currentSeasonNum + "e" + currentEpNum
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
-            if getElementText(episode, 'Overview'):  summary_present.append(numbering)
-            else:                                    summary_missing.append(numbering)
-        if summary_missing:  error_log['TVDB summaries missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing eps: " + str(summary_missing))
+
+            ### Check for Missing Summaries ### 
+            if getElementText(episode, 'Overview'):  
+              summary_present.append(numbering)
+            else:
+   	          summary_missing.append(numbering)
+
+            ### Check for Missing Episodes ###
+            if not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+              tvdb_episode_missing.append(" s" + currentSeasonNum + "e" + currentEpNum )
+
+        if summary_missing:      error_log['TVDB summaries missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing summaries: " + str(summary_missing))
+        if tvdb_episode_missing: error_log['Missing episodes'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing episodes: " + str(tvdb_episode_missing))
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
