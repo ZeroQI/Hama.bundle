@@ -303,39 +303,16 @@ class HamaCommonAgent:
             currentEpNum     = getElementText(episode, 'EpisodeNumber')
             currentAbsNum    = getElementText(episode, 'absolute_number')
 			
-            if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
-              if '1' in media.seasons and len(media.seasons)==1:
-                numbering = "s1e%s" % currentAbsNum
-              elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
-                if currentSeasonNum == '0':
-                  numbering = "s0e" + currentEpNum
-                else:
-                  numbering = "s1e" + currentAbsNum
-              else:
-                if metadata.id.startswith("tvdb2-"):
-                  numbering = "s" + currentSeasonNum + "e" + currentEpNum
-                elif metadata.id.startswith("tvdb3-"):
-                  if currentSeasonNum == '0':
-                    numbering = "s" + currentSeasonNum + "e" + currentEpNum
-                  else:
-                    numbering = "s" + currentSeasonNum + "e" + currentAbsNum
-                else:
-                  numbering = "s" + currentSeasonNum + "e" + currentEpNum
-            else:
-              if defaulttvdbseason=="a":
-                numbering = currentAbsNum
-              else:
-                numbering = "s" + currentSeasonNum + "e" + currentEpNum
+            if defaulttvdbseason=="a": numbering = currentAbsNum
+            else:                      numbering = "s" + currentSeasonNum + "e" + (currentEpNum if currentSeasonNum == '0' or not metadata.id.startswith("tvdb3-") else currentAbsNum)
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
 
             ### Check for Missing Summaries ### 
-            if getElementText(episode, 'Overview'):  
-              summary_present.append(numbering)
-            else:
-   	          summary_missing.append(numbering)
+            if getElementText(episode, 'Overview'):  summary_present.append(numbering)
+            else:                                    summary_missing.append(numbering)
 
             ### Check for Missing Episodes ###
             if not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
