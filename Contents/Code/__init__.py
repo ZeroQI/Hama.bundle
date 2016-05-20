@@ -317,15 +317,8 @@ class HamaCommonAgent:
             ### Check for Missing Episodes ###
             if not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
               tvdb_episode_missing.append(" s" + currentSeasonNum + "e" + currentEpNum )
-
-        if summary_missing:
-          logEntry = self.createMissingLogEntry("tvdb", WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Summaries", summary_missing)
-          error_log['TVDB summaries missing'].append(logEntry)
-
-        if tvdb_episode_missing:
-          logEntry = self.createMissingLogEntry("tvdb", WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Episodes", tvdb_episode_missing)
-          error_log['Missing episodes'].append(logEntry)
-
+        if summary_missing:       error_log['TVDB summaries missing'].append( "tvdbid: %s, Title: '%s', Missing %s: %s" % ( WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Summaries", str(summary_missing     ) ))
+        if tvdb_episode_missing:  error_log['Missing episodes'      ].append( "tvdbid: %s, Title: '%s', Missing %s: %s" % ( WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Episodes" , str(tvdb_episode_missing) ))
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
@@ -565,9 +558,7 @@ class HamaCommonAgent:
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
-          if len(missing_eps)>0:
-            logEntry = self.createMissingLogEntry("anidb", WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id.split("-")[1].zfill(5)), title, "Episodes", missing_eps)
-            error_log['Missing episodes'].append(logEntry)
+          if len(missing_eps)>0:  error_log['Missing episodes'].append( "anidbid: %s, Title: '%s', Missing Episodes: %s" % ( WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):],  metadata.id.split("-")[1].zfill(5))), title, str(missing_eps) ))
           convert      = lambda text: int(text) if text.isdigit() else text
           alphanum_key = lambda key:  [ convert(c) for c in re.split('([0-9]+)', key) ]
 
@@ -771,10 +762,6 @@ class HamaCommonAgent:
     else: langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
     return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
 
-  ### Create consistently formatted log entries ################################################################################################################################
-  def createMissingLogEntry(self, database, link, title, type, missingArray):
-    return "%sid: %s, Title: '%s', Missing %s: %s" % (database, link, title, type, str(missingArray))
-    
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
