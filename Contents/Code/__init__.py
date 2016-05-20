@@ -257,7 +257,7 @@ class HamaCommonAgent:
       else:                                      self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")  #if local, load it ?
       
       ### TVDB - Load serie XML ###
-      tvdbanime, summary_missing, summary_present = None, [], []
+      tvdbanime, tvdb_episode_missing, summary_missing, summary_present = None, [], [], []
       Log.Debug("Update() - TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % tvdbid))
       tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % tvdbid, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
       if tvdbanime:
@@ -299,36 +299,26 @@ class HamaCommonAgent:
         
         if abs_manual_placement_status == "success":
           for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
-            if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
-              if '1' in media.seasons and len(media.seasons)==1:
-                numbering = "s1e%s" % getElementText(episode, 'absolute_number')
-              elif '0' in media.seasons and '1' in media.seasons and len(media.seasons)==2:
-                if getElementText(episode, 'SeasonNumber') == '0':
-                  numbering = "s0e" + getElementText(episode, 'EpisodeNumber')
-                else:
-                  numbering = "s1e" + getElementText(episode, 'absolute_number')
-              else:
-                if metadata.id.startswith("tvdb2-"):
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-                elif metadata.id.startswith("tvdb3-"):
-                  if getElementText(episode, 'SeasonNumber') == '0':
-                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-                  else:
-                    numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'absolute_number')
-                else:
-                  numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
-            else:
-              if defaulttvdbseason=="a":
-                numbering = getElementText(episode, 'absolute_number')
-              else:
-                numbering = "s" + getElementText(episode, 'SeasonNumber') + "e" + getElementText(episode, 'EpisodeNumber')
+            currentSeasonNum = getElementText(episode, 'SeasonNumber')
+            currentEpNum     = getElementText(episode, 'EpisodeNumber')
+            currentAbsNum    = getElementText(episode, 'absolute_number')
+
+            if defaulttvdbseason=="a": numbering = currentAbsNum
+            else:                      numbering = "s" + currentSeasonNum + "e" + (currentEpNum if currentSeasonNum == '0' or not metadata.id.startswith("tvdb3-") else currentAbsNum)
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
+
+            ### Check for Missing Summaries ### 
             if getElementText(episode, 'Overview'):  summary_present.append(numbering)
             else:                                    summary_missing.append(numbering)
-        if summary_missing:  error_log['TVDB summaries missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing eps: " + str(summary_missing))
+
+            ### Check for Missing Episodes ###
+            if not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+              tvdb_episode_missing.append(" s" + currentSeasonNum + "e" + currentEpNum )
+        if summary_missing:       error_log['TVDB summaries missing'].append( "tvdbid: %s, Title: '%s', Missing %s: %s" % ( WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Summaries", str(summary_missing     ) ))
+        if tvdb_episode_missing:  error_log['Missing episodes'      ].append( "tvdbid: %s, Title: '%s', Missing %s: %s" % ( WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, "Episodes" , str(tvdb_episode_missing) ))
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
@@ -568,7 +558,7 @@ class HamaCommonAgent:
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
-          if len(missing_eps)>0:  error_log['Missing episodes'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (metadata.id.split("-")[1].zfill(5), title, missing_eps))
+          if len(missing_eps)>0:  error_log['Missing episodes'].append( "anidbid: %s, Title: '%s', Missing Episodes: %s" % ( WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):],  metadata.id.split("-")[1].zfill(5))), title, str(missing_eps) ))
           convert      = lambda text: int(text) if text.isdigit() else text
           alphanum_key = lambda key:  [ convert(c) for c in re.split('([0-9]+)', key) ]
 
@@ -771,7 +761,7 @@ class HamaCommonAgent:
       if langTitles[index]:  langTitles[len(languages)] = langTitles[index];  break                                               # If title present we're done
     else: langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
     return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
-    
+
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
