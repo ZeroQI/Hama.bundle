@@ -204,12 +204,16 @@ class HamaCommonAgent:
   ### Parse the AniDB anime title XML ##################################################################################################################################
   def Update(self, metadata, media, lang, force, movie):
 
+    global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
+    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [],
+                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 
+                  'TVDB summaries missing'    : [], 'TVDB posters missing'     : [], 'TVDB season posters missing': [],
+                  'Missing episodes'          : [], 'Plex themes missing'      : [],
+                }
+    
     Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     Log.Debug("Update - metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata.id.split('-')[0], metadata.id.split('-')[1], metadata.title, "[...]", "[...]", force) )
-    global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
-    error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing': [], 'anime-list studio logos': [], 'Missing episodes'    : [], 'Plex themes missing'        : [],
-                  'AniDB summaries missing'   : [], 'AniDB posters missing'    : [], 'TVDB summaries missing' : [], 'TVDB posters missing': [], 'TVDB season posters missing': []}
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
@@ -302,7 +306,6 @@ class HamaCommonAgent:
             currentSeasonNum = getElementText(episode, 'SeasonNumber')
             currentEpNum     = getElementText(episode, 'EpisodeNumber')
             currentAbsNum    = getElementText(episode, 'absolute_number')
-
             if defaulttvdbseason=="a": numbering = currentAbsNum
             else:                      numbering = "s" + currentSeasonNum + "e" + (currentEpNum if currentSeasonNum == '0' or not metadata.id.startswith("tvdb3-") else currentAbsNum)
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
@@ -315,7 +318,7 @@ class HamaCommonAgent:
             else:                                    summary_missing.append(numbering)
 
             ### Check for Missing Episodes ###
-            if not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+            if currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
               tvdb_episode_missing.append(" s" + currentSeasonNum + "e" + currentEpNum )
 
         if summary_missing:      error_log['TVDB summaries missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) + " missing summaries: " + str(summary_missing     ))
@@ -763,7 +766,6 @@ class HamaCommonAgent:
     else: langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
     return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
     
-
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
