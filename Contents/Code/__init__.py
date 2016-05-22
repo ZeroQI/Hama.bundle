@@ -276,32 +276,25 @@ class HamaCommonAgent:
         if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Debug("Update() - IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
       
         ### TVDB - Build 'tvdb_table' ###
-        abs_manual_placement_status = "success"
+        abs_manual_placement_worked = True
         if max(map(int, media.seasons.keys()))==1 or metadata.id.startswith("tvdb3-"):
-          tvdbanime2 = copy.deepcopy(tvdbanime)
-          ep_count, abs_manual_placement_info, number_set = 0, [], "no"
-          for episode in tvdbanime2.xpath('Episode'):
+          ep_count, abs_manual_placement_info, number_set = 0, [], False
+          for episode in tvdbanime.xpath('Episode'):
             if episode.xpath('SeasonNumber')[0].text != '0':
               ep_count = ep_count + 1
-              if not episode.xpath('absolute_number')[0].text or episode.xpath('absolute_number')[0].text == '':
-                episode.xpath('absolute_number')[0].text = str(ep_count)
-                number_set = "yes"
+              if not episode.xpath('absolute_number')[0].text:
+                episode.xpath('absolute_number')[0].text, number_set = str(ep_count), True
                 if episode.xpath('EpisodeName')[0].text: episode.xpath('EpisodeName')[0].text = "(Guessed) " + episode.xpath('EpisodeName')[0].text
                 if episode.xpath('Overview')[0].text:    episode.xpath('Overview')[0].text = "(Guessed mapping as TVDB absolute numbering is missing)\n" + episode.xpath('Overview')[0].text
                 abs_manual_placement_info.append("s%se%s = abs %s" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text, episode.xpath('absolute_number')[0].text))
+              elif not number_set:  ep_count = int(episode.xpath('absolute_number')[0].text)
               else:
-                if number_set == "no":
-                  ep_count = int(episode.xpath('absolute_number')[0].text)
-                else:
-                  Log.Error("An abs number has been found on ep (s%se%s) after starting to manually place our own abs numbers" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text) )
-                  abs_manual_placement_status = "failed"
-                  break
-          
-          Log.Info("abs_manual_placement_info = " + str(abs_manual_placement_info))
-          Log.Info("abs_manual_placement_status = %s" % abs_manual_placement_status)
-          if abs_manual_placement_status == "success": tvdbanime = tvdbanime2
+                Log.Error("An abs number has been found on ep (s%se%s) after starting to manually place our own abs numbers" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text) )
+                abs_manual_placement_worked = False
+                break
+          Log.Info("abs_manual_placement_worked: '%s', abs_manual_placement_info: '%s'" % (str(abs_manual_placement_worked), str(abs_manual_placement_info)))
         
-        if abs_manual_placement_status == "success":
+        if abs_manual_placement_worked:
           for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
             currentSeasonNum = getElementText(episode, 'SeasonNumber')
             currentEpNum     = getElementText(episode, 'EpisodeNumber')
