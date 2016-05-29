@@ -584,7 +584,7 @@ class HamaCommonAgent:
           if log == 'TVDB posters missing': string2 = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + "<br />\n"
           if log == 'Plex themes missing':  string2 = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<br />\n"
         for entry in error_log[log]:
-          if entry not in string2:  Data.Save(log+".htm", string2 + entry + "<br />\r\n")
+          if entry not in string2:  string2 = string2 + entry + "<br />\r\n"; Data.Save(log+".htm", string2)
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
