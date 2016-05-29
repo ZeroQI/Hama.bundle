@@ -315,7 +315,7 @@ class HamaCommonAgent:
               else:                       summary_missing.append(numbering) 
 
             ### Check for Missing Episodes ###
-            if currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+            if metadata.id.startswith("tvdb") and currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
               if currentSeasonNum == '0': tvdb_special_missing.append(numbering)
               else:                       tvdb_episode_missing.append(numbering)
 
