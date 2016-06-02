@@ -59,6 +59,7 @@ import os, re, time, datetime, string, thread, threading, urllib, copy # Functio
 AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = None, None, None  #ValueError if in Start()
 SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'  ].encode('utf-8'), Prefs['SerieLanguage2'  ].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]  #override default language
 EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ]                                           #override default language
+error_log_locked, error_log_lock_sleep = {}, 10
 
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
@@ -212,6 +213,9 @@ class HamaCommonAgent:
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
+    global error_log_locked
+    for key in error_log.keys():
+      if key not in error_log_locked.keys(): error_log_locked[key] = [False, 0]
     
     Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
@@ -582,14 +586,16 @@ class HamaCommonAgent:
       log_array={}
       log_prefix = ""
       num_of_sleep_sec = 0
-      while Data.Exists(log+".htm.lock"):
-        Log.Debug("'"+log+".htm.lock' Exists. Sleeping 1sec for lock to disappear.")
+      global error_log_lock_sleep
+      while error_log_locked[log][0]:
+        Log.Debug("'%s' lock exists. Sleeping 1sec for lock to disappear." % log)
         num_of_sleep_sec = num_of_sleep_sec + 1
-        if num_of_sleep_sec > 60: break
+        if num_of_sleep_sec > error_log_lock_sleep: break
         time.sleep(1)
-      if num_of_sleep_sec > 60: Log.Error("Could not obtain the lock in 60sec. Skipping log update."); continue
-      Log.Debug("'"+log+".htm.lock' Clear.")
-      Data.Save(log+".htm.lock", "lock")
+      if int(datetime.datetime.now().strftime("%s")) - error_log_locked[log][1] < error_log_lock_sleep * 2: #if the lock age is >= error_log_lock_sleep * 2: ignore the lock and go
+        if num_of_sleep_sec > error_log_lock_sleep: Log.Error("Could not obtain the lock in %ssec & lock age is < %ssec. Skipping log update." % (error_log_lock_sleep, error_log_lock_sleep * 2)); continue
+      error_log_locked[log] = [True, int(datetime.datetime.now().strftime("%s"))]
+      Log.Debug("Locked '%s' %s" % (log, error_log_locked[log]))
       if Data.Exists(log+".htm"):
         for line in Data.Load(log+".htm").split(log_line_separator):
           if "|" in line: log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
