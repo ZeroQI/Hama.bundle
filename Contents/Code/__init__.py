@@ -223,7 +223,7 @@ class HamaCommonAgent:
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
-    tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", {}, []
+    anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
     if   metadata.id.startswith("tvdb-"):  tvdbid = metadata.id [len("tvdb-"):]
     elif   metadata.id.startswith("tvdb2-"):  tvdbid = metadata.id [len("tvdb2-"):]
@@ -620,7 +620,8 @@ class HamaCommonAgent:
           if key3 in log_array.keys(): del(log_array[key3])
           if key4 in log_array.keys(): del(log_array[key4])
       Data.Save(log+".htm", log_prefix + log_line_separator.join([str(key)+" | "+str(log_array[key]) for key in log_array.keys()]))
-      Data.Remove(log+".htm.lock")
+      error_log_locked[log] = [False, 0]
+      Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
