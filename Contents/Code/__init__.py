@@ -592,9 +592,9 @@ class HamaCommonAgent:
         num_of_sleep_sec = num_of_sleep_sec + 1
         if num_of_sleep_sec > error_log_lock_sleep: break
         time.sleep(1)
-      if int(datetime.datetime.now().strftime("%s")) - error_log_locked[log][1] < error_log_lock_sleep * 2: #if the lock age is >= error_log_lock_sleep * 2: ignore the lock and go
+      if int(time.time()) - error_log_locked[log][1] < error_log_lock_sleep * 2: #if the lock age is >= error_log_lock_sleep * 2: ignore the lock and go
         if num_of_sleep_sec > error_log_lock_sleep: Log.Error("Could not obtain the lock in %ssec & lock age is < %ssec. Skipping log update." % (error_log_lock_sleep, error_log_lock_sleep * 2)); continue
-      error_log_locked[log] = [True, int(datetime.datetime.now().strftime("%s"))]
+      error_log_locked[log] = [True, int(time.time())]
       Log.Debug("Locked '%s' %s" % (log, error_log_locked[log]))
       if Data.Exists(log+".htm"):
         for line in Data.Load(log+".htm").split(log_line_separator):
