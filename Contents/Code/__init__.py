@@ -59,6 +59,7 @@ import os, re, time, datetime, string, thread, threading, urllib, copy # Functio
 AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = None, None, None  #ValueError if in Start()
 SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'  ].encode('utf-8'), Prefs['SerieLanguage2'  ].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]  #override default language
 EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ]                                           #override default language
+error_log_locked, error_log_lock_sleep = {}, 10
 
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
@@ -212,6 +213,9 @@ class HamaCommonAgent:
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
+    global error_log_locked
+    for key in error_log.keys():
+      if key not in error_log_locked.keys(): error_log_locked[key] = [False, 0]
     
     Log.Debug('--- Update Begin -------------------------------------------------------------------------------------------')
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
@@ -219,7 +223,7 @@ class HamaCommonAgent:
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
-    tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", {}, []
+    anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
     if   metadata.id.startswith("tvdb-"):  tvdbid = metadata.id [len("tvdb-"):]
     elif   metadata.id.startswith("tvdb2-"):  tvdbid = metadata.id [len("tvdb2-"):]
@@ -315,25 +319,26 @@ class HamaCommonAgent:
               else:                       summary_missing.append(numbering) 
 
             ### Check for Missing Episodes ###
-            if metadata.id.startswith("tvdb") and currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
-              if currentSeasonNum == '0': tvdb_special_missing.append(numbering)
-              else:                       tvdb_episode_missing.append(numbering)
+            if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
+              if currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+                if currentSeasonNum == '0': tvdb_special_missing.append(numbering)
+                else:                       tvdb_episode_missing.append(numbering)
 
-        if summary_missing:         error_log['Missing Episode Summaries'].append("tvdbid: %s, Title: '%s', Missing Episode Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(summary_missing)))
-        if special_summary_missing: error_log['Missing Special Summaries'].append("tvdbid: %s, Title: '%s', Missing Special Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(special_summary_missing)))
-        if tvdb_episode_missing:    error_log['Missing Episodes'         ].append("tvdbid: %s, Title: '%s', Missing Episodes: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_episode_missing)))
-        if tvdb_special_missing:    error_log['Missing Specials'         ].append("tvdbid: %s, Title: '%s', Missing Specials: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_special_missing)))
+        if summary_missing:         error_log['Missing Episode Summaries'].append("tvdbid: %s | Title: '%s' | Missing Episode Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(summary_missing)))
+        if special_summary_missing: error_log['Missing Special Summaries'].append("tvdbid: %s | Title: '%s' | Missing Special Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(special_summary_missing)))
+        if tvdb_episode_missing:    error_log['Missing Episodes'         ].append("tvdbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_episode_missing)))
+        if tvdb_special_missing:    error_log['Missing Specials'         ].append("tvdbid: %s | Title: '%s' | Missing Specials: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_special_missing)))
       else:
         Log.Debug("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
-        error_log['anime-list tvdbid missing'].append(TVDB_HTTP_API_URL % tvdbid + " - xml not downloadable so serie deleted from thetvdb")
-      Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)) )
-      Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)) )
+        error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % tvdbid + " | Not downloadable so serie deleted from thetvdb")
+      Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)))
+      Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)))
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
         tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
-        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
-        if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append(WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid))
+        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
+        if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbposternumber == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
   
     ### Movie posters including imdb from TVDB - Load serie XML ###
@@ -466,21 +471,21 @@ class HamaCommonAgent:
               else:                                  plex_role [ roles[role][1] ].append(creator.text) #not movie #for episodes
               log_string += "%s is a %s, " % (creator.text, roles[role][2] )
         if metadata.studio == "" and mapping_studio != "":  metadata.studio = mapping_studio
-        if metadata.studio != "" and mapping_studio != "":  error_log['anime-list studio logos'].append("Aid: %s AniDB have studio '%s' and XML have '%s'"         % (metadata.id[len("anidb-"):].zfill(5), metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
-        if metadata.studio == "" and mapping_studio == "":  error_log['anime-list studio logos'].append("Aid: %s AniDB and anime-list are both missing the studio" % (metadata.id[len("anidb-"):].zfill(5)) )
+        if metadata.studio != "" and mapping_studio != "" and metadata.studio != mapping_studio: error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]), title, metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
+        if metadata.studio == "" and mapping_studio == "":  error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]), title) )
         Log.Debug(log_string)
 
         ### AniDB Serie/Movie description ###
         try:     description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
         except:  description = ""; Log.Debug("Exception ")
         if description == "":
-          error_log['AniDB summaries missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " " + metadata.title)
+          error_log['AniDB summaries missing'].append("anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " | Title: '%s'" % metadata.title))
           if tvdbOverview:  description = tvdbOverview;  Log.Debug("AniDB series summary is missing but TVDB has one availabe so using it.")
         if metadata.summary != description and description:  metadata.summary = description.replace("`", "'")
         
         ### AniDB Posters ###
         Log.Debug("Update() - AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
-        if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append(WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + "" + metadata.title)
+        if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append("anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id[len("anidb-"):], metadata.id[len("anidb-"):]) + " | Title: '%s'" % metadata.title))
         elif Prefs['GetAnidbPoster']:  self.metadata_download (metadata.posters, ANIDB_PIC_BASE_URL + getElementText(anime, 'picture'), 99, "AniDB/%s" % getElementText(anime, 'picture')) 
 
         if not movie: ### TV Serie specific #################################################################################################################
@@ -563,8 +568,8 @@ class HamaCommonAgent:
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
-          if len(missing_eps)>0     :  error_log['Missing Episodes'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1].zfill(5)), title, str(missing_eps)))
-          if len(missing_specials)>0:  error_log['Missing Specials'].append("anidbid: %s, Title: '%s', Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1].zfill(5)), title, str(missing_specials)))
+          if len(missing_eps)>0     :  error_log['Missing Episodes'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]), title, str(missing_eps)))
+          if len(missing_specials)>0:  error_log['Missing Specials'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]), title, str(missing_specials)))
 
 
           convert      = lambda text: int(text) if text.isdigit() else text
@@ -576,15 +581,47 @@ class HamaCommonAgent:
         ### End of if anime is not None: ###
 
     ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
+    log_line_separator = "<br />\r\n"
     for log in error_log:
-      if error_log[log] != []:
-        if Data.Exists(log+".htm"):  string2 = Data.Load(log+".htm")
+      log_array={}
+      log_prefix = ""
+      num_of_sleep_sec = 0
+      global error_log_lock_sleep
+      while error_log_locked[log][0]:
+        Log.Debug("'%s' lock exists. Sleeping 1sec for lock to disappear." % log)
+        num_of_sleep_sec = num_of_sleep_sec + 1
+        if num_of_sleep_sec > error_log_lock_sleep: break
+        time.sleep(1)
+      if int(time.time()) - error_log_locked[log][1] < error_log_lock_sleep * 2: #if the lock age is >= error_log_lock_sleep * 2: ignore the lock and go
+        if num_of_sleep_sec > error_log_lock_sleep: Log.Error("Could not obtain the lock in %ssec & lock age is < %ssec. Skipping log update." % (error_log_lock_sleep, error_log_lock_sleep * 2)); continue
+      error_log_locked[log] = [True, int(time.time())]
+      Log.Debug("Locked '%s' %s" % (log, error_log_locked[log]))
+      if Data.Exists(log+".htm"):
+        for line in Data.Load(log+".htm").split(log_line_separator):
+          if "|" in line: log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
+      if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
+      if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
+      for entry in error_log[log]:
+        log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
+      if error_log[log] == []:
+        if log == "Missing Episodes" or log == "Missing Specials":
+          if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:
+            key1 = "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) )
+          else:
+            key1 = "%sid: %s" % (metadata.id.split("-")[0].rstrip("23"), WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1] if metadata.id.split("-")[0].rstrip("23") == "anidb" else TVDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]) )
+          if key1 in log_array.keys(): del(log_array[key1])
         else:
-          string2=""
-          if log == 'TVDB posters missing': string2 = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + "<br />\n"
-          if log == 'Plex themes missing':  string2 = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + "<br />\n"
-        for entry in error_log[log]:
-          if entry not in string2:  string2 = string2 + entry + "<br />\r\n"; Data.Save(log+".htm", string2)
+          key1 = "anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid) )
+          key2 = "anidbid: %s" % anidbid
+          if key1 in log_array.keys(): del(log_array[key1])
+          if key2 in log_array.keys(): del(log_array[key2])
+          key3 = "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) )
+          key4 = "tvdbid: %s" % tvdbid
+          if key3 in log_array.keys(): del(log_array[key3])
+          if key4 in log_array.keys(): del(log_array[key4])
+      Data.Save(log+".htm", log_prefix + log_line_separator.join([str(key)+" | "+str(log_array[key]) for key in log_array.keys()]))
+      error_log_locked[log] = [False, 0]
+      Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
@@ -602,7 +639,7 @@ class HamaCommonAgent:
               if anime.get("offset"):  mappingList[ 's'+season.get("tvdbseason")] = [anime.get("start"), anime.get("end"), anime.get("offset")]
               for string2 in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string2.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string2.split('-')[1]
           except: Log.Debug("anidbTvdbMapping() - mappingList creation exception")
-        elif tvdbid in ("", "unknown"):  error_log ['anime-list tvdbid missing'].append("anidbid: %s title: '%s' has no matching tvdbid ('%s') in mapping file" % (anidb_id.zfill(5), name, tvdbid) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
+        elif tvdbid in ("", "unknown"):  error_log ['anime-list tvdbid missing'].append("anidbid: %s | Title: '%s' | Has no matching tvdbid ('%s') in mapping file | " % (anidb_id, name, tvdbid) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; tvdbid:" % (anidb_id, name), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         try:    mapping_studio  = anime.xpath("supplemental-info/studio")[0].text
         except: mapping_studio  = ""
         Log.Debug("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (anidbid, tvdbid, tmdbid, imdbid, mapping_studio, defaulttvdbseason, name) )
@@ -612,7 +649,7 @@ class HamaCommonAgent:
         return tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
     else:
       Log.Debug("anidbTvdbMapping() - anidbid '%s' not found in file" % anidb_id)
-      error_log['anime-list anidbid missing'].append("anidbid: " + anidb_id.zfill(5))
+      error_log['anime-list anidbid missing'].append("anidbid: %s | Title: '%s'" % (anidb_id, name))
       return "", "", "", "", [], "", [], "0"
     
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
