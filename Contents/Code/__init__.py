@@ -649,7 +649,7 @@ class HamaCommonAgent:
           key4 = "tvdbid: %s" % tvdbid
           if key3 in log_array.keys(): del(log_array[key3])
           if key4 in log_array.keys(): del(log_array[key4])
-      Data.Save(log+".htm", log_prefix + log_line_separator.join([str(key)+" | "+str(log_array[key]) for key in log_array.keys()]))
+      Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(log_array[key]) for key in log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
       error_log_locked[log] = [False, 0]
       Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
