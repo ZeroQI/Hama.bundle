@@ -570,10 +570,38 @@ class HamaCommonAgent:
           ## End of "for episode in anime.xpath('episodes/episode'):" ### Episode Specific ###########################################################################################
 
           ### AniDB Missing Episodes ###
-          if len(missing_eps)>0     :  error_log['Missing Episodes'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]), title, str(missing_eps)))
+          #Log.Debug("type: %s , ep1 title: %s" % (anime.xpath('/anime/type')[0].text, anime.xpath('episodes/episode/title')[0].text))
+          if len(missing_eps)>0 and anime.xpath('/anime/type')[0].text == "Movie" and "Complete Movie" in [titleText.text for titleText in anime.xpath('episodes/episode/title')]:
+            movie_ep_groups = [ {}, {}, {}, {}, {}, {}, {} ]
+            for episode in anime.xpath('episodes/episode'):
+              epNum     = episode.xpath('epno')[0]
+              epTitle   = episode.xpath('title')[0]
+              epNumType = epNum.get('type')
+              season    = "1" if epNumType == "1" else "0"
+              if season == "0": continue
+              epNumVal  = "s%se%s" % (season, epNum.text)
+
+              part_group = -1
+              if epTitle.text == "Complete Movie": part_group = 0
+              if epTitle.text.startswith("Part "): part_group = int(epTitle.text[-1]) if epTitle.text[-1].isdigit() else -1
+              if part_group != -1: movie_ep_groups[part_group][epNumVal] = 'found'
+
+            #Log.Debug("orig movie_ep_groups: " + str(movie_ep_groups))
+            #Log.Debug("orig missing_eps: " + str(missing_eps))
+            for missing_ep in missing_eps:
+              for movie_ep_group in movie_ep_groups:
+                if missing_ep in movie_ep_group.keys(): movie_ep_group[missing_ep] = 'missing'
+            Log.Debug("movie_ep_groups: " + str(movie_ep_groups))
+            missing_eps = []
+            for movie_ep_group in movie_ep_groups:
+              if 'found' in movie_ep_group.keys() and 'missing' in movie_ep_group.keys():
+                for key in movie_ep_group.keys():
+                  if movie_ep_group[key] == 'missing': missing_eps.append(key)
+            Log.Debug("new missing_eps: " + str(missing_eps))
+            
+          if len(missing_eps)>0   :  error_log['Missing Episodes'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]), title, str(missing_eps)))
           if len(missing_specials)>0:  error_log['Missing Specials'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]), title, str(missing_specials)))
-
-
+          
           convert      = lambda text: int(text) if text.isdigit() else text
           alphanum_key = lambda key:  [ convert(c) for c in re.split('([0-9]+)', key) ]
 
@@ -621,7 +649,7 @@ class HamaCommonAgent:
           key4 = "tvdbid: %s" % tvdbid
           if key3 in log_array.keys(): del(log_array[key3])
           if key4 in log_array.keys(): del(log_array[key4])
-      Data.Save(log+".htm", log_prefix + log_line_separator.join([str(key)+" | "+str(log_array[key]) for key in log_array.keys()]))
+      Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(log_array[key]) for key in log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
       error_log_locked[log] = [False, 0]
       Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
