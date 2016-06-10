@@ -285,7 +285,7 @@ class HamaCommonAgent:
       
         ### TVDB - Build 'tvdb_table' ###
         abs_manual_placement_worked = True
-        if max(map(int, media.seasons.keys()))==1 or metadata.id.startswith("tvdb3-"):
+        if defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata.id.startswith("tvdb3-"):
           ep_count, abs_manual_placement_info, number_set = 0, [], False
           for episode in tvdbanime.xpath('Episode'):
             if episode.xpath('SeasonNumber')[0].text != '0':
