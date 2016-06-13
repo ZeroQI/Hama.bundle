@@ -106,7 +106,7 @@ class HamaCommonAgent:
     
     ### Check if a guid is specified "Show name [anidb-id]" ###
     global SERIE_LANGUAGE_PRIORITY
-    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
+    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tvdb4|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
     if match:  ###metadata id provided
       source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
       if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
@@ -126,7 +126,7 @@ class HamaCommonAgent:
           Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
           langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
           results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
-          parent_element, show , score = None, "", 0
+          parent_element,  show , score = None, "", 0
         aid = element.get('aid')
       elif element.get('type') in ('main', 'official', 'syn', 'short'):
         title = element.text
@@ -226,7 +226,7 @@ class HamaCommonAgent:
     anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
     
-	if   metadata.id.startswith("tvdb"):     tvdbid = metadata.id[metadata.id.find("-")+1:]
+    if metadata.id.startswith("tvdb"):     tvdbid = metadata.id[metadata.id.find("-")+1:]
     elif metadata.id.startswith("anidb-"):
       anidbid=metadata.id[len("anidb-"):]
       tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
@@ -364,7 +364,7 @@ class HamaCommonAgent:
       for media_season in media.seasons:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata.id.startswith("tvdb3-") and not media_season == "0" else "s%se%s" % (media_season, media_episode), 0
+          ep, episode_count = media_episode if defaulttvdbseason=="a" or (metadata.id.startswith("tvdb3-") or metadata.id.startswith("tvdb4-")) and not media_season == "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
@@ -627,12 +627,12 @@ class HamaCommonAgent:
       if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
       for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
       if error_log[log] == []:
-        if no log in ["Missing Episodes", "Missing Specials"]:               keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
+        if not log in ["Missing Episodes", "Missing Specials"]:               keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
         elif len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
         else:                                                                keys = ["%sid: %s" % (metadata.id.split("-")[0].rstrip("23"), WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1] if metadata.id.split("-")[0].rstrip("23") == "anidb" else TVDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]) )]
         for key in keys: 
-		  if key in error_log_array.keys():  del(error_log_array[key])
-	  Data.Save(log+".htm", log_prefix + log_line_separator.join([key+" | "+str(error_log_array[key]) for key in sorted(error_log_array)]) )
+          if key in error_log_array.keys():  del(error_log_array[key])
+      Data.Save(log+".htm", log_prefix + log_line_separator.join([key+" | "+str(error_log_array[key]) for key in sorted(error_log_array)]) )
       error_log_locked[log] = [False, 0]; Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
