@@ -612,46 +612,30 @@ class HamaCommonAgent:
 
     ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
     log_line_separator = "<br />\r\n"
+    global error_log_lock_sleep
     for log in error_log:
-      log_array={}
-      log_prefix = ""
-      num_of_sleep_sec = 0
-      global error_log_lock_sleep
+      error_log_array, log_prefix, num_of_sleep_sec = {}, "", 0
       while error_log_locked[log][0]:
         Log.Debug("'%s' lock exists. Sleeping 1sec for lock to disappear." % log)
-        num_of_sleep_sec = num_of_sleep_sec + 1
+        num_of_sleep_sec += 1
         if num_of_sleep_sec > error_log_lock_sleep: break
         time.sleep(1)
-      if int(time.time()) - error_log_locked[log][1] < error_log_lock_sleep * 2: #if the lock age is >= error_log_lock_sleep * 2: ignore the lock and go
-        if num_of_sleep_sec > error_log_lock_sleep: Log.Error("Could not obtain the lock in %ssec & lock age is < %ssec. Skipping log update." % (error_log_lock_sleep, error_log_lock_sleep * 2)); continue
-      error_log_locked[log] = [True, int(time.time())]
-      Log.Debug("Locked '%s' %s" % (log, error_log_locked[log]))
+      if int(time.time())-error_log_locked[log][1] < error_log_lock_sleep * 2 and num_of_sleep_sec > error_log_lock_sleep:   Log.Error("Could not obtain the lock in %ssec & lock age is < %ssec. Skipping log update." % (error_log_lock_sleep, error_log_lock_sleep * 2)); continue
+      error_log_locked[log] = [True, int(time.time())]; Log.Debug("Locked '%s' %s" % (log, error_log_locked[log]))
       if Data.Exists(log+".htm"):
         for line in Data.Load(log+".htm").split(log_line_separator):
-          if "|" in line: log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
+          if "|" in line: error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
       if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
       if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
-      for entry in error_log[log]:
-        log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
+      for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
       if error_log[log] == []:
-        if log == "Missing Episodes" or log == "Missing Specials":
-          if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:
-            key1 = "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) )
-          else:
-            key1 = "%sid: %s" % (metadata.id.split("-")[0].rstrip("23"), WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1] if metadata.id.split("-")[0].rstrip("23") == "anidb" else TVDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]) )
-          if key1 in log_array.keys(): del(log_array[key1])
-        else:
-          key1 = "anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid) )
-          key2 = "anidbid: %s" % anidbid
-          if key1 in log_array.keys(): del(log_array[key1])
-          if key2 in log_array.keys(): del(log_array[key2])
-          key3 = "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid) )
-          key4 = "tvdbid: %s" % tvdbid
-          if key3 in log_array.keys(): del(log_array[key3])
-          if key4 in log_array.keys(): del(log_array[key4])
-      Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(log_array[key]) for key in log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
-      error_log_locked[log] = [False, 0]
-      Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
+        if not log in ["Missing Episodes", "Missing Specials"]:              keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
+        elif len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
+        else:                                                                keys = ["%sid: %s" % (metadata.id.split("-")[0].rstrip("23"), WEB_LINK % (ANIDB_SERIE_URL % metadata.id.split("-")[1] if metadata.id.split("-")[0].rstrip("23") == "anidb" else TVDB_SERIE_URL % metadata.id.split("-")[1], metadata.id.split("-")[1]) )]
+        for key in keys: 
+          if key in error_log_array.keys():  del(error_log_array[key])
+      Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
+      error_log_locked[log] = [False, 0]; Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Debug('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
