@@ -106,7 +106,7 @@ class HamaCommonAgent:
     
     ### Check if a guid is specified "Show name [anidb-id]" ###
     global SERIE_LANGUAGE_PRIORITY
-    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
+    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tvdb4|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
     if match:  ###metadata id provided
       source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
       if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
@@ -126,7 +126,7 @@ class HamaCommonAgent:
           Log.Debug("search() - AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
           langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
           results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
-          parent_element, show , score = None, "", 0
+          parent_element, show, score = None, "", 0
         aid = element.get('aid')
       elif element.get('type') in ('main', 'official', 'syn', 'short'):
         title = element.text
@@ -225,9 +225,8 @@ class HamaCommonAgent:
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
     anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
-    if   metadata.id.startswith("tvdb-"):  tvdbid = metadata.id [len("tvdb-"):]
-    elif   metadata.id.startswith("tvdb2-"):  tvdbid = metadata.id [len("tvdb2-"):]
-    elif   metadata.id.startswith("tvdb3-"):  tvdbid = metadata.id [len("tvdb3-"):]
+    
+    if metadata.id.startswith("tvdb"):     tvdbid = metadata.id[metadata.id.find("-")+1:]
     elif metadata.id.startswith("anidb-"):
       anidbid=metadata.id[len("anidb-"):]
       tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
@@ -285,7 +284,7 @@ class HamaCommonAgent:
       
         ### TVDB - Build 'tvdb_table' ###
         abs_manual_placement_worked = True
-        if defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata.id.startswith("tvdb3-"):
+        if defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata.id.split("-")[0] in ["tvdb3", "tvdb4"]:
           ep_count, abs_manual_placement_info, number_set = 0, [], False
           for episode in tvdbanime.xpath('Episode'):
             if episode.xpath('SeasonNumber')[0].text != '0':
@@ -304,25 +303,24 @@ class HamaCommonAgent:
         
         if abs_manual_placement_worked:
           for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
-            currentSeasonNum = getElementText(episode, 'SeasonNumber')
-            currentEpNum     = getElementText(episode, 'EpisodeNumber')
-            currentAbsNum    = getElementText(episode, 'absolute_number')
-            if defaulttvdbseason=="a": numbering = currentAbsNum
-            else:                      numbering = "s" + currentSeasonNum + "e" + (currentEpNum if currentSeasonNum == '0' or not metadata.id.startswith("tvdb3-") else currentAbsNum)
+            currentSeasonNum       = getElementText(episode, 'SeasonNumber')
+            currentEpNum           = getElementText(episode, 'EpisodeNumber')
+            currentAbsNum          = getElementText(episode, 'absolute_number')
+            numbering              = currentAbsNum if defaulttvdbseason=="a" or metadata.id.split("-")[0] in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  "s" + currentSeasonNum + "e" + currentEpNum
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
-                                       'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None,
-                                       'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ) }
+                                       'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
+									   'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None
+                                     }
 
             ### Check for Missing Summaries ### 
             if getElementText(episode, 'Overview'):  summary_present.append(numbering)
-            else:
-              if currentSeasonNum == '0': special_summary_missing.append(numbering)
-              else:                       summary_missing.append(numbering) 
+            elif currentSeasonNum == '0':            special_summary_missing.append(numbering)
+            else:                                    summary_missing.append(numbering) 
 
             ### Check for Missing Episodes ###
             if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata.id.startswith("tvdb"):
-              if currentSeasonNum and not (currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) and not (currentSeasonNum in media.seasons and currentAbsNum in media.seasons[currentSeasonNum].episodes):
+              if currentSeasonNum and not (currentSeasonNum in media.seasons and (currentEpNum in media.seasons[currentSeasonNum].episodes or not metadata.id.startswith("tvdb4") and currentAbsNum in media.seasons[currentSeasonNum].episodes or metadata.id.startswith("tvdb4") and [currentAbsNum in media.seasons[season].episodes for season in media.seasons].count(True) > 0)):
                 if currentSeasonNum == '0': tvdb_special_missing.append(numbering)
                 else:                       tvdb_episode_missing.append(numbering)
 
@@ -341,7 +339,7 @@ class HamaCommonAgent:
         tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
-        if tvdbposternumber * tvdbposternumber == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
+        if tvdbposternumber * tvdbseasonposter == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
   
     ### Movie posters including imdb from TVDB - Load serie XML ###
     if imdbid.isalnum():
@@ -366,7 +364,7 @@ class HamaCommonAgent:
       for media_season in media.seasons:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count = "s%se%s" % (media_season, media_episode), 0
+          ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata.id.split("-")[0] in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
