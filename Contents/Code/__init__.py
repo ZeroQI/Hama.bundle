@@ -63,7 +63,7 @@ error_log_locked, error_log_lock_sleep = {}, 10
 
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
-  DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "localart", "adult", 
+  DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "GetASSPosters", "localart", "adult", 
                   "GetPlexThemes", "MinimumWeight", "SerieLanguage1", "SerieLanguage2", "SerieLanguage3", "EpisodeLanguage1", "EpisodeLanguage2", "https")
   try:  [Prefs[key] for key in DefaultPrefs]
   except:  Log.Error("DefaultPrefs.json invalid" );  return MessageContainer ('Error', "Value '%s' missing from 'DefaultPrefs.json', update it" % key)
@@ -336,6 +336,8 @@ class HamaCommonAgent:
         error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % tvdbid + " | Not downloadable so serie deleted from thetvdb")
       Log.Debug("Update() - TVDB - tvdb_table: "               + str(sorted(summary_present)))
       Log.Debug("Update() - TVDB - Episodes without Summary: " + str(sorted(summary_missing)))
+
+      if metadata_id_source == "tvdb4" and Prefs['GetASSPosters']:  self.getImagesFromASS(metadata, media, tvdbid, movie, 0)
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
@@ -681,6 +683,36 @@ class HamaCommonAgent:
         Log.Debug("anidbCollectionMapping() - anidbid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (metadata.id.split('-')[1], title, str(related_anime_list)))
         return
     Log.Debug("anidbCollectionMapping() - anidbid is not part of any collection, related_anime_list: '%s'" % str(related_anime_list)) 
+
+  ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
+  def getImagesFromASS(self, metadata, media, tvdbid, movie, num=0):
+    posternum, seasonposternum = 0, 0
+    if movie: return
+    try:
+      s = media.seasons.keys()[0]
+      e = media.seasons[s].episodes.keys()[0]
+      dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+      dir_name = os.path.basename(dir_path)
+      if    "[tvdb4-" not in dir_name and "tvdb4.id" not in os.listdir(dir_path): Log.Debug("getImagesFromASS() - Files are in a season folder (option 1)"); return
+      elif  "tvdb4.mapping" in os.listdir(dir_path): Log.Debug("getImagesFromASS() - Files are in the series folder and has a mapping file (option 2)"); return
+      else: Log.Debug("getImagesFromASS() - Files are in the series folder and has no mapping file (option 3)")
+    except Exception as e:  
+      Log.Error("getImagesFromASS() - Issues in finding setup info as directories have most likely changed post scan into Plex")
+      Log.Error(e); return
+    try:   postersXml = XML.ElementFromURL( ASS_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
+    except Exception as e:  
+      Log.Error("getImagesFromASS() - Loading poster XML failed: " + ASS_POSTERS_URL)
+      Log.Error(e); return
+    else:  Log.Debug("getImagesFromASS() - Loaded poster XML: '%s'" % ASS_POSTERS_URL)
+    entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
+    if not entry: Log.Debug("getImagesFromASS() - tvdbid '%s' is not found in xml file" % tvdbid); return
+    for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
+      num += 1; seasonposternum += 1
+      season, posterURL = line.strip().split("|",1); season = str(int(season))
+      posterPath = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
+      if movie or season not in media.seasons:  continue
+      self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
+    return posternum, seasonposternum
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
