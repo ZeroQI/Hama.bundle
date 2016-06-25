@@ -36,6 +36,12 @@
     "default" : "false"
   },
   {
+    "id"      : "GetASSPosters",
+    "label"   : "Fetch poster images from ASS tvdb4 urls",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
     "id"      : "localart",
     "label"   : "Prefer artwork based on section language",
     "type"    : "bool",
