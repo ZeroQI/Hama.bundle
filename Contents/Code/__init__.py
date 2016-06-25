@@ -20,6 +20,8 @@ TMDB_CONFIG_URL              = 'https://api.tmdb.org/3/configuration?api_key=7f4
 TMDB_IMAGES_URL              = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
 OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                                                                       #
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
+ASS_MAPPING_URL              = 'http://rawgithub.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                     #
+ASS_POSTERS_URL              = 'http://rawgithub.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                     #
 RESTRICTED_CONTENT_RATING    = "NC-17"
 RESTRICTED_GENRE_NAMES       = [ '18 Restricted', 'Pornography' ]
 FILTER_CHARS                 = "\\/:*?<>|~-; "
@@ -341,7 +343,7 @@ class HamaCommonAgent:
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
-        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force)
+        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force, 1)
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
@@ -715,8 +717,8 @@ class HamaCommonAgent:
     return posternum, seasonposternum
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False):
-    posternum, seasonposternum, num, poster_total = 0, 0, 0, 0
+  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False, num=0):
+    posternum, seasonposternum, poster_total = 0, 0, 0
     try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24) # don't bother with the full zip, all we need is the banners
     except:  Log.Debug("getImagesFromTVDB() - Loading picture XML failed: " + TVDB_BANNERS_URL % tvdbid);  return
     else:    Log.Debug("getImagesFromTVDB() - Loaded picture XML: '%s'" % (TVDB_BANNERS_URL % tvdbid))
