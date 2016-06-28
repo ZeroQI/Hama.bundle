@@ -1,29 +1,12 @@
 Absolute Series Scanner (ASS):
 ==============================
-Better ABsolute Scanner (BABS) has been replaced by Absolute Series Scanner (ASS), which i have entirely re-written.
-I recommend installing the "Absolute Series Scanner" as it supports nearly everything out of the box, normal season numbering, absolute numbering (a requirement with AniDB and anime in general), grouping folders, DVD folders (limited)...
 
-Here are Absolute Series Scanner features: [!] = Exclusive to this scanner
+Please view https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/README.md
 
-    * [!] Allow grouping of series+movies in a parent folder (ex: Zero no tsukaima/[1] Princess no Rondo)
-    * [!] Give episode titles extracted from the filename
-    * [!] Support AniDB OP, ED, trailer, NCOP, etc... specials numbering
-    * [!] DVD    folder support (some vob seem protected, pendign feedback on proportion from users)
-    * [!] BluRay folder support (some vob seem protected, pendign feedback on proportion from users)
-    * [!] create a filelist of the library for me to be able to re-create it with dummy files
-    * [!] create a readable log of all files in last scan to allow checking for matching errors (and log skipped medias)
-    * [!] direct matching passthrough with an *.id file with the series id (anidb, tvdb, tmdb) in serie or Extras Extras folder
-    * [!] direct matching passthrough by appending to folder serie name folder " [anidb-12345]" or " [tvdb-1234567]" with serie id
-    * [!] Giving a tvdb id will make the absolute series show with tvdb seasons transparently.
-    * [!] Add all un-matched files as season 0 episodes 501+
-    * Support Seasons/Sereis/saison/livre/Book for seasons
-    * supports plexignore files
-    * Clever episode number detection
-    * Allow transparent use of Skip Ark/Story/Video folders
-    * re-map specials characters
-    * Manages multi-episodes (01-02, 01e02, 01-e02)
-    * Manages movies and series in a single library together with the agent
-    
+If files are showing in plex the scanner did its job.
+Please note however that if the scanner crashes, the file content is unchanged and the library doesn't update with new fiels present.
+That would still be a scanner issue
+
 HTTP Anidb Metadata Agent (HAMA)
 ================================
 HAMA was initially created By Atomicstrawberry until v0.4 included.
@@ -167,23 +150,20 @@ Scanner logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Ser
 If files and series are showing in Plex GUI but no metadata is downloaded or some is but no poster, that is the Agent doing
 If posters are missing, check that all the data folders are created and the agent is where it should be:
 
-Support thread for agent:
-<ul>
-  <li>https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest</li>
-</ul>
-
 Agent logs to include:
 - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log
 - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log
 
+Support thread for agent:
+- https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
+
+
 Hama specific html logs:
-<ul>
-  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm</li>
-  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm</li>
-  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm</li>
-  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm</li>
-  <li>[...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm</li>
-</ul>
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
 
 Here is the feedback logs description and one example of every feedback:
    . AniDB.htm        
@@ -201,12 +181,11 @@ Here is the feedback logs description and one example of every feedback:
         - aid: 00002 tvdbid:70973 s1e1 Overview Empty
 To Do
 =====
-
-    * Package of Studio Logos. Will not work on that but somebody else can
+- Package of Studio Logos. Will not work on that but somebody else can
 	https://forums.plex.tv/discussion/120618/new-studio-logos-for-media-flags-bundle
 	https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061
-    * Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
-    * Add RSS links to AniDB missing episodes summary ?
+- Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
+- Add RSS links to AniDB missing episodes summary ?
     
     Studio icons
 ==========
