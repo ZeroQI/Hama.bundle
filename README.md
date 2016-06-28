@@ -1,11 +1,7 @@
 Absolute Series Scanner (ASS):
 ==============================
-
+If all video files are showing in plex the scanner did its job.
 Please view https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/README.md
-
-If files are showing in plex the scanner did its job.
-Please note however that if the scanner crashes, the file content is unchanged and the library doesn't update with new fiels present.
-That would still be a scanner issue
 
 HTTP Anidb Metadata Agent (HAMA)
 ================================
@@ -48,15 +44,34 @@ The XMLs are downloaded (cached) and a copy is saved In the agent data folders a
     * anidb serie xml:           Serie information, poster
     * Plex theme song:           Serie theme song
 
+Hama creates specific html log files with links to facilitate updating the metadata databases used for everyone's benefits and even list missing episodes:
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
+
+Here is the feedback logs description and one example of every feedback:
+   . AniDB.htm        
+        - Aid: 00002 No poster present
+ 
+   . Anime-list.htm    ScudLee;s XML file feedback
+       - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
+       - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
+       - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
+       - Aid: 00002 anime-list is missing the anidbid
+ 
+   . Themes.htm       Plex TV theme support whose filename is based on TheTVDB.com id and last 30s max. Wouldn't mind somebody a package will all complete mp3 theme songs whose name would be the AniDB ID (to account for the seasons different songs)...
+        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme song 3x3 Eyes' No English poster
+        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
+        - aid: 00002 tvdbid:70973 s1e1 Overview Empty
+
 I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
 
 Installation
 ============
-Support thread: https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
-
 Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle/releases
-
 Archive folders to copy in Plex main folder:
 
     * "Scanners"         "Scanners" is the only that has to be created. "Series/Absolute series Scanner.py" goes inside. 
@@ -107,6 +122,23 @@ Any folder missing will crash the agent when an attempt to write inside is done.
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
+On linux be aware of permission issue:
+
+OpenMediaVault (Debian):
+- "sudo chmod 775 -R /var/lib/plexmediaserver"
+
+Synology:
+- "chown -R plex:users"
+- "chmod -R 700"
+
+if having: CRITICAL (storage:89) - Exception writing to /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/StoredValues (most recent call last):
+  File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save
+IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
+- touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+- chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+- chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+- service plexmediaserver restart
+    
 Updating:
 =========
 If no folder in data was created or data moved there and no new option was added to the agent settings, it will work.
@@ -122,63 +154,21 @@ After restarting Plex servers, the new agent will be loaded and you will find al
 
 Troubleshooting:
 ================
+Plex logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files
 
-Install issue under linux are generally permission issues:
- OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
- Synology: "chown -R plex:users" and "chmod -R 700" to solve posters missing
- 
-CRITICAL (storage:89) - Exception writing to /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/StoredValues (most recent call last):
-  File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save
-IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
-
-    * touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-    * chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-    * chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-    * service plexmediaserver restart
-
-If nothing is scanned or episodes are missing, or file or series not geting into the GUI, that is the scanner doing...
-Include the following logs then:
-
-Support thread for Scanner: https://forums.plex.tv/discussion/113967/absolute-series-scanner-for-anime-mainly/#latest
-Scanner logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files
-<ul>
-  <li>[...]/Plex Media Server/Logs/Plex Media Scanner.log                       (scanner crash info)</li>
-  <li>[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log          (episodes info)</li>
-  <li>[...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)</li>
-</ul>
-
-If files and series are showing in Plex GUI but no metadata is downloaded or some is but no poster, that is the Agent doing
+If files and series are showing in Plex GUI but not all metadata is updating, that is the Agent doing.
+Install issue under linux are generally permission issues, see installation section
 If posters are missing, check that all the data folders are created and the agent is where it should be:
 
 Agent logs to include:
+- [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info)
+- [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
 - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log
 - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log
 
 Support thread for agent:
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
 
-
-Hama specific html logs:
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
-
-Here is the feedback logs description and one example of every feedback:
-   . AniDB.htm        
-        - Aid: 00002 No poster present
- 
-   . Anime-list.htm    ScudLee;s XML file feedback
-       - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
-       - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
-       - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
-       - Aid: 00002 anime-list is missing the anidbid
- 
-   . Themes.htm       Plex TV theme support whose filename is based on TheTVDB.com id and last 30s max. Wouldn't mind somebody a package will all complete mp3 theme songs whose name would be the AniDB ID (to account for the seasons different songs)...
-        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme song 3x3 Eyes' No English poster
-        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
-        - aid: 00002 tvdbid:70973 s1e1 Overview Empty
 To Do
 =====
 - Package of Studio Logos. Will not work on that but somebody else can
@@ -188,7 +178,7 @@ To Do
 - Add RSS links to AniDB missing episodes summary ?
     
 Studio icons
-==========
+============
 For studio icons, for a comparison, XBMC uses png file, white-on-clear, sized 161px x 109px, and are saved in 'skin.aeon.nox"/media/flags/studios/' for example. 
  
 On Plex however, it uses 512x288px .png located in '/volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/Studio/'. substitutions.xml file in parent folder contain the mappings and needs amendind
