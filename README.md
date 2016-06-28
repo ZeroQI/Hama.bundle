@@ -172,10 +172,9 @@ Support thread for agent:
   <li>https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest</li>
 </ul>
 
-Agent logs:
-<ul>
-  <li>[...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log</li>
-</ul>
+Agent logs to include:
+- [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log
+- [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log
 
 Hama specific html logs:
 <ul>
