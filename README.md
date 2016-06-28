@@ -187,7 +187,7 @@ To Do
 - Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
 - Add RSS links to AniDB missing episodes summary ?
     
-    Studio icons
+Studio icons
 ==========
 For studio icons, for a comparison, XBMC uses png file, white-on-clear, sized 161px x 109px, and are saved in 'skin.aeon.nox"/media/flags/studios/' for example. 
  
