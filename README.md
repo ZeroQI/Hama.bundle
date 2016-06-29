@@ -101,20 +101,21 @@ Plex main folder location:
 
 MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and make sure the following folders are all created: (folders are included in Zip archive on thread, i recently added "TVDB/episodes" folder for TVDB screenshots).
 
-    * "AniDB"
-    * "Plex"
-    * "OMDB"
-    * "TMDB"
-    * "TVDB"
-    * "TVDB/_cache/fanart/original"
-    * "TVDB/episodes"
-    * "TVDB/fanart/original"
-    * "TVDB/fanart/vignette"
-    * "TVDB/graphical"
-    * "TVDB/posters"
-    * "TVDB/seasons"
-    * "TVDB/seasonswide"
-    * "TVDB/text"
+- "AniDB"
+- "Plex"
+- "OMDB"
+- "TMDB"
+- "TVDB"
+- "TVDB/blank
+- "TVDB/_cache/fanart/original"
+- "TVDB/episodes"
+- "TVDB/fanart/original"
+- "TVDB/fanart/vignette"
+- "TVDB/graphical"
+- "TVDB/posters"
+- "TVDB/seasons"
+- "TVDB/seasonswide"
+- "TVDB/text"
 
 Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunately.
 Any folder missing will crash the agent when an attempt to write inside is done. That is a Framework issue, all attemps are in try/except structure, to no avail...
@@ -158,7 +159,8 @@ Plex logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server
 
 If files and series are showing in Plex GUI but not all metadata is updating, that is the Agent doing.
 Install issue under linux are generally permission issues, see installation section
-If posters are missing, check that all the data folders are created and the agent is where it should be:
+
+If posters are missing, check that all the data folders are created and the agent is where it should be (see folder list above)
 
 Agent logs to include:
 - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info)
