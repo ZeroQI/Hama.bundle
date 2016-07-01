@@ -344,7 +344,7 @@ class HamaCommonAgent:
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
-        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force, 1)
+        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force, defaulttvdbseason, 1)
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Debug("Update() - TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
@@ -718,8 +718,9 @@ class HamaCommonAgent:
     return posternum, seasonposternum
 
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False, num=0):
+  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False, defaulttvdbseason_offset="", num=0):
     posternum, seasonposternum, poster_total = 0, 0, 0
+    defaulttvdbseason_offset = int(defaulttvdbseason_offset)-1 if defaulttvdbseason_offset.isdigit() else 0
     try:     bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24) # don't bother with the full zip, all we need is the banners
     except:  Log.Debug("getImagesFromTVDB() - Loading picture XML failed: " + TVDB_BANNERS_URL % tvdbid);  return
     else:    Log.Debug("getImagesFromTVDB() - Loaded picture XML: '%s'" % (TVDB_BANNERS_URL % tvdbid))
@@ -730,6 +731,10 @@ class HamaCommonAgent:
       if bannerType == 'poster':                            posternum       += 1
       if bannerType == 'season' and bannerType2=='season':  seasonposternum += 1
       season = banner.xpath('Season')[0].text if banner.xpath('Season') else ""
+      if season.isdigit() and defaulttvdbseason_offset!=0:
+        if   int(season)-defaulttvdbseason_offset>0:  Log.Debug("getImagesFromTVDB() - Setting season '%s' to '%s' with offset of '%s'" % (season, int(season)-defaulttvdbseason_offset, defaulttvdbseason_offset)); season = str( int(season)-defaulttvdbseason_offset )
+        elif season=="0":                             Log.Debug("getImagesFromTVDB() - Keeping season '0' as '0'")
+        else:                                         Log.Debug("getImagesFromTVDB() - New season would be <1 (%s-%s) so skipping poster '%s'" % (season, defaulttvdbseason_offset, bannerPath)); continue
       if movie and not bannerType in ('fanart', 'poster') or season and season not in media.seasons:  continue
       if Prefs['GetTvdbPosters'] and                  ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
          Prefs['GetTvdbFanart' ] and                    bannerType == 'fanart' or \
