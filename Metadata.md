@@ -1,3 +1,4 @@
+```
 TSEMAGT | Metadata Model Classes | Description - Source: http://dev.plexapp.com/docs/agents/models.html 
 ------- | ---------------------- | --------------------------------- 
 X______ | class TV_Show          | Represents a TV show, or the top -level of other episodic content.
@@ -74,3 +75,4 @@ TV_Show - Episode - writers                 | Yes                      | Yes    
 TV_Show - Episode - directors               | Yes                      | Yes                       |                          | 
 TV_Show - Episode - producers               | Yes                      | Yes                       |                          | 
 TV_Show - Episode - thumbs                  | No                       | Yes                       |                          | 
+```
