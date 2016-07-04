@@ -1,15 +1,14 @@
--------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
-TSEMAGT   Metadata Model Classes    Description - Source: http://dev.plexapp.com/docs/agents/models.html 
--------   -----------------------   --------------------------------- --------------------------------------------------------------------------------------------
-# X         class TV_Show             Represents a TV show, or the top -level of other episodic content.
-#  X        class Season              Represents a season of a TV show.
-#   X       class Episode             Represents an episode of a TV show or other episodic content. 
-#    X      class Movie               Represents a movie (e.g. a theatrical release, independent film, home movie, etc.)
-#     X     class Album               Represents a music album.
-#      X    class Artist              Represents an artist or group.
-#       X   Track                     Represents an audio track (e.g. music, audiobook, podcast, etc.)   
-# -------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
-# X.XXXX.   title                     A string specifying the title.
+TSEMAGT | Metadata Model Classes | Description - Source: http://dev.plexapp.com/docs/agents/models.html 
+------- | ---------------------- | --------------------------------- 
+X       | class TV_Show          | Represents a TV show, or the top -level of other episodic content.
+ X      | class Season           | Represents a season of a TV show.
+  X     | class Episode          | Represents an episode of a TV show or other episodic content. 
+   X    | class Movie            | Represents a movie (e.g. a theatrical release, independent film, home movie, etc.)
+    X   | class Album            | Represents a music album.
+     X  | class Artist           | Represents an artist or group.
+      X | Track                  | Represents an audio track (e.g. music, audiobook, podcast, etc.)   
+------- | ---------------------- | --------------------------------------------------------------------------------------------------
+X.XXXX. | title                  | A string specifying the title.
 # XXXXXX.   summary                   A string specifying the summary.
 # X.XXX..   originally_available_at   A date object specifying the movie/episode’s original release date.
 # X.XXXX.   rating                    A float between 0 and 10 specifying the movie/episode’s rating.
