@@ -1,18 +1,18 @@
 TSEMAGT | Metadata Model Classes | Description - Source: http://dev.plexapp.com/docs/agents/models.html 
 ------- | ---------------------- | --------------------------------- 
-X       | class TV_Show          | Represents a TV show, or the top -level of other episodic content.
- X      | class Season           | Represents a season of a TV show.
-  X     | class Episode          | Represents an episode of a TV show or other episodic content. 
-   X    | class Movie            | Represents a movie (e.g. a theatrical release, independent film, home movie, etc.)
-    X   | class Album            | Represents a music album.
-     X  | class Artist           | Represents an artist or group.
-      X | Track                  | Represents an audio track (e.g. music, audiobook, podcast, etc.)   
+X...... | class TV_Show          | Represents a TV show, or the top -level of other episodic content.
+.X..... | class Season           | Represents a season of a TV show.
+..X.... | class Episode          | Represents an episode of a TV show or other episodic content. 
+___X___ | class Movie            | Represents a movie (e.g. a theatrical release, independent film, home movie, etc.)
+____X__ | class Album            | Represents a music album.
+_____X_ | class Artist           | Represents an artist or group.
+______X | Track                  | Represents an audio track (e.g. music, audiobook, podcast, etc.)   
 ------- | ---------------------- | --------------------------------------------------------------------------------------------------
 X.XXXX. | title                  | A string specifying the title.
-# XXXXXX.   summary                   A string specifying the summary.
-# X.XXX..   originally_available_at   A date object specifying the movie/episode’s original release date.
-# X.XXXX.   rating                    A float between 0 and 10 specifying the movie/episode’s rating.
-# X..XX..   studio                    A string specifying the studio.
+XXXXXX.   summary                   A string specifying the summary.
+X.XXX..   originally_available_at   A date object specifying the movie/episode’s original release date.
+X.XXXX.   rating                    A float between 0 and 10 specifying the movie/episode’s rating.
+X..XX..   studio                    A string specifying the studio.
 # X..XX..   countries                 A set of strings specifying the countries involved in the production of the movie.
 # X..X...   duration                  An integer specifying the duration of the movie, in milliseconds.
 # X..XXX.   genres                    A set of strings specifying the movie’s genre.
