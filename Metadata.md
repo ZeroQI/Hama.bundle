@@ -1,6 +1,6 @@
-# -------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
-# TSEMAGT   Metadata Model Classes    Description - Source: http://dev.plexapp.com/docs/agents/models.html 
-# -------   -----------------------   --------------------------------- --------------------------------------------------------------------------------------------
+-------   -----------------------   ------------------------------------------------------------------------------------------------------------------------------
+TSEMAGT   Metadata Model Classes    Description - Source: http://dev.plexapp.com/docs/agents/models.html 
+-------   -----------------------   --------------------------------- --------------------------------------------------------------------------------------------
 # X         class TV_Show             Represents a TV show, or the top -level of other episodic content.
 #  X        class Season              Represents a season of a TV show.
 #   X       class Episode             Represents an episode of a TV show or other episodic content. 
