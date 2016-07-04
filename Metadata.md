@@ -1,6 +1,6 @@
 ```
 TSEMAGT | Metadata Model Classes | Description - Source: http://dev.plexapp.com/docs/agents/models.html 
-------- | ---------------------- | --------------------------------- 
+------- | ---------------------- | --------------------------------------------------------------------------------------------------
 X______ | class TV_Show          | Represents a TV show, or the top -level of other episodic content.
 _X_____ | class Season           | Represents a season of a TV show.
 __X____ | class Episode          | Represents an episode of a TV show or other episodic content. 
@@ -36,15 +36,15 @@ ___X___ | quotes                 | A string containing memorable quotes from the
 ___XX__ | original_title         | A string specifying the original title.
 ___X___ | tagline                | A string specifying the tagline.
 ------- | ---------------------- | ---------------------------------------------------------------------------------------------------
-X__X_X_ | art                    | A container of proxy objects representing the movie’s background art. See below for information about proxy objects.
-XX_XXX_ | posters                | A container of proxy objects representing the movie’s posters. See below for information about proxy objects.
-XX_____ | banners                | A container of proxy objects representing the season’s banner images. See below for information about proxy objects.
-X__X_X_ | themes                 | A container of proxy objects representing the movie’s theme music. See below for information about proxy objects.
-__X____ | thumbs                 | A container of proxy objects representing the episode’s thumbnail images. See below for information about proxy objects.
+X__X_X_ | art                    | A container of proxy objects representing the movie’s background art.
+XX_XXX_ | posters                | A container of proxy objects representing the movie’s posters.
+XX_____ | banners                | A container of proxy objects representing the season’s banner images.
+X__X_X_ | themes                 | A container of proxy objects representing the movie’s theme music.
+__X____ | thumbs                 | A container of proxy objects representing the episode’s thumbnail images.
 ------- | ---------------------- | ---------------------------------------------------------------------------------------------------
     
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------
-Metadata source                             | AniDB.net                | TheTVDB.com               | TheMovieDB.net           | OBDbAPI.com                    | Plex tvdb Themes               | Scudlee's mapping file
+Metadata source                             | AniDB.net                | TheTVDB.com               | TheMovieDB.net           | OBDbAPI.com                    | Plex TVDB Themes               | Scudlee's mapping file
 --------------------------------------------|--------------------------|---------------------------|--------------------------|--------------------------------|--------------------------------|--------------------------------
 Metadata Hama tags                          | anidb                    | tvdb, tvdb2, tvdb3, tvdb4 | tmdb, tsdb               | imdb                           | N/A                            | N/A
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------
@@ -52,20 +52,22 @@ TV_Show - Serie   - title                   | Yes                      | Yes    
 TV_Show - Serie   - summary                 | Yes                      | Yes                       |                          |                                |                                | 
 TV_Show - Serie   - originally_available_at | Yes                      | Yes                       |                          |                                |                                | 
 TV_Show - Serie   - rating                  | Yes                      | Yes                       |                          |                                |                                | 
-TV_Show - Serie   - studio                  | Yes                      | Yes                       |                          |                                |                                | 
+TV_Show - Serie   - studio                  | Yes                      | Yes                       |                          |                                |                                | Yes (If not in AniDB)
 TV_Show - Serie   - countries               | ?                        | ?                         |                          |                                |                                | 
 TV_Show - Serie   - duration                | No                       | No                        |                          |                                |                                | 
 TV_Show - Serie   - genres                  | Yes                      | Yes                       |                          |                                |                                | 
 TV_Show - Serie   - tags                    | ?                        | ?                         |                          |                                |                                | 
-TV_Show - Serie   - collections             | Yes (related_anime)      | ?                         |                          |                                |                                | Movie collection
+TV_Show - Serie   - collections             | Yes (related_anime)      | ?                         |                          |                                |                                | Yes (Movie only)
 TV_Show - Serie   - content_rating          | Yes                      | Yes                       |                          |                                |                                | 
 TV_Show - Serie   - art                     | No                       | Yes                       | Yes                      |                                |                                | 
-TV_Show - Serie   - posters                 | Yes (variable low res)   | Yes                       | Yes                      |                                |                                | 
+TV_Show - Serie   - posters                 | Yes (variable low res)   | Yes                       | Yes                      | Yes                            |                                | 
 TV_Show - Serie   - banners                 | No                       | Yes                       | No                       |                                |                                | 
-TV_Show - Serie   - themes                  | No                       | No                        |                          |                                |                                | 
+TV_Show - Serie   - themes                  | No                       | No                        |                          |                                | Yes                               | 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------
 TV_Show - Season  - summary                 | No                       | Yes                       |                          |                                |                                | 
 TV_Show - Season  - posters                 | No                       | Yes                       |                          |                                |                                |  
 TV_Show - Season  - banners                 | No                       | Yes                       |                          |                                |                                |  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------
 TV_Show - Episode - title                   | Yes                      | Yes                       |                          |                                |                                | 
 TV_Show - Episode - summary                 | No                       | Yes                       |                          |                                |                                | 
 TV_Show - Episode - originally_available_at | Yes                      | Yes                       |                          |                                |                                | 
