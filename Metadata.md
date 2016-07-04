@@ -62,7 +62,7 @@ TV_Show - Serie   - content_rating          | Yes                      | Yes    
 TV_Show - Serie   - art                     | No                       | Yes                       | Yes                      |                                |                                | 
 TV_Show - Serie   - posters                 | Yes (variable low res)   | Yes                       | Yes                      | Yes                            |                                | 
 TV_Show - Serie   - banners                 | No                       | Yes                       | No                       |                                |                                | 
-TV_Show - Serie   - themes                  | No                       | No                        |                          |                                | Yes                               | 
+TV_Show - Serie   - themes                  | No                       | No                        |                          |                                | Yes                            | 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------
 TV_Show - Season  - summary                 | No                       | Yes                       |                          |                                |                                | 
 TV_Show - Season  - posters                 | No                       | Yes                       |                          |                                |                                |  
