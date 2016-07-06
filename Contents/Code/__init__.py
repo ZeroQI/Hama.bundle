@@ -669,7 +669,7 @@ class HamaCommonAgent:
         return tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
     else:
       Log.Debug("anidbTvdbMapping() - anidbid '%s' not found in file" % anidb_id)
-      error_log['anime-list anidbid missing'].append("anidbid: %s | Title: '%s'" % (anidb_id, name))
+      error_log['anime-list anidbid missing'].append("anidbid: %s | Title: 'UNKNOWN'" % WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid))
       return "", "", "", "", [], "", [], "0"
     
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
