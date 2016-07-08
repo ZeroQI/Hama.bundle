@@ -410,8 +410,12 @@ class HamaCommonAgent:
       anime = None         #return #if banned return ?
       try:     anime = self.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata_id_number, "AniDB/"+metadata_id_number+".xml", True, CACHE_1HOUR * 24).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
       except: Log.Error("Update() - AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile")
-      if anime:
-        
+      if not anime:
+        try:
+          if not metadata.title and tvdbtitle:  metadata.title = tvdbtitle
+        except Exception as e:  
+          Log.Error(e)
+      else:
         ### AniDB Title ###
         try:     title, orig = self.getAniDBTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
         except:  Log.Debug("Update() - AniDB Title: Exception raised" )
