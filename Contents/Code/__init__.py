@@ -322,7 +322,7 @@ class HamaCommonAgent:
             else:                                    summary_missing.append(numbering) 
 
             ### Check for Missing Episodes ###
-            if len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb":
+            if not movie and len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb":
               if currentSeasonNum and not (
                   ((not metadata_id_source in ["tvdb3","tvdb4"] or currentSeasonNum==0) and currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) or
                   (metadata_id_source in ["tvdb3","tvdb4"] and [currentAbsNum in media.seasons[season].episodes for season in media.seasons].count(True) > 0)
