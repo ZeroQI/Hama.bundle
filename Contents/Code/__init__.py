@@ -639,9 +639,9 @@ class HamaCommonAgent:
       if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
       for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
       if error_log[log] == []:
-        if not log in ["Missing Episodes", "Missing Specials"]:              keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
-        elif len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1:  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
-        else:                                                                keys = ["%sid: %s" % (metadata_id_source_core, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source_core == "anidb" else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
+        if not log in ["Missing Episodes", "Missing Specials"]:                              keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
+        elif not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
+        else:                                                                                keys = ["%sid: %s" % (metadata_id_source_core, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source_core == "anidb" else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
         for key in keys: 
           if key in error_log_array.keys():  del(error_log_array[key])
       Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
