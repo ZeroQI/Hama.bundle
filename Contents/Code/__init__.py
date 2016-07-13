@@ -27,30 +27,6 @@ RESTRICTED_GENRE_NAMES       = [ '18 Restricted', 'Pornography' ]
 FILTER_CHARS                 = "\\/:*?<>|~-; "
 SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
 WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
-GENRE_NAMES                  = [  ### List of AniDB category names useful as genre. 1st variable mark 18+ categories. The 2nd variable will actually cause a flag to appear in Plex ####################
-  ### Audience categories - all useful but not used often ############################################################################################################
-  'Josei', 'Kodomo', 'Mina', 'Seinen', 'Shoujo', 'Shounen',
-  ### Elements - many useful #########################################################################################################################################
-  'Action', 'Martial Arts', 'Swordplay', 'Adventure', 'Angst', 'Anthropomorphism', 'Comedy', 'Parody', 'Slapstick', 'Super Deformed', 'Detective', 'Ecchi', 'Fantasy',
-  'Contemporary Fantasy', 'Dark Fantasy', 'Ghost', 'High Fantasy', 'Magic', 'Vampire', 'Zombie', 'Harem', 'Reverse Harem', 'Henshin', 'Horror', 'Incest',
-  'Mahou Shoujo', 'Pornography', 'Yaoi', 'Yuri', 'Romance', 'Love Polygon', 'Shoujo Ai', 'Shounen Ai', 'Sci-Fi', 'Alien', 'Mecha', 'Space Travel', 'Time Travel',
-  'Thriller', 'Western',
-  ### Fetishes. Leaving out most porn genres #########################################################################################################################
-  'Futanari', 'Lolicon', 'Shotacon', 'Tentacle', 'Trap', 'Reverse Trap',
-  ### Original Work - mainly useful ##################################################################################################################################
-  'Game', 'Action Game', 'Dating Sim - Visual Novel', 'Erotic Game', 'RPG', 'Manga', '4-koma', 'Movie', 'Novel',
-  ### Setting - most of the places aren't genres, some Time stuff is useful ##########################################################################################
-  'Fantasy World', 'Parallel Universe', 'Virtual Reality', 'Hell', 'Space', 'Mars', 'Space Colony', 'Shipboard', 'Alternative Universe', 'Past', 'Present', 'Future',
-  'Historical', '1920s', 'Bakumatsu - Meiji Period', 'Edo Period', 'Heian Period', 'Sengoku Period', 'Victorian Period', 'World War I', 'World War II', 'Alternative Present',
-  ### Themes - many useful ###########################################################################################################################################
-  'Anti-War', 'Art', 'Music', 'Band', 'Idol', 'Photography', 'Christmas', 'Coming of Age', 'Conspiracy', 'Cooking', 'Cosplay', 'Cyberpunk', 'Daily Life', 'Earthquake',
-  'Post-War', 'Post-apocalypse', 'War', 'Dystopia', 'Friendship', 'Law and Order', 'Cops', 'Special Squads', 'Military', 'Airforce', 'Feudal Warfare', 'Navy',
-  'Politics', 'Proxy Battles', 'Racism', 'Religion', 'School Life', 'All-boys School', 'All-girls School', 'Art School', 'Clubs', 'College', 'Delinquents',
-  'Elementary School', 'High School', 'School Dormitory', 'Student Council', 'Transfer Student', 'Sports', 'Acrobatics', 'Archery', 'Badminton', 'Baseball',
-  'Basketball', 'Board Games', 'Chess', 'Go', 'Mahjong', 'Shougi', 'Combat', 'Boxing', 'Judo', 'Kendo', 'Muay Thai', 'Wrestling', 'Cycling', 'Dodgeball', 'Fishing',
-  'Football', 'Golf', 'Gymnastics', 'Horse Riding', 'Ice Skating', 'Inline Skating', 'Motorsport', 'Formula Racing', 'Street Racing', 'Rugby', 'Swimming', 'Tennis',
-  'Track and Field', 'Volleyball', 'Steampunk', 'Summer Festival', 'Tragedy', 'Underworld', 'Assassin', 'Bounty Hunter', 'Mafia', 'Yakuza', 'Pirate', 'Terrorist',
-  'Thief']
 FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only #############################################################
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
   'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater',  # En Continued
@@ -445,8 +421,7 @@ class HamaCommonAgent:
         for tag in anime.xpath('tags/tag'):
           this_tag = getElementText(tag, 'name').lower()
           this_tag_caps = " ".join(string.capwords(tag_part, '-') for tag_part in this_tag.split())
-          if this_tag in (genre_name.lower() for genre_name in GENRE_NAMES):
-            genres [ this_tag_caps ] = int(tag.get('weight')) # Remove genre whitelist
+          if int(tag.get('weight')) >= int(Prefs['MinimumWeight']): genres [ this_tag_caps ] = int(tag.get('weight'))
           if this_tag in (restricted_genre.lower() for restricted_genre in RESTRICTED_GENRE_NAMES):
             metadata.content_rating = RESTRICTED_CONTENT_RATING
         sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
