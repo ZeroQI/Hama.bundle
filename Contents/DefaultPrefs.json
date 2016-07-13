@@ -62,7 +62,8 @@
   {
     "id"      : "MinimumWeight",
     "label"   : "Map categories at or above the minimum weight selected",
-    "type"    : "text",
+    "type"    : "enum",
+    "values"  : ["600","500","400","300","200","100","0"],
     "default" : "400"
   },
   {
