@@ -121,6 +121,15 @@ Any folder missing will crash the agent when an attempt to write inside is done.
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
+Ubuntu Server 16.04 LTS
+- sudo service plexmediaserver stop
+- sudo chown -R plex:plex /var/lib/plexmediaserver
+- sudo chmod 775 -R /var/lib/plexmediaserver
+- sudo touch /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
+- sudo chmod 777 /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
+- sudo chown plex:plex /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
+- sudo service plexmediaserver restart
+
 On linux be aware of permission issue:
 
 OpenMediaVault (Debian):
