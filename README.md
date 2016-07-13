@@ -71,17 +71,15 @@ You can use anidb.id file in series or Series/Extras folder or in the serie name
 
 Installation
 ============
-Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle/releases
-Archive folders to copy in Plex main folder:
+Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip
+Folders to copy in Plex main folder:
 
-    * "Scanners"         "Scanners" is the only that has to be created. "Series/Absolute series Scanner.py" goes inside. 
+    * "Scanners"         "Scanners/Series" folder needs creating. Absolute series Scanner.py" goes inside. 
     			 https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
-    * "Plug-ins"         "Source code (zip)" > "Hama.bundle-1.0.zip" copy "Hama.bundle-1.0" folder inside the zip in plug-ins folders but rename to "Hama.bundle" 
-    * "Plug-ins support" Plug-Ins.support.folders.7z Agent data folders (com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
-    * "Logs"             Logs.folder.7z contain the following for the scanner
-    			 "X-Plex-Token.id"      Put from an item view xml the url token inside to have a log per library
-                         "no_timestamp"         delete to have timestamps in logs)
-                         "keep_zero_size_files" delete to have Plex skip empty files)
+    * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
+    * "Plug-ins support" https://github.com/ZeroQI/Hama.bundle/releases/tag/v1.0 > Plug-Ins.support.folders.7z Agent data folders (Plug-ins support/Data/com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
+    * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
+    Some PMS verions (Windows) do not need require authentication to give access to the library XML file (Windows ?)
 
 Plex main folder location:
 
