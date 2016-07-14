@@ -43,9 +43,12 @@ error_log_locked, error_log_lock_sleep = {}, 10
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
   DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "GetASSPosters", "localart", "adult", 
                   "GetPlexThemes", "MinimumWeight", "SerieLanguage1", "SerieLanguage2", "SerieLanguage3", "EpisodeLanguage1", "EpisodeLanguage2", "https")
-  try:  [Prefs[key] for key in DefaultPrefs]
-  except:  Log.Error("DefaultPrefs.json invalid" );  return MessageContainer ('Error', "Value '%s' missing from 'DefaultPrefs.json', update it" % key)
-  else:    Log.Info ("DefaultPrefs.json is valid");  return MessageContainer ('Success', 'HAMA - Provided preference values are ok')
+  try:  
+    for key in DefaultPrefs: Log.Info("Prefs[%s] = %s" % (key, Prefs[key]))
+    if [Prefs[key] == None for key in DefaultPrefs].count(True) > 0: 
+           err_str = "Some Pref values do not exist. Edit and save your preferences."; Log.Error(err_str);                                  return MessageContainer ('Error',   err_str)
+  except:  err_str = "Value '%s' missing from 'DefaultPrefs.json', update it." % key;  Log.Error("DefaultPrefs.json invalid. " + err_str);  return MessageContainer ('Error',   err_str)
+  else:    ok_str  = 'HAMA - Provided preference values are ok';                       Log.Info ("DefaultPrefs.json is valid." + ok_str );  return MessageContainer ('Success', ok_str )
   
 ### Pre-Defined Start function #########################################################################################################################################
 def Start():
