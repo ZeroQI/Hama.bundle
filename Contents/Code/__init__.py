@@ -45,8 +45,7 @@ def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
                   "GetPlexThemes", "MinimumWeight", "SerieLanguage1", "SerieLanguage2", "SerieLanguage3", "EpisodeLanguage1", "EpisodeLanguage2", "https")
   try:  
     for key in DefaultPrefs: Log.Info("Prefs[%s] = %s" % (key, Prefs[key]))
-    if [Prefs[key] == None for key in DefaultPrefs].count(True) > 0: 
-           err_str = "Some Pref values do not exist. Edit and save your preferences."; Log.Error(err_str);                                  return MessageContainer ('Error',   err_str)
+    if [Prefs[key] == None for key in DefaultPrefs].count(True) > 0: Log.Error("Some Pref values do not exist. Edit and save your preferences.")
   except:  err_str = "Value '%s' missing from 'DefaultPrefs.json', update it." % key;  Log.Error("DefaultPrefs.json invalid. " + err_str);  return MessageContainer ('Error',   err_str)
   else:    ok_str  = 'HAMA - Provided preference values are ok';                       Log.Info ("DefaultPrefs.json is valid." + ok_str );  return MessageContainer ('Success', ok_str )
   
@@ -424,7 +423,7 @@ class HamaCommonAgent:
         for tag in anime.xpath('tags/tag'):
           this_tag = getElementText(tag, 'name').lower()
           this_tag_caps = " ".join(string.capwords(tag_part, '-') for tag_part in this_tag.split())
-          if int(tag.get('weight')) >= int(Prefs['MinimumWeight']): genres [ this_tag_caps ] = int(tag.get('weight'))
+          if int(tag.get('weight')) >= (400 if Prefs['MinimumWeight'] == None else int(Prefs['MinimumWeight'])): genres [ this_tag_caps ] = int(tag.get('weight'))
           if this_tag in (restricted_genre.lower() for restricted_genre in RESTRICTED_GENRE_NAMES):
             metadata.content_rating = RESTRICTED_CONTENT_RATING
         sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
