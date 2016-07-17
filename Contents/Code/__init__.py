@@ -22,8 +22,8 @@ OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                     
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
 ASS_MAPPING_URL              = 'http://rawgithub.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                     #
 ASS_POSTERS_URL              = 'http://rawgithub.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                     #
-RESTRICTED_CONTENT_RATING    = "NC-17"
-RESTRICTED_GENRE_NAMES       = [ '18 Restricted', 'Pornography' ]
+RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
+MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
 FILTER_CHARS                 = "\\/:*?<>|~-; "
 SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
 WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
@@ -424,8 +424,6 @@ class HamaCommonAgent:
           this_tag = getElementText(tag, 'name').lower()
           this_tag_caps = " ".join(string.capwords(tag_part, '-') for tag_part in this_tag.split())
           if int(tag.get('weight')) >= (400 if Prefs['MinimumWeight'] == None else int(Prefs['MinimumWeight'])): genres [ this_tag_caps ] = int(tag.get('weight'))
-          if this_tag in (restricted_genre.lower() for restricted_genre in RESTRICTED_GENRE_NAMES):
-            metadata.content_rating = RESTRICTED_CONTENT_RATING
         sortedGenres = sorted(genres.items(), key=lambda x: x[1],  reverse=True)
         log_string, genres = "AniDB Genres (Weight): ", []
         for genre in sortedGenres: genres.append(genre[0].encode("utf-8") )
@@ -437,7 +435,21 @@ class HamaCommonAgent:
             metadata.genres.add(genre[0])
             log_string += "%s (%s) " % (genre[0], str(genre[1]))
           Log.Debug(log_string)
-        
+
+        ### AniDB Content Rating ###
+        c_source, c_rating, c_genre = 'None', 'None', 'No match'
+        a_movie = True if (movie or anime.xpath('/anime/type')[0].text == "Movie" or tvdbid == 'movie' or 
+                           "Complete Movie" in [titleText.text for titleText in anime.xpath('episodes/episode/title')]) else False
+        if   tvdbContentRating: c_source, c_rating, c_genre = 'TVDB',    MOVIE_RATING_MAP[tvdbContentRating] if a_movie else tvdbContentRating, 'Rating flag'
+        elif tvdbid=='hentai':  c_source, c_rating, c_genre = 'ScudLee', "X",                                                                   'Hentai flag'
+        else:
+          anidb_genres = [getElementText(tag, 'name').lower() for tag in anime.xpath('tags/tag')]
+          result       = [(r, g) for r in RESTRICTED_GENRE for g in RESTRICTED_GENRE[r] if g in anidb_genres]  # List Comprehension: [word for sentence in text for word in sentence
+          if result:
+            c_source, c_rating, c_genre = 'AniDB', MOVIE_RATING_MAP[result[0][0]] if a_movie else result[0][0], result[0][1]
+        if (None if c_rating=='None' else c_rating) == metadata.content_rating:  Log.Debug("Content Rating - Source: '%s', Rating: '%s', Genre: '%s'*"            % (c_source, c_rating, c_genre))
+        else:                                                                    Log.Debug("Content Rating - Source: '%s', Rating: '%s' (From '%s'), Genre: '%s'" % (c_source, c_rating, metadata.content_rating, c_genre)); metadata.content_rating = c_rating
+
         ### AniDB Collections ###
         self.anidbCollectionMapping(metadata, anime, anidbid_table)
         
