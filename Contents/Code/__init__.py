@@ -324,12 +324,14 @@ class HamaCommonAgent:
         if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
 
-    ### Movie posters including imdb from TVDB - Load serie XML ###
-    if imdbid.isalnum():
-      self.getImagesFromTMDB                      (metadata, imdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
-      self.getImagesFromOMDB                      (metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-    elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
- 
+    ### Movie posters including imdb from TVDB ###
+    if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
+      if imdbid.isalnum():    self.getImagesFromTMDB(metadata, imdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+      elif tmdbid.isdigit():  self.getImagesFromTMDB(metadata, tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+    
+    ### Movie posters including imdb from OMDB ###
+    if imdbid.isalnum():      self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    
     ### TVDB mode when a season 2 or more exist ############################################################################################################
     if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
       Log.Info("using TVDB numbering mode (seasons)" )
@@ -743,18 +745,18 @@ class HamaCommonAgent:
       for type in ['movie_results', 'tv_results']:
         if tmdb_json is not None and type in tmdb_json:
           for index, poster in enumerate(tmdb_json[type]):
-            if 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
-            if 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
+            if Prefs["GetTmdbPoster"] and 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
+            if Prefs["GetTmdbFanart"] and 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
       rank=90
     else:
       Log.Info("using TMDBID  url: " + TMDB_IMAGES_URL % id)
       tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2)
       if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
         for index, poster in enumerate(tmdb_json['posters']):
-          if 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
+          if Prefs["GetTmdbPoster"] and 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
       if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
         for index, poster in enumerate(tmdb_json['backdrops']):
-          if 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
+          if Prefs["GetTmdbFanart"] and 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
       rank=95
     if len(images):
       for filename in images.keys():
