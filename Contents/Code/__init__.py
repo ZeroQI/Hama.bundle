@@ -473,8 +473,8 @@ class HamaCommonAgent:
         Log.Info(log_string)
 
         ### AniDB Serie/Movie description ###
-        try:                    description = re.sub(r'http://anidb\.net/[a-z]{2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
-        except Exception as e:  description = ""; Log.Error("Exception: %s" % e)
+         try:                    description = re.sub(r'http://anidb\.net/[a-z]{1,2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
+         except Exception as e:  description = ""; Log.Error("Exception: %s" % e)
         if description == "":
           error_log['AniDB summaries missing'].append("anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number) + " | Title: '%s'" % metadata.title))
           if tvdbOverview:  description = tvdbOverview;  Log.Warn("AniDB series summary is missing but TVDB has one availabe so using it.")
