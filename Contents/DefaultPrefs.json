@@ -36,6 +36,12 @@
     "default" : "false"
   },
   {
+    "id"      : "GetOmdbPoster",
+    "label"   : "Fetch poster images from The Open Movie Database",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
     "id"      : "GetASSPosters",
     "label"   : "Fetch poster images from ASS tvdb4 urls",
     "type"    : "bool",
