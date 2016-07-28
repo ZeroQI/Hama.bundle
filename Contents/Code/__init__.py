@@ -1,27 +1,36 @@
 # -*- coding: utf-8 -*-
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
 ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
+ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
+ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
+ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
+
 ANIDB_TVDB_MAPPING           = 'http://rawgit.com/ScudLee/anime-lists/master/anime-list-master.xml'                               # ScudLee mapping file url
+ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
 ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
 ANIDB_COLLECTION             = 'http://rawgit.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                             # ScudLee collection mapping file
-ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
-ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
-ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
-ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
+
 TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                     # TVDB Serie XML for episodes sumaries for now
-TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
 TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
-TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
+TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
+TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
+
+TMDB_CONFIG_URL              = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
+TMDB_SEARCH_URL_BY_IMDBID    = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
 TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
 TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
-TMDB_SEARCH_URL_BY_IMDBID    = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
-TMDB_CONFIG_URL              = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
 TMDB_IMAGES_URL              = 'http://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                   #
+TMDB_SERIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'      #
+TMDB_SERIE_IMAGES_URL        = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                                       #
+
 OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                                                                       #
+
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
+
 ASS_MAPPING_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                        #
 ASS_POSTERS_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
+
 RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
 MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
 FILTER_CHARS                 = "\\/:*?<>|~-; "
@@ -196,22 +205,26 @@ class HamaCommonAgent:
     
     Log.Info('--- Update Begin -------------------------------------------------------------------------------------------')
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
-    metadata_id_source, metadata_id_number = metadata.id.split('-', 1); metadata_id_source_core = metadata_id_source.rstrip("0123456789")
+    metadata_id_source, metadata_id_number = metadata.id.split('-', 1); 
     Log.Info("metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata_id_source, metadata_id_number, metadata.title, "[...]", "[...]", force) )
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
     anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
+    if   metadata_id_source.startswith("anidb"): anidbid = metadata_id_number; tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
+    elif metadata_id_source.startswith("tvdb" ): tvdbid  = metadata_id_number
+    elif metadata_id_source in ["tmdb", "tsdb"]: tmdbid  = metadata_id_number
+    elif metadata_id_source == "imdb":           imdbid  = metadata_id_number #metadata_id{}...  metadata_id['tvdb']=tvdbid ?
     
-    if metadata_id_source_core == "tvdb":  tvdbid = metadata_id_number
-    elif metadata_id_source == "anidb":
-      anidbid = metadata_id_number
-      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
-    elif metadata_id_source == "tmdb":
-      tmdbid = metadata_id_number
+    ### Movie posters including imdb from TVDB - Load serie XML ###
+    if imdbid.isalnum():                     self.getImagesFromOMDB (metadata, imdbid,                                 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    if imdbid.isalnum() or tmdbid.isdigit(): self.getImagesFromTMDB (metadata, imdbid if imdbid.isalnum() else tmdbid, 97)  #The Movie Database is least prefered by the mapping file, so tmdbid present only when imdbid missing
+  
+    ### TMDB.org - Metadata id "tmdb" (for Movies) / "tsdb" (for TV series) ###
+    if metadata_id_source in ["tmdb", "tsdb"]
       Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-      try:                    tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
+      try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_TMDBID if metadata_id_source.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_TMDBID)% tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
       except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, e))
       else:
         Log('Update() - get_json - worked: ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
@@ -235,14 +248,14 @@ class HamaCommonAgent:
           metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
         if movie:
           if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
-          #if metadata.year = metadata.originally_available_at.year
+          metadata.year = metadata.originally_available_at.year
 
     if tvdbid.isdigit(): ### TVDB ID exists ####
 
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       if THEME_URL % tvdbid in metadata.themes:  Log.Info("Theme song - already added")
       elif Prefs['GetPlexThemes']:
-        self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/"+metadata.id+".mp3")
+        self.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/%s.mp3" % tvdbid)
         if not THEME_URL % tvdbid in metadata.themes:  error_log['Plex themes missing'].append("tvdbid: %s | Title: '%s' | %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, WEB_LINK % ("mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;" % (tvdbtitle, tvdbid), 'Upload')))
       
       ### TVDB - Load serie XML ###
@@ -292,12 +305,12 @@ class HamaCommonAgent:
                                      }
 
             ### Check for Missing Summaries ### 
-            if getElementText(episode, 'Overview'):  summary_present.append(numbering)
+            if getElementText(episode, 'Overview'):  summary_present.append        (numbering)
             elif currentSeasonNum == '0':            special_summary_missing.append(numbering)
-            else:                                    summary_missing.append(numbering) 
+            else:                                    summary_missing.append        (numbering) 
 
             ### Check for Missing Episodes ###
-            if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
+            if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source.startswith("tvdb")):
               if currentSeasonNum and not (
                   ((not metadata_id_source in ["tvdb3","tvdb4"] or currentSeasonNum==0) and currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) or
                   (metadata_id_source in ["tvdb3","tvdb4"] and [currentAbsNum in media.seasons[season].episodes for season in media.seasons].count(True) > 0)
@@ -309,19 +322,19 @@ class HamaCommonAgent:
         if special_summary_missing: error_log['Missing Special Summaries'].append("tvdbid: %s | Title: '%s' | Missing Special Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(special_summary_missing)))
         if tvdb_episode_missing:    error_log['Missing Episodes'         ].append("tvdbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_episode_missing)))
         if tvdb_special_missing:    error_log['Missing Specials'         ].append("tvdbid: %s | Title: '%s' | Missing Specials: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_special_missing)))
+        Log.Debug("TVDB - Episodes with Summary: "    + str(sorted(summary_present)))
+        Log.Debug("TVDB - Episodes without Summary: " + str(sorted(summary_missing)))
       else:
         Log.Warn("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
         error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % tvdbid + " | Not downloadable so serie deleted from thetvdb")
-      Log.Debug("TVDB - Episodes with Summary: "    + str(sorted(summary_present)))
-      Log.Debug("TVDB - Episodes without Summary: " + str(sorted(summary_missing)))
-
+      
       if metadata_id_source == "tvdb4" and Prefs['GetASSPosters']:  self.getImagesFromASS(metadata, media, tvdbid, movie, 0)
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
         tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force, defaulttvdbseason, 1)
-        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
-        if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
+        if tvdbposternumber == 0:                     error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
+        if tvdbseasonposter == 0:                     error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
 
     ### Movie posters including imdb from TVDB ###
@@ -333,7 +346,7 @@ class HamaCommonAgent:
     if Prefs["GetOmdbPoster"] and imdbid.isalnum(): self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
-    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
+    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source.startswith("tvdb")):
       Log.Info("using TVDB numbering mode (seasons)" )
       if tvdbtitle:          metadata.title                   = tvdbtitle
       if tvdbRating:         metadata.rating                  = tvdbRating
@@ -381,7 +394,7 @@ class HamaCommonAgent:
       if list_eps !="":  Log.Debug("List_eps: %s" % str(sorted(list_eps)))
       Log.Debug("TVDB table: '%s'" % str(tvdb_table))
       
-    elif metadata_id_source == "anidb": 
+    elif metadata_id_source.startswith("anidb"):
       ### AniDB Serie XML ##################################################################################################################################
       Log.Info("AniDB mode - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata_id_number + ", " + "AniDB/"+metadata_id_number+".xml" )
       anime = None         #return #if banned return ?
@@ -469,9 +482,9 @@ class HamaCommonAgent:
                 elif roles[ role ][1]=='writers':    metadata.writers.add(creator.text)
               else:                                  plex_role [ roles[role][1] ].append(creator.text) #not movie #for episodes
               log_string += "%s is a %s, " % (creator.text, roles[role][2] )
-        if metadata.studio == "" and mapping_studio != "":  metadata.studio = mapping_studio
+        if metadata.studio == "" and mapping_studio != "":                                       metadata.studio = mapping_studio
         if metadata.studio != "" and mapping_studio != "" and metadata.studio != mapping_studio: error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
-        if metadata.studio == "" and mapping_studio == "":  error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title) )
+        if metadata.studio == "" and mapping_studio == "":                                       error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title) )
         Log.Info(log_string)
 
         ### AniDB Serie/Movie description ###
@@ -628,7 +641,7 @@ class HamaCommonAgent:
       if error_log[log] == []:
         if not log in ["Missing Episodes", "Missing Specials"]:                              keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
         elif not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
-        else:                                                                                keys = ["%sid: %s" % (metadata_id_source_core, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source_core == "anidb" else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
+        else:                                                                                keys = ["%sid: %s" % (metadata_id_source, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source.startswith("anidb") else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
         for key in keys: 
           if key in error_log_array.keys():  del(error_log_array[key])
       Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
@@ -666,7 +679,7 @@ class HamaCommonAgent:
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
   def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
-    related_anime_list = []; metadata_id_source, metadata_id_number = metadata.id.split('-', 1)
+    metadata_id_source, metadata_id_number, related_anime_list = metadata.id.split('-', 1), []
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
     metadata.collections.clear()
     for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
@@ -683,8 +696,8 @@ class HamaCommonAgent:
     posternum, seasonposternum = 0, 0
     if movie: return
     try:
-      s = media.seasons.keys()[0]
-      e = media.seasons[s].episodes.keys()[0]
+      s        = media.seasons.keys()[0]
+      e        = media.seasons[s].episodes.keys()[0]
       dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
       dir_name = os.path.basename(dir_path)
       if    "[tvdb4-" not in dir_name and "tvdb4.id" not in os.listdir(dir_path): Log.Debug("Files are in a season folder (option 1)"); return
@@ -697,8 +710,7 @@ class HamaCommonAgent:
     entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
     if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
     for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
-      num += 1; seasonposternum += 1
-      season, posterURL = line.strip().split("|",1); season = str(int(season))
+      season, posterURL, num, seasonposternum = str(int(line.strip().split("|",1))), num+1, seasonposternum+1 #str(int(x)) remove leading 0 from number string
       posterPath = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
       if movie or season not in media.seasons:  continue
       self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
@@ -749,8 +761,8 @@ class HamaCommonAgent:
             if Prefs["GetTmdbFanart"] and 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
       rank=90
     else:
-      Log.Info("using TMDBID  url: " + TMDB_IMAGES_URL % id)
-      tmdb_json = self.get_json(url=TMDB_IMAGES_URL % id, cache_time=CACHE_1WEEK * 2)
+      Log.Info("using TMDBID  url: '%s'" % ((TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id))
+      tmdb_json = self.get_json(url=(TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id, cache_time=CACHE_1WEEK * 2)
       if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
         for index, poster in enumerate(tmdb_json['posters']):
           if Prefs["GetTmdbPoster"] and 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
@@ -845,8 +857,8 @@ class HamaCommonAgent:
       if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
       if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  # 'Applede' Korean synonym fix
     for index in range( len(languages) ):                                                                                                      # Loop through title result array
-      if langTitles[index]:  langTitles[len(languages)] = langTitles[index];  break                                               # If title present we're done
-    else: langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
+      if langTitles[index]:  langTitles[len(languages)] = langTitles[index];  break                                                            # If title present we're done
+    else:                    langTitles[len(languages)] = langTitles[languages.index('main')]                                                  # Fallback on main title
     return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
     
 ### Agent declaration ###############################################################################################################################################
