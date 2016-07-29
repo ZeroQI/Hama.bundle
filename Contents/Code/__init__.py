@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
-ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
-ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
-ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
-ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
-ANIDB_TVDB_MAPPING           = 'http://rawgit.com/ScudLee/anime-lists/master/anime-list-master.xml'                               # ScudLee mapping file url
-ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
-ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
-ANIDB_COLLECTION             = 'http://rawgit.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                             # ScudLee collection mapping file
-TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                     # TVDB Serie XML for episodes sumaries for now
-TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
-TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
-TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
-TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
-TMDB_CONFIG_URL              = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
-TMDB_SEARCH_URL_BY_IMDBID    = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
-TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
-TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
-TMDB_IMAGES_URL              = 'http://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                   #
-TMDB_SERIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'      #
-TMDB_SERIE_IMAGES_URL        = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                                       #
-OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                                                                       #
-THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
-ASS_MAPPING_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                        #
-ASS_POSTERS_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
-RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
-MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
-FILTER_CHARS                 = "\\/:*?<>|~-; "
-SPLIT_CHARS                  = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
-WEB_LINK                     = "<a href='%s' target='_blank'>%s</a>"
+ANIDB_TITLES                = 'http://anidb.net/api/anime-titles.xml.gz'                                                                                  # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
+ANIDB_HTTP_API_URL          = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='                                   #
+ANIDB_SERIE_URL             = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                                                    # AniDB link to the anime
+ANIDB_PIC_BASE_URL          = 'http://img7.anidb.net/pics/anime/'                                                                                         # AniDB picture directory
+ANIDB_TVDB_MAPPING          = 'http://rawgit.com/ScudLee/anime-lists/master/anime-list-master.xml'                                                        # ScudLee mapping file url
+ANIDB_TVDB_MAPPING_FEEDBACK = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                                         # ScudLee mapping file git feedback url
+ANIDB_TVDB_MAPPING_CUSTOM   = 'anime-list-custom.xml'                                                                                                     # custom local correction for ScudLee mapping file url
+ANIDB_COLLECTION            = 'http://rawgit.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                                                      # ScudLee collection mapping file
+TVDB_HTTP_API_URL           = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                                              # TVDB Serie XML for episodes sumaries for now
+TVDB_SERIE_SEARCH           = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                                          #
+TVDB_SERIE_URL              = 'http://thetvdb.com/?tab=series&id=%s'                                                                                      #
+TVDB_BANNERS_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                                             # TVDB Serie pictures xml: fanarts, posters, banners
+TVDB_IMAGES_URL             = 'http://thetvdb.com/banners/'                                                                                               # TVDB picture directory
+TMDB_CONFIG_URL             = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                                              #
+TMDB_SEARCH_URL_BY_IMDBID   = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'                            #
+TMDB_MOVIE_SEARCH           = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true' #
+TMDB_MOVIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'   #
+TMDB_IMAGES_URL             = 'http://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                                            #
+TMDB_SERIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'      #
+TMDB_SERIE_IMAGES_URL       = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                                              #
+OMDB_HTTP_API_URL           = "http://www.omdbapi.com/?i="                                                                                                #
+THEME_URL                   = 'http://tvthemes.plexapp.com/%s.mp3'                                                                                        # Plex TV Theme url
+ASS_MAPPING_URL             = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                                                 #
+ASS_POSTERS_URL             = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                                                 #
+RESTRICTED_GENRE            = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}                                       #
+MOVIE_RATING_MAP            = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}                       #
+FILTER_CHARS                = "\\/:*?<>|~-; "
+SPLIT_CHARS                 = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
+WEB_LINK                    = "<a href='%s' target='_blank'>%s</a>"
 FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only #############################################################
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
   'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater',  # En Continued
@@ -43,7 +43,7 @@ error_log_locked, error_log_lock_sleep = {}, 10
 
 import logging
 hama_logger, formatter = logging.getLogger('com.plexapp.agents.hama'), logging.Formatter('%(asctime)-15s - %(name)s (%(thread)x) : %(levelname)s (%(module)s/%(funcName)s:%(lineno)d) - %(message)s')
-#Log("Loggers: %s" % logging.Logger.manager.loggerDict)  #Log("Logger->Handlers: 'com.plexapp.agents.hama': %s" % hama_logger.handlers)
+#Log("Loggers: '%s', Logger->Handlers: 'com.plexapp.agents.hama': '%s'" % (logging.Logger.manager.loggerDict, hama_logger.handlers))
 for handler in hama_logger.handlers:  handler.setFormatter(formatter)
 
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
@@ -187,8 +187,7 @@ class HamaCommonAgent:
     global SERIE_LANGUAGE_PRIORITY, EPISODE_LANGUAGE_PRIORITY
     error_log = { 'anime-list anidbid missing': [], 'anime-list tvdbid missing'  : [], 'anime-list studio logos': [],
                   'AniDB summaries missing'   : [], 'AniDB posters missing'      : [], 
-                  'TVDB posters missing'      : [], 'TVDB season posters missing': [],
-                  'Plex themes missing'       : [],
+                  'TVDB posters missing'      : [], 'TVDB season posters missing': [], 'Plex themes missing'    : [],
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
@@ -291,7 +290,6 @@ class HamaCommonAgent:
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None
                                      }
-
             ### Check for Missing Summaries ### 
             if getElementText(episode, 'Overview'):  summary_present.append        (numbering)
             elif currentSeasonNum == '0':            special_summary_missing.append(numbering)
@@ -582,7 +580,7 @@ class HamaCommonAgent:
               if part_group != -1: movie_ep_groups[part_group][epNumVal] = 'found'
 
             #Log.Debug("orig movie_ep_groups: " + str(movie_ep_groups))
-            #Log.Debug("orig missing_eps: " + str(missing_eps))
+            #Log.Debug("orig missing_eps: "     + str(missing_eps))
             for missing_ep in missing_eps:
               for movie_ep_group in movie_ep_groups:
                 if missing_ep in movie_ep_group.keys(): movie_ep_group[missing_ep] = 'missing'
@@ -669,7 +667,7 @@ class HamaCommonAgent:
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
     metadata.collections.clear()
     for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
-      if element.get('anidbid') in related_anime_list + anidbid_table + [metadata_id_number] :
+      if element.get('anidbid') in related_anime_list + anidbid_table + [metadata_id_number] and metadata_id_source == "anidb":
         set         = element.getparent()
         title, main = self.getAniDBTitle(set.xpath('titles')[0], SERIE_LANGUAGE_PRIORITY)
         metadata.collections.add(title) #metadata.collections.clear()
