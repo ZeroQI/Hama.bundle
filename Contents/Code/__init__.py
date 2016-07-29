@@ -694,7 +694,7 @@ class HamaCommonAgent:
     if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
     for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
       num += 1; seasonposternum += 1
--     season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
+      season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
       posterPath                              = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
       if movie or season not in media.seasons:  continue
       self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
