@@ -205,15 +205,11 @@ class HamaCommonAgent:
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
     anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
     tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
-    if   metadata_id_source.startswith("anidb"): anidbid = metadata_id_number; tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
+    if   metadata_id_source == "anidb":          anidbid = metadata_id_number; tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
     elif metadata_id_source.startswith("tvdb" ): tvdbid  = metadata_id_number
     elif metadata_id_source in ["tmdb", "tsdb"]: tmdbid  = metadata_id_number
     elif metadata_id_source == "imdb":           imdbid  = metadata_id_number #metadata_id{}...  metadata_id['tvdb']=tvdbid ?
     
-    ### Movie posters including imdb from TVDB - Load serie XML ###
-    if imdbid.isalnum():                     self.getImagesFromOMDB (metadata, imdbid,                                 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-    if imdbid.isalnum() or tmdbid.isdigit(): self.getImagesFromTMDB (metadata, imdbid if imdbid.isalnum() else tmdbid, 97)  #The Movie Database is least prefered by the mapping file, so tmdbid present only when imdbid missing
-  
     ### TMDB.org - Metadata id "tmdb" (for Movies) / "tsdb" (for TV series) ###
     if metadata_id_source in ["tmdb", "tsdb"]
       Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
@@ -384,7 +380,7 @@ class HamaCommonAgent:
       if list_eps !="":  Log.Debug("List_eps: %s" % str(sorted(list_eps)))
       Log.Debug("TVDB table: '%s'" % str(tvdb_table))
       
-    elif metadata_id_source.startswith("anidb"):
+    elif metadata_id_source == "anidb":
       ### AniDB Serie XML ##################################################################################################################################
       Log.Info("AniDB mode - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata_id_number + ", " + "AniDB/"+metadata_id_number+".xml" )
       anime = None         #return #if banned return ?
@@ -630,7 +626,7 @@ class HamaCommonAgent:
       if error_log[log] == []:
         if not log in ["Missing Episodes", "Missing Specials"]:                              keys = ["anidbid: %s" % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid)), "anidbid: %s" % anidbid, "tvdbid: %s" % (WEB_LINK % (TVDB_SERIE_URL   % tvdbid,  tvdbid ) ), "tvdbid: %s" % tvdbid]
         elif not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):  keys = ["tvdbid: %s"  % (WEB_LINK % (TVDB_SERIE_URL  % tvdbid,  tvdbid) )]
-        else:                                                                                keys = ["%sid: %s" % (metadata_id_source, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source.startswith("anidb") else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
+        else:                                                                                keys = ["%sid: %s" % (metadata_id_source, WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number if metadata_id_source == "anidb" else TVDB_SERIE_URL % metadata_id_number, metadata_id_number) )]
         for key in keys: 
           if key in error_log_array.keys():  del(error_log_array[key])
       Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
@@ -668,7 +664,7 @@ class HamaCommonAgent:
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
   def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
-    metadata_id_source, metadata_id_number, related_anime_list = metadata.id.split('-', 1), []
+    metadata_id_source, metadata_id_number, related_anime_list = metadata.id.split('-', 1) + [[]] # "ValueError: not enough values to unpack (expected 3, got 2)" if using ", []"
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
     metadata.collections.clear()
     for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
@@ -699,7 +695,8 @@ class HamaCommonAgent:
     entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
     if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
     for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
-      season, posterURL, num, seasonposternum = str(int(line.strip().split("|",1))), num+1, seasonposternum+1 #str(int(x)) remove leading 0 from number string
+      num += 1; seasonposternum += 1
+-     season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
       posterPath                              = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
       if movie or season not in media.seasons:  continue
       self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
