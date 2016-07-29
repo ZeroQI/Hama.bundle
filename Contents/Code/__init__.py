@@ -664,7 +664,8 @@ class HamaCommonAgent:
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
   def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
-    metadata_id_source, metadata_id_number, related_anime_list = metadata.id.split('-', 1) + [[]] # "ValueError: not enough values to unpack (expected 3, got 2)" if using ", []"
+    metadata_id_source, metadata_id_number = metadata.id.split('-', 1)  # "ValueError: not enough values to unpack (expected 3, got 2)" if using ", []"
+    related_anime_list                     = []
     for relatedAnime in anime.xpath('/anime/relatedanime/anime'):  related_anime_list.append(relatedAnime.get('id'));
     metadata.collections.clear()
     for element in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
