@@ -165,6 +165,8 @@ Troubleshooting:
 ================
 Plex logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files
 
+Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match".
+
 If files and series are showing in Plex GUI but not all metadata is updating, that is the Agent doing.
 Install issue under linux are generally permission issues, see installation section
 
