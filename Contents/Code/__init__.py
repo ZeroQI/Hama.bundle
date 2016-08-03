@@ -197,6 +197,7 @@ class HamaCommonAgent:
     Log.Info('--- Update Begin -------------------------------------------------------------------------------------------')
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     metadata_id_source, metadata_id_number = metadata.id.split('-', 1); 
+    current_date = int(time.strftime("%Y%m%d"))
     Log.Info("metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata_id_source, metadata_id_number, metadata.title, "[...]", "[...]", force) )
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
@@ -276,13 +277,15 @@ class HamaCommonAgent:
                 Log.Error("An abs number has been found on ep (s%se%s) after starting to manually place our own abs numbers" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text) )
                 abs_manual_placement_worked = False
                 break
-          Log.Info("abs_manual_placement_worked: '%s', abs_manual_placement_info: '%s'" % (str(abs_manual_placement_worked), str(abs_manual_placement_info)))
+          Log.Info("abs_manual_placement_worked: '%s', abs_manual_placement_info: %s" % (str(abs_manual_placement_worked), str(abs_manual_placement_info)))
         
         if abs_manual_placement_worked:
           for episode in tvdbanime.xpath('Episode'):  # Combined_episodenumber, Combined_season, DVD(_chapter, _discid, _episodenumber, _season), Director, EpImgFlag, EpisodeName, EpisodeNumber, FirstAired, GuestStars, IMDB_ID #seasonid, imdbd
             currentSeasonNum       = getElementText(episode, 'SeasonNumber')
             currentEpNum           = getElementText(episode, 'EpisodeNumber')
             currentAbsNum          = getElementText(episode, 'absolute_number')
+            currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
+            currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
             numbering              = currentAbsNum if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  "s" + currentSeasonNum + "e" + currentEpNum
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
@@ -296,7 +299,8 @@ class HamaCommonAgent:
 
             ### Check for Missing Episodes ###
             if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source.startswith("tvdb")):
-              if currentSeasonNum and not (
+              if current_date <= (currentAirDate+1):  Log.Warn("Episode '%s' is missing in Plex but air date '%s+1' is either missing (99999999) or in the future" % (numbering, currentAirDate))
+              elif currentSeasonNum and not (
                   ((not metadata_id_source in ["tvdb3","tvdb4"] or currentSeasonNum==0) and currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) or
                   (metadata_id_source in ["tvdb3","tvdb4"] and [currentAbsNum in media.seasons[season].episodes for season in media.seasons].count(True) > 0)
                 ):
@@ -498,6 +502,9 @@ class HamaCommonAgent:
               Log.Info("AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
              
             if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
+              current_air_date = getElementText(episode, 'airdate').replace('-','')
+              current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
+              if current_date <= (current_air_date+1):  Log.Warn("Episode '%s' is missing in Plex but air date '%s+1' is either missing (99999999) or in the future" % (epNumVal, current_air_date)); continue
               if epNumType == "1"  : missing_eps.append(     "s" + season + "e" + epNumVal )
               elif epNumType == "2": missing_specials.append("s" + season + "e" + epNumVal ) 
               continue
@@ -591,8 +598,12 @@ class HamaCommonAgent:
                   if movie_ep_group[key] == 'missing': missing_eps.append(key)
             Log.Debug("new missing_eps: " + str(missing_eps))
             
-          if len(missing_eps)>0   :  error_log['Missing Episodes'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, str(missing_eps)))
-          if len(missing_specials)>0:  error_log['Missing Specials'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, str(missing_specials)))
+          if len(missing_eps)>0:
+            missing_eps = sorted(missing_eps, key=lambda x: int("%d%04d" % (int(x.split('e')[0][1:]), int(x.split('e')[1]))))
+            error_log['Missing Episodes'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, str(missing_eps)))
+          if len(missing_specials)>0:
+            missing_specials = sorted(missing_specials, key=lambda x: int("%d%04d" % (int(x.split('e')[0][1:]), int(x.split('e')[1]))))
+            error_log['Missing Specials'].append("anidbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, str(missing_specials)))
           
           convert      = lambda text: int(text) if text.isdigit() else text
           alphanum_key = lambda key:  [ convert(c) for c in re.split('([0-9]+)', key) ]
