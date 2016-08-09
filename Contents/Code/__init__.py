@@ -102,7 +102,7 @@ class HamaCommonAgent:
           if score>maxi: maxi=score
           Log.Info("AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
           langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=lang, score=score))
           parent_element, show, score = None, "", 0
         aid = element.get('aid')
       elif element.get('type') in ('main', 'official', 'syn', 'short'):
@@ -114,7 +114,7 @@ class HamaCommonAgent:
     if score: #last serie detected, added on next serie OR here
       Log.Info("AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
       langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=lang, score=score))
     if len(results)>=1:  return  #results.Sort('score', descending=True)
 
     ### AniDB local keyword search ###
@@ -147,7 +147,7 @@ class HamaCommonAgent:
         scores.append( int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) )  #To-Do: LongestCommonSubstring(first, second). use that?
       bestScore  = max(scores)
       log_string = log_string + match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
-      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=Locale.Language.English, score=bestScore))
+      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=lang, score=bestScore))
     Log.Info(log_string)    #results.Sort('score', descending=True)
     return
 
@@ -161,7 +161,7 @@ class HamaCommonAgent:
           a, b = orig_title, serie.xpath('SeriesName')[0].text.encode('utf-8') #a, b  = cleansedTitle, self.cleanse_title (serie.xpath('SeriesName')[0].text)
           score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
           Log.Info("TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, serie.xpath('seriesid')[0].text, serie.xpath('SeriesName')[0].text) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=Locale.Language.English, score=score) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=lang, score=score) )
     if len(results)>=1:  return
 
     ### TMDB movie search ###
@@ -175,7 +175,7 @@ class HamaCommonAgent:
           score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
           id = movie['id']
           Log.Info("TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
           if '' in movie and movie['adult']!="null":  Log.Info("adult: '%s'" % movie['adult'])
           # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
 
