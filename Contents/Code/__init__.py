@@ -88,7 +88,7 @@ class HamaCommonAgent:
       source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
       if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
       Log.Info("source: '%s', id: '%s', show from id: '%s' provided in foldername: '%s'" % (source, guid, show, orig_title) )
-      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=Locale.Language.English, score=100))
+      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=lang, score=100))
       return
   
     ### AniDB Local exact search ###
@@ -198,7 +198,7 @@ class HamaCommonAgent:
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     metadata_id_source, metadata_id_number = metadata.id.split('-', 1); metadata_id_source_core = metadata_id_source.rstrip("0123456789")
     current_date = int(time.strftime("%Y%m%d"))
-    Log.Info("metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata_id_source, metadata_id_number, metadata.title, "[...]", "[...]", force) )
+    Log.Info("metadata source: '%s', id: '%s', Title: '%s', lang: '%s', (%s)" % (metadata_id_source, metadata_id_number, metadata.title, lang, force) )
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
@@ -863,10 +863,11 @@ class HamaCommonAgent:
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, accepts_from = ('HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
-  languages = [Locale.Language.English,  Locale.Language.French,  Locale.Language.Czech,   Locale.Language.Danish,    Locale.Language.Finnish,
-               Locale.Language.French,   Locale.Language.German,  Locale.Language.Hebrew,    Locale.Language.Hungarian, Locale.Language.Italian, 
-			   Locale.Language.Japanese, Locale.Language.Korean,  Locale.Language.Norwegian, Locale.Language.Polish,    Locale.Language.Portuguese, Locale.Language.Russian, 
-		       Locale.Language.Slovak,  Locale.Language.Spanish,  Locale.Language.Turkish, ] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
+  languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
+  #languages = [Locale.Language.English,  Locale.Language.French,  Locale.Language.Czech,   Locale.Language.Danish,    Locale.Language.Finnish,
+  #             Locale.Language.French,   Locale.Language.German,  Locale.Language.Hebrew,    Locale.Language.Hungarian, Locale.Language.Italian, 
+  #              Locale.Language.Japanese, Locale.Language.Korean,  Locale.Language.Norwegian, Locale.Language.Polish,    Locale.Language.Portuguese, Locale.Language.Russian, 
+  #              Locale.Language.Slovak,  Locale.Language.Spanish,  Locale.Language.Turkish, ] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
 
