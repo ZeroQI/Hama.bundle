@@ -863,7 +863,10 @@ class HamaCommonAgent:
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, accepts_from = ('HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
-  lang = [Locale.Language.English, 'ja', 'fr', 'es', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it',  'pl', 'hu', 'el', 'tr', 'ru', 'he', 'pt', 'cs', 'ko', 'sl', 'hr'] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
+  languages = [Locale.Language.English,  Locale.Language.French,  Locale.Language.Czech,   Locale.Language.Danish,    Locale.Language.Finnish,
+               Locale.Language.French,   Locale.Language.German,  Locale.Language.Hebrew,    Locale.Language.Hungarian, Locale.Language.Italian, 
+			   Locale.Language.Japanese, Locale.Language.Korean,  Locale.Language.Norwegian, Locale.Language.Polish,    Locale.Language.Portuguese, Locale.Language.Russian, 
+		       Locale.Language.Slovak,  Locale.Language.Spanish,  Locale.Language.Turkish, ] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
 
