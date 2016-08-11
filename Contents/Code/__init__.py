@@ -8,7 +8,7 @@ ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
 ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
 ANIDB_TVDB_MAPPING_FEEDBACK  = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                # ScudLee mapping file git feedback url
-TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/en.xml'                                     # TVDB Serie XML for episodes sumaries for now
+TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/%s.xml'                                     # TVDB Serie XML for episodes sumaries for now
 TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
 TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
 TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
@@ -88,7 +88,7 @@ class HamaCommonAgent:
       source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
       if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
       Log.Info("source: '%s', id: '%s', show from id: '%s' provided in foldername: '%s'" % (source, guid, show, orig_title) )
-      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=Locale.Language.English, score=100))
+      results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=lang, score=100))
       return
   
     ### AniDB Local exact search ###
@@ -102,7 +102,7 @@ class HamaCommonAgent:
           if score>maxi: maxi=score
           Log.Info("AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
           langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+          results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=lang, score=score))
           parent_element, show, score = None, "", 0
         aid = element.get('aid')
       elif element.get('type') in ('main', 'official', 'syn', 'short'):
@@ -114,7 +114,7 @@ class HamaCommonAgent:
     if score: #last serie detected, added on next serie OR here
       Log.Info("AniDB - score: '%3d', id: '%6s', title: '%s' " % (score, aid, show))
       langTitle, mainTitle = self.getAniDBTitle(parent_element, SERIE_LANGUAGE_PRIORITY)
-      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=Locale.Language.English, score=score))
+      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=lang, score=score))
     if len(results)>=1:  return  #results.Sort('score', descending=True)
 
     ### AniDB local keyword search ###
@@ -147,7 +147,7 @@ class HamaCommonAgent:
         scores.append( int(100 - (100*float(Util.LevenshteinDistance(a,b)) / float(max(len(a),len(b))) )) )  #To-Do: LongestCommonSubstring(first, second). use that?
       bestScore  = max(scores)
       log_string = log_string + match[1] + " (%s%%), " % '{:>2}'.format(str(bestScore))
-      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=Locale.Language.English, score=bestScore))
+      results.Append(MetadataSearchResult(id="anidb-"+match[0], name=match[1]+" [anidb-%s]"  % match[0], year=media.year, lang=lang, score=bestScore))
     Log.Info(log_string)    #results.Sort('score', descending=True)
     return
 
@@ -161,7 +161,7 @@ class HamaCommonAgent:
           a, b = orig_title, serie.xpath('SeriesName')[0].text.encode('utf-8') #a, b  = cleansedTitle, self.cleanse_title (serie.xpath('SeriesName')[0].text)
           score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
           Log.Info("TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, serie.xpath('seriesid')[0].text, serie.xpath('SeriesName')[0].text) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=Locale.Language.English, score=score) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", serie.xpath('seriesid')[0].text), name="%s [%s-%s]" % (serie.xpath('SeriesName')[0].text, "tvdb", serie.xpath('seriesid')[0].text), year=None, lang=lang, score=score) )
     if len(results)>=1:  return
 
     ### TMDB movie search ###
@@ -175,7 +175,7 @@ class HamaCommonAgent:
           score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
           id = movie['id']
           Log.Info("TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
-          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=Locale.Language.English, score=score) )
+          results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
           if '' in movie and movie['adult']!="null":  Log.Info("adult: '%s'" % movie['adult'])
           # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
 
@@ -198,7 +198,7 @@ class HamaCommonAgent:
     if not "-" in metadata.id:  metadata.id = "anidb-" + metadata.id  # Old metadata from when the id was only the anidbid
     metadata_id_source, metadata_id_number = metadata.id.split('-', 1); metadata_id_source_core = metadata_id_source.rstrip("0123456789")
     current_date = int(time.strftime("%Y%m%d"))
-    Log.Info("metadata source: '%s', id: '%s', Title: '%s',(%s, %s, %s)" % (metadata_id_source, metadata_id_number, metadata.title, "[...]", "[...]", force) )
+    Log.Info("metadata source: '%s', id: '%s', Title: '%s', lang: '%s', (%s)" % (metadata_id_source, metadata_id_number, metadata.title, lang, force) )
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
 
     ### Get tvdbid, tmdbid, imdbid (+etc...) through mapping file ###
@@ -248,8 +248,8 @@ class HamaCommonAgent:
       
       ### TVDB - Load serie XML ###
       tvdbanime, tvdb_episode_missing, tvdb_special_missing, special_summary_missing, summary_missing, summary_present = None, [], [], [], [], []
-      Log.Info("TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % tvdbid))
-      tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % tvdbid, "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
+      Log.Info("TVDB - tvdbid: '%s', url: '%s'" %(tvdbid, TVDB_HTTP_API_URL % (tvdbid, lang)))
+      tvdbanime=self.xmlElementFromFile ( TVDB_HTTP_API_URL % (tvdbid, lang), "TVDB/"+tvdbid+".xml", False, CACHE_1HOUR * 24)
       if tvdbanime:
         tvdbanime = tvdbanime.xpath('/Data')[0]
         tvdbtitle, tvdbNetwork, tvdbOverview, tvdbFirstAired = getElementText(tvdbanime, 'Series/SeriesName'), getElementText(tvdbanime, 'Series/Network'), getElementText(tvdbanime, 'Series/Overview'  ), getElementText(tvdbanime, 'Series/FirstAired')
@@ -314,8 +314,8 @@ class HamaCommonAgent:
         if tvdb_episode_missing:    error_log['Missing Episodes'         ].append("tvdbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_episode_missing)))
         if tvdb_special_missing:    error_log['Missing Specials'         ].append("tvdbid: %s | Title: '%s' | Missing Specials: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_special_missing)))
       else:
-        Log.Warn("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % tvdbid))
-        error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % tvdbid + " | Not downloadable so serie deleted from thetvdb")
+        Log.Warn("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % (tvdbid, lang)))
+        error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % (tvdbid, lang) + " | Not downloadable so serie deleted from thetvdb")
       Log.Debug("TVDB - Episodes with Summary: "    + str(sorted(summary_present)))
       Log.Debug("TVDB - Episodes without Summary: " + str(sorted(summary_missing)))
 
@@ -862,7 +862,12 @@ class HamaCommonAgent:
     
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
-  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaTV', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
+  name, primary_provider, fallback_agent, contributes_to, accepts_from = ('HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
+  languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
+  #languages = [Locale.Language.English,  Locale.Language.French,  Locale.Language.Czech,   Locale.Language.Danish,    Locale.Language.Finnish,
+  #             Locale.Language.French,   Locale.Language.German,  Locale.Language.Hebrew,    Locale.Language.Hungarian, Locale.Language.Italian, 
+  #              Locale.Language.Japanese, Locale.Language.Korean,  Locale.Language.Norwegian, Locale.Language.Polish,    Locale.Language.Portuguese, Locale.Language.Russian, 
+  #              Locale.Language.Slovak,  Locale.Language.Spanish,  Locale.Language.Turkish, ] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
 
