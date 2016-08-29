@@ -22,7 +22,8 @@ OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                     
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
 ASS_MAPPING_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                        #
 ASS_POSTERS_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
-FANART_TV_URL                = 'http://webservice.fanart.tv/v3/tv/{tvdbid}?api_key={api_key}'                                                  # Fanart TV URL
+FANART_TV_TV_URL             = 'http://webservice.fanart.tv/v3/tv/{tvdbid}?api_key={api_key}'                                     # Fanart TV URL for TV
+FANART_TV_MOVIES_URL         = 'http://webservice.fanart.tv/v3/movies/{tvdbid}?api_key={api_key}'                                 # Fanart TV URL for Movies
 FANART_TV_API_KEY            = 'a270e3b8562048563dc03e623913ffd3'                                                                 # API key for Hama Dev
 RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
 MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
@@ -794,9 +795,9 @@ class HamaCommonAgent:
   def getImagesFromFanartTV(self, metadata, tvdbid, num=100):
     Log.Info("Fetching from fanart.tv")
     try:
-      FanartTV = self.get_json(FANART_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY))
+      FanartTV = self.get_json(FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY))
     except Exception as e:
-      Log.Error("Exception - FanartTV - tvdbid: '{tvdbid}', url: '{url}', Exception: '{exception}'".format(tvdbid=tvdbid, url=FANART_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY), exception=e))
+      Log.Error("Exception - FanartTV - tvdbid: '{tvdbid}', url: '{url}', Exception: '{exception}'".format(tvdbid=tvdbid, url=FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY), exception=e))
     else:
       if FanartTV and 'showbackground' in FanartTV and Prefs['GetFanartTVBackground']:
         Log.Debug("fanart.tv has {count} background images/art".format(count=len(FanartTV['showbackground'])))
