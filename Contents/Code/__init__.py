@@ -329,7 +329,6 @@ class HamaCommonAgent:
         if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
-        self.getImagesFromFanartTV(metadata, tvdbid)
 
     ### Movie posters including imdb from TVDB ###
     if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
@@ -338,6 +337,10 @@ class HamaCommonAgent:
     
     ### Movie posters including imdb from OMDB ###
     if Prefs["GetOmdbPoster"] and imdbid.isalnum(): self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    
+    ### fanart.tv - Background, Poster and Banner ##
+    if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
+        self.getImagesFromFanartTV(metadata, tvdbid)
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
     if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
@@ -795,19 +798,19 @@ class HamaCommonAgent:
     except Exception as e:
       Log.Error("Exception - FanartTV - tvdbid: '{tvdbid}', url: '{url}', Exception: '{exception}'".format(tvdbid=tvdbid, url=FANART_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY), exception=e))
     else:
-      if FanartTV and 'showbackground' in FanartTV:
+      if FanartTV and 'showbackground' in FanartTV and Prefs['GetFanartTVBackground']:
         Log.Debug("fanart.tv has {count} background images/art".format(count=len(FanartTV['showbackground'])))
         for art in FanartTV['showbackground']:
           self.metadata_download(metadata.art, art['url'], num, "FanartTV/{filename}.jpg".format(filename=art['id']))
-      if FanartTV and 'tvposter' in FanartTV:
+      if FanartTV and 'tvposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} series posters".format(count=len(FanartTV['tvposter'])))
         for tvposter in FanartTV['tvposter']:
           self.metadata_download(metadata.posters, tvposter['url'], num, "FanartTV/{filename}.jpg".format(filename=tvposter['id']))
-      if FanartTV and 'seasonposter' in FanartTV:
+      if FanartTV and 'seasonposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} season posters".format(count=len(FanartTV['seasonposter'])))
         for seasonposter in FanartTV['seasonposter']:
           self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/{filename}.jpg".format(filename=seasonposter['id']))
-      if FanartTV and 'tvbanner' in FanartTV:
+      if FanartTV and 'tvbanner' in FanartTV and Prefs['GetFanartTVBanner']:
         Log.Debug("fanart.tv has {count} banners".format(count=len(FanartTV['tvbanner'])))
         for tvbanner in FanartTV['tvbanner']:
           self.metadata_download(metadata.banners, tvbanner['url'], num, "FanartTV/{filename}.jpg".format(filename=tvbanner['id']))
