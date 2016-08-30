@@ -362,7 +362,7 @@ class HamaCommonAgent:
             self.getImagesFromFanartTV(metadata, tmdbid=tmdbid)
         else:
           Log.Debug("It's a series")
-          self.getImagesFromFanartTV(metadata, tvdbid=tvdbid)
+          self.getImagesFromFanartTV(metadata, tvdbid=tvdbid, season=defaulttvdbseason)
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
     if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
@@ -813,7 +813,7 @@ class HamaCommonAgent:
       else:                                                                      Log.Info("No poster to download - " + OMDB_HTTP_API_URL + imdbid)
   
   ### Fetch extra images from fanart.tv ###################################################################################################################
-  def getImagesFromFanartTV(self, metadata, tvdbid=None, tmdbid=None, num=100):
+  def getImagesFromFanartTV(self, metadata, tvdbid=None, tmdbid=None, season=0, num=100):
     Log.Info("Fetching from fanart.tv")
     if tvdbid:
       try:
@@ -833,6 +833,15 @@ class HamaCommonAgent:
         Log.Debug("fanart.tv has {count} season posters".format(count=len(FanartTV['seasonposter'])))
         for seasonposter in FanartTV['seasonposter']:
           self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+          if seasonposter['season'] == 0:
+            # Special
+            self.metadata_download(metadata.seasons[0].posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+          else:
+            # Non-special. Add any posters to "Season 1" entry if they match this 'actual' season.
+            if seasonposter['season'] == season:
+              self.metadata_download(metadata.seasons[1].posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+            else:
+              pass
       if FanartTV and 'tvbanner' in FanartTV and Prefs['GetFanartTVBanner']:
         Log.Debug("fanart.tv has {count} banners".format(count=len(FanartTV['tvbanner'])))
         for tvbanner in FanartTV['tvbanner']:
