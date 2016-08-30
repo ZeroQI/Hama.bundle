@@ -824,37 +824,37 @@ class HamaCommonAgent:
       if FanartTV and 'showbackground' in FanartTV and Prefs['GetFanartTVBackground']:
         Log.Debug("fanart.tv has {count} background images/art".format(count=len(FanartTV['showbackground'])))
         for art in FanartTV['showbackground']:
-          self.metadata_download(metadata.art, art['url'], num, "FanartTV/{filename}.jpg".format(filename=art['id']))
+          self.metadata_download(metadata.art, art['url'], num, "FanartTV/series-{filename}.jpg".format(filename=art['id']))
       if FanartTV and 'tvposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} series posters".format(count=len(FanartTV['tvposter'])))
         for tvposter in FanartTV['tvposter']:
-          self.metadata_download(metadata.posters, tvposter['url'], num, "FanartTV/{filename}.jpg".format(filename=tvposter['id']))
+          self.metadata_download(metadata.posters, tvposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=tvposter['id']))
       if FanartTV and 'seasonposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} season posters".format(count=len(FanartTV['seasonposter'])))
         for seasonposter in FanartTV['seasonposter']:
-          self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/{filename}.jpg".format(filename=seasonposter['id']))
+          self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
       if FanartTV and 'tvbanner' in FanartTV and Prefs['GetFanartTVBanner']:
         Log.Debug("fanart.tv has {count} banners".format(count=len(FanartTV['tvbanner'])))
         for tvbanner in FanartTV['tvbanner']:
-          self.metadata_download(metadata.banners, tvbanner['url'], num, "FanartTV/{filename}.jpg".format(filename=tvbanner['id']))
+          self.metadata_download(metadata.banners, tvbanner['url'], num, "FanartTV/series-{filename}.jpg".format(filename=tvbanner['id']))
     elif tmdbid:
       try:
         Log.Debug("Is a movie")
         FanartTV = self.get_json(FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY))
       except Exception as e:
-        Log.Error("Exception - FanartTV - tmdbid: '{tmdbid}', url: '{url}', Exception: '{exception}'".format(tmdbid=tmdbid, url=FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY), exception=e))
+        Log.Error("Exception - FanartTV - tmdbid: '{tmdbid}', url: '{url}', Exception: 'movie-{exception}'".format(tmdbid=tmdbid, url=FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY), exception=e))
       if FanartTV and 'moviebackground' in FanartTV and Prefs['GetFanartTVBackground']:
         Log.Debug("fanart.tv has {count} movie background images/art".format(count=len(FanartTV['moviebackground'])))
         for art in FanartTV['moviebackground']:
-          self.metadata_download(metadata.art, art['url'], num, "FanartTV/{filename}.jpg".format(filename=art['id']))
+          self.metadata_download(metadata.art, art['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=art['id']))
       if FanartTV and 'movieposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} movie posters".format(count=len(FanartTV['movieposter'])))
         for movieposter in FanartTV['movieposter']:
-          self.metadata_download(metadata.posters, movieposter['url'], num, "FanartTV/{filename}.jpg".format(filename=movieposter['id']))
+          self.metadata_download(metadata.posters, movieposter['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=movieposter['id']))
       if FanartTV and 'moviebanner' in FanartTV and Prefs['GetFanartTVBanner']:
         Log.Debug("fanart.tv has {count} movie banners".format(count=len(FanartTV['moviebanner'])))
         for moviebanner in FanartTV['moviebanner']:
-          self.metadata_download(metadata.banners, moviebanner['url'], num, "FanartTV/{filename}.jpg".format(filename=moviebanner['id']))
+          self.metadata_download(metadata.banners, moviebanner['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=moviebanner['id']))
 
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
