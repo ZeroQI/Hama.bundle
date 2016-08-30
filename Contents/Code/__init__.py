@@ -339,29 +339,23 @@ class HamaCommonAgent:
     ### Movie posters including imdb from OMDB ###
     if Prefs["GetOmdbPoster"] and imdbid.isalnum(): self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
     
-    ### fanart.tv - Background, Poster and Banner ##
+    ### fanart.tv - Background, Poster and Banner ###
     if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
-        Log.Debug("fanart.tv enabled")
-        Log.Debug(tmdbid)
-        Log.Debug(imdbid)
         if movie:
-          Log.Debug("It's a movie")
           if tmdbid == '':
-            Log.Debug("TMDBID missing")
             if imdbid:
-              Log.Debug("IMDBID present")
               # FanartTV only uses TMDB IDs as a lookup. The Anime List data normally only has IMDB IDs.
               # However, we can convert IMDB IDs to TMDB IDs using TMDB!
               Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
               Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
               local_tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %imdbid, cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
               if local_tmdbid:
+                # TMDB ID lookup was successful
                 Log.Info("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=imdbid, tmdbid=local_tmdbid))
                 self.getImagesFromFanartTV(metadata, tmdbid=local_tmdbid)
           else:
             self.getImagesFromFanartTV(metadata, tmdbid=tmdbid)
         else:
-          Log.Debug("It's a series")
           self.getImagesFromFanartTV(metadata, tvdbid=tvdbid, season=defaulttvdbseason)
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
@@ -817,7 +811,7 @@ class HamaCommonAgent:
     Log.Info("Fetching from fanart.tv")
     if tvdbid:
       try:
-        Log.Debug("Is a series")
+        # It's a series, grab the list of fanart using the TVDB ID.
         FanartTV = self.get_json(FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY))
       except Exception as e:
         Log.Error("Exception - FanartTV - tvdbid: '{tvdbid}', url: '{url}', Exception: '{exception}'".format(tvdbid=tvdbid, url=FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY), exception=e))
@@ -832,7 +826,9 @@ class HamaCommonAgent:
       if FanartTV and 'seasonposter' in FanartTV and Prefs['GetFanartTVPoster']:
         Log.Debug("fanart.tv has {count} season posters".format(count=len(FanartTV['seasonposter'])))
         for seasonposter in FanartTV['seasonposter']:
+          # Add all of the 'season' posters as potential main show posters.
           self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+          # Now add season posters to their respective seasons within the show.
           if seasonposter['season'] == 0:
             # Special
             self.metadata_download(metadata.seasons[0].posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
@@ -848,7 +844,7 @@ class HamaCommonAgent:
           self.metadata_download(metadata.banners, tvbanner['url'], num, "FanartTV/series-{filename}.jpg".format(filename=tvbanner['id']))
     elif tmdbid:
       try:
-        Log.Debug("Is a movie")
+        # It's a movie, grab the list of fanart using the TMDB ID.
         FanartTV = self.get_json(FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY))
       except Exception as e:
         Log.Error("Exception - FanartTV - tmdbid: '{tmdbid}', url: '{url}', Exception: 'movie-{exception}'".format(tmdbid=tmdbid, url=FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY), exception=e))
