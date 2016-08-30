@@ -851,10 +851,6 @@ class HamaCommonAgent:
         Log.Debug("fanart.tv has {count} movie posters".format(count=len(FanartTV['movieposter'])))
         for movieposter in FanartTV['movieposter']:
           self.metadata_download(metadata.posters, movieposter['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=movieposter['id']))
-      if FanartTV and 'moviebanner' in FanartTV and Prefs['GetFanartTVBanner']:
-        Log.Debug("fanart.tv has {count} movie banners".format(count=len(FanartTV['moviebanner'])))
-        for moviebanner in FanartTV['moviebanner']:
-          self.metadata_download(metadata.banners, moviebanner['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=moviebanner['id']))
 
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
