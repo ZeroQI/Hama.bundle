@@ -42,6 +42,24 @@
     "default" : "false"
   },
   {
+    "id"      : "GetFanartTVBackground",
+    "label"   : "Fetch background images from fanart.tv",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetFanartTVPoster",
+    "label"   : "Fetch poster images from fanart.tv",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
+    "id"      : "GetFanartTVBanner",
+    "label"   : "Fetch banner images from fanart.tv",
+    "type"    : "bool",
+    "default" : "false"
+  },
+  {
     "id"      : "GetASSPosters",
     "label"   : "Fetch poster images from ASS tvdb4 urls",
     "type"    : "bool",

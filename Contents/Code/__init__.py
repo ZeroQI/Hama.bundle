@@ -22,6 +22,9 @@ OMDB_HTTP_API_URL            = "http://www.omdbapi.com/?i="                     
 THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
 ASS_MAPPING_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                        #
 ASS_POSTERS_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
+FANART_TV_TV_URL             = 'http://webservice.fanart.tv/v3/tv/{tvdbid}?api_key={api_key}'                                     # Fanart TV URL for TV
+FANART_TV_MOVIES_URL         = 'http://webservice.fanart.tv/v3/movies/{tmdbid}?api_key={api_key}'                                 # Fanart TV URL for Movies
+FANART_TV_API_KEY            = 'a270e3b8562048563dc03e623913ffd3'                                                                 # API key for Hama Dev
 RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
 MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
 FILTER_CHARS                 = "\\/:*?<>|~-; "
@@ -46,7 +49,7 @@ for handler in hama_logger.handlers:  handler.setFormatter(formatter)
 
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
-  DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "GetOmdbPoster", "GetASSPosters", "localart", "adult", 
+  DefaultPrefs = ("GetTvdbFanart", "GetTvdbPosters", "GetTvdbBanners", "GetAnidbPoster", "GetTmdbFanart", "GetTmdbPoster", "GetOmdbPoster", "GetFanartTVBackground", "GetFanartTVPoster", "GetFanartTVBanner", "GetASSPosters", "localart", "adult", 
                   "GetPlexThemes", "MinimumWeight", "SerieLanguage1", "SerieLanguage2", "SerieLanguage3", "EpisodeLanguage1", "EpisodeLanguage2")
   try:  
     for key in DefaultPrefs: Log.Info("Prefs[%s] = %s" % (key, Prefs[key]))
@@ -335,6 +338,25 @@ class HamaCommonAgent:
     
     ### Movie posters including imdb from OMDB ###
     if Prefs["GetOmdbPoster"] and imdbid.isalnum(): self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    
+    ### fanart.tv - Background, Poster and Banner ###
+    if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
+        if movie:
+          if tmdbid == '':
+            if imdbid:
+              # FanartTV only uses TMDB IDs as a lookup. The Anime List data normally only has IMDB IDs.
+              # However, we can convert IMDB IDs to TMDB IDs using TMDB!
+              Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
+              Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
+              local_tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %imdbid, cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
+              if local_tmdbid:
+                # TMDB ID lookup was successful
+                Log.Info("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=imdbid, tmdbid=local_tmdbid))
+                self.getImagesFromFanartTV(metadata, tmdbid=local_tmdbid)
+          else:
+            self.getImagesFromFanartTV(metadata, tmdbid=tmdbid)
+        else:
+          self.getImagesFromFanartTV(metadata, tvdbid=tvdbid, season=defaulttvdbseason)
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
     if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
@@ -783,7 +805,58 @@ class HamaCommonAgent:
     else:
       if OMDB and 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
       else:                                                                      Log.Info("No poster to download - " + OMDB_HTTP_API_URL + imdbid)
-    
+  
+  ### Fetch extra images from fanart.tv ###################################################################################################################
+  def getImagesFromFanartTV(self, metadata, tvdbid=None, tmdbid=None, season=0, num=100):
+    Log.Info("Fetching from fanart.tv")
+    if tvdbid:
+      try:
+        # It's a series, grab the list of fanart using the TVDB ID.
+        FanartTV = self.get_json(FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY))
+      except Exception as e:
+        Log.Error("Exception - FanartTV - tvdbid: '{tvdbid}', url: '{url}', Exception: '{exception}'".format(tvdbid=tvdbid, url=FANART_TV_TV_URL.format(tvdbid=tvdbid, api_key=FANART_TV_API_KEY), exception=e))
+      if FanartTV and 'showbackground' in FanartTV and Prefs['GetFanartTVBackground']:
+        Log.Debug("fanart.tv has {count} background images/art".format(count=len(FanartTV['showbackground'])))
+        for art in FanartTV['showbackground']:
+          self.metadata_download(metadata.art, art['url'], num, "FanartTV/series-{filename}.jpg".format(filename=art['id']))
+      if FanartTV and 'tvposter' in FanartTV and Prefs['GetFanartTVPoster']:
+        Log.Debug("fanart.tv has {count} series posters".format(count=len(FanartTV['tvposter'])))
+        for tvposter in FanartTV['tvposter']:
+          self.metadata_download(metadata.posters, tvposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=tvposter['id']))
+      if FanartTV and 'seasonposter' in FanartTV and Prefs['GetFanartTVPoster']:
+        Log.Debug("fanart.tv has {count} season posters".format(count=len(FanartTV['seasonposter'])))
+        for seasonposter in FanartTV['seasonposter']:
+          # Add all of the 'season' posters as potential main show posters.
+          self.metadata_download(metadata.posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+          # Now add season posters to their respective seasons within the show.
+          if seasonposter['season'] == 0:
+            # Special
+            self.metadata_download(metadata.seasons[0].posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+          else:
+            # Non-special. Add any posters to "Season 1" entry if they match this 'actual' season.
+            if seasonposter['season'] == season:
+              self.metadata_download(metadata.seasons[1].posters, seasonposter['url'], num, "FanartTV/series-{filename}.jpg".format(filename=seasonposter['id']))
+            else:
+              pass
+      if FanartTV and 'tvbanner' in FanartTV and Prefs['GetFanartTVBanner']:
+        Log.Debug("fanart.tv has {count} banners".format(count=len(FanartTV['tvbanner'])))
+        for tvbanner in FanartTV['tvbanner']:
+          self.metadata_download(metadata.banners, tvbanner['url'], num, "FanartTV/series-{filename}.jpg".format(filename=tvbanner['id']))
+    elif tmdbid:
+      try:
+        # It's a movie, grab the list of fanart using the TMDB ID.
+        FanartTV = self.get_json(FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY))
+      except Exception as e:
+        Log.Error("Exception - FanartTV - tmdbid: '{tmdbid}', url: '{url}', Exception: 'movie-{exception}'".format(tmdbid=tmdbid, url=FANART_TV_MOVIES_URL.format(tmdbid=tmdbid, api_key=FANART_TV_API_KEY), exception=e))
+      if FanartTV and 'moviebackground' in FanartTV and Prefs['GetFanartTVBackground']:
+        Log.Debug("fanart.tv has {count} movie background images/art".format(count=len(FanartTV['moviebackground'])))
+        for art in FanartTV['moviebackground']:
+          self.metadata_download(metadata.art, art['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=art['id']))
+      if FanartTV and 'movieposter' in FanartTV and Prefs['GetFanartTVPoster']:
+        Log.Debug("fanart.tv has {count} movie posters".format(count=len(FanartTV['movieposter'])))
+        for movieposter in FanartTV['movieposter']:
+          self.metadata_download(metadata.posters, movieposter['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=movieposter['id']))
+
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
     if url not in metatype:
