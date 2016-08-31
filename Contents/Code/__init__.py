@@ -24,7 +24,7 @@ ASS_MAPPING_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner
 ASS_POSTERS_URL              = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
 FANART_TV_TV_URL             = 'http://webservice.fanart.tv/v3/tv/{tvdbid}?api_key={api_key}'                                     # Fanart TV URL for TV
 FANART_TV_MOVIES_URL         = 'http://webservice.fanart.tv/v3/movies/{tmdbid}?api_key={api_key}'                                 # Fanart TV URL for Movies
-FANART_TV_API_KEY            = 'a270e3b8562048563dc03e623913ffd3'                                                                 # API key for Hama Dev
+FANART_TV_API_KEY            = 'cfa9dc054d221b8d107f8411cd20b13f'                                                                 # API key for Hama Dev
 RESTRICTED_GENRE             = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
 MOVIE_RATING_MAP             = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
 FILTER_CHARS                 = "\\/:*?<>|~-; "
