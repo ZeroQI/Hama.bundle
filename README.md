@@ -114,6 +114,7 @@ MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agen
 - "TVDB/seasons"
 - "TVDB/seasonswide"
 - "TVDB/text"
+- "FanartTV"
 
 Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunately.
 Any folder missing will crash the agent when an attempt to write inside is done. That is a Framework issue, all attemps are in try/except structure, to no avail...
