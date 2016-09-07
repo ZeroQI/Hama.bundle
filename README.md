@@ -97,7 +97,7 @@ Plex main folder location:
     * '/raid0/data/module/Plex/sys/Plex Media Server/',                          # Thecus
     * '/raid0/data/PLEX_CONFIG/Plex Media Server/'                               # Thecus Plex community    
 
-MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and make sure the following folders are all created: (folders are included in Zip archive on thread, i recently added "TVDB/episodes" folder for TVDB screenshots).
+MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and make sure the following folders are all created: (folders are included in Zip archive in release tab and nammed "Plug-in.Support.zip", i recently added "TVDB/episodes" and "FanartTV" folder for TVDB screenshots).
 
 - "AniDB"
 - "Plex"
