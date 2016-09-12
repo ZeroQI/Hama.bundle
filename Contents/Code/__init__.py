@@ -242,7 +242,7 @@ class HamaCommonAgent:
           metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
         if movie:
           if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
-          if metadata.year = metadata.originally_available_at.year
+          metadata.year = metadata.originally_available_at.year
 
     if tvdbid.isdigit(): ### TVDB ID exists ####
 
@@ -259,8 +259,7 @@ class HamaCommonAgent:
       if tvdbanime:
         tvdbanime = tvdbanime.xpath('/Data')[0]
         tvdbtitle, tvdbOverview, tvdbFirstAired   = getElementText(tvdbanime, 'Series/SeriesName'),    getElementText(tvdbanime, 'Series/Overview'  ),           getElementText(tvdbanime, 'Series/FirstAired')
- +      tvdbContentRating, tvdbNetwork, tvdbGenre = getElementText(tvdbanime, 'Series/ContentRating'), getElementText(tvdbanime, 'Series/Network'), filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
-
+        tvdbContentRating, tvdbNetwork, tvdbGenre = getElementText(tvdbanime, 'Series/ContentRating'), getElementText(tvdbanime, 'Series/Network'), filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
 
         if '.' in getElementText(tvdbanime, 'Series/Rating'): ###tvdbRating   # isinstance(tmdb_json['vote_average'], float)
           try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
