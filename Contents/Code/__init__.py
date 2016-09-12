@@ -17,6 +17,7 @@ TMDB_CONFIG_URL              = 'http://api.tmdb.org/3/configuration?api_key=7f4a
 TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
 TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
 TMDB_SEARCH_URL_BY_IMDBID    = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
+
 TMDB_IMAGES_URL              = 'http://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                   #
 TMDB_SERIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'      #
 TMDB_SERIE_IMAGES_URL        = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
@@ -195,6 +196,7 @@ class HamaCommonAgent:
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
+
     for key in error_log.keys():
       if key not in error_log_locked.keys(): error_log_locked[key] = [False, 0]
     
@@ -240,7 +242,7 @@ class HamaCommonAgent:
           metadata.collections.add(tmdb_json['belongs_to_collection']['name'].replace(' Collection',''))
         if movie:
           if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
-          if metadata.year = metadata.originally_available_at.year
+          metadata.year = metadata.originally_available_at.year
 
     if tvdbid.isdigit(): ### TVDB ID exists ####
 
@@ -257,7 +259,8 @@ class HamaCommonAgent:
       if tvdbanime:
         tvdbanime = tvdbanime.xpath('/Data')[0]
         tvdbtitle, tvdbOverview, tvdbFirstAired   = getElementText(tvdbanime, 'Series/SeriesName'),    getElementText(tvdbanime, 'Series/Overview'  ),           getElementText(tvdbanime, 'Series/FirstAired')
- +      tvdbContentRating, tvdbNetwork, tvdbGenre = getElementText(tvdbanime, 'Series/ContentRating'), getElementText(tvdbanime, 'Series/Network'), filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
+        tvdbContentRating, tvdbNetwork, tvdbGenre = getElementText(tvdbanime, 'Series/ContentRating'), getElementText(tvdbanime, 'Series/Network'), filter(None, getElementText(tvdbanime, 'Series/Genre').split("|"))
+
         if '.' in getElementText(tvdbanime, 'Series/Rating'): ###tvdbRating   # isinstance(tmdb_json['vote_average'], float)
           try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
           except: tvdbRating = None 
@@ -290,12 +293,14 @@ class HamaCommonAgent:
             currentAbsNum          = getElementText(episode, 'absolute_number')
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
-            numbering              = currentAbsNum if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  "s" + currentSeasonNum + "e" + currentEpNum
+            numbering, alt         = (currentAbsNum, "s" + currentSeasonNum + "e" + currentEpNum) if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  ("s" + currentSeasonNum + "e" + currentEpNum, currentAbsNum)            ##numbering              = currentAbsNum if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  "s" + currentSeasonNum + "e" + currentEpNum
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None
                                      }
+            tvdb_table [alt] = tvdb_table [numbering]
+
 
             ### Check for Missing Summaries ### 
             if getElementText(episode, 'Overview'):  summary_present.append        (numbering)
@@ -332,6 +337,8 @@ class HamaCommonAgent:
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
 
     ### Movie posters including imdb from TVDB ###
+
+
     if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:  self.getImagesFromTMDB(metadata, imdbid if imdbid.isalnum() else tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
     
     ### Movie posters including imdb from OMDB ###
@@ -367,7 +374,7 @@ class HamaCommonAgent:
       for media_season in media.seasons:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
+          ep, episode_count =  "s%se%s" % (media_season, media_episode),0 ##media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0  ##ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
@@ -461,6 +468,7 @@ class HamaCommonAgent:
         else:
           anidb_genres = [getElementText(tag, 'name').lower() for tag in anime.xpath('tags/tag')]
           result       = [(r, g) for r in RESTRICTED_GENRE for g in RESTRICTED_GENRE[r] if g in anidb_genres]  # List Comprehension: [word for sentence in text for word in sentence
+
           if result:  c_source, c_rating, c_genre = 'AniDB', MOVIE_RATING_MAP[result[0][0]] if a_movie else result[0][0], result[0][1]
         if (None if c_rating=='None' else c_rating) == metadata.content_rating:  Log.Info("Content Rating - Source: '%s', Rating: '%s', Genre: '%s'*"            % (c_source, c_rating, c_genre))
         else:                                                                    Log.Info("Content Rating - Source: '%s', Rating: '%s' (From '%s'), Genre: '%s'" % (c_source, c_rating, metadata.content_rating, c_genre)); metadata.content_rating = c_rating
@@ -487,6 +495,7 @@ class HamaCommonAgent:
               else:                                  plex_role [ roles[role][1] ].append(creator.text) #not movie #for episodes
               log_string += "%s is a %s, " % (creator.text, roles[role][2] )
         if metadata.studio == "" and mapping_studio == "":                           error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title) )
+
         if metadata.studio and mapping_studio and metadata.studio != mapping_studio: error_log['anime-list studio logos'].append("anidbid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (WEB_LINK % (ANIDB_SERIE_URL % metadata_id_number, metadata_id_number), title, metadata.studio, mapping_studio) + WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(anime, encoding='utf8'))), "Submit bug report (need GIT account)"))
         if metadata.studio == "" and mapping_studio:                                 metadata.studio = mapping_studio
         Log.Info(log_string)
@@ -572,6 +581,7 @@ class HamaCommonAgent:
                 elif defaulttvdbseason=="a" and epNumVal in tvdb_table:              tvdb_ep = str( int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ) )
                 elif season=="0":                                                    tvdb_ep = "s"+season+"e"+epNumVal
                 else:                                                                tvdb_ep = "s"+defaulttvdbseason+"e"+ str(int(epNumVal) + ( int(mappingList [ 'episodeoffset' ]) if 'episodeoffset' in mappingList and mappingList [ 'episodeoffset' ].isdigit() else 0 ))
+
                 summary = "TVDB summary missing" if tvdb_ep=="" or tvdb_ep not in tvdb_table else tvdb_table [tvdb_ep] ['Overview'].replace("`", "'")
                 if re.match("^Episode [0-9]{1,4}$", episodeObj.title) and tvdb_ep in tvdb_table: 
                   ep_title = tvdb_table [tvdb_ep] ['EpisodeName']; episodeObj.title = ep_title
@@ -774,6 +784,7 @@ class HamaCommonAgent:
       rank=90
     else:
       Log.Info("using TMDBID  url: '%s'" % ((TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id))
+
       tmdb_json = self.get_json(url=(TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id, cache_time=CACHE_1WEEK * 2)
       if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
         for index, poster in enumerate(tmdb_json['posters']):
@@ -920,3 +931,4 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+  
