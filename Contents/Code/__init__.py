@@ -213,7 +213,7 @@ class HamaCommonAgent:
     elif metadata_id_source == "anidb":
       anidbid = metadata_id_number
       tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
-    elif if metadata_id_source in ["tmdb", "tsdb"]:
+    elif metadata_id_source in ["tmdb", "tsdb"]:
       tmdbid = metadata_id_number
       Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
       try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_TMDBID if metadata_id_source.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_TMDBID)% tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
