@@ -5,9 +5,7 @@ Please view https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/README
 
 HTTP Anidb Metadata Agent (HAMA)
 ================================
-HAMA was initially created By Atomicstrawberry until v0.4 included.
-I have used a date stamp ex 2015-08-31 for the versions
-
+HAMA was initially created By Atomicstrawberry until v0.4 [2015-08-31] included.
 Here are HAMA agent features:
 
     * AniDB ID to TVDB/TMDB ID matching (with studio and episode mapping list) with ScudLee's xml mapping file
@@ -47,24 +45,20 @@ The XMLs are downloaded (cached) and a copy is saved In the agent data folders a
 
 Hama creates specific html log files with links to facilitate updating the metadata databases used for everyone's benefits and even list missing episodes:
 - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
-
-Here is the feedback logs description and one example of every feedback:
-
-    * AniDB.htm        
         - Aid: 00002 No poster present
-    * Anime-list.htm    ScudLee;s XML file feedback
-       - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
-       - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
-       - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
-       - Aid: 00002 anime-list is missing the anidbid
-    * Themes.htm       Plex TV theme support whose filename is based on TheTVDB.com id and last 30s max. Wouldn't mind somebody a package will all complete mp3 theme songs whose name would be the AniDB ID (to account for the seasons different songs)...
-        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme song 3x3 Eyes' No English poster
-        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
         - aid: 00002 tvdbid:70973 s1e1 Overview Empty
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
+        - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
+        - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
+        - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
+        - Aid: 00002 anime-list is missing the anidbid
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
+        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
+        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' No English poster
+        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
+        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme son
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
 
 I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
@@ -184,42 +178,6 @@ Support thread for agent:
 
 To Do
 =====
-- Package of Studio Logos. Will not work on that but somebody else can
-	https://forums.plex.tv/discussion/120618/new-studio-logos-for-media-flags-bundle
-	https://forums.plex.tv/index.php/topic/77636-release-http-anidb-metadata-agent-hama/?p=451061
-- Package of Theme Songs, as local loading supported (name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3). Plex use 30s songs but use seasons, so a package of songs capped at 30s should share the same legality. Will not work on that but local loading works
-- Add RSS links to AniDB missing episodes summary ?
-    
-Studio icons
-============
-For studio icons, for a comparison, XBMC uses png file, white-on-clear, sized 161px x 109px, and are saved in 'skin.aeon.nox"/media/flags/studios/' for example. 
- 
-On Plex however, it uses 512x288px .png located in '/volume1/Plex/Library/Application Support/Plex Media Server/Plug-ins/Media-Flags.bundle/Contents/Resources/Studio/'. substitutions.xml file in parent folder contain the mappings and needs amendind
- 
-Studio logos from http://forum.xbmc.or...d.php?tid=70398 [https://sites.google...imeStudios.zip] seem to work but are tiny. after playing with logos a bit, it seems:
-  . no logos name in folder include dots, dash, exclamation point but can contain + and some contain spaces
- . if a logo\\NAS\Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\Studio
-is detected, if you replace it in PMS, it won't refresh even after clearing the browser cache...
- 
-After some research, to update Plex, the Media-Flags.bundle is here: https://github.com/p...tents/Resources Source: http://forums.plexap...4-studio-logos/. That would allow many to work on it and be included in the next release for everybody's benefits
- 
-There is an index file that needs ammending called substitutions.xml XML file [Plex\Library\Application Support\Plex Media Server\Plug-ins\Media-Flags.bundle\Contents\Resources\substitutions.xml] format is below:
-```XML
-<MediaFlagSubstitutions>
-    <Studio>
-        <match name="20th_Century_Fox" expression="20th century fox" />
-        <match name="20th_Century_Fox" expression="fox 2000" />
-        <match name="20th_Century_Fox" expression="fox film corp" />
-        <match name="20th_Century_Fox" expression="twentieth century fox" />        [...]
-        [...]
-    </Studio>
-    <VideoCodec>
-        <match name="divx" expression=".*divx.*" />
-        [...]
-    </VideoCodec>
-    <AudioCodec>
-        <match name="dolbydigital" expression="a_ac3" />
-        [...]
-    </AudioCodec>
-</MediaFlagSubstitutions>
-```
+- [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons. Will not work on that
+- [ ] Package of 30s Theme Songs, local loading name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3. will not work on that but local loading works
+- [ ] Add RSS links to AniDB missing episodes summary ?
