@@ -43,22 +43,35 @@ The XMLs are downloaded (cached) and a copy is saved In the agent data folders a
     * anidb serie xml:           Serie information, poster
     * Plex theme song:           Serie theme song
 
-Hama creates specific html log files with links to facilitate updating the metadata databases used for everyone's benefits and even list missing episodes:
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB.htm
-        - Aid: 00002 No poster present
-        - aid: 00002 tvdbid:70973 s1e1 Overview Empty
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list.htm
-        - Aid: 00002 '3x3 Eyes' AniDB and anime-list are both missing the studio
-        - Aid: 00002 '3x3 Eyes' AniDB have studio 'xxx' and XML have 'yyy'
-        - Aid: 00002 '3x3 Eyes' has no matching tvdbid ('OAV') in mapping file
-        - Aid: 00002 anime-list is missing the anidbid
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB.htm
-        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
-        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' No English poster
-        - aid: 00002 tvdbid: 70973 '3x3 Eyes' Overview Empty
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/themes.htm
-        - Aid: 00002 '3x3 Eyes' tvdbid: 70973 '3x3 Eyes' Missing theme son
-- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episodes.htm
+Hama creates specific html log files with links to facilitate updating the metadata databases used, for everyone's benefits and even list missing episodes:
+
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB posters missing.htm
+        - N/A
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/AniDB summaries missing.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list anidbid missing.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list studio logos.htm
+        - anidbid: <a href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=266' target='_blank'>266</a> | Title: 'Case Closed' | AniDB and anime-list are both missing the studio<br />
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/anime-list tvdbid missing.htm
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm
+-       - <a href='http://thetvdb.com/wiki/index.php/Posters' target='_blank'>Restrictions</a><br />
+-       - no example
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB season posters missing.htm
+        - tvdbid: <a href='http://thetvdb.com/?tab=series&id=307112' target='_blank'>307112</a> | Title: 'Hybrid x Heart Magias Academy Ataraxia'
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB summaries missing.htm
+<pre><code><a href='http://thetvdb.com/?tab=series&id=101621' target='_blank'>101621</a> missing summaries: ['s0e1', 's0e2', 's0e3', 's0e4', 's0e5', 's0e6', 's0e7', 's0e8', 's0e9', 's0e10', 's0e11', 's0e35', 's1932e0', 's1932e1', 's1932e3', 's1932e4', 's1932e5', 's1932e6', 's1932e7', 's1932e8', 's1932e9', 's1932e10', 's1932e11', 's1933e12', 's1933e13', 's1933e14', 's1933e15', 's1934e1', 's1934e2', 's1934e3', 's1934e6', 's1934e7', 's1934e8', 's1934e9', 's1934e10', 's1934e11', 's1934e12', 's1934e13', 's1935e1', 's1935e2', 's1935e3', 's1935e4', 's1935e5', 's1935e8', 's1935e10', 's1936e2', 's1936e4', 's1936e5', 's1936e6', 's1936e7', 's1936e8', 's1936e11', 's1937e1', 's1937e2', 's1937e9', 's1937e10', 's1937e11', 's1937e12', 's1938e1', 's1938e2', 's1938e3', 's1938e4', 's1938e5', 's1938e6', 's1938e7', 's1938e8', 's1938e9', 's1938e10', 's1938e12', 's1939e3', 's1939e4', 's1939e6']<br />
+</code></pre>
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Plex themes missing.htm
+        - <a href='https://plexapp.zendesk.com/hc/en-us/articles/201572843' target='_blank'>Restrictions</a><br />
+        - tvdbid: <a href='http://thetvdb.com/?tab=series&id=79796' target='_blank'>79796</a> | Title: 'Air Gear' | <a href='mailto:themes@plexapp.com?cc=&subject=Missing%20theme%20song%20-%20&#39;%20-%2079796.mp3&#39;' target='_blank'>Upload</a><br />
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing episodes.htm
+        - anidbid: <a href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=4196' target='_blank'>4196</a> | Title: 'Air Gear' | Missing Episodes: ['s1e1', 's1e2', 's1e3', 's1e4', 's1e5', 's1e6', 's1e7', 's1e8', 's1e9', 's1e10', 's1e11', 's1e12', 's1e13', 's1e14', 's1e15', 's1e16', 's1e17', 's1e18', 's1e19', 's1e20', 's1e21', 's1e22', 's1e23', 's1e24', 's1e25']<br />
+        - tvdbid: <a href='http://thetvdb.com/?tab=series&id=78914' target='_blank'>78914</a> | Title: 'Full Metal Panic!' | Missing Episodes: ['s3e1', 's3e2', 's3e3', 's3e4', 's3e5', 's3e6', 's3e7', 's3e8', 's3e9', 's3e10', 's3e11', 's3e12', 's3e13']<br />
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Episode Summaries.htm
+        - tvdbid: <a href='http://thetvdb.com/?tab=series&id=81797' target='_blank'>81797</a> | Title: 'One Piece' | Missing Episode Summaries: ['753']<br />  
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Special Summaries.htm
+        - tvdbid: <a href='http://thetvdb.com/?tab=series&id=83322' target='_blank'>83322</a> | Title: 'A Certain Magical Index' | Missing Special Summaries: ['s0e1', 's0e2', 's0e3', 's0e4']<br /> 
+- [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/Missing Specials.htm
+        - anidbid: <a href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=8166' target='_blank'>8166</a> | Title: 'A Bridge to the Starry Skies' | Missing Episodes: ['s0e2', 's0e1', 's0e3', 's0e5', 's0e4', 's0e8', 's0e7', 's0e6', 's0e9']<br />    
 
 I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
