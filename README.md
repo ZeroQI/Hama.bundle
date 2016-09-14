@@ -37,6 +37,7 @@ HAMA downloads the XMLs from the internet (using Plex cache for 1 week), then lo
 For pictures and theme songs, it takes from the cache first, then the internet
 
 The XMLs are downloaded (cached) and a copy is saved In the agent data folders and used in case of connection issues
+
     * anime-titles.xml:	         http://anidb.net/api/anime-titles.xml.gz [API: http://wiki.anidb.net/w/API]
     * anime-list-full.xml:	 Maps the AniDB ID to the TVDB ID, providing studio,episode mapping matrix, tmdb/tmdb id
     * anime-movieset-list.xml: 	 Allows movies to be grouped together
