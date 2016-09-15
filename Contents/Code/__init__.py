@@ -3,7 +3,7 @@
 ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
 ANIDB_TVDB_MAPPING           = 'http://rawgit.com/ScudLee/anime-lists/master/anime-list-master.xml'                               # ScudLee mapping file url
 ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
-ANIDB_COLLECTION             = 'http://rawgit.com/ScudLee/anime-lists/master/anime-movieset-list.xml'                             # ScudLee collection mapping file
+ANIDB_COLLECTION             = 'http://rawgit.com/ScudLee/anime-lists/master/anime-movieset-tvlist.xml'                             # ScudLee collection mapping file
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
 ANIDB_PIC_BASE_URL           = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
 ANIDB_SERIE_URL              = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
@@ -293,15 +293,14 @@ class HamaCommonAgent:
             currentAbsNum          = getElementText(episode, 'absolute_number')
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
-            numbering, alt         = (currentAbsNum, "s" + currentSeasonNum + "e" + currentEpNum) if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  ("s" + currentSeasonNum + "e" + currentEpNum, currentAbsNum)            ##numbering              = currentAbsNum if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and currentSeasonNum != '0' else  "s" + currentSeasonNum + "e" + currentEpNum
+            if   (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a") and currentSeasonNum > 0:  numbering = currentAbsNum
+            elif tvdb3 and currentSeasonNum > 0:                                                                                      numbering = "s" + currentSeasonNum + "e" + currentAbsNum
+            else:                                                                                                                     numbering = "s" + currentSeasonNum + "e" + currentEpNum 
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
                                        'Rating':      getElementText(episode, 'Rating'     ) if '.' in getElementText(episode, 'Rating') else None
                                      }
-            tvdb_table [alt] = tvdb_table [numbering]
-
-
             ### Check for Missing Summaries ### 
             if getElementText(episode, 'Overview'):  summary_present.append        (numbering)
             elif currentSeasonNum == '0':            special_summary_missing.append(numbering)
