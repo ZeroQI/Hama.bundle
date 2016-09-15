@@ -192,7 +192,7 @@ To avoid already solved issues, and make sure you do include all relevant logs i
    - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) - Library_name.log (episodes info)
    - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info IF library name log doesn't exist)
    - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
-   - Screen capture to illustrate if needed. A screen capture alone is not a log
+   - Screen capture to illustrate if needed. Above logs are still mandatory
 
 Support thread for agent:
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
