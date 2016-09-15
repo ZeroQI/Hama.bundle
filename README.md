@@ -76,6 +76,8 @@ Hama creates specific html log files with links to facilitate updating the metad
 I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
 
+Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
+
 Installation
 ============
 Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip
@@ -129,6 +131,8 @@ Any folder missing will crash the agent when an attempt to write inside is done.
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
+Install issue under linux are generally permission issues...
+
 Ubuntu Server 16.04 LTS
 - sudo service plexmediaserver stop
 - sudo chown -R plex:plex /var/lib/plexmediaserver
@@ -171,23 +175,29 @@ After restarting Plex servers, the new agent will be loaded and you will find al
 
 Troubleshooting:
 ================
-Plex logs: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files
-
-Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match".
-
-If files and series are showing in Plex GUI but not all metadata is updating, that is the Agent doing.
-Install issue under linux are generally permission issues, see installation section
-
+If files and series are showing in Plex GUI the scanner did its job
+If files that are showing correctly do not have all metadata updating, that is the Agent doing.
 If posters are missing, check that all the data folders are created and the agent is where it should be (see folder list above)
 
-Agent logs to include:
-- [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info)
-- [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
-- [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log
-- [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log
+To avoid already solved issues, and make sure you do include all relevant logs in one go, please do the following:
+- delete the library
+- stop plex
+- Update to the latest on github Hama and Absolute Series Scanner
+- deleting all Plex logs leaving folders intact
+- restart Plex
+- re-create the library
+- including all the following logs: (location: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files)
+   - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log (Agent logs)
+   - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log (show why the agent cannot launch)
+   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) - Library_name.log (episodes info)
+   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info IF library name log doesn't exist)
+   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
+   - Screen capture to illustrate if needed. A screen capture alone is not a log
 
 Support thread for agent:
-- https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest
+- https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
+- https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
+Include the library name, the symptoms, the logs mentionned above.
 
 To Do
 =====
