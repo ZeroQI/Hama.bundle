@@ -294,8 +294,8 @@ class HamaCommonAgent:
             currentAbsNum          = getElementText(episode, 'absolute_number')
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
-            if   (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a") and currentSeasonNum > 0:  numbering = currentAbsNum
-            elif metadata_id_source == tvdb3 and currentSeasonNum > 0:                                                                                      numbering = "s" + currentSeasonNum + "e" + currentAbsNum
+            if   currentSeasonNum > 0 and (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a"):  numbering = currentAbsNum
+            elif currentSeasonNum > 0 and  metadata_id_source == "tvdb3":                                                             numbering = "s" + currentSeasonNum + "e" + currentAbsNum
             else:                                                                                                                     numbering = "s" + currentSeasonNum + "e" + currentEpNum 
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
