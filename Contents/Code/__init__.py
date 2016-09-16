@@ -415,7 +415,11 @@ class HamaCommonAgent:
       anime = None         #return #if banned return ?
       try:                    anime = self.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata_id_number, "AniDB/"+metadata_id_number+".xml", True, CACHE_1HOUR * 24).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
       except Exception as e:  Log.Error("AniDB Serie XML: Exception raised, probably no return in xmlElementFromFile, Exception: '%s'" % e)
-      if anime:
+      if not anime:
+        if not metadata.title and tvdbtitle:
+          try:                    metadata.title = tvdbtitle
+          except Exception as e:  Log.Error("Exception: %s" % e)
+      else:
         ### AniDB Title ###
         try:                    title, orig = self.getAniDBTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
         except Exception as e:  Log.Error("AniDB Title: Exception raised, Exception: '%s'" % e)
@@ -425,9 +429,6 @@ class HamaCommonAgent:
             Log.Info("AniDB title: '%s', original title: '%s', metadata.title '%s'" % (title, orig, metadata.title))
             metadata.title = title
             if movie and orig != "" and orig != metadata.original_title: metadata.original_title = orig # If it's a movie, Update original title in metadata http://forums.plexapp.com/index.php/topic/25584-setting-metadata-original-title-and-sort-title-still-not-possible/
-      elif not metadata.title and tvdbtitle:
-        try:                    metadata.title = tvdbtitle
-        except Exception as e:  Log.Error("Exception: %s" % e)
 
         ### AniDB Start Date ###
         if getElementText(anime, 'startdate') == "":                                  Log.Info("AniDB Start Date: None")
