@@ -246,6 +246,7 @@ class HamaCommonAgent:
     ### End of elif metadata_id_source in ["tmdb", "tsdb"]: ###
     
     ### TVDB ID exists ####
+    tvdbtitle, tvdbOverview, tvdbFirstAired tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
     if tvdbid.isdigit():
 
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
@@ -320,7 +321,7 @@ class HamaCommonAgent:
                 else:                       tvdb_episode_missing.append(numbering)
           ### End of for episode in tvdbanime.xpath('Episode'): ###
         ### End of if abs_manual_placement_worked: ###
- 
+        
         if summary_missing:         error_log['Missing Episode Summaries'].append("tvdbid: %s | Title: '%s' | Missing Episode Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(summary_missing)))
         if special_summary_missing: error_log['Missing Special Summaries'].append("tvdbid: %s | Title: '%s' | Missing Special Summaries: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(special_summary_missing)))
         if tvdb_episode_missing:    error_log['Missing Episodes'         ].append("tvdbid: %s | Title: '%s' | Missing Episodes: %s" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle, str(tvdb_episode_missing)))
