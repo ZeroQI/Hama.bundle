@@ -246,7 +246,7 @@ class HamaCommonAgent:
     ### End of elif metadata_id_source in ["tmdb", "tsdb"]: ###
     
     ### TVDB ID exists ####
-    tvdbtitle, tvdbOverview, tvdbFirstAired tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
+    tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
     if tvdbid.isdigit():
 
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
