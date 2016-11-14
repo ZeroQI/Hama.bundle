@@ -74,7 +74,7 @@ Hama creates specific html log files with links to facilitate updating the metad
         - anidbid: <a href='http://anidb.net/perl-bin/animedb.pl?show=anime&aid=8166' target='_blank'>8166</a> | Title: 'A Bridge to the Starry Skies' | Missing Episodes: ['s0e2', 's0e1', 's0e3', 's0e5', 's0e4', 's0e8', 's0e7', 's0e6', 's0e9']<br />    
 
 I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being the anidbid.
-You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidbid-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
+You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidb-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
 
 Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
 
