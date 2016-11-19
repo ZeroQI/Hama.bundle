@@ -381,7 +381,7 @@ class HamaCommonAgent:
       for media_season in media.seasons:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count =  "s%se%s" % (media_season, media_episode),0 ##media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0  ##ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
+          ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
@@ -940,4 +940,3 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
-  
