@@ -87,7 +87,7 @@ Folders to copy in Plex main folder:
     			 https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
     * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
     * "Plug-ins support" https://github.com/ZeroQI/Hama.bundle/releases/tag/v1.0 > Plug-Ins.support.folders.7z Agent data folders (Plug-ins support/Data/com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
-    * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
+    * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library (optional but do not include it when sendings logs) [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
     Some PMS verions (Windows) do not need require authentication to give access to the library XML file (Windows ?)
 
 Plex main folder location:
@@ -131,33 +131,17 @@ Any folder missing will crash the agent when an attempt to write inside is done.
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
+Specific instal procedures go in the wiki:
+- Ubuntu Server 16.04: https://github.com/ZeroQI/Hama.bundle/wiki/Installing-Hama-and-ASS-on-Ubuntu
+
 Install issue under linux are generally permission issues...
-
-Ubuntu Server 16.04 LTS
-- sudo service plexmediaserver stop
-- sudo chown -R plex:plex /var/lib/plexmediaserver
-- sudo chmod 775 -R /var/lib/plexmediaserver
-- sudo touch /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
-- sudo chmod 777 /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
-- sudo chown plex:plex /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Data/com.plexapp.agents.hama/StoredValues
-- sudo service plexmediaserver restart
-
-On linux be aware of permission issue:
-
-OpenMediaVault (Debian):
-- "sudo chmod 775 -R /var/lib/plexmediaserver"
-
-Synology:
-- "chown -R plex:users"
-- "chmod -R 700"
-
-if having: CRITICAL (storage:89) - Exception writing to /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/StoredValues (most recent call last):
-  File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save
-IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
-- touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-- chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-- chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
-- service plexmediaserver restart
+- OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
+- Synology:"chown -R plex:users" + "chmod -R 700"
+- if having: File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
+touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
+service plexmediaserver restart
     
 Updating:
 =========
