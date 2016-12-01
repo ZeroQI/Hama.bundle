@@ -792,9 +792,8 @@ class HamaCommonAgent:
             if Prefs["GetTmdbFanart"] and 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
       rank=90
     else:
-      Log.Info("using TMDBID  url: '%s'" % ((TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id))
-
-      tmdb_json = self.get_json(url=(TMDB_MOVIE_IMAGES_URL if metadata.id.startswith("tmdb") else TMDB_SERIE_IMAGES_URL) % id, cache_time=CACHE_1WEEK * 2)
+      Log.Info("using TMDBID  url: '%s'" % ((TMDB_SERIE_IMAGES_URL if metadata.id.startswith("tsdb") else TMDB_MOVIE_IMAGES_URL) % id))
+      tmdb_json = self.get_json(url=(TMDB_SERIE_IMAGES_URL if metadata.id.startswith("tsdb") else TMDB_MOVIE_IMAGES_URL) % id, cache_time=CACHE_1WEEK * 2)
       if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
         for index, poster in enumerate(tmdb_json['posters']):
           if Prefs["GetTmdbPoster"] and 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
