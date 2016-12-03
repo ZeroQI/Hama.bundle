@@ -162,6 +162,7 @@ Troubleshooting:
 If files and series are showing in Plex GUI the scanner did its job
 If files that are showing correctly do not have all metadata updating, that is the Agent doing.
 If posters are missing, check that all the data folders are created and the agent is where it should be (see folder list above)
+If subtitles are not loaded, check Settings > Server > Agents > Shows > HamaTV and please tick the "Local Media Assets (TV)" as is not by default.
 
 To avoid already solved issues, and make sure you do include all relevant logs in one go, please do the following:
 - delete the library
