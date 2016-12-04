@@ -245,6 +245,26 @@ class HamaCommonAgent:
           metadata.year = metadata.originally_available_at.year
     ### End of elif metadata_id_source in ["tmdb", "tsdb"]: ###
     
+    ### Set TMDB ID for Movies if Missing ###
+    if movie and not tmdbid:
+      try:
+        tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %imdbid, cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
+      except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % imdbid, e))
+      if tmdbid:
+        Log.Info("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=imdbid, tmdbid=tmdbid))
+        
+    ### Populate Movie Metadata Extras (e.g. Taglines) from TMDB for Movies ###
+    if movie and tmdbid:
+      Log.Info("tmdbid is present, populating extras from TMDB")
+      Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
+      try:                    tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
+      except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, e))
+      if tmdb_json:
+          try:
+            Log.Info("Movie tagline: '{tagline}'.".format(tagline=tmdb_json['tagline']))
+            if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']         
+          except Exception as e: Log.Error("Couldn't fetch tagline from TMDB, Exception: '{exception}'".format(e))
+    
     ### TVDB ID exists ####
     tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
     if tvdbid.isdigit():
