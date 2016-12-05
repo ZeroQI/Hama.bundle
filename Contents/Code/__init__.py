@@ -531,21 +531,16 @@ class HamaCommonAgent:
         if metadata.studio == "" and mapping_studio:                                 metadata.studio = mapping_studio
         Log.Info(log_string)
 
-        ### AniDB Cast ###
+        ### AniDB Cast - Get all the voice actors that voice main or secondary characters ###
         if movie:
           metadata.roles.clear()
-          # Get all the voice actors that voice main or secondary characters.
           for character in anime.xpath("characters/character[(@type='secondary cast in') or (@type='main character in')]"):
             try:
-              character_name = character.find('name').text
-              seiyuu = character.find('seiyuu')
-              seiyuu_picture_url = ANIDB_PIC_BASE_URL + seiyuu.get('picture')
-              seiyuu_name = seiyuu.text
+              seiyuu,      character_name     = character.find('seiyuu'), character.find('name').text
+              seiyuu_name, seiyuu_picture_url = seiyuu.text, ANIDB_PIC_BASE_URL + seiyuu.get('picture')
               Log.Debug("{seiyuu} voices {character} and has a profile picture at {url}".format(seiyuu=seiyuu_name, character=character_name, url=seiyuu_picture_url))
-              role = metadata.roles.new()
-              role.name = seiyuu_name
-              role.role = character_name
-              role.photo = seiyuu_picture_url
+              role                             = metadata.roles.new()
+              role.name, role.role, role.photo = seiyuu_name, character_name, seiyuu_picture_url
             except Exception as e:  Log.Error("Could not locate Seiyuu information for character ID {id}, Exception: {exception}".format(id=character.get('id'), exception=e))
 
         ### AniDB Serie/Movie description ###
