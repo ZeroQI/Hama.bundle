@@ -532,16 +532,15 @@ class HamaCommonAgent:
         Log.Info(log_string)
 
         ### AniDB Cast - Get all the voice actors that voice main or secondary characters ###
-        if movie:
-          metadata.roles.clear()
-          for character in anime.xpath("characters/character[(@type='secondary cast in') or (@type='main character in')]"):
-            try:
-              seiyuu,      character_name     = character.find('seiyuu'), character.find('name').text
-              seiyuu_name, seiyuu_picture_url = seiyuu.text, ANIDB_PIC_BASE_URL + seiyuu.get('picture')
-              Log.Debug("{seiyuu} voices {character} and has a profile picture at {url}".format(seiyuu=seiyuu_name, character=character_name, url=seiyuu_picture_url))
-              role                             = metadata.roles.new()
-              role.name, role.role, role.photo = seiyuu_name, character_name, seiyuu_picture_url
-            except Exception as e:  Log.Error("Could not locate Seiyuu information for character ID {id}, Exception: {exception}".format(id=character.get('id'), exception=e))
+        metadata.roles.clear()
+        for character in anime.xpath("characters/character[(@type='secondary cast in') or (@type='main character in')]"):
+          try:
+            seiyuu,      character_name     = character.find('seiyuu'), character.find('name').text
+            seiyuu_name, seiyuu_picture_url = seiyuu.text, ANIDB_PIC_BASE_URL + seiyuu.get('picture')
+            Log.Debug("{seiyuu} voices {character} and has a profile picture at {url}".format(seiyuu=seiyuu_name, character=character_name, url=seiyuu_picture_url))
+            role                             = metadata.roles.new()
+            role.name, role.role, role.photo = seiyuu_name, character_name, seiyuu_picture_url
+          except Exception as e:  Log.Error("Could not locate Seiyuu information for character ID {id}, Exception: {exception}".format(id=character.get('id'), exception=e))
 
         ### AniDB Serie/Movie description ###
         try:                    description = re.sub(r'http://anidb\.net/[a-z]{1,2}[0-9]+ \[(.+?)\]', r'\1', getElementText(anime, 'description')).replace("`", "'") # Remove wiki-style links to staff, characters etc
