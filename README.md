@@ -1,13 +1,14 @@
 Absolute Series Scanner (ASS):
 ==============================
-If all video files are showing in plex the scanner did its job.
-Please view https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/README.md
+If all video files are showing in plex at the right season and episode number, the scanner did its job.
+Please view ASS readme here: https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/README.md
 
 HTTP Anidb Metadata Agent (HAMA)
 ================================
 HAMA was initially created By Atomicstrawberry until v0.4 [2015-08-31] included.
 Here are HAMA agent features:
 
+    * Both Movies and Series Agent
     * AniDB ID to TVDB/TMDB ID matching (with studio and episode mapping list) with ScudLee's xml mapping file
     * Posters from TVDB (assign a poster to each anidb id in anidb to tvdb mapping file to avoid poster duplicates)
     * TVDB episode screenshots
@@ -19,7 +20,46 @@ Here are HAMA agent features:
     * Collection mapping from ScudLee's movie collection ammended with AniDB RelatedAnime field
     * Unique posters by using the anidbid rank in the mapping to rotate the posters
     * when a serie is not found in AniDB, search TVDB and TMDB automatically
-    
+
+Local Media Assets
+==================
+This Plex written agent is responsible for loading from the user folder the following local data if present:
+- Subtitles
+- Movie trailer
+- Theme song
+- Background
+- Serie poster
+- Serie Season poster
+
+Its tickbox is located in Settings > Server > Agents > Shows > HamaTV | HamaMovies > "Local Media Assets (TV|Movies)"
+- https://support.plex.tv/hc/en-us/articles/200220677-Local-Media-Assets-Movies
++ https://support.plex.tv/hc/en-us/articles/200220717-Local-Media-Assets-TV-Shows
+
+Put this agent before HAMA to prioritize local files. Here is a table summarizing naming conventions:<BR />
+<TABLE>
+<THEAD>
+<TR> <TH> Data type         </TH> <TH> Source                                          </TH> <TH> Comment               </TH> </TR>
+</THEAD>
+<TBODY>
+<TR> <TD> fanart            </TD> <TD> art/backdrop/background/fanart-1.ext            </TD> <TD> -1 can be ommited     </TD> </TR>
+<TR> <TD> Serie poster      </TD> <TD> Serie folder: Show name-1/folder/poster/show.ext</TD> <TD> (jpg, jpeg, png, tbn) </TD> </TR>
+<TR> <TD> Season poster     </TD> <TD> Season folder: Season01a.ext                    </TD> <TD> (jpg, jpeg, png, tbn) </TD> </TR>
+<TR> <TD> Banner            </TD> <TD> banner/banner-1.jpg                             </TD> <TD> (jpg, jpeg, png, tbn) </TD> </TR>
+<TR> <TD> Theme song        </TD> <TD> theme.mp3                                       </TD> <TD> (mp3)                 </TD> </TR>
+<TR> <TD> Subtitles         </TD> <TD> file name.ext                                   </TD> <TD> (srt, smi, ssa, ass)  </TD> </TR>
+<TR> <TD> Trailers          </TD> <TD> MovieName-Trailer.ext or in "Trailers" folder   </TD> <TD>                       </TD> </TR>
+<TR> <TD> Plexignore files  </TD> <TD> .plexignore                                     </TD> <TD>                       </TD> </TR>
+</TBODY>
+</TABLE>
+
+https://support.plex.tv/hc/en-us/articles/200220677-Local-Media-Assets-Movies
+
+Subtitle fiels are supported through that
+
+"Local Media Assets (Movies)" in the HamaMovies agent list, any files you name as MovieName-Trailer.ext or place in a 'Trailers' folder inside the movie's folder are picked up by Plex as trailers. I've done this for a few things where I have the trailer as file, but I agree - it'd be even better if we can get Hama to add any S0E2xx as a 'trailer' extra too.
+
+Plex's trailer feature also supports displaying trailers from a URL - the metadata agent just needs to add the relevant URL at which Plex can reach the trailer. If we added support for this, it'd mean that user who don't have the trailer as a file can also benefit from having the trailer available.
+
 Metadata source
 ===============
 I use AniDB HTTP title database file and ScudLee's XML files with his approval
