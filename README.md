@@ -54,7 +54,7 @@ Put this agent before HAMA to prioritize local files. Here is a table summarizin
 
 https://support.plex.tv/hc/en-us/articles/200220677-Local-Media-Assets-Movies
 
-Subtitle fiels are supported through that
+Subtitle files are supported through that
 
 "Local Media Assets (Movies)" in the HamaMovies agent list, any files you name as MovieName-Trailer.ext or place in a 'Trailers' folder inside the movie's folder are picked up by Plex as trailers. I've done this for a few things where I have the trailer as file, but I agree - it'd be even better if we can get Hama to add any S0E2xx as a 'trailer' extra too.
 
