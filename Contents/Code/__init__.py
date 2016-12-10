@@ -267,7 +267,7 @@ class HamaCommonAgent:
     
     ### TVDB ID exists ####
     tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
-    if tvdbid.isdigit():
+    if not movie and tvdbid.isdigit():
 
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       if THEME_URL % tvdbid in metadata.themes:  Log.Info("Theme song - already added")
