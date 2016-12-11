@@ -412,12 +412,14 @@ class HamaCommonAgent:
             if 'filename'    in tvdb_table[ep] and tvdb_table [ep] ['filename'] and tvdb_table [ep] ['filename'] != "":  self.metadata_download (metadata.seasons[media_season].episodes[media_episode].thumbs, TVDB_IMAGES_URL + tvdb_table[ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[ep]['filename']))
             if 'Director'    in tvdb_table[ep] and tvdb_table [ep] ['Director']:
               for this_director in re.split(',|\|', tvdb_table[ep]['Director']):
-                if this_director not in metadata.seasons[media_season].episodes[media_episode].directors:
-                  metadata.seasons[media_season].episodes[media_episode].directors.add(this_director)
+                meta_director = metadata.seasons[media_season].episodes[media_episode].directors.new()
+                Log.Debug("Adding new Director {name}".format(name=this_director))
+                meta_director.name = this_director
             if 'Writer'      in tvdb_table[ep] and tvdb_table [ep] ['Writer']:
               for this_writer in re.split(',|\|', tvdb_table[ep]['Writer']):
-                if this_writer not in metadata.seasons[media_season].episodes[media_episode].writers:
-                  metadata.seasons[media_season].episodes[media_episode].writers.add(this_writer)
+                meta_writer = metadata.seasons[media_season].episodes[media_episode].writers.new()
+                Log.Debug("Adding new Writer {name}".format(name=this_writer))
+                meta_writer.name = this_writer
             if 'Rating'      in tvdb_table[ep] and tvdb_table [ep] ['Rating']:
               try:                    metadata.seasons[media_season].episodes[media_episode].rating  = float(tvdb_table [ep] ['Rating'])
               except Exception as e:  Log.Error("float issue: '%s', Exception: '%s'" % (tvdb_table [ep] ['Rating'], e)) #ValueError
