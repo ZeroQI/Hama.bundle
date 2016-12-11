@@ -601,14 +601,20 @@ class HamaCommonAgent:
               if season == "1": numEpisodes, totalDuration = numEpisodes + 1, totalDuration + episodeObj.duration
             
             ### AniDB Writers, Producers, Directors ###  #Log.Debug("### AniDB Writers, Producers, Directors ### ")
+            Log.Info("Processing writers and directors for Episode.")
             episodeObj.writers.clear()
-            episodeObj.producers.clear()
             episodeObj.directors.clear()
             for role in plex_role:
               for person in plex_role[role]:
-                if role=="writers"   and person not in episodeObj.writers:   episodeObj.writers.add  (person)
-                if role=="producers" and person not in episodeObj.producers: episodeObj.producers.add(person)
-                if role=="directors" and person not in episodeObj.directors: episodeObj.directors.add(person)
+                # Note: Writer/Director metadata is only written when the show is refreshed, not the episode.
+                if role=="writers":
+                  meta_writer = episodeObj.writers.new()
+                  Log.Debug("Adding new Writer {name}".format(name=person))
+                  meta_writer.name = person
+                if role=="directors":
+                  meta_director = episodeObj.directors.new()
+                  Log.Debug("Adding new Director {name}".format(name=person))
+                  meta_director.name = person
             
             ### Rating ###
             rating = getElementText(episode, 'rating') #if rating =="":  Log.Debug(metadata.id + " Episode rating: ''") #elif rating == episodeObj.rating:  Log.Debug(metadata.id + " update - Episode rating: '%s'*" % rating )
