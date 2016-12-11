@@ -267,7 +267,7 @@ class HamaCommonAgent:
     
     ### TVDB ID exists ####
     tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
-    if not movie and tvdbid.isdigit():
+    if tvdbid.isdigit():
 
       ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
       if THEME_URL % tvdbid in metadata.themes:  Log.Info("Theme song - already added")
@@ -292,7 +292,7 @@ class HamaCommonAgent:
       
         ### TVDB - Build 'tvdb_table' ###
         abs_manual_placement_worked = True
-        if defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"]:
+        if not movie and defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"]:
           ep_count, abs_manual_placement_info, number_set = 0, [], False
           for episode in tvdbanime.xpath('Episode'):
             if episode.xpath('SeasonNumber')[0].text != '0':
