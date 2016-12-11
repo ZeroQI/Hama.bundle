@@ -247,11 +247,9 @@ class HamaCommonAgent:
     
     ### Set TMDB ID for Movies if Missing ###
     if movie and not tmdbid:
-      try:
-        tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %imdbid, cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
-      except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % imdbid, e))
-      if tmdbid:
-        Log.Info("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=imdbid, tmdbid=tmdbid))
+      try:                   tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %(imdbid.split(",")[0] if ',' in imdbid else imdbid), cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
+      except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % (imdbid.split(",")[0] if ',' in imdbid else imdbid), e))
+      else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
         
     ### Populate Movie Metadata Extras (e.g. Taglines) from TMDB for Movies ###
     if movie and tmdbid:
@@ -288,7 +286,9 @@ class HamaCommonAgent:
           try:    tvdbRating = float(getElementText(tvdbanime, 'Series/Rating'))
           except: tvdbRating = None 
         else: tvdbRating = None
-        if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):  imdbid = getElementText(tvdbanime, 'Series/IMDB_ID');  Log.Warn("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
+        if imdbid is None or imdbid =="" and getElementText(tvdbanime, 'Series/IMDB_ID'):
+          imdbid = getElementText(tvdbanime, 'Series/IMDB_ID')
+          Log.Warn("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
       
         ### TVDB - Build 'tvdb_table' ###
         abs_manual_placement_worked = True
@@ -365,16 +365,18 @@ class HamaCommonAgent:
         if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
     ### End of if tvdbid.isdigit(): ###
 
-    ### TMDB - background, Poster - using imdbid or tmdbid ###
-    if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:  self.getImagesFromTMDB(metadata, imdbid if imdbid.isalnum() else tmdbid, 97)  #The Movie Database is least prefered by the mapping file, only when imdbid missing
+    ### TMDB - background, Poster - using imdbid or tmdbid ### The Movie Database is least prefered by the mapping file, only when imdbid missing
+    if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
+      if imdbid.startswith("tt"): self.getImagesFromTMDB(metadata, imdbid_multiple, 97) for imdbid_multiple in imdbid.split(",")
+      if tmdbid:                  self.getImagesFromTMDB(metadata, tmdbid_multiple, 97) for tmdbid_multiple in tmdbid.split(",")
     
-    ### OMDB - Posters - Using imdbid ###
-    if Prefs["GetOmdbPoster"] and imdbid.isalnum(): self.getImagesFromOMDB(metadata, imdbid, 98)  #return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    ### OMDB - Posters - Using imdbid ###  return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    if Prefs["GetOmdbPoster"] and imdbid.startswith("tt"):  self.getImagesFromOMDB(metadata, imdbid_multiple, 98) for imdbid_multiple in imdbid.split(",")
     
     ### fanart.tv - Background, Poster and Banner - Using imdbid ###
     if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
         if movie:
-          if tmdbid:  self.getImagesFromFanartTV(metadata, tmdbid=tmdbid)
+          if tmdbid:  self.getImagesFromFanartTV(metadata, tmdbid=tmdbid) for tmdbid_multiple in tmdbid.split(",")
           elif imdbid:  # FanartTV only uses TMDB IDs as a lookup. The Anime List data normally only has IMDB IDs. However, we can convert IMDB IDs to TMDB IDs using TMDB!
               Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
               Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
