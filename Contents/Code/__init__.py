@@ -367,16 +367,20 @@ class HamaCommonAgent:
 
     ### TMDB - background, Poster - using imdbid or tmdbid ### The Movie Database is least prefered by the mapping file, only when imdbid missing
     if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
-      if imdbid.startswith("tt"): self.getImagesFromTMDB(metadata, imdbid_multiple, 97) for imdbid_multiple in imdbid.split(",")
-      if tmdbid:                  self.getImagesFromTMDB(metadata, tmdbid_multiple, 97) for tmdbid_multiple in tmdbid.split(",")
+      if imdbid.startswith("tt"):
+        for imdbid_multiple in imdbid.split(","):  self.getImagesFromTMDB(metadata, imdbid_multiple, 97)
+      if tmdbid:
+        for tmdbid_multiple in tmdbid.split(","):  self.getImagesFromTMDB(metadata, tmdbid_multiple, 97)
     
     ### OMDB - Posters - Using imdbid ###  return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-    if Prefs["GetOmdbPoster"] and imdbid.startswith("tt"):  self.getImagesFromOMDB(metadata, imdbid_multiple, 98) for imdbid_multiple in imdbid.split(",")
+    if Prefs["GetOmdbPoster"] and imdbid.startswith("tt"):
+      for imdbid_multiple in imdbid.split(","):  self.getImagesFromOMDB(metadata, imdbid_multiple, 98)
     
     ### fanart.tv - Background, Poster and Banner - Using imdbid ###
     if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
         if movie:
-          if tmdbid:  self.getImagesFromFanartTV(metadata, tmdbid=tmdbid) for tmdbid_multiple in tmdbid.split(",")
+          if tmdbid:
+            for tmdbid_multiple in tmdbid.split(","):  self.getImagesFromFanartTV(metadata, tmdbid=tmdbid)
           elif imdbid:  # FanartTV only uses TMDB IDs as a lookup. The Anime List data normally only has IMDB IDs. However, we can convert IMDB IDs to TMDB IDs using TMDB!
               Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
               Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
