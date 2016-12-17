@@ -85,7 +85,7 @@ class HamaCommonAgent:
     except Exception as e:  Log.Error("UTF-8 encode issue, Exception: '%s'" % e)
     if not orig_title:  return
     if orig_title.startswith("clear-cache"):   HTTP.ClearCache()  ### Clear Plex http cache manually by searching a serie named "clear-cache" ###
-    Log.Info("Title: '%s', name: '%s', filename: '%s', manual:'%s'" % (orig_title, media.name, media.filename, str(manual)))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
+    Log.Info("Title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
     
     ### Check if a guid is specified "Show name [anidb-id]" ###
     global SERIE_LANGUAGE_PRIORITY
@@ -100,6 +100,7 @@ class HamaCommonAgent:
     ### AniDB Local exact search ###
     cleansedTitle = self.cleanse_title (orig_title).encode('utf-8')
     if media.year is not None: orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
+    Log.Info(orig_title)
     parent_element, show , score, maxi = None, "", 0, 0
     AniDB_title_tree_elements = list(AniDB_title_tree.iterdescendants()) if AniDB_title_tree else []
     for element in AniDB_title_tree_elements:
@@ -316,9 +317,9 @@ class HamaCommonAgent:
             currentAbsNum          = getElementText(episode, 'absolute_number')
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
-            if   currentSeasonNum > 0 and (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a"):  numbering = currentAbsNum
-            elif currentSeasonNum > 0 and  metadata_id_source == "tvdb3":                                                             numbering = "s" + currentSeasonNum + "e" + currentAbsNum
-            else:                                                                                                                     numbering = "s" + currentSeasonNum + "e" + currentEpNum 
+            if   currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1):  numbering = currentAbsNum
+            elif currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and  metadata_id_source == "tvdb3":                                                                                                        numbering = "s" + currentSeasonNum + "e" + currentAbsNum
+            else:                                                                                                                                                                                                    numbering = "s" + currentSeasonNum + "e" + currentEpNum 
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
@@ -387,7 +388,7 @@ class HamaCommonAgent:
         else:     self.getImagesFromFanartTV(metadata, tvdbid=tvdbid, season=defaulttvdbseason)
     
     ### TVDB mode when a season 2 or more exist ############################################################################################################
-    if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
+    if not movie and (max(map(int, media.seasons.keys()))>1 or metadata_id_source_core == "tvdb"):
       Log.Info("using TVDB numbering mode (seasons)" )
       if tvdbtitle:          metadata.title                   = tvdbtitle
       if tvdbRating:         metadata.rating                  = tvdbRating
@@ -403,7 +404,7 @@ class HamaCommonAgent:
       for media_season in media.seasons:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
-          ep, episode_count = media_episode if defaulttvdbseason=="a" or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
+          ep, episode_count = media_episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
