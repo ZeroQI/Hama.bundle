@@ -67,12 +67,12 @@ def Start():
   
   Log.Info('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
-  AniDB_title_tree                                       = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES, os.path.splitext(os.path.basename(ANIDB_TITLES))[0]  , True,  CACHE_1HOUR * 24 * 2)
+  AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES, os.path.splitext(os.path.basename(ANIDB_TITLES))[0]  , True,  CACHE_1HOUR * 24 * 2)
+  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,            os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
+  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION,              os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
   if not AniDB_title_tree:        Log.Critical("Failed to load core file '%s'" % os.path.splitext(os.path.basename(ANIDB_TITLES))[0]); raise Exception("HAMA Fatal Error Hit") #; AniDB_title_tree = XML.ElementFromString("<animetitles></animetitles>")
-  AniDB_TVDB_mapping_tree                                = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,            os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
   if not AniDB_TVDB_mapping_tree: Log.Critical("Failed to load core file '%s'" % os.path.basename(ANIDB_TVDB_MAPPING));                raise Exception("HAMA Fatal Error Hit") #; AniDB_TVDB_mapping_tree = XML.ElementFromString("<anime-list></anime-list>")
-  AniDB_collection_tree                                  = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION,              os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
-  if not AniDB_collection_tree:   AniDB_collection_tree  = XML.ElementFromString("<anime-set-list></anime-set-list>"); Log.Error("Failed to load core file '%s'" % os.path.basename(ANIDB_COLLECTION  ))
+  if not AniDB_collection_tree:   Log.Error   ("Failed to load core file '%s'" % os.path.basename(ANIDB_COLLECTION  ));                AniDB_collection_tree  = XML.ElementFromString("<anime-set-list></anime-set-list>"); 
   HTTP.CacheTime = CACHE_1HOUR * 24
 
 class HamaCommonAgent:
@@ -215,7 +215,7 @@ class HamaCommonAgent:
     if metadata_id_source_core == "tvdb":  tvdbid = metadata_id_number
     elif metadata_id_source == "anidb":
       anidbid = metadata_id_number
-      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, anidbid, error_log)
+      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, media, anidbid, error_log)
     elif metadata_id_source in ["tmdb", "tsdb"]:
       tmdbid = metadata_id_number
       Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
@@ -406,12 +406,14 @@ class HamaCommonAgent:
         for media_episode in media.seasons[media_season].episodes:
           ep, episode_count = media_episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
+            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']:
+              if metadata.seasons[media_season].episodes[media_episode].title == tvdb_table [ep] ['EpisodeName']:  continue
+              else:  metadata.seasons[media_season].episodes[media_episode].title = tvdb_table [ep] ['EpisodeName']
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
             if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
               try:                    metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
               except Exception as e:  Log.Error("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s', Exception: '%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview'], e))
-            if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']:                                      metadata.seasons[media_season].episodes[media_episode].title     = tvdb_table [ep] ['EpisodeName']
             if 'filename'    in tvdb_table[ep] and tvdb_table [ep] ['filename'] and tvdb_table [ep] ['filename'] != "":  self.metadata_download (metadata.seasons[media_season].episodes[media_episode].thumbs, TVDB_IMAGES_URL + tvdb_table[ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[ep]['filename']))
             if 'Director'    in tvdb_table[ep] and tvdb_table [ep] ['Director']:
               for this_director in re.split(',|\|', tvdb_table[ep]['Director']):
@@ -725,8 +727,22 @@ class HamaCommonAgent:
     Log.Info('--- Update end -------------------------------------------------------------------------------------------------')
         
   ### Get the tvdbId from the AnimeId #######################################################################################################################
-  def anidbTvdbMapping(self, metadata, anidb_id, error_log):
+  def anidbTvdbMapping(self, metadata, media, anidb_id, error_log):
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
+    dir=""
+    for s in media.seasons:
+      for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
+      while dir:
+        dir = os.path.dirname(dir)
+        if os.path.exists(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)): break
+      break    
+    scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
+    if os.path.exists( scudlee_filename_custom ):
+      Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
+      with open(scudlee_filename_custom, 'r') as scudlee_file:  scudlee_mapping_content_custom = etree.fromstring( scudlee_file_custom.read() )
+      #AniDB_TVDB_mapping_tree = scudlee_mapping_content_custom[:scudlee_mapping_content_custom.rfind("</anime-list>")-1] + scudlee_mapping_content[scudlee_mapping_content.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
+      # HamaCommonAgent().xmlElementFromFile()
+    #
     poster_id_array, mappingList = {}, {}
     for anime in AniDB_TVDB_mapping_tree.iter('anime') if AniDB_TVDB_mapping_tree else []:
       anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList['episodeoffset'] = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason'), anime.get('episodeoffset')
@@ -933,11 +949,6 @@ class HamaCommonAgent:
       Log.Info("Loading locally since banned or empty file (result page <1024 bytes)")
       try:                    result = Data.Load(filename)
       except Exception as e:  Log.Error("Loading locally failed but data present - url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e)); return
-      
-    if url==ANIDB_TVDB_MAPPING and Data.Exists(ANIDB_TVDB_MAPPING_CUSTOM):  # Special case: if importing anidb tvdb mapping, load custom mapping entries first
-      Log.Info("Loading local custom mapping - url: '%s'" % ANIDB_TVDB_MAPPING_CUSTOM)
-      result_custom = Data.Load(ANIDB_TVDB_MAPPING_CUSTOM)
-      result        = result_custom[:result_custom.rfind("</anime-list>")-1] + result[result.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
     
     if result:
       element = XML.ElementFromString(result)
