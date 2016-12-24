@@ -245,6 +245,7 @@ class HamaCommonAgent:
           if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
           metadata.year = metadata.originally_available_at.year
     ### End of elif metadata_id_source in ["tmdb", "tsdb"]: ###
+    Log.Info("### End of elif metadata_id_source ###")
     
     ### Set TMDB ID for Movies if Missing ###
     if movie and not tmdbid:
@@ -729,22 +730,20 @@ class HamaCommonAgent:
   ### Get the tvdbId from the AnimeId #######################################################################################################################
   def anidbTvdbMapping(self, metadata, media, anidb_id, error_log):
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
-    dir=""
-    for s in media.seasons:
+    dir, scudlee_mapping_tree, poster_id_array, mappingList = "", AniDB_TVDB_mapping_tree, {}, {}
+    for s in media.seasons:  #get first file path
       for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
-      while dir:
-        dir = os.path.dirname(dir)
-        if os.path.exists(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)): break
-      break    
-    scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
-    if os.path.exists( scudlee_filename_custom ):
-      Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
-      with open(scudlee_filename_custom, 'r') as scudlee_file:  scudlee_mapping_content_custom = etree.fromstring( scudlee_file_custom.read() )
-      #AniDB_TVDB_mapping_tree = scudlee_mapping_content_custom[:scudlee_mapping_content_custom.rfind("</anime-list>")-1] + scudlee_mapping_content[scudlee_mapping_content.find("<anime-list>")+len("<anime-list>")+1:] #cut both fiels together removing ending and starting tags to do so
-      # HamaCommonAgent().xmlElementFromFile()
-    #
-    poster_id_array, mappingList = {}, {}
-    for anime in AniDB_TVDB_mapping_tree.iter('anime') if AniDB_TVDB_mapping_tree else []:
+      break
+    while dir and dir is not "/":
+      if os.path.exists(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)):
+        Log.Info("Loading local custom mapping - url: '%s'" % os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM))
+        with open(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM), 'r') as scudlee_file:  scudlee_1 = scudlee_file.read()
+        scudlee_2            = HamaCommonAgent().xml.etree.ElementTree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
+        scudlee_mapping_tree = HamaCommonAgent().xml.etree.ElementTree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
+        break
+      dir = os.path.dirname(dir)
+    else: Log.Info("Local custom mapping - No file detected")
+    for anime in scudlee_mapping_tree.iter('anime') if scudlee_mapping_tree else []:
       anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList['episodeoffset'] = anime.get("anidbid"), anime.get('tvdbid'), anime.get('tmdbid'), anime.get('imdbid'), anime.get('defaulttvdbseason'), anime.get('episodeoffset')
       if tvdbid.isdigit():  poster_id_array [tvdbid] = poster_id_array [tvdbid] + 1 if tvdbid in poster_id_array else 0  # Count posters to have a unique poster per anidbid
       if anidbid == anidb_id: #manage all formats latter
