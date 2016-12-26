@@ -735,9 +735,10 @@ class HamaCommonAgent:
       for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
       break
     while dir and dir is not "/":
-      if os.path.exists(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)):
-        Log.Info("Loading local custom mapping - url: '%s'" % os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM))
-        with open(os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM), 'r') as scudlee_file:  scudlee_1 = scudlee_file.read()
+      scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
+      if os.path.exists(scudlee_filename_custom):
+        Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
+        with open(scudlee_filename_custom, 'r') as scudlee_file:  scudlee_1 = scudlee_file.read()
         scudlee_2            = HamaCommonAgent().xml.etree.ElementTree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
         scudlee_mapping_tree = HamaCommonAgent().xml.etree.ElementTree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
         break
