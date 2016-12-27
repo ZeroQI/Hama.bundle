@@ -197,7 +197,6 @@ class HamaCommonAgent:
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
-
     for key in error_log.keys():
       if key not in error_log_locked.keys(): error_log_locked[key] = [False, 0]
     
@@ -408,13 +407,14 @@ class HamaCommonAgent:
           ep, episode_count = media_episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']:
-              if metadata.seasons[media_season].episodes[media_episode].title == tvdb_table [ep] ['EpisodeName']:  continue
+              if metadata.seasons[media_season].episodes[media_episode].title == tvdb_table [ep] ['EpisodeName'] and 0:  continue
               else:  metadata.seasons[media_season].episodes[media_episode].title = tvdb_table [ep] ['EpisodeName']
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
             if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
               try:                    metadata.seasons[media_season].episodes[media_episode].summary = tvdb_table [ep] ['Overview']
               except Exception as e:  Log.Error("Error adding summary - ep: '%s', media_season: '%s', media_episode: '%s', summary:'%s', Exception: '%s'" % (ep, media_season, media_episode, tvdb_table [ep] ['Overview'], e))
+
             if 'filename'    in tvdb_table[ep] and tvdb_table [ep] ['filename'] and tvdb_table [ep] ['filename'] != "":  self.metadata_download (metadata.seasons[media_season].episodes[media_episode].thumbs, TVDB_IMAGES_URL + tvdb_table[ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(tvdb_table[ep]['filename']))
             if 'Director'    in tvdb_table[ep] and tvdb_table [ep] ['Director']:
               for this_director in re.split(',|\|', tvdb_table[ep]['Director']):
@@ -577,7 +577,7 @@ class HamaCommonAgent:
                 if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
                 epNumVal = str( int(epNumVal) +50-op_nb)   #shifted to 150 for 1st ending.  
               Log.Info("AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
-             
+
             if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
               current_air_date = getElementText(episode, 'airdate').replace('-','')
               current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
@@ -731,17 +731,21 @@ class HamaCommonAgent:
   def anidbTvdbMapping(self, metadata, media, anidb_id, error_log):
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
     dir, scudlee_mapping_tree, poster_id_array, mappingList = "", AniDB_TVDB_mapping_tree, {}, {}
+    Log.Info("Finding media path")
     for s in media.seasons:  #get first file path
       for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
       break
+    Log.Info("dir: '%s'" % dir)
     while dir and dir is not "/":
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
       if os.path.exists(scudlee_filename_custom):
         Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
-        with open(scudlee_filename_custom, 'r') as scudlee_file:  scudlee_1 = scudlee_file.read()
+        with open(scudlee_filename_custom, 'r') as scudlee_file:
+          scudlee_1 = scudlee_file.read()
         scudlee_2            = HamaCommonAgent().xml.etree.ElementTree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
         scudlee_mapping_tree = HamaCommonAgent().xml.etree.ElementTree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
         break
+      else: Log.Info("No local custom mapping in dir: '%s'" % dir)
       dir = os.path.dirname(dir)
     else: Log.Info("Local custom mapping - No file detected")
     for anime in scudlee_mapping_tree.iter('anime') if scudlee_mapping_tree else []:
@@ -949,7 +953,6 @@ class HamaCommonAgent:
       Log.Info("Loading locally since banned or empty file (result page <1024 bytes)")
       try:                    result = Data.Load(filename)
       except Exception as e:  Log.Error("Loading locally failed but data present - url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e)); return
-    
     if result:
       element = XML.ElementFromString(result)
       if str(element).startswith("<Element error at "):  Log.Error("Not an XML file, AniDB banned possibly, result: '%s'" % result)
@@ -996,3 +999,4 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+ 
