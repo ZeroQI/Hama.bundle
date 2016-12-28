@@ -739,7 +739,7 @@ class HamaCommonAgent:
       for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
       break
     Log.Info("dir: '%s'" % dir)
-    while dir and not dir.endswith("/") and not dir.endswith("\"): # and dir is not "/" and not dir.endswith(":\"):
+    while dir and not dir.endswith("/") and not dir.endswith("\\"):
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
       if os.path.exists(scudlee_filename_custom):
         Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
@@ -956,12 +956,6 @@ class HamaCommonAgent:
       Log.Info("Loading locally since banned or empty file (result page <1024 bytes)")
       try:                    result = Data.Load(filename)
       except Exception as e:  Log.Error("Loading locally failed but data present - url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e)); return
-
-
-
-
-
-    
     if result:
       element = XML.ElementFromString(result)
       if str(element).startswith("<Element error at "):  Log.Error("Not an XML file, AniDB banned possibly, result: '%s'" % result)
