@@ -71,7 +71,9 @@ def Start():
   AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,            os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
   AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION,              os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
   if not AniDB_title_tree:        Log.Critical("Failed to load core file '%s'" % os.path.splitext(os.path.basename(ANIDB_TITLES))[0]); raise Exception("HAMA Fatal Error Hit") #; AniDB_title_tree = XML.ElementFromString("<animetitles></animetitles>")
+
   if not AniDB_TVDB_mapping_tree: Log.Critical("Failed to load core file '%s'" % os.path.basename(ANIDB_TVDB_MAPPING));                raise Exception("HAMA Fatal Error Hit") #; AniDB_TVDB_mapping_tree = XML.ElementFromString("<anime-list></anime-list>")
+
   if not AniDB_collection_tree:   Log.Error   ("Failed to load core file '%s'" % os.path.basename(ANIDB_COLLECTION  ));                AniDB_collection_tree  = XML.ElementFromString("<anime-set-list></anime-set-list>"); 
   HTTP.CacheTime = CACHE_1HOUR * 24
 
@@ -197,6 +199,7 @@ class HamaCommonAgent:
                   'Missing Episodes'          : [], 'Missing Episode Summaries'  : [],
                   'Missing Specials'          : [], 'Missing Special Summaries'  : []  
                 }
+
     for key in error_log.keys():
       if key not in error_log_locked.keys(): error_log_locked[key] = [False, 0]
     
@@ -577,7 +580,7 @@ class HamaCommonAgent:
                 if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
                 epNumVal = str( int(epNumVal) +50-op_nb)   #shifted to 150 for 1st ending.  
               Log.Info("AniDB specials title - Season: '%s', epNum.text: '%s', epNumVal: '%s', ep_title: '%s'" % (season, epNum.text, epNumVal, ep_title) )
-
+             
             if not (season in media.seasons and epNumVal in media.seasons[season].episodes):  #Log.Debug("Season: '%s', Episode: '%s' => '%s' not on disk" % (season, epNum.text, epNumVal) )
               current_air_date = getElementText(episode, 'airdate').replace('-','')
               current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
@@ -736,7 +739,7 @@ class HamaCommonAgent:
       for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
       break
     Log.Info("dir: '%s'" % dir)
-    while dir and dir is not "/":
+    while dir and not dir.endswith("/") and not dir.endswith("\"): # and dir is not "/" and not dir.endswith(":\"):
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
       if os.path.exists(scudlee_filename_custom):
         Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
@@ -953,6 +956,12 @@ class HamaCommonAgent:
       Log.Info("Loading locally since banned or empty file (result page <1024 bytes)")
       try:                    result = Data.Load(filename)
       except Exception as e:  Log.Error("Loading locally failed but data present - url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e)); return
+
+
+
+
+
+    
     if result:
       element = XML.ElementFromString(result)
       if str(element).startswith("<Element error at "):  Log.Error("Not an XML file, AniDB banned possibly, result: '%s'" % result)
@@ -999,4 +1008,4 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
- 
+  
