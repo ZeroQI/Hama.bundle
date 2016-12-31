@@ -458,7 +458,7 @@ class HamaCommonAgent:
         ### AniDB Title ###
         try:                    title, orig = self.getAniDBTitle(anime.xpath('/anime/titles/title'), SERIE_LANGUAGE_PRIORITY)
         except Exception as e:  Log.Error("AniDB Title: Exception raised, Exception: '%s'" % e)
-        else:  # title, orig = title.encode("utf-8").replace("`", "'"), orig.encode("utf-8").replace("`", "'")
+        else:
           if title == str(metadata.title):  Log.Info("AniDB title: '%s', original title: '%s', metadata.title '%s'*" % (title, orig, metadata.title))
           elif title != "": #If title different but not empty [Failsafe]
             Log.Info("AniDB title: '%s', original title: '%s', metadata.title '%s'" % (title, orig, metadata.title))
@@ -976,25 +976,26 @@ class HamaCommonAgent:
     
   ### Extract the series/movie/Episode title from AniDB ########################################################################################################################
   def getAniDBTitle(self, titles, languages):
-    if not 'main' in languages:  languages.append('main')                                                                                      # Add main to the selection if not present
-    langTitles = ["" for index in range(len(languages)+1)]                                                                                     # languages: title order including main title, then choosen title
-    for title in titles:                                                                                                                       # Loop through all languages listed in the anime XML
-      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')                                                  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
-      if type == 'main' or type == None and langTitles[ languages.index('main') ] == "":  langTitles [ languages.index('main') ] = title.text  # type==none is for mapping episode language
-      if lang in languages and type in ['main', 'official', 'syn', 'synonym', None]:      langTitles [ languages.index( lang ) ] = title.text  # 'Applede' Korean synonym fix
-    for index in range( len(languages) ):                                                                                                      # Loop through title result array
-      if langTitles[index]:  langTitles[len(languages)] = langTitles[index];  break                                               # If title present we're done
-    else:                    langTitles[len(languages)] = langTitles[languages.index('main')]                                     # Fallback on main title
-    return langTitles[len(languages)].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8") #
+    if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
+    type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
+    langLevel     = [9  for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+    langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+    for title in titles:                                                                       # Loop through all languages listed in the anime XML
+      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
+      if type and lang in languages and type_priority[type] < langLevel[languages.index(lang)]:
+        langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text, type_priority [ type ]
+      if type == 'main' and lang in languages and languages.index(lang) < langLevel[languages.index(lang)] or type == None and not langTitles[languages.index('main')]:
+        langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text, languages.index('main')
+        if lang==languages[0] or lang=='main': break
+    Log.Info("getAniDBTitle - languages: '%s', langLevel: '%s', langTitles: '%s'" % (str(languages), str(langLevel), str(langTitles)))
+    for title in langTitles:
+      if title:  return title.replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
+    return langTitles[languages.index('main')].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
     
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, accepts_from = ('HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
-  #languages = [Locale.Language.English,  Locale.Language.French,  Locale.Language.Czech,   Locale.Language.Danish,    Locale.Language.Finnish,
-  #             Locale.Language.French,   Locale.Language.German,  Locale.Language.Hebrew,    Locale.Language.Hungarian, Locale.Language.Italian, 
-  #              Locale.Language.Japanese, Locale.Language.Korean,  Locale.Language.Norwegian, Locale.Language.Polish,    Locale.Language.Portuguese, Locale.Language.Russian, 
-  #              Locale.Language.Slovak,  Locale.Language.Spanish,  Locale.Language.Turkish, ] #http://thetvdb.com/api/A27AD9BE0DA63333/languages.xml
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
 
