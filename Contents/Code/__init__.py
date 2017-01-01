@@ -982,15 +982,12 @@ class HamaCommonAgent:
     langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
     for title in titles:                                                                       # Loop through all languages listed in the anime XML
       type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
-      if type and lang in languages and type_priority[type] < langLevel[languages.index(lang)]:
-        langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text, type_priority [ type ]
-      if type == 'main' and lang in languages and languages.index(lang) < langLevel[languages.index(lang)] or type == None and not langTitles[languages.index('main')]:
-        langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text, languages.index('main')
-        if lang==languages[0] or lang=='main': break
+      if lang in languages and (type and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text, type_priority [ type ]
+      if type == 'main' and lang in languages and languages.index(lang) < langLevel[languages.index(lang)]:    langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text, languages.index('main')
+      if lang==languages[0] and type in ['main', ""]:  break
     Log.Info("getAniDBTitle - languages: '%s', langLevel: '%s', langTitles: '%s'" % (str(languages), str(langLevel), str(langTitles)))
     for title in langTitles:
       if title:  return title.replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
-    return langTitles[languages.index('main')].replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
     
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
@@ -1003,4 +1000,3 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
-  
