@@ -6,7 +6,7 @@ from lxml import etree                                  # fromstring
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
 ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
 ANIDB_TVDB_MAPPING           = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'               # ScudLee mapping file url
-ANIDB_TVDB_MAPPING2          = 'https://raw.githubusercontent.com/Dingmatt/AMSA/master/Plug-in%20Support/Data/com.plexapp.agents.amsa/DataItems/anime-list-corrections.xml'
+ANIDB_TVDB_MAPPING2          = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'
 ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
 ANIDB_COLLECTION             = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'             # ScudLee collection mapping file
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
