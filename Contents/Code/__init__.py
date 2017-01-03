@@ -735,9 +735,8 @@ class HamaCommonAgent:
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
     dir, scudlee_mapping_tree, poster_id_array, mappingList = "", AniDB_TVDB_mapping_tree, {}, {}
     Log.Info("Finding media path")
-    for s in media.seasons:  #get first file path
-      for e in media.seasons[s].episodes:  dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
-      break
+    try:                   dir = os.path.dirname(media.seasons[:1].episodes[:1].items[0].parts[0].file) # #hasattr(a, 'property'),  "easier to ask for forgiveness than permission" (EAFP) rather than "look before you leap" (LBYL)
+    except AttributeError: dir = os.path.dirname(media.items[0].parts[0].file) #movie
     Log.Info("dir: '%s'" % dir)
     while dir and not dir.endswith("/") and not dir.endswith("\\"):
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
@@ -789,6 +788,12 @@ class HamaCommonAgent:
         Log.Info("anidbid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (metadata_id_number, title, str(related_anime_list)))
         return
     Log.Info("anidbid is not part of any collection, related_anime_list: '%s'" % str(related_anime_list)) 
+    #for media_item in media.seasons[media_season].episodes[media_episode].items:
+    #  for item_part in media_item.parts:
+    #    for stream in item_part.streams:
+    #      SubElement(streams, "Stream", type=str(self.Stream_Types.get(stream.type, "und")), lang=str(getattr(stream, "language", getattr(stream, "language", "und"))))
+    #if streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("audio", "eng")) > 0: collection.append("English Dubbed")
+    #if streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("audio", "jpn")) > 0 and streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("subtitle", "eng")) > 0: collection.append("English Subbed")
 
   ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
   def getImagesFromASS(self, metadata, media, tvdbid, movie, num=0):
