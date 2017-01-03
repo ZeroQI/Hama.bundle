@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
+
+import os, re, time, datetime, string, thread, threading, urllib, copy # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+from lxml import etree                                  # fromstring
+
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
 ANIDB_TITLES                 = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
 ANIDB_TVDB_MAPPING           = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'               # ScudLee mapping file url
+ANIDB_TVDB_MAPPING2          = 'https://raw.githubusercontent.com/Dingmatt/AMSA/master/Plug-in%20Support/Data/com.plexapp.agents.amsa/DataItems/anime-list-corrections.xml'
 ANIDB_TVDB_MAPPING_CUSTOM    = 'anime-list-custom.xml'                                                                            # custom local correction for ScudLee mapping file url
 ANIDB_COLLECTION             = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'             # ScudLee collection mapping file
 ANIDB_HTTP_API_URL           = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='          #
@@ -39,7 +44,6 @@ FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being
   'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                                               # Fr
   'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                              # Roman digits
 
-import os, re, time, datetime, string, thread, threading, urllib, copy # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 AniDB_title_tree, AniDB_collection_tree, AniDB_TVDB_mapping_tree = None, None, None  #ValueError if in Start()
 SERIE_LANGUAGE_PRIORITY   = [ Prefs['SerieLanguage1'  ].encode('utf-8'), Prefs['SerieLanguage2'  ].encode('utf-8'), Prefs['SerieLanguage3'].encode('utf-8') ]  #override default language
 EPISODE_LANGUAGE_PRIORITY = [ Prefs['EpisodeLanguage1'].encode('utf-8'), Prefs['EpisodeLanguage2'].encode('utf-8') ]                                           #override default language
@@ -68,14 +72,16 @@ def Start():
   Log.Info('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
   global AniDB_title_tree, AniDB_TVDB_mapping_tree, AniDB_collection_tree  # only this one to make search after start faster
   AniDB_title_tree        = HamaCommonAgent().xmlElementFromFile(ANIDB_TITLES, os.path.splitext(os.path.basename(ANIDB_TITLES))[0]  , True,  CACHE_1HOUR * 24 * 2)
-  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,            os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
-  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION,              os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
+  AniDB_collection_tree   = HamaCommonAgent().xmlElementFromFile(ANIDB_COLLECTION, os.path.basename(ANIDB_COLLECTION  ), False, CACHE_1HOUR * 24 * 2)
+  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING,  os.path.basename(ANIDB_TVDB_MAPPING), False, CACHE_1HOUR * 24 * 2)
+  scudlee_2               = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
+  AniDB_TVDB_mapping_tree = HamaCommonAgent().xmlElementFromFile(ANIDB_TVDB_MAPPING2, os.path.basename(ANIDB_TVDB_MAPPING2), False, CACHE_1HOUR * 24 * 2)
+  scudlee_1               = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
+  AniDB_TVDB_mapping_tree = etree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so  
   if not AniDB_title_tree:        Log.Critical("Failed to load core file '%s'" % os.path.splitext(os.path.basename(ANIDB_TITLES))[0]); raise Exception("HAMA Fatal Error Hit") #; AniDB_title_tree = XML.ElementFromString("<animetitles></animetitles>")
-
   if not AniDB_TVDB_mapping_tree: Log.Critical("Failed to load core file '%s'" % os.path.basename(ANIDB_TVDB_MAPPING));                raise Exception("HAMA Fatal Error Hit") #; AniDB_TVDB_mapping_tree = XML.ElementFromString("<anime-list></anime-list>")
-
   if not AniDB_collection_tree:   Log.Error   ("Failed to load core file '%s'" % os.path.basename(ANIDB_COLLECTION  ));                AniDB_collection_tree  = XML.ElementFromString("<anime-set-list></anime-set-list>"); 
-  HTTP.CacheTime = CACHE_1HOUR * 24
+  HTTP.CacheTime = CACHE_1HOUR * 24 * 2  
 
 class HamaCommonAgent:
   
@@ -742,10 +748,9 @@ class HamaCommonAgent:
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
       if os.path.exists(scudlee_filename_custom):
         Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
-        with open(scudlee_filename_custom, 'r') as scudlee_file:
-          scudlee_1 = scudlee_file.read()
-        scudlee_2            = HamaCommonAgent().xml.etree.ElementTree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
-        scudlee_mapping_tree = HamaCommonAgent().xml.etree.ElementTree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
+        with open(scudlee_filename_custom, 'r') as file: scudlee_1 = file.read()
+        scudlee_2            = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
+        scudlee_mapping_tree = etree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
         break
       else: Log.Info("No local custom mapping in dir: '%s'" % dir)
       dir = os.path.dirname(dir)
@@ -1005,3 +1010,4 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+  
