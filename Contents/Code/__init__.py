@@ -20,7 +20,7 @@ TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                    
 TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
 TMDB_CONFIG_URL              = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
 TMDB_MOVIE_SEARCH            = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
-TMDB_MOVIE_SEARCH_BY_TMDBID  = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'
+TMDB_MOVIE_SEARCH_BY_ID      = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits,trailers&language=en'
 TMDB_SEARCH_URL_BY_IMDBID    = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
 TMDB_MOVIE_IMAGES_URL        = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
 TMDB_IMAGES_URL              = 'http://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                   #
@@ -228,11 +228,11 @@ class HamaCommonAgent:
       
     elif metadata_id_source in ["tmdb", "tsdb"]:
       tmdbid = metadata_id_number
-      Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-      try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_TMDBID if metadata_id_source.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_TMDBID)% tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
-      except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, e))
+      Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_ID % tmdbid)
+      try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_ID if metadata_id_source.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_TMDBID)% tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
+      except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_ID % tmdbid, e))
       else:
-        Log('Update() - get_json - worked: ' + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
+        Log('Update() - get_json - worked: ' + TMDB_MOVIE_SEARCH_BY_ID % tmdbid)
         if 'vote_average' in tmdb_json and isinstance(tmdb_json['vote_average'], float):  metadata.rating                  = tmdb_json['vote_average']  # if not ep.isdigit() and "." in ep and ep.split(".", 1)[0].isdigit() and ep.split(".")[1].isdigit():  
         if 'runtime'      in tmdb_json and isinstance(tmdb_json['runtime'     ], int):    metadata.duration                = int(tmdb_json['runtime']) * 60 * 1000
         if 'title'        in tmdb_json and tmdb_json['title']:                            metadata.title                   = tmdb_json['title']
@@ -258,24 +258,11 @@ class HamaCommonAgent:
     Log.Info("### End of elif metadata_id_source ###")
     
     ### Set TMDB ID for Movies if Missing ###
-    if movie and not tmdbid:
-      try:                   tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %(imdbid.split(",")[0] if ',' in imdbid else imdbid), cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
-      except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % (imdbid.split(",")[0] if ',' in imdbid else imdbid), e))
-      else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
+    #if movie and not tmdbid:
+    #  try:                   tmdbid = self.get_json(TMDB_SEARCH_URL_BY_IMDBID %(imdbid.split(",")[0] if ',' in imdbid else imdbid), cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id']
+    #  except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % (imdbid.split(",")[0] if ',' in imdbid else imdbid), e))
+    #  else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
         
-    ### Populate Movie Metadata Extras (e.g. Taglines) from TMDB for Movies ###
-    if movie and tmdbid:
-      Log.Info("tmdbid is present, populating extras from TMDB")
-      Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
-      try:                    tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
-      except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, e))
-      if tmdb_json:
-          try:
-            Log.Info("Movie tagline: '{tagline}'.".format(tagline=tmdb_json['tagline']))
-            if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']         
-          except Exception as e: Log.Error("Couldn't fetch tagline from TMDB, Exception: '{exception}'".format(e))
-    
-    ### TVDB ID exists ####
     tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre = "", "", "", "", "", []
     if tvdbid.isdigit():
 
@@ -375,6 +362,26 @@ class HamaCommonAgent:
 
     ### End of if tvdbid.isdigit(): ###
 
+    ### Populate Movie Metadata Extras (e.g. Taglines) from TMDB for Movies ###
+    if movie and (tmdbid or imdbid):
+      Log.Info("tmdbid/imdbid present, populating extras from TMDB - url: " + TMDB_MOVIE_SEARCH_BY_ID % tmdbid if tmdbid else imdbid.split(",")[0])
+      try:                    tmdb_json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH_BY_ID % tmdbid if tmdbid else imdbid.split(",")[0], sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
+      except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_ID % tmdbid if tmdbid else imdbid.split(",")[0], e))
+      if tmdb_json:
+        if 'tagline' in tmdb_json and tmdb_json['tagline']:
+          Log.Info("Movie tagline: '{tagline}'.".format(tagline=tmdb_json['tagline']))
+          try:                    metadata.tagline = tmdb_json['tagline']
+          except Exception as e:  Log.Error("Couldn't fetch tagline from TMDB, Exception: '{exception}'".format(e))
+        if 'trailers' in tmdb_json and tmdb_json['trailers']:
+          if "youtube" in tmdb_json['trailers'] and tmdb_json['trailers']["youtube"]:
+            for trailer in tmdb_json['trailers']["youtube"]:
+              Log.Info("Trailer detected: name: '%s', size: '%s', source: '%s', type: '%s', link: '%s'% (trailer["name"], trailer["size"], trailer["source"], trailer["type"], "https://www.youtube.com/watch?v="+trailer["source"])
+              #metadata.extras.add( TrailerObject(url = "https://www.youtube.com/watch?v="+trailer["source"]), title = trailer["name"], thumb = None) )
+          if "quicktime" in tmdb_json['trailers'] and tmdb_json['trailers']["quicktime"]:
+            for trailer in tmdb_json['trailers']["quicktime"]:
+              Log.Info("Trailer detected: " + str (tmdb_json['trailers']["quicktime"]))
+              #metadata.extras.add( TrailerObject(url = "???"+trailer["source"]), title = trailer["name"], thumb = None) )
+            
     ### TMDB - background, Poster - using imdbid or tmdbid ### The Movie Database is least prefered by the mapping file, only when imdbid missing
     Log.Info("TMDB - background, Poster - imdbid: '%s', tmdbid: '%s'" % (imdbid, tmdbid))
     if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
