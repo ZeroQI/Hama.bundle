@@ -86,6 +86,7 @@ def Start():
 class HamaCommonAgent:
   
   ### Serie search ######################################################################################################################################################
+  #@parallelize @task
   def Search(self, results, media, lang, manual, movie):
     Log.Info("=== Search - Begin - ================================================================================================")
     orig_title = ( media.title if movie else media.show )
@@ -215,15 +216,16 @@ class HamaCommonAgent:
     current_date = int(time.strftime("%Y%m%d"))
     Log.Info("metadata source: '%s', id: '%s', Title: '%s', lang: '%s', (%s)" % (metadata_id_source, metadata_id_number, metadata.title, lang, force) )
     getElementText = lambda el, xp: el.xpath(xp)[0].text if el is not None and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-
+    
     ### AniDB to TVDB mapping file (get tvdbid, mappingList, tmdbid, imdbid, +etc...) ###
-    anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table = "", "", "", "", "", "", "", {}, []
-    tvdbposternumber, tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre = 0, {}, "", "", "", "", None, None, ()
+    anidbid, tvdbid, tmdbid, imdbid, defaulttvdbseason, mapping_studio, poster_id, mappingList, anidbid_table  = "", "", "", "", "", "", "", {}, []
+    tvdb_table, tvdbtitle, tvdbOverview, tvdbNetwork, tvdbFirstAired, tvdbRating, tvdbContentRating, tvdbgenre =  {}, "", "", "", "", None, None, ()
     
     if metadata_id_source_core == "tvdb":  tvdbid = metadata_id_number
     elif metadata_id_source == "anidb":
       anidbid = metadata_id_number
-      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, media, anidbid, error_log)
+      tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id = self.anidbTvdbMapping(metadata, media, movie, anidbid, error_log)
+      
     elif metadata_id_source in ["tmdb", "tsdb"]:
       tmdbid = metadata_id_number
       Log.Info("TMDB - url: " + TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid)
@@ -369,21 +371,22 @@ class HamaCommonAgent:
 
       ### TVDB - Fanart, Poster and Banner ###
       if Prefs['GetTvdbPosters'] or Prefs['GetTvdbFanart' ] or Prefs['GetTvdbBanners']:
-        tvdbposternumber, tvdbseasonposter = self.getImagesFromTVDB(metadata, media, tvdbid, movie, poster_id, force, defaulttvdbseason, 1)
-        if tvdbposternumber == 0:  error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
-        if tvdbseasonposter == 0:  error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
-        if tvdbposternumber * tvdbseasonposter == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
+        self.getImagesFromTVDB(metadata, media, error_log, tvdbid, tvdbtitle, movie, poster_id, force, defaulttvdbseason, 1)
+
     ### End of if tvdbid.isdigit(): ###
 
     ### TMDB - background, Poster - using imdbid or tmdbid ### The Movie Database is least prefered by the mapping file, only when imdbid missing
+    Log.Info("TMDB - background, Poster - imdbid: '%s', tmdbid: '%s'" % (imdbid, tmdbid))
     if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
-      if imdbid.startswith("tt"): [self.getImagesFromTMDB(metadata, imdbid_multiple, 97) for imdbid_multiple in imdbid.split(",")]
-      if tmdbid:                  [self.getImagesFromTMDB(metadata, tmdbid_multiple, 97) for tmdbid_multiple in tmdbid.split(",")]
+      if imdbid.startswith("tt"): [self.getImagesFromTMDB(metadata, id_multiple, 97) for id_multiple in imdbid.split(",")]
+      if tmdbid:                  [self.getImagesFromTMDB(metadata, id_multiple, 97) for id_multiple in tmdbid.split(",")]
     
     ### OMDB - Posters - Using imdbid ###  return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
+    Log.Info("OMDB - background, Poster - imdbid: '%s'" % imdbid)
     if Prefs["GetOmdbPoster"] and imdbid.startswith("tt"):  [self.getImagesFromOMDB(metadata, imdbid_multiple, 98) for imdbid_multiple in imdbid.split(",")]
     
     ### fanart.tv - Background, Poster and Banner - Using imdbid ###
+    Log.Info("tFanartTV - background, Poster - tmdbid: '%s'" % tmdbid)
     if Prefs['GetFanartTVBackground'] or Prefs['GetFanartTVPoster'] or Prefs['GetFanartTVBanner']:
         if movie:
           if tmdbid:  [self.getImagesFromFanartTV(metadata, tmdbid=tmdbid) for tmdbid_multiple in tmdbid.split(",")]
@@ -735,14 +738,20 @@ class HamaCommonAgent:
       Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
       error_log_locked[log] = [False, 0]; Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
     Log.Info('--- Update end -------------------------------------------------------------------------------------------------')
-        
+
+### ScudLee Anime-List ###
   ### Get the tvdbId from the AnimeId #######################################################################################################################
-  def anidbTvdbMapping(self, metadata, media, anidb_id, error_log):
+  def anidbTvdbMapping(self, metadata, media, movie, anidb_id, error_log):
     global AniDB_TVDB_mapping_tree         #if not AniDB_TVDB_mapping_tree: AniDB_TVDB_mapping_tree = self.xmlElementFromFile(ANIDB_TVDB_MAPPING, ANIDB_TVDB_MAPPING, False, CACHE_1HOUR * 24) # Load XML file
     dir, scudlee_mapping_tree, poster_id_array, mappingList = "", AniDB_TVDB_mapping_tree, {}, {}
     Log.Info("Finding media path")
-    try:                   dir = os.path.dirname(media.seasons[:1].episodes[:1].items[0].parts[0].file) # #hasattr(a, 'property'),  "easier to ask for forgiveness than permission" (EAFP) rather than "look before you leap" (LBYL)
-    except AttributeError: dir = os.path.dirname(media.items[0].parts[0].file) #movie
+    
+    if movie: dir = os.path.dirname(media.items[0].parts[0].file)
+    else:      #dir = os.path.dirname(media.seasons[:1].episodes[:1].items[0].parts[0].file) #TypeError: unhashable type #if hasattr(media, 'seasons'):
+      for s in media.seasons:  #get first file path
+        for e in media.seasons[s].episodes:
+          dir = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
+        break
     Log.Info("dir: '%s'" % dir)
     while dir and not dir.endswith("/") and not dir.endswith("\\"):
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
@@ -779,6 +788,7 @@ class HamaCommonAgent:
       error_log['anime-list anidbid missing'].append("anidbid: %s | Title: 'UNKNOWN'" % WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid))
       return "", "", "", "", [], "", [], "0"
     
+### AniBD ###
   ### AniDB collection mapping - complement AniDB movie collection file with related anime AND series sharing the same tvdbid ########################
   def anidbCollectionMapping(self, metadata, anime, anidbid_table=[]):
     global AniDB_collection_tree, SERIE_LANGUAGE_PRIORITY
@@ -800,34 +810,24 @@ class HamaCommonAgent:
     #if streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("audio", "eng")) > 0: collection.append("English Dubbed")
     #if streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("audio", "jpn")) > 0 and streams.xpath("""count(./Stream[@type="%s"][@lang="%s"])""" % ("subtitle", "eng")) > 0: collection.append("English Subbed")
 
-  ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
-  def getImagesFromASS(self, metadata, media, tvdbid, movie, num=0):
-    posternum, seasonposternum = 0, 0
-    if movie: return
-    try:
-      s        = media.seasons.keys()[0]
-      e        = media.seasons[s].episodes.keys()[0]
-      dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
-      dir_name = os.path.basename(dir_path)
-      if    "[tvdb4-" not in dir_name and "tvdb4.id" not in os.listdir(dir_path): Log.Debug("Files are in a season folder (option 1)"); return
-      elif  "tvdb4.mapping" in os.listdir(dir_path):                              Log.Debug("Files are in the series folder and has a mapping file (option 2)"); return
-      else:                                                                       Log.Debug("Files are in the series folder and has no mapping file (option 3)")
-    except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
-    try:                    postersXml = XML.ElementFromURL( ASS_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
-    except Exception as e:  Log.Error("Loading poster XML failed: '%s', Exception: '%s'"% (ASS_POSTERS_URL, e)); return
-    else:                   Log.Info( "Loaded poster XML: '%s'" % ASS_POSTERS_URL)
-    entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
-    if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
-    for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
-      num += 1; seasonposternum += 1
-      season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
-      posterPath = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
-      if movie or season not in media.seasons:  continue
-      self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
-    return posternum, seasonposternum
+  ### Extract the series/movie/Episode title from AniDB ########################################################################################################################
+  def getAniDBTitle(self, titles, languages):
+    if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
+    type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
+    langLevel     = [9  for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+    langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+    for title in titles:                                                                       # Loop through all languages listed in the anime XML
+      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
+      if lang in languages and (type and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text, type_priority [ type ]
+      if type == 'main' and lang in languages and languages.index(lang) < langLevel[languages.index(lang)]:    langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text, languages.index('main')
+      if lang==languages[0] and type in ['main', ""]:  break
+    Log.Info("getAniDBTitle - languages: '%s', langLevel: '%s', langTitles: '%s'" % (str(languages), str(langLevel), str(langTitles)))
+    for title in langTitles:
+      if title:  return title.replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
 
+### TVDB ###
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
-  def getImagesFromTVDB(self, metadata, media, tvdbid, movie, poster_id=1, force=False, defaulttvdbseason_offset="", num=0):
+  def getImagesFromTVDB(self, metadata, media, error_log, tvdbid, tvdbtitle, movie, poster_id=1, force=False, defaulttvdbseason_offset="", num=0):
     posternum, seasonposternum, poster_total = 0, 0, 0
     defaulttvdbseason_offset = int(defaulttvdbseason_offset)-1 if defaulttvdbseason_offset.isdigit() else 0
     try:                    bannersXml = XML.ElementFromURL( TVDB_BANNERS_URL % tvdbid, cacheTime=CACHE_1HOUR * 24) # don't bother with the full zip, all we need is the banners
@@ -856,8 +856,11 @@ class HamaCommonAgent:
         else:                             rank = num
         bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
         self.metadata_download (metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
-    return posternum, seasonposternum
+    if posternum == 0:                    error_log['TVDB posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
+    if seasonposternum == 0:              error_log['TVDB season posters missing'].append("tvdbid: %s | Title: '%s'" % (WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid), tvdbtitle))
+    if posternum * seasonposternum == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
 
+### TMDB ###
   ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
   def  getImagesFromTMDB(self, metadata, id, num=90):
     config_dict, images = self.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2), {}
@@ -885,7 +888,8 @@ class HamaCommonAgent:
         if filename:
           image_url, thumb_url = config_dict['images']['base_url'] + 'original' + filename, config_dict['images']['base_url'] + 'w300'     + filename
           self.metadata_download (images[filename], image_url, rank, "TMDB/%s%s.jpg" % (id, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
-        
+
+### OMDB ###        
   ### Fetch the IMDB poster using OMDB HTTP API ###########################################################################################################
   def getImagesFromOMDB(self, metadata, imdbid, num=99):
     Log.Info("imdbid: '%s', url: '%s', filename: '%s'" % (imdbid, OMDB_HTTP_API_URL + imdbid, "OMDB/%s.jpg" % imdbid))
@@ -894,7 +898,8 @@ class HamaCommonAgent:
     else:
       if OMDB and 'Poster' in OMDB and OMDB['Poster'] not in ("N/A", "", None):  self.metadata_download (metadata.posters, OMDB['Poster'], num, "OMDB/%s.jpg" % imdbid)
       else:                                                                      Log.Info("No poster to download - " + OMDB_HTTP_API_URL + imdbid)
-  
+
+### FanartTV ###  
   ### Fetch extra images from fanart.tv ###################################################################################################################
   def getImagesFromFanartTV(self, metadata, tvdbid=None, tmdbid=None, season=0, num=100):
     Log.Info("Fetching from fanart.tv")
@@ -926,6 +931,33 @@ class HamaCommonAgent:
       if FanartTV and 'movieposter' in FanartTV and Prefs['GetFanartTVPoster']: 
         Log.Debug("fanart.tv has {count} movie posters".format(count=len(FanartTV['movieposter'])))
         for movieposter in FanartTV['movieposter']: self.metadata_download(metadata.posters, movieposter['url'], num, "FanartTV/movie-{filename}.jpg".format(filename=movieposter['id']))
+
+### Common ###
+  ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
+  def getImagesFromASS(self, metadata, media, tvdbid, movie, num=0):
+    posternum, seasonposternum = 0, 0
+    if movie: return
+    try:
+      s        = media.seasons.keys()[0]
+      e        = media.seasons[s].episodes.keys()[0]
+      dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+      dir_name = os.path.basename(dir_path)
+      if    "[tvdb4-" not in dir_name and "tvdb4.id" not in os.listdir(dir_path): Log.Debug("Files are in a season folder (option 1)"); return
+      elif  "tvdb4.mapping" in os.listdir(dir_path):                              Log.Debug("Files are in the series folder and has a mapping file (option 2)"); return
+      else:                                                                       Log.Debug("Files are in the series folder and has no mapping file (option 3)")
+    except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    try:                    postersXml = XML.ElementFromURL( ASS_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
+    except Exception as e:  Log.Error("Loading poster XML failed: '%s', Exception: '%s'"% (ASS_POSTERS_URL, e)); return
+    else:                   Log.Info( "Loaded poster XML: '%s'" % ASS_POSTERS_URL)
+    entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
+    if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
+    for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
+      num += 1; seasonposternum += 1
+      season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
+      posterPath = "seasons/%s-%s-%s" % (tvdbid, season, os.path.basename(posterURL))
+      if movie or season not in media.seasons:  continue
+      self.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
+    return posternum, seasonposternum
 
   #########################################################################################################################################################
   def metadata_download (self, metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
@@ -984,21 +1016,6 @@ class HamaCommonAgent:
       if i in string2:  string2 = string2.replace(i, " ")
     return filter(None, string2.split())
     
-  ### Extract the series/movie/Episode title from AniDB ########################################################################################################################
-  def getAniDBTitle(self, titles, languages):
-    if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
-    type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
-    langLevel     = [9  for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
-    langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
-    for title in titles:                                                                       # Loop through all languages listed in the anime XML
-      type, lang = title.get('type'), title.get('{http://www.w3.org/XML/1998/namespace}lang')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
-      if lang in languages and (type and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text, type_priority [ type ]
-      if type == 'main' and lang in languages and languages.index(lang) < langLevel[languages.index(lang)]:    langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text, languages.index('main')
-      if lang==languages[0] and type in ['main', ""]:  break
-    Log.Info("getAniDBTitle - languages: '%s', langLevel: '%s', langTitles: '%s'" % (str(languages), str(langLevel), str(langTitles)))
-    for title in langTitles:
-      if title:  return title.replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
-    
 ### Agent declaration ###############################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, accepts_from = ('HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
@@ -1010,4 +1027,3 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('HamaMovies', True, False, None, [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
-  
