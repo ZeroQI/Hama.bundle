@@ -328,9 +328,8 @@ class HamaCommonAgent:
             currentAbsNum          = getElementText(episode, 'absolute_number')
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
-            if   currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and (metadata_id_source == "tvdb4" or metadata_id_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1):  numbering = currentAbsNum
-            elif currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and  metadata_id_source == "tvdb3":                                                                                                        numbering = "s" + currentSeasonNum + "e" + currentAbsNum
-            else:                                                                                                                                                                                                    numbering = "s" + currentSeasonNum + "e" + currentEpNum 
+            if currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and (metadata_id_source in ("tvdb3", "tvdb4") or metadata_id_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1):  numbering = currentAbsNum
+            else:                                                                                                                                                                                                             numbering = "s" + currentSeasonNum + "e" + currentEpNum 
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
                                        'Director':    getElementText(episode, 'Director'   ), 'Writer':      getElementText(episode, 'Writer'     ),
@@ -419,8 +418,8 @@ class HamaCommonAgent:
           ep, episode_count = media_episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
           if ep in tvdb_table:
             if 'EpisodeName' in tvdb_table[ep] and tvdb_table [ep] ['EpisodeName']:
-              if metadata.seasons[media_season].episodes[media_episode].title == tvdb_table [ep] ['EpisodeName'] and 0:  continue
-              else:  metadata.seasons[media_season].episodes[media_episode].title = tvdb_table [ep] ['EpisodeName']
+              #if metadata.seasons[media_season].episodes[media_episode].title == tvdb_table [ep] ['EpisodeName'] and 0:  continue
+              metadata.seasons[media_season].episodes[media_episode].title = tvdb_table [ep] ['EpisodeName']
             metadata.seasons[media_season].episodes[media_episode].directors.clear()
             metadata.seasons[media_season].episodes[media_episode].writers.clear()
             if 'Overview'    in tvdb_table[ep] and tvdb_table[ep]['Overview']: 
