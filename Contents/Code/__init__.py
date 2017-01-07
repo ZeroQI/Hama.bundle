@@ -307,16 +307,16 @@ class HamaCommonAgent:
         if not movie and defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"]:
           ep_count, abs_manual_placement_info, number_set = 0, [], False
           for episode in tvdbanime.xpath('Episode'):
-            if episode.xpath('SeasonNumber')[0].text != '0':
+            if episode.xpath('SeasonNumber')[0].text != '0' and episode.xpath('EpisodeNumber')[0].text!= '0':
               ep_count = ep_count + 1
               if not episode.xpath('absolute_number')[0].text:
                 episode.xpath('absolute_number')[0].text, number_set = str(ep_count), True
                 if episode.xpath('EpisodeName')[0].text: episode.xpath('EpisodeName')[0].text = "(Guessed) " + episode.xpath('EpisodeName')[0].text
-                if episode.xpath('Overview')[0].text:    episode.xpath('Overview')[0].text = "(Guessed mapping as TVDB absolute numbering is missing)\n" + episode.xpath('Overview')[0].text
+                if episode.xpath('Overview')[0].text:    episode.xpath('Overview'   )[0].text = "(Guessed mapping as TVDB absolute numbering is missing)\n" + episode.xpath('Overview')[0].text
                 abs_manual_placement_info.append("s%se%s = abs %s" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text, episode.xpath('absolute_number')[0].text))
               elif not number_set:  ep_count = int(episode.xpath('absolute_number')[0].text)
               else:
-                Log.Error("An abs number has been found on ep (s%se%s) after starting to manually place our own abs numbers" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text) )
+                Log.Error("Abs number found on ep (s%se%s) after manually placing our own abs numbers (%d)" % (episode.xpath('SeasonNumber')[0].text, episode.xpath('EpisodeNumber')[0].text, ep_count))
                 abs_manual_placement_worked = False
                 break
           Log.Info("abs_manual_placement_worked: '%s', abs_manual_placement_info: '%s'" % (str(abs_manual_placement_worked), str(abs_manual_placement_info)))
