@@ -98,11 +98,11 @@ class HamaCommonAgent:
     
     ### Check if a guid is specified "Show name [anidb-id]" ###
     global SERIE_LANGUAGE_PRIORITY
-    match = re.search("(?P<show>.*?) ?\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tvdb4|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
+    match = re.search("(?P<show>.*?)\[(?P<source>(anidb|tvdb|tvdb2|tvdb3|tvdb4|tvdb5|tmdb|imdb))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE)
     if match:  ###metadata id provided
       source, guid, show = match.group('source').lower(), match.group('guid'), match.group('show')
-      if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
       Log.Info("source: '%s', id: '%s', show from id: '%s' provided in foldername: '%s'" % (source, guid, show, orig_title) )
+      if source=="anidb":  show, mainTitle = self.getAniDBTitle(AniDB_title_tree.xpath("/animetitles/anime[@aid='%s']/*" % guid), SERIE_LANGUAGE_PRIORITY) #global AniDB_title_tree, SERIE_LANGUAGE_PRIORITY;
       results.Append(MetadataSearchResult(id="%s-%s" % (source, guid), name=show, year=media.year, lang=lang, score=100))
       return
   
@@ -329,6 +329,7 @@ class HamaCommonAgent:
             currentAirDate         = getElementText(episode, 'FirstAired').replace('-','')
             currentAirDate         = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
             if currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and (metadata_id_source in ("tvdb3", "tvdb4") or metadata_id_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1):  numbering = currentAbsNum
+            elif metadata_id_source=="tvdb5":                                                                                                                                                                                 numbering = "s1e" + currentAbsNum
             else:                                                                                                                                                                                                             numbering = "s" + currentSeasonNum + "e" + currentEpNum 
             tvdb_table [numbering] = { 'EpisodeName': getElementText(episode, 'EpisodeName'), 'FirstAired':  getElementText(episode, 'FirstAired' ),
                                        'filename':    getElementText(episode, 'filename'   ), 'Overview':    getElementText(episode, 'Overview'   ), 
