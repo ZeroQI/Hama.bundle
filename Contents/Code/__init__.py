@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, re, time, datetime, string, thread, threading, urllib, copy # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
+import os, re, time, datetime, string, thread, threading, urllib, copy, io # Functions used per module: os (read), re (sub, match), time (sleep), datetim (datetime).
 from lxml import etree                                  # fromstring
 
 ### HTTP Anidb Metadata Agent (HAMA) By ZeroQI (Forked from Atomicstrawberry's v0.4 - AniDB, TVDB, AniDB mod agent for XBMC XML's, and Plex URL and path variable definition ###
@@ -756,9 +756,12 @@ class HamaCommonAgent:
       scudlee_filename_custom = os.path.join(dir, ANIDB_TVDB_MAPPING_CUSTOM)
       if os.path.exists(scudlee_filename_custom):
         Log.Info("Loading local custom mapping - url: '%s'" % scudlee_filename_custom)
-        with open(scudlee_filename_custom, 'r') as file: scudlee_1 = file.read()
-        scudlee_2            = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
-        scudlee_mapping_tree = etree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
+        try:
+          with io.open(os.path.realpath(scudlee_filename_custom), "r") as file:  scudlee_1 = file.read()
+        except Exception as e:  Log.Info("Failed open scudlee_filename_custom, error: '%s'" % e); scudlee_1 = "<anime-list></anime-list>"
+        else:
+          scudlee_2            = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
+          scudlee_mapping_tree = etree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so
         break
       else: Log.Info("No local custom mapping in dir: '%s'" % dir)
       dir = os.path.dirname(dir)
