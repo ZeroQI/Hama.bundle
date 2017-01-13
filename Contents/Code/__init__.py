@@ -827,7 +827,8 @@ class HamaCommonAgent:
     Log.Info("getAniDBTitle - languages: '%s', langLevel: '%s', langTitles: '%s'" % (str(languages), str(langLevel), str(langTitles)))
     for title in langTitles:
       if title:  return title.replace("`", "'").encode("utf-8"), langTitles[languages.index('main')].replace("`", "'").encode("utf-8")
-
+    else:  return '', ''
+    
 ### TVDB ###
   ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
   def getImagesFromTVDB(self, metadata, media, error_log, tvdbid, tvdbtitle, movie, poster_id=1, force=False, defaulttvdbseason_offset="", num=0):
