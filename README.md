@@ -130,6 +130,9 @@ Folders to copy in Plex main folder:
     * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library (optional but do not include it when sendings logs) [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
     Some PMS verions (Windows) do not need require authentication to give access to the library XML file (Windows ?)
 
+Here is how to find the plug-in folder location:
+https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-
+
 Plex main folder location:
 
     * '%LOCALAPPDATA%\Plex Media Server\'                                        # Windows Vista/7/8
