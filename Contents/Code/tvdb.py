@@ -39,8 +39,8 @@ def get_tvdb_metadata(metadata, media, lang, movie, defaulttvdbseason, metadata_
     } 
     ### Absolute mode ###
     tvdb_episode_missing, tvdb_special_missing, special_summary_missing, summary_missing, summary_present, abs_manual_placement_worked = [], [], [], [], [], True
+    ep_count, abs_manual_placement_info, number_set = 0, [], False
     if not movie and defaulttvdbseason != "0" and max(map(int, media.seasons.keys()))==1 or metadata_source in ["tvdb3", "tvdb4"]:
-      ep_count, abs_manual_placement_info, number_set = 0, [], False
       for episode in tvdbanime.xpath('Episode'):
         if episode.xpath('SeasonNumber')[0].text != '0' and episode.xpath('EpisodeNumber')[0].text!= '0':
           ep_count = ep_count + 1
