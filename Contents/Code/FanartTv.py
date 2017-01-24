@@ -7,7 +7,7 @@ def fanarttv_posters(metadata, movie, tmdbid=None, tvdbid=None, season=0, num=10
   FANART_TV_API_KEY    = 'cfa9dc054d221b8d107f8411cd20b13f'
   
   if movie and tmdbid and "," in tmdbid:  #recusive call for each tmdbid to reduce complexity
-    for tmdbid_unique in tmdbid.split(","):  fanarttv_posters(metadata, movie, tmdbid=tmdbid_unique, tvdbid=None, season, num)
+    for tmdbid_unique in tmdbid.split(","):  fanarttv_posters(metadata, movie, tmdbid_unique, None, season, num)
     if tvdbid: tmdbid=None
     else:      return
   
