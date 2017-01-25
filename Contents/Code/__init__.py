@@ -4,14 +4,6 @@ import os, re, time, datetime, string, thread, threading, urllib, copy, io # Fun
 from lxml import etree                                                     # fromstring
 import common, AnimeLists, AniDB, tvdb, tmdb, FanartTv, OMDb               # Hama source splitted modules
 
-### Pre-Defined Start function #########################################################################################################################################
-def Start():
-  Log.Info('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
-  HTTP.CacheTime = CACHE_1HOUR * 24 * 2  
-  msgContainer   = common.ValidatePrefs()
-  if msgContainer.header == 'Error': return
-  common.SetLogging()
-  
 class HamaCommonAgent:
   Log.Info('### HTTP Anidb Metadata Agent (HAMA) Class Started ########################################################################################################')
   
@@ -80,3 +72,12 @@ class HamaMovieAgent(Agent.Movies, HamaCommonAgent):
   accepts_from     = ['com.plexapp.agents.localmedia', 'com.plexapp.agents.none'] # 'com.plexapp.agents.opensubtitles'
   def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
   def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+
+ ### Pre-Defined Start function #########################################################################################################################################
+def Start():
+  Log.Info('### HTTP Anidb Metadata Agent (HAMA) Started ##############################################################################################################')
+  HTTP.CacheTime = CACHE_1HOUR * 24 * 2  
+  msgContainer   = common.ValidatePrefs()
+  if msgContainer.header == 'Error': return
+  common.SetLogging()
+ 
