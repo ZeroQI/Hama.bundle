@@ -7,11 +7,12 @@ MAPPING2         = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Sca
 MAPPING_CUSTOM   = 'anime-list-custom.xml'                                                                              # ScudLee mapping file url local  override
 MAPPING_FEEDBACK = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'                                  # ScudLee mapping file git feedback url
 
-AniDB_collection_tree   = common.xmlElementFromFile(MOVIE_COLLECTION, os.path.basename(MOVIE_COLLECTION), False, CACHE_1HOUR * 24 * 2)
 AniDB_TVDB_mapping_tree = common.xmlElementFromFile(MAPPING,          os.path.basename(MAPPING         ), False, CACHE_1HOUR * 24 * 2); scudlee_2               = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
 AniDB_TVDB_mapping_tree = common.xmlElementFromFile(MAPPING2,         os.path.basename(MAPPING2        ), False, CACHE_1HOUR * 24 * 2); scudlee_1               = etree.tostring( AniDB_TVDB_mapping_tree, encoding="UTF-8", method="xml")
 AniDB_TVDB_mapping_tree = etree.fromstring( scudlee_1[:scudlee_1.rfind("</anime-list>")-1] + scudlee_2[scudlee_2.find("<anime-list>")+len("<anime-list>")+1:] )  #cut both fiels together removing ending and starting tags to do so  
 if not AniDB_TVDB_mapping_tree: Log.Critical("Failed to load core file '%s'" % os.path.basename(MAPPING));            raise Exception("HAMA Fatal Error Hit") #; AniDB_TVDB_mapping_tree = XML.ElementFromString("<anime-list></anime-list>")
+
+AniDB_collection_tree   = common.xmlElementFromFile(MOVIE_COLLECTION, os.path.basename(MOVIE_COLLECTION), False, CACHE_1HOUR * 24 * 2)
 if not AniDB_collection_tree:   Log.Error   ("Failed to load core file '%s'" % os.path.basename(MOVIE_COLLECTION  )); AniDB_collection_tree  = XML.ElementFromString("<anime-set-list></anime-set-list>"); 
 
 ### Get the tvdbId from the AnimeId #######################################################################################################################
@@ -59,8 +60,8 @@ def anidbTvdbMapping(metadata, media, movie, anidb_id, error_log):
       for anime2 in AniDB_collection_tree.iter("anime") if AniDB_collection_tree else []:
         if tvdbid == anime2.get('tvdbid'):  anidbid_table.append( anime2.get("anidbid") ) #collection gathering
       if not tvdbid.isdigit():
-        Log.Warn("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_HTTP_API_URL % (tvdbid, lang)))
-        error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + TVDB_HTTP_API_URL % (tvdbid, lang) + " | Not downloadable so serie deleted from thetvdb")
+        Log.Warn("'anime-list tvdbid missing.htm' log added as tvdb serie deleted: '%s', modify in custom mapping file to circumvent but please submit feedback to ScumLee's mapping file using html log link" % (TVDB_SERIE_URL % (tvdbid, tvdbid)))
+        error_log['anime-list tvdbid missing'].append("anidbid: %s | tvdbid: %s | " % (WEB_LINK % (ANIDB_SERIE_URL % anidbid, anidbid), WEB_LINK % (TVDB_SERIE_URL % tvdbid, tvdbid)) + " | Not downloadable so serie deleted from thetvdb")
       return tvdbid, tmdbid, imdbid, defaulttvdbseason, mappingList, mapping_studio, anidbid_table, poster_id_array [tvdbid] if tvdbid in poster_id_array else {}
   else:
     Log.Error("anidbid '%s' not found in file" % anidb_id)
