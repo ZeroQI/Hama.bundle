@@ -1,10 +1,14 @@
 ### Fanart.TV ###
 
 ### Fetch extra images from fanart.tv ###################################################################################################################
-def fanarttv_posters(metadata, movie, tmdbid=None, tvdbid=None, season=0, num=100):
+def fanarttv_posters(metadata, movie, tmdbid="", tvdbid="", imdbid="", season=0, num=100):
   FANART_TV_TV_URL     = 'http://webservice.fanart.tv/v3/tv/{tvdbid}?api_key={api_key}'
   FANART_TV_MOVIES_URL = 'http://webservice.fanart.tv/v3/movies/{tmdbid}?api_key={api_key}'
   FANART_TV_API_KEY    = 'cfa9dc054d221b8d107f8411cd20b13f'
+  
+  if imdbid and not tmdbid:
+    tmdb.get_tmdbid_per_imdbid(imdbid, tmdbid)
+    if not tmdbid: return
   
   if movie and tmdbid and "," in tmdbid:  #recusive call for each tmdbid to reduce complexity
     for tmdbid_unique in tmdbid.split(","):  fanarttv_posters(metadata, movie, tmdbid_unique, None, season, num)
