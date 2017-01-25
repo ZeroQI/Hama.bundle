@@ -1,8 +1,8 @@
 ### AniBD ###
 import common
 
-ANIDB_SERIE_URL           = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
-ANIDB_TITLES       = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
+ANIDB_SERIE_URL  = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid=%s'                                           # AniDB link to the anime
+ANIDB_TITLES     = 'http://anidb.net/api/anime-titles.xml.gz'                                                         # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
 AniDB_title_tree = common.xmlElementFromFile(ANIDB_TITLES, os.path.basename(ANIDB_TITLES), True,  CACHE_1HOUR * 24 * 2)
 if not AniDB_title_tree:
   Log.Critical("Failed to load core file '%s'" % os.path.splitext(os.path.basename(ANIDB_TITLES))[0]);
