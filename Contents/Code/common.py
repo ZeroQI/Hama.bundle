@@ -4,6 +4,7 @@ error_log_lock_sleep = 10
 RESTRICTED_GENRE     = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
 MOVIE_RATING_MAP     = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
 FILTER_CHARS         = "\\/:*?<>|~-; "
+SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
 WEB_LINK             = "<a href='%s' target='_blank'>%s</a>"
 FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only #############################################################
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
@@ -63,27 +64,27 @@ def get_json(url, cache_time=CACHE_1MONTH):
 
 #########################################################################################################################################################
 def metadata_download (metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
-  if isinstance(url, str):  Log.Info( "before %s" % url);             return MessageContainer ('Success', "DefaultPrefs.json valid")
-  else: Log.Info( "before %d" % url)
-  if url not in metatype:
-    Log.Info( "after");             return MessageContainer ('Success', "DefaultPrefs.json valid")
-    file = None
+  if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
+  else:  #Not in Plex yet
+    file, status = None, ""
     if filename and Data.Exists(filename):  ### if stored locally load it
       try:                    file = Data.Load(filename)
       except Exception as e:  Log.Warn("could not load file '%s' present in cache, Exception: '%s'" % (filename, e))
-    if file == None: ### if not loaded locally download it
+    if file:                  status += ", Found locally"
+    else:                     ### if not loaded locally download it
       try:                    file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content
       except Exception as e:  Log.Error("error downloading, Exception: '%s'" % e); return
-      else:  ### if downloaded, try saving in cache but folders need to exist
+      if file:
+        status += ", Downloaded"
         if filename and not filename.endswith("/"):
           try:                    Data.Save(filename, file)
           except Exception as e:  Log.Error("could not write filename '%s' in Plugin Data Folder, Exception: '%s'" % (filename, e)); return
+          status += "Saved locally"
     if file:
       try:                    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
       except Exception as e:  Log.Error("issue adding picture to plex - url downloaded: '%s', filename: '%s', Exception: '%s'" % (url_thumbnail if url_thumbnail else url, filename, e)) #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) # remove many posters, to avoid
-      else:                   Log.Info( "url: '%s', num: '%d', filename: '%s'" % (url, num, filename))
-  else:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
-
+      else:                   Log.Info( "url: '%s', num: '%d', filename: '%s'%s" % (url, num, filename, status))
+  
 ### Pull down the XML from web and cache it or from local cache for a given anime ID ####################################################################
 def xmlElementFromFile(url, filename="", delay=True, cache=None):
   Log.Info("url: '%s', filename: '%s'" % (url, filename))
@@ -105,7 +106,6 @@ def xmlElementFromFile(url, filename="", delay=True, cache=None):
 
 ### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
 def cleanse_title(title):
-  SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
   cleansed_title = title.replace("`", "'").lower()
   try:    cleansed_title=cleansed_title.encode('utf-8')
   except: pass
