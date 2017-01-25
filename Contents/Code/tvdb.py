@@ -1,12 +1,10 @@
 ### TVDB ###
-TVDB_HTTP_API_URL            = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/%s.xml'                                     # TVDB Serie XML for episodes sumaries for now
-TVDB_BANNERS_URL             = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
-TVDB_SERIE_SEARCH            = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
-TVDB_IMAGES_URL              = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
-TVDB_SERIE_URL               = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
-THEME_URL                    = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
+import common
+TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id=%s'                                                             #
 
 def Search_TVDB(results,  media, lang, manual, movie):
+  TVDB_SERIE_SEARCH = 'http://thetvdb.com/api/GetSeries.php?seriesname='                                                 #
+  
   orig_title = ( media.title if movie else media.show )
   try:                    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), cacheTime=CACHE_1HOUR * 24)
   except Exception as e:  Log.Error("TVDB Loading search XML failed, Exception: '%s'" % e)
@@ -19,6 +17,7 @@ def Search_TVDB(results,  media, lang, manual, movie):
 
 ### TVDB - Load serie XML ###
 def get_tvdb_metadata(metadata, media, lang, movie, defaulttvdbseason, metadata_source, tvdbid, imdbid, error_log):
+  TVDB_HTTP_API_URL = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/%s.xml'                                     # TVDB Serie XML for episodes sumaries for now
   Log.Info("TVDB - tvdbid: '%s', url: '%s'" % (tvdbid, TVDB_HTTP_API_URL % (tvdbid, lang)))
   tvdbtitle, tvdbOverview, tvdbFirstAired, tvdbContentRating, tvdbNetwork, tvdbGenre, tvdbRating = "", "", "", "", "", "", None
   getElementText = lambda el, xp: el.xpath(xp)[0].text if el and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
@@ -100,6 +99,7 @@ def get_tvdb_metadata(metadata, media, lang, movie, defaulttvdbseason, metadata_
 
 ### Update tvdb metadata ###
 def tvdb_update_meta(metadata, media, metadata_source, defaulttvdbseason, tvdb_table):
+  TVDB_IMAGES_URL  = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
   Log.Info("using TVDB numbering mode (seasons)")
   if tvdb_table['SeriesName'   ] and not tvdb_table['SeriesName'   ] == metadata.title:                    metadata.title                   = tvdb_table['SeriesName'   ]
   if tvdb_table['Rating'       ] and not tvdb_table['Rating'       ] == metadata.rating:                   metadata.rating                  = tvdb_table['Rating'       ]
@@ -155,6 +155,7 @@ def tvdb_update_meta(metadata, media, metadata_source, defaulttvdbseason, tvdb_t
 
 ### Plex - Plex Theme song - https://plexapp.zendesk.com/hc/en-us/articles/201178657-Current-TV-Themes ###
 def plex_theme_song(metadata, tvdbid, tvdbtitle, error_log):
+  THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'                                                               # Plex TV Theme url
   if THEME_URL % tvdbid in metadata.themes:  Log.Info("Theme song - already added")
   elif Prefs['GetPlexThemes']:
     common.metadata_download (metadata.themes, THEME_URL % tvdbid, 1, "Plex/%s.mp3" % tvdbid)
@@ -164,6 +165,9 @@ def plex_theme_song(metadata, tvdbid, tvdbtitle, error_log):
 
 ### [banners.xml] Attempt to get the TVDB's image data ###############################################################################################################
 def getImagesFromTVDB(metadata, media, error_log, tvdbid, tvdbtitle, movie, poster_id=1, force=False, defaulttvdbseason="", num=0):
+  TVDB_BANNERS_URL = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
+  TVDB_IMAGES_URL  = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
+
   posternum, seasonposternum, poster_total = 0, 0, 0
   if isinstance(defaulttvdbseason, str):  Log.Info("defaulttvdbseason3: '%s'" % defaulttvdbseason)
   else:                                   Log.Info("defaulttvdbseason3d: '%d'" % defaulttvdbseason)
