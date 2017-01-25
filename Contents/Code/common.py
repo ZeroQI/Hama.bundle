@@ -1,34 +1,16 @@
-### common ###
-#@parallelize @task
-AniDB_title_tree          = None
-AniDB_collection_tree     = None
-AniDB_TVDB_mapping_tree   = None
-error_log_locked          = {}
-error_log_lock_sleep      = 10
-
-#ASS_MAPPING_URL = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'                        #
-ASS_POSTERS_URL  = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
-SPLIT_CHARS      = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
-
-#
-RESTRICTED_GENRE          = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
-MOVIE_RATING_MAP          = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
-FILTER_CHARS              = "\\/:*?<>|~-; "
-WEB_LINK                  = "<a href='%s' target='_blank'>%s</a>"
+### common ### #@parallelize @task
+error_log_locked     = {}
+error_log_lock_sleep = 10
+RESTRICTED_GENRE     = {'X': ["18 restricted", "pornography"], 'TV-MA': ["tv censoring", "borderline porn"]}
+MOVIE_RATING_MAP     = {'TV-Y': 'G', 'TV-Y7': 'G', 'TV-G': 'G', 'TV-PG': 'PG', 'TV-14': 'PG-13', 'TV-MA': 'NC-17', 'X': 'X'}
+FILTER_CHARS         = "\\/:*?<>|~-; "
+WEB_LINK             = "<a href='%s' target='_blank'>%s</a>"
 FILTER_SEARCH_WORDS = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only #############################################################
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
   'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater',  # En Continued
   'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses',                                                                                                               # Fr
   'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                              # Roman digits
 
-import logging
-hama_logger, formatter = logging.getLogger('com.plexapp.agents.hama'), logging.Formatter('%(asctime)-15s - %(name)s (%(thread)x) : %(levelname)s (%(module)s/%(funcName)s:%(lineno)d) - %(message)s')
-#Log("Loggers: %s" % logging.Logger.manager.loggerDict)  #Log("Logger->Handlers: 'com.plexapp.agents.hama': %s" % hama_logger.handlers)
-for handler in hama_logger.handlers:  handler.setFormatter(formatter)
-
-### 
-GetElementText = lambda el, xp: el.xpath(xp)[0].text if el and el.xpath(xp) and el.xpath(xp)[0].text else ""  # helper for getting text from XML element
-    
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
   Log.Info( "ValidatePrefs()")
@@ -40,8 +22,16 @@ def ValidatePrefs(): #     a = sum(getattr(t, name, 0) for name in "xyz")
   except:  Log.Error("DefaultPrefs.json invalid, Value '%s' missing, update it and save." % key);  return MessageContainer ('Error', "Value '%s' missing from 'DefaultPrefs.json'" % key)
   else:    Log.Info( "DefaultPrefs.json is valid, Provided preference values are ok");             return MessageContainer ('Success', "DefaultPrefs.json valid")
 
+### Set logging format ###
+def SetLogging():
+  import logging
+  hama_logger = logging.getLogger('com.plexapp.agents.hama')
+  formatter   = logging.Formatter('%(asctime)-15s - %(name)s (%(thread)x) : %(levelname)s (%(module)s/%(funcName)s:%(lineno)d) - %(message)s')
+  for handler in hama_logger.handlers:  handler.setFormatter(formatter)
+
 ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
 def getImagesFromASS(metadata, media, tvdbid, movie, num=0):
+  TVDB4_POSTERS_URL = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'                        #
   posternum, seasonposternum = 0, 0
   if movie: return
   try:
@@ -53,9 +43,9 @@ def getImagesFromASS(metadata, media, tvdbid, movie, num=0):
     elif  "tvdb4.mapping" in os.listdir(dir_path):                              Log.Debug("Files are in the series folder and has a mapping file (option 2)"); return
     else:                                                                       Log.Debug("Files are in the series folder and has no mapping file (option 3)")
   except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
-  try:                    postersXml = XML.ElementFromURL( ASS_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
-  except Exception as e:  Log.Error("Loading poster XML failed: '%s', Exception: '%s'"% (ASS_POSTERS_URL, e)); return
-  else:                   Log.Info( "Loaded poster XML: '%s'" % ASS_POSTERS_URL)
+  try:                    postersXml = XML.ElementFromURL( TVDB4_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
+  except Exception as e:  Log.Error("Loading poster XML failed: '%s', Exception: '%s'"% (TVDB4_POSTERS_URL, e)); return
+  else:                   Log.Info( "Loaded poster XML: '%s'" % TVDB4_POSTERS_URL)
   entry = postersXml.xpath("/tvdb4entries/posters[@tvdbid='%s']" % tvdbid)
   if not entry: Log.Error("tvdbid '%s' is not found in xml file" % tvdbid); return
   for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
@@ -65,6 +55,11 @@ def getImagesFromASS(metadata, media, tvdbid, movie, num=0):
     if movie or season not in media.seasons:  continue
     common.metadata_download (metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
   return posternum, seasonposternum
+
+### get_json file, TMDB API supports only JSON now ######################################################################################################
+def get_json(url, cache_time=CACHE_1MONTH):
+  try:                    return JSON.ObjectFromURL(url, sleep=2.0, cacheTime=cache_time)
+  except Exception as e:  Log.Error("Error fetching JSON url: '%s', Exception: '%s'" % (url, e))
 
 #########################################################################################################################################################
 def metadata_download (metatype, url, num=99, filename="", url_thumbnail=None):  #if url in metatype:#  Log.Debug("url: '%s', num: '%s', filename: '%s'*" % (url, str(num), filename)) # Log.Debug(str(metatype))   #  return
@@ -89,20 +84,6 @@ def metadata_download (metatype, url, num=99, filename="", url_thumbnail=None): 
       else:                   Log.Info( "url: '%s', num: '%d', filename: '%s'" % (url, num, filename))
   else:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
 
-### get_json file, TMDB API supports only JSON now ######################################################################################################
-def get_json(url, cache_time=CACHE_1MONTH):
-  try:                    return JSON.ObjectFromURL(url, sleep=2.0, cacheTime=cache_time)
-  except Exception as e:  Log.Error("Error fetching JSON url: '%s', Exception: '%s'" % (url, e))
-
-### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
-def cleanse_title(title):
-  cleansed_title = title.replace("`", "'").lower()
-  try:    cleansed_title=cleansed_title.encode('utf-8')
-  except: pass
-  for i in SPLIT_CHARS:
-    if i in cleansed_title:  cleansed_title = cleansed_title.replace(i, " ")
-  return  " ".join(cleansed_title.split()) # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
-
 ### Pull down the XML from web and cache it or from local cache for a given anime ID ####################################################################
 def xmlElementFromFile(url, filename="", delay=True, cache=None):
   Log.Info("url: '%s', filename: '%s'" % (url, filename))
@@ -121,6 +102,16 @@ def xmlElementFromFile(url, filename="", delay=True, cache=None):
     element = XML.ElementFromString(result)
     if str(element).startswith("<Element error at "):  Log.Error("Not an XML file, AniDB banned possibly, result: '%s'" % result)
     else:                                              return element
+
+### Cleanse title of FILTER_CHARS and translate anidb '`' ############################################################################################################
+def cleanse_title(title):
+  SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
+  cleansed_title = title.replace("`", "'").lower()
+  try:    cleansed_title=cleansed_title.encode('utf-8')
+  except: pass
+  for i in SPLIT_CHARS:
+    if i in cleansed_title:  cleansed_title = cleansed_title.replace(i, " ")
+  return  " ".join(cleansed_title.split()) # None in the translate call was giving an error of 'TypeError: expected a character buffer object'. So, we construct a blank translation table instead.
 
 ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, anidbid, tvdbid):
@@ -156,4 +147,3 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     Data.Save(log+".htm", log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array.keys()], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1]) )))
     error_log_locked[log] = [False, 0]
     Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
-    
