@@ -1,6 +1,9 @@
 ### TheMovieDB - Does movies but also series, for which i call it tsdb in metadata id ##
+import common
+
 TMDB_CONFIG_URL = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
-config_dict     = common.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2) #not to download every time the json file
+config_dict     = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="", url=TMDB_CONFIG_URL, cache= CACHE_1HOUR * 24 *14)
+#config_dict     = common.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2) #not to download every time the json file
 
 def get_tmdbid_per_imdbid(imdbid, tmdbid):
   TMDB_SEARCH_URL_BY_IMDBID = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
@@ -12,18 +15,18 @@ def get_tmdbid_per_imdbid(imdbid, tmdbid):
     else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
 
 ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
-def  tmdb_posters(metadata, imdbid="", tmdbid="", num=90):
+def  tmdb_posters(metadata, imdbid="", tmdbid="", num=97):
   TMDB_MOVIE_IMAGES_URL     = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
   TMDB_SERIE_IMAGES_URL     = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
   images                    = {}
-  
+  if not Prefs["GetTmdbFanart"] and not Prefs["GetTmdbPoster"]: return
   Log.Info("TMDB - background, Poster - imdbid: '%s', tmdbid: '%s'" % (imdbid, tmdbid))
   if "," in imdbid:  #recusive call for each tmdbid to reduce complexity
     for imdbid_unique in imdbid.split(","):  tmdb_posters(metadata, imdbid_unique, "", num)
-    if tmdbid: imdbid=""
-    else:      return
-  
-  #if not Prefs["GetTmdbFanart"] and not Prefs["GetTmdbPoster"]: return
+    imdbid=""
+  if "," in tmdbid:  #recusive call for each tmdbid to reduce complexity
+    for tmdbid_unique in tmdbid.split(","):  tmdb_posters(metadata, tmdbid_unique, "", num)
+    tmdbid=""
   if imdbid.startswith("tt"):
     for type in ['movie_results', 'tv_results']:
       if tmdb_json is not None and type in tmdb_json:
@@ -89,12 +92,6 @@ def Search_TMDB(results, media, lang, manual, movie):
         results.Append(MetadataSearchResult(id="%s-%s" % ("tmdb", movie['id']), name="%s [%s-%s]" % (movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
         if '' in movie and movie['adult']!="null":  Log.Info("adult: '%s'" % movie['adult'])
         # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
-
-  ### TMDB - background, Poster - using imdbid or tmdbid ### The Movie Database is least prefered by the mapping file, only when imdbid missing
-  Log.Info("TMDB - background, Poster - imdbid: '%s', tmdbid: '%s'" % (imdbid, tmdbid))
-  if Prefs["GetTmdbFanart"] or Prefs["GetTmdbPoster"]:
-    if imdbid.startswith("tt"): [getImagesFromTMDB(metadata, id_multiple, 97) for id_multiple in imdbid.split(",")]
-    if tmdbid:                  [getImagesFromTMDB(metadata, id_multiple, 97) for id_multiple in tmdbid.split(",")]
 
 ### ###
 def Update_TMDB(metadata, media, lang, force, movie):
