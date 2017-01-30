@@ -1,4 +1,5 @@
 ### AniBD ###
+import os, re, string, datetime #re.search, re.match, re.sub, re.IGNORECASE
 import common
 from common import getElementText
 
@@ -45,7 +46,7 @@ def Search_AniDB(results, media, lang, manual, movie):
       aid = element.get('aid')
     elif element.get('type') in ('main', 'official', 'syn', 'short'):
       title = element.text
-      if   title.lower()              == orig_title.lower() and 100                            > score:  parent_element, show , score = element.getparent(), title,         100; Log.Info("AniDB - temp score: '%3d', id: '%6s', title: '%s' " % (100, aid, show))  #match = [element.getparent(), show,         100]
+      if   title.lower()              == orig_title.lower() and 100                            > score:  parent_element, show , score = element.getparent(), title,         100; #Log.Info("AniDB - temp score: '%3d', id: '%6s', title: '%s' " % (100, aid, show))  #match = [element.getparent(), show,         100]
       elif common.cleanse_title (title) == cleansedTitle    and  99                            > score:  parent_element, show , score = element.getparent(), cleansedTitle,  99  #match = [element.getparent(), cleansedTitle, 99]
       elif orig_title in title                              and 100*len(orig_title)/len(title) > score:  parent_element, show , score = element.getparent(), orig_title,    100*len(orig_title)/len(title)  #match = [element.getparent(), show, 100*len(orig_title)/len(element.text)]
       else:  continue #no match 
@@ -54,7 +55,8 @@ def Search_AniDB(results, media, lang, manual, movie):
     langTitle, mainTitle = getAniDBTitle(parent_element)
     results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (langTitle, "anidb", aid), year=media.year, lang=lang, score=score))
   if len(results)>=1:  return  #results.Sort('score', descending=True)
-    ### AniDB local keyword search ###
+  
+  ### AniDB local keyword search ###
   matchedTitles, matchedWords, words  = [ ], { }, [ ]
   log_string     = "Keyword search - Matching '%s' with: " % orig_title
   temp = orig_title
@@ -212,8 +214,7 @@ def anidb_update_meta(metadata, media, movie, metadata_id, tvdbid, tvdb_table, m
   
   Log.Info("AniDB mode - AniDB Serie XML: " + ANIDB_HTTP_API_URL + metadata_id + ", " + "AniDB/"+metadata_id+".xml" )
   try:                   anime = common.LoadFile(filename=metadata_id+".xml", relativeDirectory="AniDB", url=ANIDB_HTTP_API_URL + metadata_id, cache=CACHE_1HOUR * 24 * 7)  # AniDB title database loaded once every 2 weeks
-  #try:                    anime = common.xmlElementFromFile ( ANIDB_HTTP_API_URL + metadata_id, "AniDB/"+metadata_id+".xml", True, CACHE_1HOUR * 24).xpath('/anime')[0]          # Put AniDB serie xml (cached if able) into 'anime'
-  except Exception as e:  anime = None; Log.Error("AniDB Serie XML: Exception raised, probably no return, Exception: '%s'" % e)
+  except Exception as e: anime = None; Log.Error("AniDB Serie XML: Exception raised, probably no return, Exception: '%s'" % e)
   if not anime:
     if not metadata.title and 'SeriesName' in tvdb_table and tvdb_table ['SeriesName'] :
       try:                    metadata.title = tvdb_table ['SeriesName']
@@ -267,7 +268,6 @@ def anidb_update_meta(metadata, media, movie, metadata_id, tvdbid, tvdb_table, m
     plex_role = AniDB_creator_data    (metadata, anime, movie, mappingList['mapping_studio'])
     AniDB_summary         (metadata, anime, error_log, tvdb_table ['Overview'] if 'Overview' in tvdb_table and tvdb_table['Overview'] else "", metadata_id)
             
-    ###AniDB_posters(Anime,)
     ### AniDB Posters ###
     Log.Info("AniDB Poster, url: '%s'" % (ANIDB_PIC_BASE_URL + getElementText(anime, 'picture')))
     if getElementText(anime, 'picture') == "": error_log['AniDB posters missing'].append("anidbid: %s" % (common.WEB_LINK % (ANIDB_SERIE_URL % metadata_id, metadata_id) + " | Title: '%s'" % metadata.title))
