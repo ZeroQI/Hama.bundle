@@ -19,7 +19,7 @@ def MergeAniDBTVDBMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
     if count == len(correction_nodes):  break                                                        #   if deleted all exit loop
   for key in correction_nodes:  AniDBTVDBMap.append( correction_nodes[key] )                         # add all new anidb mapping
 
-def GetAniDBTVDBMap ():  # anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from MAPPING url with MAPPING_FIX corrections ###
+def GetAniDBTVDBMap():  # anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from MAPPING url with MAPPING_FIX corrections ###
   MAPPING          = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                 # ScudLee mapping file url
   MAPPING_FIX      = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml' # ScudLee mapping file url online override
   
@@ -69,7 +69,7 @@ def anidbTvdbMapping(metadata, media, movie, anidb_id, error_log, AniDBTVDBMap):
       if TVDBid in mappingList['poster_id_array']:  mappingList['poster_id_array'][TVDBid].append(AniDBid)
       else:                                         mappingList['poster_id_array'][TVDBid] = [AniDBid]
     if AniDBid == anidb_id: #manage all formats latter
-      name = anime.xpath("name")[0].text 
+      mappingList['name'] = anime.xpath("name")[0].text
       if TVDBid.isdigit():
         imdbid = anime.get('tmdbid',            "")
         tmdbid = anime.get('imdbid',            "")
@@ -77,16 +77,16 @@ def anidbTvdbMapping(metadata, media, movie, anidb_id, error_log, AniDBTVDBMap):
           for season in anime.iter('mapping') if anime else []:
             if anime.get("offset"):  mappingList[ 's'+season.get("tvdbseason")] = [anime.get("start"), anime.get("end"), anime.get("offset")]
             for string2 in filter(None, season.text.split(';')):  mappingList [ 's' + season.get("anidbseason") + 'e' + string2.split('-')[0] ] = 's' + season.get("tvdbseason") + 'e' + string2.split('-')[1]
-        except Exception as e:  Log.Error("mappingList creation exception, Exception: '%s'" % e)
-      elif TVDBid in ("", "unknown"):  error_log ['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (anidb_id, name, TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (anidb_id, name), string.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
+        except Exception as e:  Log.Error("anidbTvdbMapping() - mappingList creation exception, Exception: '%s'" % e)
+      elif TVDBid in ("", "unknown"):  error_log ['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (anidb_id, mappingList['name'], TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (anidb_id, mappingList['name']), string.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
       try:    mappingList['mapping_studio'] = anime.xpath("supplemental-info/studio")[0].text
       except: mappingList['mapping_studio'] = ""
-      Log.Info("anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['mapping_studio'], mappingList['defaulttvdbseason'], name) )
+      Log.Info("anidbTvdbMapping() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', studio: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['mapping_studio'], mappingList['defaulttvdbseason'], mappingList['name']) )
       if not TVDBid.isdigit():
-        Log.Warn("'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
-        error_log['anime-list TVDBid missing'].append("AniDBid: '%s' | TVDBid: '%s' | Serie not in thetvdb" % (common.WEB_LINK % (common.ANIDB_SERIE_URL % AniDBid, AniDBid), TVDBid))
+        Log.Warn("'anidbTvdbMapping() - anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
+        error_log['anidbTvdbMapping() - anime-list TVDBid missing'].append("AniDBid: '%s' | TVDBid: '%s' | Serie not in thetvdb" % (common.WEB_LINK % (common.ANIDB_SERIE_URL % AniDBid, AniDBid), TVDBid))
       return TVDBid, tmdbid, imdbid, mappingList
   else:
-    Log.Error("AniDBid '%s' not found in file" % anidb_id)
+    Log.Error("anidbTvdbMapping() - AniDBid '%s' not found in file" % anidb_id)
     error_log['anime-list AniDBid missing'].append("AniDBid: %s | Title: 'UNKNOWN'" % common.WEB_LINK % (common.ANIDB_SERIE_URL % AniDBid, AniDBid))
     return "", "", "", {}
