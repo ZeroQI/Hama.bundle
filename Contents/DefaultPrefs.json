@@ -1,67 +1,85 @@
 [
   {
-    "id"      : "GetTvdbFanart",
-    "label"   : "Fetch Fanart images from TVDB",
+    "id"      : "GetSingleOne",
+    "label"   : "Fetch a single metadata",
     "type"    : "bool",
     "default" : "true"
   },
   {
-    "id"      : "GetTvdbPosters",
-    "label"   : "Fetch Poster images from TVDB",
+    "id"      : "Posters",
+    "label"   : "Fetch Poster images",
     "type"    : "bool",
     "default" : "true"
   },
   {
-    "id"      : "GetTvdbBanners",
-    "label"   : "Fetch series Banner images from TVDB",
+    "id"      : "Seasons",
+    "label"   : "Fetch Season Poster images",
+    "type"    : "bool",
+    "default" : "true"
+  },
+  {
+    "id"      : "Fanarts",
+    "label"   : "Fetch Fanart images",
+    "type"    : "bool",
+    "default" : "true"
+  },
+  {
+    "id"      : "Banners",
+    "label"   : "Fetch Banner images",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetAnidbPoster",
-    "label"   : "Fetch AniDB's poster",
+    "id"      : "Thumbs",
+    "label"   : "Fetch Episode images",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetTmdbFanart",
-    "label"   : "Fetch Fanart images from The Movie Database",
+    "id"      : "Themes",
+    "label"   : "Download Theme songs from PLEX",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetTmdbPoster",
-    "label"   : "Fetch poster images from The Movie Database",
+    "id"      : "TheTVDB",
+    "label"   : "Fetch images from TheTVDB.com",
+    "type"    : "bool",
+    "default" : "true"
+  },
+ {
+    "id"      : "AniDB",
+    "label"   : "Fetch images from AniDB.net",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetOmdbPoster",
-    "label"   : "Fetch poster images from The Open Movie Database",
+    "id"      : "TheMovieDB",
+    "label"   : "Fetch images from TheMovieDB.org",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetFanartTVBackground",
-    "label"   : "Fetch background images from fanart.tv",
+    "id"      : "OMDb",
+    "label"   : "Fetch poster images from omdbapi.com",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetFanartTVPoster",
-    "label"   : "Fetch poster images from fanart.tv",
+    "id"      : "FanartTV",
+    "label"   : "Fetch  images from fanart.tv",
     "type"    : "bool",
     "default" : "false"
   },
   {
-    "id"      : "GetFanartTVBanner",
-    "label"   : "Fetch banner images from fanart.tv",
+    "id"      : "MyAnimeList",
+    "label"   : "Fetch images from MyAnimeList.net",
     "type"    : "bool",
-    "default" : "false"
+    "default" : "true"
   },
   {
-    "id"      : "GetASSPosters",
-    "label"   : "Fetch poster images from ASS tvdb4 urls",
+    "id"      : "tvdb4",
+    "label"   : "Fetch ASS scanner tvdb4 mode season poster",
     "type"    : "bool",
     "default" : "false"
   },
@@ -74,12 +92,6 @@
   {
     "id"      : "adult",
     "label"   : "Include adult content",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetPlexThemes",
-    "label"   : "Download Themes from PLEX",
     "type"    : "bool",
     "default" : "false"
   },
