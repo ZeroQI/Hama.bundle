@@ -1,25 +1,19 @@
-### TheMovieDB - Does movies but also series, for which i call it tsdb in metadata id ##
+### TheMovieDB ###  Does movies but also series, for which i call it tsdb in metadata id ##
+
+### Imports ###
 import common
+from common import GetPosters, GetSeasons, GetFanarts, GetBanners, GetElementText
 
-TMDB_CONFIG_URL = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
-config_dict     = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="", url=TMDB_CONFIG_URL, cache= CACHE_1HOUR * 24 *14)
-#config_dict     = common.get_json(TMDB_CONFIG_URL, cache_time=CACHE_1WEEK * 2) #not to download every time the json file
-
-def get_tmdbid_per_imdbid(imdbid, tmdbid):
-  TMDB_SEARCH_URL_BY_IMDBID = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
-  if imdbid and not tmdbid:
-    Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
-    Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
-    try:                   tmdbid = str(common.get_json(TMDB_SEARCH_URL_BY_IMDBID %(imdbid.split(",")[0] if ',' in imdbid else imdbid), cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id'])
-    except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % (imdbid.split(",")[0] if ',' in imdbid else imdbid), e))
-    else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
+### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 
 ### Download TMDB poster and background through IMDB or TMDB ID ##########################################################################################
-def  tmdb_posters(metadata, imdbid="", tmdbid="", num=97):
+def GetImages (metadata, imdbid="", tmdbid="", num=97):
+  if not GetPosters("TMDb")or not GetFanarts: return
   TMDB_MOVIE_IMAGES_URL     = 'https://api.tmdb.org/3/movie/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                  #
   TMDB_SERIE_IMAGES_URL     = 'https://api.tmdb.org/3/tv/%s/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'                     #
+  TMDB_CONFIG_URL           = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
+  config_dict               = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="", url=TMDB_CONFIG_URL, cache= CACHE_1HOUR * 24 *14)
   images                    = {}
-  if not Prefs["GetTmdbFanart"] and not Prefs["GetTmdbPoster"]: return
   Log.Info("TMDB - background, Poster - imdbid: '%s', tmdbid: '%s'" % (imdbid, tmdbid))
   if "," in imdbid:  #recusive call for each tmdbid to reduce complexity
     for imdbid_unique in imdbid.split(","):  tmdb_posters(metadata, imdbid_unique, "", num)
@@ -27,29 +21,30 @@ def  tmdb_posters(metadata, imdbid="", tmdbid="", num=97):
   if "," in tmdbid:  #recusive call for each tmdbid to reduce complexity
     for tmdbid_unique in tmdbid.split(","):  tmdb_posters(metadata, tmdbid_unique, "", num)
     tmdbid=""
+  try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_TMDBID if metadata_id_source.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_TMDBID)% tmdbid , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
+  except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_MOVIE_SEARCH_BY_TMDBID % tmdbid, e))
   if imdbid.startswith("tt"):
     for type in ['movie_results', 'tv_results']:
       if tmdb_json is not None and type in tmdb_json:
         for index, poster in enumerate(tmdb_json[type]):
-          if Prefs["GetTmdbPoster"] and 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
-          if Prefs["GetTmdbFanart"] and 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
+          if GetPosters("TheMovieDB") and 'poster_path'   in tmdb_json[type][index] and tmdb_json[type][index]['poster_path'  ] not in (None, "", "null"):  images[ tmdb_json[type][index]['poster_path'  ]] = metadata.posters
+          if GetFanarts("TheMovieDB") and 'backdrop_path' in tmdb_json[type][index] and tmdb_json[type][index]['backdrop_path'] not in (None, "", "null"):  images[ tmdb_json[type][index]['backdrop_path']] = metadata.art
   if tmdbid:
     Log.Info("using TMDBID  url: '%s'" % ((TMDB_SERIE_IMAGES_URL if metadata.id.startswith("tsdb") else TMDB_MOVIE_IMAGES_URL) % tmdbid))
     tmdb_json = common.get_json(url=(TMDB_SERIE_IMAGES_URL if metadata.id.startswith("tsdb") else TMDB_MOVIE_IMAGES_URL) % tmdbid, cache_time=CACHE_1WEEK * 2)
     if tmdb_json and 'posters'    in tmdb_json and len(tmdb_json['posters'  ]):
       for index, poster in enumerate(tmdb_json['posters']):
-        if Prefs["GetTmdbPoster"] and 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
+        if GetPosters("TheMovieDB") and 'file_path' in tmdb_json['posters'][index] and tmdb_json['posters'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['posters'  ][index]['file_path']] = metadata.posters
     if tmdb_json is not None and 'backdrops' in tmdb_json and len(tmdb_json['backdrops']):
       for index, poster in enumerate(tmdb_json['backdrops']):
-        if Prefs["GetTmdbFanart"] and 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
+        if GetFanarts("TheMovieDB") and 'file_path' in tmdb_json['backdrops'][index] and tmdb_json['backdrops'][index]['file_path'] not in (None, "", "null"):  images[ tmdb_json['backdrops'][index]['file_path']] = metadata.art
   if len(images):
     for filename in images.keys():
       if filename:
         image_url, thumb_url = config_dict['images']['base_url'] + 'original' + filename, config_dict['images']['base_url'] + 'w300'     + filename
-        common.metadata_download (images[filename], image_url, num, "TMDB/%s%s.jpg" % (tmdbid, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
+        common.metadata_download(metadata, images[filename], image_url, num, "TMDB/%s%s.jpg" % (tmdbid, "" if images[filename]==metadata.posters else "-art"), thumb_url) 
 
-### ###
-def TMDB_Tagline_Trailers(metadata, movie, lang, tmdbid, imdbid):
+def Tagline_Trailers(metadata, movie, lang, tmdbid, imdbid):  #
   TMDB_MOVIE_SEARCH_BY_ID = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=trailers&language=en'
   TMDB_SERIE_SEARCH_BY_ID = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=trailers&language=en'      #
   try:                    tmdb_json = JSON.ObjectFromURL((TMDB_MOVIE_SEARCH_BY_ID if metadata.id.startswith("tmdb") else TMDB_SERIE_SEARCH_BY_ID)% tmdbid if tmdbid else imdbid.split(",")[0] , sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1DAY)
@@ -75,7 +70,7 @@ def TMDB_Tagline_Trailers(metadata, movie, lang, tmdbid, imdbid):
     if 'belongs_to_collection' in tmdb_json and tmdb_json['belongs_to_collection']:  Log.Info("Collection detected: " + str (tmdb_json['belongs_to_collection']))
 
 ### TMDB movie search ###
-def Search_TMDB(results, media, lang, manual, movie):
+def Search (results, media, lang, manual, movie):
   TMDB_MOVIE_SEARCH = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query=%s&year=&language=en&include_adult=true'
 
   orig_title = ( media.title if movie else media.show )
@@ -94,7 +89,7 @@ def Search_TMDB(results, media, lang, manual, movie):
         # genre_ids, original_language, id, original_language, original_title, overview, release_date, poster_path, popularity, video, vote_average, vote_count, adult, backdrop_path
 
 ### ###
-def Update_TMDB(metadata, media, lang, force, movie):
+def Update (metadata, media, lang, force, movie):
   TMDB_MOVIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits,trailers&language=en'  #Work with imdbid
   TMDB_SERIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/tv/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits&language=en'      #
   metadata_id_source, tmdbid  = metadata.id.split('-', 1)
@@ -125,3 +120,18 @@ def Update_TMDB(metadata, media, lang, force, movie):
     if movie:
       if tmdb_json['tagline']:  metadata.tagline = tmdb_json['tagline']
       metadata.year = metadata.originally_available_at.year    
+
+#def get_tmdbid_per_imdbid(imdbid, tmdbid):
+#  TMDB_SEARCH_URL_BY_IMDBID = 'http://api.tmdb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id'   #
+#  if imdbid and not tmdbid:
+#    Log.Info("TMDB ID missing. Attempting to lookup using IMDB ID {imdbid}".format(imdbid=imdbid))
+#    Log.Info("using IMDBID url: " + TMDB_SEARCH_URL_BY_IMDBID % imdbid)
+#    try:                   tmdbid = str(common.get_json(TMDB_SEARCH_URL_BY_IMDBID %(imdbid.split(",")[0] if ',' in imdbid else imdbid), cache_time=CACHE_1WEEK * 2)['movie_results'][0]['id'])
+#    except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %(TMDB_SEARCH_URL_BY_IMDBID % (imdbid.split(",")[0] if ',' in imdbid else imdbid), e))
+#    else:                  Log.Info ("TMDB ID found for IMBD ID {imdbid}. tmdbid: '{tmdbid}'".format(imdbid=(imdbid.split(",")[0] if ',' in imdbid else imdbid), tmdbid=tmdbid))
+  #if maxi<50:  TMDb.Search(results, media, lang, manual, movie)
+  #elif source.startswith("tmdb"):  tmdbid = id
+  #elif source.startswith("tsdb"):  tsdbid = id
+  #elif source.startswith("tmdb" ):                                                                      tmdb.Update_TMDB          (metadata, media, lang, force, movie)
+  #elif source.startswith("tsdb" ):                                                                      tmdb.Update_TMDB          (metadata, media, lang, force, movie)
+  
