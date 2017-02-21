@@ -36,7 +36,7 @@
     "default" : "false"
   },
   {
-    "id"      : "Themes",
+    "id"      : "Plex",
     "label"   : "Download Theme songs from PLEX",
     "type"    : "bool",
     "default" : "false"
@@ -76,6 +76,12 @@
     "label"   : "Fetch images from MyAnimeList.net",
     "type"    : "bool",
     "default" : "true"
+  },
+  {
+    "id"      : "Simkl",
+    "label"   : "FEnable Simkl to Sync Watched items and get IDs for matching",
+    "type"    : "bool",
+    "default" : "false"
   },
   {
     "id"      : "tvdb4",
