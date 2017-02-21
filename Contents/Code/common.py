@@ -1,4 +1,5 @@
 ### common ### #@parallelize @task
+# https://www.python.org/dev/peps/pep-0008/
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import os              #path.abspath, join, dirname
@@ -6,6 +7,8 @@ import inspect
 import datetime
 import time           # datetime.datetime.now() 
 import re
+import urllib
+from string import maketrans
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 metadata_count       = {'posters':0, 'fanarts':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
@@ -33,70 +36,95 @@ Movie_to_Serie_US_rating = {"G"    : "TV-Y7", # All Ages
                             "Rx"   : "NC-17" # Hentai (extreme sexual content/nudity) #metadata.content_rating = options[ metadata.content_rating.split(" - ",1)[0] ]
                            }
 
-MoviePriority   = { 'title'                   : ('AniDB', 'TheTVDB'),
-                    'summary'                 : ('AniDB', 'TheTVDB'),
-                    'original_title'          : ('AniDB', 'TheTVDB'),
-                    'originally_available_at' : ('AniDB', 'TheTVDB'),
-                    'rating'                  : ('AniDB', 'TheTVDB'),
-                    'art'                     : ('AniDB', 'TheTVDB'),
-                    'posters'                 : ('AniDB', 'TheTVDB'),
-                    'themes'                  : ('AniDB', 'TheTVDB'),
-                    'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+MoviePriority   = { 'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
                     'tags'                    : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'collections'             : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'collections'             : ('AnimeLists', 'AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'duration'                : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),  # milliseconds
+                    'rating'                  : ('AniDB', 'TheTVDB'),  #float 0-10
+                    'rating_image'            : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'audience_rating'         : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'audience_rating_image'   : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'original_title'          : ('AniDB', 'TheTVDB'),
+                    'title'                   : ('AniDB', 'TheTVDB'),
+                    #'title_sort'                   : ('AniDB', 'TheTVDB'),
                     'year'                    : ('AniDB', 'TheTVDB'),
+                    'originally_available_at' : ('AniDB', 'TheTVDB'),
+                    'studio'                  : ('AnimeLists', 'AniDB', 'TheMovieDB'),
+                    'tagline'                 : ('TheMovieDB',),
+                    'summary'                 : ('AniDB', 'TheTVDB'),
+                    'trivia'                  : (),
+                    'quotes'                  : (),
                     'content_rating'          : ('AniDB', 'TheTVDB'),
-                    'trivia'                  : ('AniDB', 'TheTVDB'),
-                    'quotes'                  : ('AniDB', 'TheTVDB'),
-                    'tagline'                 : ('TheMovieDB',)
-                  } #16
-SeriePriority   = { 'title'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'), 
-                    'original_title'          : ('AniDB', ),
+                    'content_rating_age'      : (),
+                    'producers'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'directors'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'writers'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'countries'               : (),
+                    'posters'                 : ('TheTVDB', 'FanartTV', 'TheMovieDB', 'OMDb', 'AniDB'),
+                    'art'                     : ('TheTVDB', 'FanartTV', 'TheMovieDB'),
+                    'themes'                  : ()
+                    } #16
+SeriePriority   = { 'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'tags'                    : (),
+                    'collections'             : ('AnimeLists', 'AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'duration'                : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'rating'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'rating_image'            : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'audience_rating'         : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'audience_rating_image'   : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
+                    'title'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'), 
                     'summary'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
                     'originally_available_at' : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'rating'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'studio'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'tagline'                 : (),
-                    'countries'               : ('AniDB', 'TheTVDB'),
-                    'duration'                : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'roles'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    #'producers'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    #'directors'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    #'writers'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
                     'content_rating'          : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'collections'             : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'art'                     : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV'),
-                    'posters'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'studio'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
+                    'countries'               : (),
+                    'posters'                 : ('TheTVDB', 'FanartTV', 'MyAnimeList', 'TheMovieDB', 'OMDb', 'AniDB'),
                     'banners'                 : ('TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV'),
-                    'themes'                  : ('Plex',),
-                  } #15
+                    'art'                     : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV'),
+                    'themes'                  : ('Plex',  'TVTunes'),
+                    'tagline'                 : (),                                                                    # in gui, not in Framework guide 2.1.1
+                    'roles'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),  # Not in Framework guide 2.1.1
+                    'original_title'          : ('AniDB', ),                                                           # in gui, not in Framework guide 2.1.1
+                  }
 SeasonPriority  = { 'summary'                 : ('TheTVDB',),
                     'posters'                 : ('TheTVDB',),
                     'banners'                 : ('TheTVDB',),
-                  } #5
-EpisodePriority = { 'absolute_index'          : ('TheTVDB',),
-                    'title'                   : ('AniDB', 'TheTVDB'),
+                    'art'                     : (),        # in gui, not in Framework guide 2.1.1
+                    #'thumb'                   : (),
+                  }
+EpisodePriority = { 'title'                   : ('AniDB', 'TheTVDB'),
                     'summary'                 : ('TheTVDB',),
                     'originally_available_at' : ('TheTVDB',),
                     'rating'                  : ('TheTVDB',),
+                    'writers'                 : ('TheTVDB', 'AniDB'),
+                    'directors'               : ('TheTVDB', 'AniDB'),
+                    'producers'               : ('TheTVDB', 'AniDB'),
+                    'guest_stars'             : (),
+                    'rating'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'), #
+                    #'absolute_number'         : ('TheTVDB',), #
                     'thumbs'                  : ('TheTVDB',),
-                    'writers'                 : ('TheTVDB',),
-                    'directors'               : ('TheTVDB',),
-                    'producers'               : ('TheTVDB',)
-                  } #9
+                    'duration'                : ('TheTVDB',)
+                  }
 
 Log.Info("1 - " + inspect.stack()[0][1])
 Log.Info("2 - " + inspect.getfile(inspect.currentframe()))
   
 ### Code reduction one-liners that get imported specifically ###
-def GetElementText(el, xp):  return el.xpath(xp)[0].text if el and el.xpath(xp) and el.xpath(xp)[0].text else ""   ### Get attribute from xml tag - from common import GetElementText to use without 'common.' pre-pended ###
-def GetPosters (source=""):  return Prefs['Posters'] and not (Prefs['GetSingleOne'] and metadata_count['posters']) and (source=="" or source and Prefs[source])
-def GetSeasons (source=""):  return Prefs['Seasons'] and not (Prefs['GetSingleOne'] and metadata_count['seasons']) and (source=="" or source and Prefs[source])
-def GetFanarts (source=""):  return Prefs['Fanarts'] and not (Prefs['GetSingleOne'] and metadata_count['fanarts']) and (source=="" or source and Prefs[source])
-def GetBanners (source=""):  return Prefs['Banners'] and not (Prefs['GetSingleOne'] and metadata_count['banners']) and (source=="" or source and Prefs[source])
+def GetElementText  (el, xp                         ):  return el.xpath(xp)[0].text if el and el.xpath(xp) and el.xpath(xp)[0].text else ""   ### Get attribute from xml tag - from common import GetElementText to use without 'common.' pre-pended ###
+def GetPosters      (source=""                      ):  return Prefs['Posters'] and not (Prefs['GetSingleOne'] and metadata_count['posters']) and (source=="" or source and Prefs[source])
+def GetSeasons      (source=""                      ):  return Prefs['Seasons'] and not (Prefs['GetSingleOne'] and metadata_count['seasons']) and (source=="" or source and Prefs[source])
+def GetFanarts      (source=""                      ):  return Prefs['Fanarts'] and not (Prefs['GetSingleOne'] and metadata_count['fanarts']) and (source=="" or source and Prefs[source])
+def GetBanners      (source=""                      ):  return Prefs['Banners'] and not (Prefs['GetSingleOne'] and metadata_count['banners']) and (source=="" or source and Prefs[source])
+def natural_sort_key(s, ns_re=re.compile('([0-9]+)')):  return [int(text) if text.isdigit() else text.lower() for text in re.split(ns_re, s)] ### Turn a string into a list of string and number chunks  "z23a" -> ["z", 23, "a"] - files.sort(key=natural_sort_key) ###############################
 #def GetKey     (obj, key ):  return obj[key] if key in obj else None   ### Get attribute from xml tag - from common import GetElementText to use without 'common.' pre-pended ###
-     
+def GetServerCode   (url                            ):  return urllib.urlopen(url).getcode()
+
+#def dict_field_count(d                              ):  return (0 if not isinstance(d, dict) else len(d) + sum(dict_field_count(v) for v in d.itervalues()) )
+def len_dict_fields(d):
+  n = 0
+  for e in d:  n = n + (len_dict_fields(d[e]) if type(d[e]) is dict  else 1)
+  return n
+
 ### Save file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems creating folder(s) ###
 def Logging():
   import logging
@@ -121,22 +149,22 @@ def LoadFile(filename="", relativeDirectory="", url="", cache= CACHE_1HOUR * 24 
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
     file_time = os.stat(fullpathFilename).st_mtime
-    if file_time+cache < time.time():  too_old = True;  Log.Debug("LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
-    else:          file = Data.Load(relativeFilename);  Log.Debug("LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
-  else:  Log.Debug("LoadFile() - Filename: '{file}', Directory: 'path' does not exists in cache".format(file=filename, path=relativeDirectory))
+    if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
+    else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
+  else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}' does not exists in cache".format(file=filename, path=relativeDirectory))
   if not file:
     netLock.acquire()
     if url.startswith(ANIDB_HTTP_API_URL):
-      if AniDB_WaitUntil > datetime.datetime.now():  Log("LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
+      if AniDB_WaitUntil > datetime.datetime.now():  Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
       while AniDB_WaitUntil > datetime.datetime.now():  time.sleep(1)
       AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=3)
     try:                    file = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=20, cacheTime=cache))                                     # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except Exception as e:  file = None; Log.Warn("LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    except Exception as e:  file = None; Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     finally:                netLock.release()
     if file:
       Log.Debug("LoadFile() - url: '{url} loaded".format(url=url))
       if len(file)>1024:  SaveFile(filename, file, relativeDirectory)
-      elif str(file).startswith("<Element error at "):  Log.Error("Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
+      elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif too_old:                                     file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
   try:     file, converted = XML.ElementFromString(file), True
   except:  pass
@@ -148,18 +176,19 @@ def LoadFile(filename="", relativeDirectory="", url="", cache= CACHE_1HOUR * 24 
   return file
 
 #########################################################################################################################################################
-def metadata_download(metadata, metatype, url, num=99, filename="", url_thumbnail=None):
+def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
   def GetMetadata(metatype): 
     if metatype==metadata.posters:             return "posters", GetPosters()
     if metatype==metadata.art:                 return "fanarts", GetFanarts()
     if metatype==metadata.banners:             return "banners", GetBanners()
-    if metatype==metadata.themes:              return "themes",  Prefs['Themes']
+    if metatype==metadata.themes:              return "themes",  Prefs['Plex']
     if filename.startswith("TVDB/episodes/"):  return "thumbs",  Prefs['Thumbs']
     return "seasons", GetSeasons() #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
   string, test = GetMetadata(metatype)
   global metadata_count
+  Log.Info("".ljust(157, '-'))
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
-  elif not test:       Log.Info("url: '%s', num: '%d', filename: '%s' Not in Plex but threshold exceded" % (url, num, filename))
+  elif not test:       Log.Info("url: '%s', num: '%d', filename: '%s' Not in Plex but threshold exceded or thumbs/themes agent setting not selected" % (url, num, filename))
   else:
     file, status = None, ""
     if filename and Data.Exists(filename):  file = Data.Load(filename); status += ", Found locally"
@@ -197,6 +226,7 @@ def CleanTitle(title):
 ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
   #Log.Debug("error_log: '%s'" % str(error_log))
+  Log.Info("".ljust(157, '-'))
   global error_log_locked, error_log_lock_sleep
   log_line_separator = "<br />\r\n"
   for key in error_log.keys():
@@ -204,7 +234,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
   for log in error_log:
     num_of_sleep_sec = 0
     while error_log_locked[log][0]:
-      Log.Warn("'%s' lock exists. Sleeping 1sec for lock to disappear." % log)
+      Log.Warn("common.write_logs() - '%s' lock exists. Sleeping 1sec for lock to disappear." % log)
       num_of_sleep_sec += 1
       if num_of_sleep_sec > error_log_lock_sleep: break
       time.sleep(1)
@@ -215,7 +245,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if Data.Exists(log+".htm"):
       for line in Data.Load(log+".htm").split(log_line_separator):
         if "|" in line: error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
-    if error_log[log]:  Log.Debug("write_logs() - '{log:<{width}}': {content}".format(log=log, width=max(map(len, error_log.keys())), content=str(error_log[log])))
+    if error_log[log]:  Log.Debug("common.write_logs() - '{log:<{width}}': {content}".format(log=log, width=max(map(len, error_log.keys())), content=str(error_log[log])))
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip()
@@ -232,161 +262,129 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     #Log.Debug("Unlocked '%s' %s" % (log, error_log_locked[log]))
 
 ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
-def getImagesFromASS(metadata, media, TVDBid, movie, num=0):
-  TVDB4_POSTERS_URL = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
-  posternum, seasonposternum = 0, 0
-  if movie: return
+def GetMetadata(metadata, media, TVDBid, movie, num=0):
+  TVDB4_POSTERS_URL          = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
+  if movie or not metadata.id.startswith("tvdb4"): return {}
   try:
-    s        = media.seasons.keys()[0]
-    e        = media.seasons[s].episodes.keys()[0]
-    dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+    dir_path = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)  #s        = media.seasons.keys()[0] # e        = media.seasons[s].episodes.keys()[0] # dir_path = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
     dir_name = os.path.basename(dir_path)
     if    "[tvdb4-" not in dir_name and "tvdb4.id" not in os.listdir(dir_path): Log.Debug("Files are in a season folder (option 1)"); return
     elif  "tvdb4.mapping" in os.listdir(dir_path):                              Log.Debug("Files are in the series folder and has a mapping file (option 2)"); return
     else:                                                                       Log.Debug("Files are in the series folder and has no mapping file (option 3)")
   except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
-  try:                    postersXml = XML.ElementFromURL( TVDB4_POSTERS_URL, cacheTime=CACHE_1HOUR * 24)
-  except Exception as e:  Log.Error("Loading poster XML failed: '%s', Exception: '%s'"% (TVDB4_POSTERS_URL, e)); return
-  else:                   Log.Info( "Loaded poster XML: '%s'" % TVDB4_POSTERS_URL)
-  entry = postersXml.xpath("/tvdb4entries/posters[@TVDBid='%s']" % TVDBid)
-  if not entry: Log.Error("TVDBid '%s' is not found in xml file" % TVDBid); return
-  for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
-    num += 1; seasonposternum += 1
-    season, posterURL = line.strip().split("|",1); season = str(int(season)) #str(int(x)) remove leading 0 from number string
-    posterPath = "seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(posterURL))
-    if movie or season not in media.seasons:  continue
-    common.metadata_download(metadata, metadata.seasons[season].posters, posterURL, num, "TVDB/"+posterPath)
-  return posternum, seasonposternum
+  
+  TVDB4_dict = {}
+  TVDB4_xml=common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 7)  # AniDB title database loaded once every 2 weeks
+  if TVDB4_xml:
+    entry = postersXml.xpath("/tvdb4entries/posters[@TVDBid='%s']" % TVDBid)
+    if entry: 
+      seasonposternum = 0
+      for line in filter(None, entry[0].text.strip().replace("\r","\n").split("\n")):
+        season, posterURL = line.strip().split("|",1)
+        season, seasonposternum = season.lstrip("0"), seasonposternum+1
+        if season in media.seasons:  common.metadata_download(metadata, metadata.seasons[season].posters, posterURL, seasonposternum, "TVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(posterURL)))
+    else: Log.Error("TVDBid '%s' is not found in xml file" % TVDBid)
+  return TVDB4_dict
 
-### Turn a string into a list of string and number chunks  "z23a" -> ["z", 23, "a"] - files.sort(key=natural_sort_key) ###############################
-def natural_sort_key(s, ns_re=re.compile('([0-9]+)')):  return [int(text) if text.isdigit() else text.lower() for text in re.split(ns_re, s)]
-
-def UpdateMeta_field(metadata, MetaSources, meta_source, meta_field):
-  meta_new       = MetaSources[meta_source][meta_field]
+### Update meta field ###
+def UpdateMetaField(metadata_root, metadata, meta_root, Priority_dict, meta_field, meta_source, movie):
+  
+  if meta_field not in meta_root:  Log.Info("meta field: '%s' not in meta_root" % meta_field);  return
   meta_old       = getattr( metadata, meta_field, None)
-  meta_old_short = meta_old[:80]+'..' if isinstance(meta_old, basestring) and len(meta_old)> 80 else meta_old
-  meta_new_short = meta_new[:60]+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
-  if meta_new == meta_old:  
-    Log.Info("[ ] {field:<{width}}  Format: {format:<22}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, width=max(map(len, SeriePriority.keys())), source=meta_source, format=type(meta_new), value=meta_new_short))
+  meta_new       = meta_root[meta_field]
+  meta_new_short = (meta_new[:80]).replace("\n", " ")+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
+  
+  ### Prepare data for comparison ###
+  meta_old_value = meta_old
+  if isinstance(meta_new, list):
+    if meta_field == 'roles':  meta_old_value=[ {'role': role_obj.role,     'name': role_obj.name,     'photo': role_obj.photo    } for role_obj  in meta_old if role_obj.role]
+    else:                      meta_old_value = [x for x in meta_old]
+  try:
+    if meta_field == 'originally_available_at' and isinstance(meta_new, basestring):  meta_new = Datetime.ParseDate(meta_new).date()
+    if meta_field == 'rating'                  and isinstance(meta_new, basestring):  meta_new = float(meta_new) if "." in meta_new else None
+    #if meta_field == 'absolute_number'         and isinstance(meta_new, basestring):  meta_new = int(meta_new) if meta_new.isdigit() else meta_new
+  except Exception as e:  Log.Info("[!] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: {value}  Exception: {error}".format(field=meta_field, source=meta_source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short, error=e))
+  
+  ### Update ONLY IF REQUIRED ###
+  if meta_new == meta_old_value or isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old):
+    Log.Info("[=] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, len="({:>2})".format(len(meta_root[meta_field])) if isinstance(meta_root[meta_field], (list, dict)) else "", source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
   else:
-    Log.Info("[X] {field:<{width}}  Format: {format:<22}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, width=max(map(len, SeriePriority.keys())), source=meta_source, format=type(meta_new), value=meta_new_short))
-    
+    Log.Info("[{rank}] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, len="({:>2})".format(len(meta_root[meta_field])) if isinstance(meta_root[meta_field], (list, dict)) else "", source=meta_source, rank=Priority_dict[meta_field].index(meta_source)+1, format=type(meta_new).__name__, value=meta_new_short))
     if isinstance(meta_new, list):  #meta_field in ('genres', 'collections', 'tags', 'roles'):
+      if meta_old:          meta_old.clear()
       if meta_field == 'roles':
-        meta_role = meta_old.new()
-        for role_dict in meta_new:
-          for field in role_dict:  setattr(meta_role, field, role_dict[field])  #role, actor, name. photo
-      else:  #Lists: Tags, etc...
-        if  meta_old:  meta_old.clear()
-        for item in meta_new:  meta_old.add(item)
-    
+        for item in meta_new:
+          meta_role = meta_old.new()
+          for field in item:  setattr(meta_role, field, item[field])  #role, actor, name. photo
+      else:
+        meta_old = meta_new #meta_old.add(item)  #Lists: Tags, etc...
+        Log.Info("meta_old: '%s'" % str(meta_old))
+          
     elif isinstance(meta_new, dict):
-      if meta_field in ['posters', 'art', 'themes']:  # Can't access MapObject, so have to write these out
+      if meta_field in ['posters', 'art', 'themes', 'thumbs']:  # Can't access MapObject, so have to write these out
         for url in meta_new:
-          if isinstance(meta_new[url], tuple):
-            if not url in meta_old:  metadata_download(metadata, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])  #Log.Info("[X] ['posters', 'art', 'themes'] tuple: '%s'" % str(meta_new[url]))
-            else: meta_old[url] = meta_new[url]
-      else:  # Dict update
-        for key in meta_new:  meta_old[key] = meta_new [key]  # for k,v in dict_value.iteritems()
-    
-    elif meta_field is 'originally_available_at':
-      try:     meta_old.setcontent(Datetime.ParseDate(meta_new).date())
-      except:  pass #continue
-    
-    elif meta_field in ('seasons', 'episodes'):
-      Log.Info("meta_field is seasons/episodes: '%s', recursive load" % meta_field)
-      #for item in meta_new:  UpdateMeta(meta_old[item], MetaSourceSeasons[item], MetaSourceEpisodes)
-    else:  meta_old = meta_new
+          if not url in meta_old and isinstance(meta_new[url], tuple):
+            metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
+    else:
+      if meta_field == 'rating' and isinstance(meta_new, float):  metadata.rating=meta_new
+      else:
+        try:     meta_old = meta_new
+        except:  Log.Info("[!] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, len="({:>2})".format(len(meta_root[meta_field])) if isinstance(meta_root[meta_field], (list, dict)) else "", source=meta_source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short))
+    #Log.Info("[=] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, len="({:>2})".format(len(meta_root[meta_field])) if isinstance(meta_root[meta_field], (list, dict)) else "", source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
     
 ### Update all metadata from a list of Dict according to set priorities ##############################################################################
 def UpdateMeta(metadata, MetaSources, movie):
-  
+  # [=] already at the right value for that source   # [x] Xst/nd/th source had the field   # [?] Tests, unsure
+  # [#] no source for that field                     # [!] Error assigning
   Log.Info("".ljust(157, '-'))
   Log.Info("Plex.UpdateMeta() - Metadata Sources with fields")
-  for source in MetaSources:  Log.Info("- {source:<20} ({nb:>2}) [{fields}]".format(source=source, nb=len(MetaSources[source]), fields =' | '.join('{:<22} '.format(field) for field in MetaSources[source].keys())))
+  for source in MetaSources:
+    if MetaSources[source]:  Log.Info("- {source:<11}      : {fields}".format(source=source, fields =' | '.join('{:<23} ({:>3})'.format(field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for field in MetaSources[source])))
+    if 'seasons' in MetaSources[source]:
+      season_fields, episode_fields, ep_nb, ep_invalid = {}, {}, 0, 0
+      for season in MetaSources[source]['seasons']:
+        for field in MetaSources[source]['seasons'][season]:
+          if field in SeasonPriority:  season_fields[field] = (season_fields[field] + 1) if field in season_fields else 1
+        for episode in MetaSources[source]['seasons'][season]['episodes'] if 'episodes' in MetaSources[source]['seasons'][season] else []:
+          for field in MetaSources[source]['seasons'][season]['episodes'][episode]:
+            if field in EpisodePriority:  episode_fields[field] = (episode_fields[field] + 1) if field in episode_fields else 1
+            else:                         Log.Info("Field Unrecognised: '%s'" % field); ep_invalid+=1
+          ep_nb+=1
+      if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields =' | '.join('{:<23} ({:>3})'.format(field,  season_fields[field]) for field in  season_fields)))
+      if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields =' | '.join('{:<23} ({:>3})'.format(field, episode_fields[field]) for field in episode_fields)))
   Log.Info("".ljust(157, '-'))
+  
   Log.Info("Plex.UpdateMeta() - Metadata Fields")
   for meta_field in SeriePriority:
+    meta_old       = getattr( metadata, meta_field, None)
     for meta_source in SeriePriority[meta_field]:  # Loop through the metadata source (ordered immutable) tuple ("AniDB", "TheTVDB", ...)
       if meta_source in MetaSources and meta_field in MetaSources[meta_source] and MetaSources[meta_source][meta_field]:
-        meta_new       = MetaSources[meta_source][meta_field]
-        meta_old       = getattr( metadata, meta_field, None)
-        meta_old_short = meta_old[:80]+'..' if isinstance(meta_old, basestring) and len(meta_old)> 80 else meta_old
-        meta_new_short = meta_new[:80]+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
-        if meta_new == meta_old:  
-          Log.Info("[ ] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-        else:
-          Log.Info("[X] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-          
-          if isinstance(meta_new, list):  #meta_field in ('genres', 'collections', 'tags', 'roles'):
-            if meta_field == 'roles':
-              meta_role = meta_old.new()
-              for role_dict in meta_new:
-                for field in role_dict:  setattr(meta_role, field, role_dict[field])  #role, actor, name. photo
-            else:  #Lists: Tags, etc...
-              if  meta_old:  meta_old.clear()
-              for item in meta_new:  meta_old.add(item)
-          
-          elif isinstance(meta_new, dict):
-            if meta_field in ['posters', 'art', 'themes']:  # Can't access MapObject, so have to write these out
-              for url in meta_new:
-                if isinstance(meta_new[url], tuple):
-                  if not url in meta_old:  metadata_download(metadata, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])  #Log.Info("[X] ['posters', 'art', 'themes'] tuple: '%s'" % str(meta_new[url]))
-                else: meta_old[url] = meta_new[url]
-            else:  # Dict update
-              for key in meta_new:  meta_old[key] = meta_new [key]  # for k,v in dict_value.iteritems()
-          
-          elif meta_field is 'originally_available_at':
-            try:     meta_old.setcontent(Datetime.ParseDate(meta_new).date())
-            except:  continue
-          
-          else:  meta_old = meta_new
-        break
-  
-  if movie:  pass
-  else:
-  
-    ### test meta ###
-    if not 'seasons' in MetaSources['TheTVDB']:   MetaSources['TheTVDB']['seasons'] = {}
-    if "1" in MetaSources['TheTVDB']['seasons']:  MetaSources['TheTVDB']['seasons']["1"]['summary'] = "TheTVDB s1 summary test 1"
-    else:                                         MetaSources['TheTVDB']['seasons']["1"] = {'summary': "TheTVDB s1 summary test 1"}
+        UpdateMetaField(metadata, metadata, MetaSources[meta_source], Moviepriority if movie else SeriePriority, meta_field, meta_source, movie)
+        if meta_field not in ['posters', 'art', 'banners', 'themes', 'thumbs']:  break
     
+  if not movie:
     ### Seasons ###
-    #Log.Info("Plex.UpdateMeta() - Metadata Season Fields")
     for season in sorted(metadata.seasons, key=natural_sort_key):  # For each season
+      if not season:  continue  #empty key
       Log.Info("metadata.seasons[%2s]." % (season))
       for meta_field in SeasonPriority:                 # Get a field
-        for meta_source in SeriePriority[meta_field]:  # Loop through the metadata source (ordered immutable) tuple ("AniDB", "TheTVDB", ...)
+        meta_old       = getattr( metadata, meta_field, None)
+        for meta_source in SeasonPriority[meta_field]:  # Loop through the metadata source (ordered immutable) tuple ("AniDB", "TheTVDB", ...)
           if meta_source in MetaSources and 'seasons' in MetaSources[meta_source] and season in MetaSources[meta_source]['seasons'] and meta_field in MetaSources[meta_source]['seasons'][season] and MetaSources[meta_source]['seasons'][season][meta_field]:
-            meta_old       = getattr( metadata.seasons[season], meta_field, None)
-            meta_old_short = meta_old[:80]+'..' if isinstance(meta_old, basestring) and len(meta_old)> 80 else meta_old
-            meta_new       = MetaSources[meta_source]['seasons'][season][meta_field]
-            meta_new_short = meta_new[:80]+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
-            if meta_new == meta_old:  
-              Log.Info("[O] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-            else:
-              Log.Info("[X] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-            break
-        #else:
-        #  Log.Info(    "[ ] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=str(SeasonPriority[meta_field]), format=type(meta_old).__name__, value=meta_old_short))
+            UpdateMetaField(metadata, metadata.seasons[season], MetaSources[meta_source]['seasons'][season], SeasonPriority, meta_field, meta_source, movie)
+            if meta_field not in ['posters', 'art', 'banners', 'themes', 'thumbs']:  break
+        #else:  Log.Info("[#] {field:<23}  Type: {format:<20}".format(field=meta_field, format=type(meta_old).__name__))
           
       ### Episodes ###
       for episode in sorted(metadata.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[%2s].episodes[%3s]." % (season, episode))
         for meta_field in EpisodePriority:                 # Get a field
+          meta_old       = getattr( metadata, meta_field, None)
           for meta_source in EpisodePriority[meta_field]:
-            if meta_source in MetaSources and 'seasons' in MetaSources[meta_source] and season in MetaSources[meta_source]['seasons'] and episode in MetaSources[meta_source]['seasons'][season] and meta_field in MetaSources[meta_source]['seasons'][season][episode] and MetaSources[meta_source]['seasons'][season][episode][meta_field]:
-              meta_old       = getattr( metadata.seasons[season].episodes[episode], meta_field, None)
-              meta_old_short = meta_old[:80]+'..' if isinstance(meta_old, basestring) and len(meta_old)> 80 else meta_old
-              meta_new       = MetaSources[meta_source]['seasons'][season][episode][meta_field]
-              meta_new_short = meta_new[:80]+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
-              if meta_new == meta_old:
-                Log.Info("[O] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-              else:
-                Log.Info("[X] {field:<23}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=meta_field, source=meta_source, format=type(meta_new).__name__, value=meta_new_short))
-              break  
-         # else:
-         #   Log.Info(    "[ ] {field:<23}  Type: {format:<20}".format(field=meta_field, format=type(meta_old).__name__))
-          
-    ### Closing ###
+            if meta_source in MetaSources and 'seasons' in MetaSources[meta_source] and season in MetaSources[meta_source]['seasons'] and \
+            'episodes' in MetaSources[meta_source]['seasons'][season] and episode in MetaSources[meta_source]['seasons'][season]['episodes'] and \
+            meta_field in MetaSources[meta_source]['seasons'][season]['episodes'][episode] and MetaSources[meta_source]['seasons'][season]['episodes'][episode][meta_field]:
+              UpdateMetaField(metadata, metadata.seasons[season].episodes[episode], MetaSources[meta_source]['seasons'][season]['episodes'][episode], EpisodePriority, meta_field, meta_source, movie)
+              if meta_field not in ['posters', 'art', 'banners', 'themes', 'thumbs']:  break
+          #else:  Log.Info("[#] {field:<23}  Type: {format:<20}".format(field=meta_field, format=type(meta_old).__name__))
     Log.Info("".ljust(157, '-'))
