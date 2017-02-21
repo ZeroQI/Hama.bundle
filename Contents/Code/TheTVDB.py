@@ -1,4 +1,5 @@
 ### TheTVDB.com ###
+# http://thetvdb.com/api/A27AD9BE0DA63333/series/103291/all/en.xml
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
@@ -28,7 +29,7 @@ def Search (results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Se
   return maxi
   
 ### ###
-def GetImages (metadata, media, error_log, TVDBid, TheTVDB_dict, movie, poster_id=1, force=False, defaulttvdbseason="", num=0):  # [banners.xml] Attempt to get the TVDB's image data
+def GetImages (metadata, TheTVDB_dict, media, error_log, TVDBid, TheTVDB_dict, movie, poster_id=1, force=False, defaulttvdbseason="", num=0):  # [banners.xml] Attempt to get the TVDB's image data
   TVDB_BANNERS_URL = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/banners.xml'                                    # TVDB Serie pictures xml: fanarts, posters, banners
   TVDB_IMAGES_URL  = 'http://thetvdb.com/banners/'                                                                      # TVDB picture directory
 
@@ -52,44 +53,49 @@ def GetImages (metadata, media, error_log, TVDBid, TheTVDB_dict, movie, poster_i
     if GetPosters('TheTVDB')    and                  ( bannerType == 'poster' or bannerType2 == 'season' and not movie ) or \
        GetFanarts('TheTVDB')    and                    bannerType == 'fanart' or \
        GetBanners('TheTVDB')    and not movie and    ( bannerType == 'series' or bannerType2 == 'seasonwide'):
-      metatype = (metadata.art                     if bannerType == 'fanart' else \
-                  metadata.posters                 if bannerType == 'poster' else \
-                  metadata.banners                 if bannerType == 'series' or bannerType2=='seasonwide' else \
-                  metadata.seasons[season].posters if bannerType == 'season' and bannerType2=='season' else None)
+      metatype, metaname = ((metadata.art,                     "art"    ) if bannerType == 'fanart' else \
+                            (metadata.posters,                 "posters") if bannerType == 'poster' else \
+                            (metadata.banners,                 "banners") if bannerType == 'series' or bannerType2=='seasonwide' else \
+                            (metadata.seasons[season].posters, "seasons") if bannerType == 'season' and bannerType2=='season' else None)
       if metatype == metadata.posters:  rank = 1 if poster_id and poster_total and posternum == divmod(poster_id, poster_total)[1] + 1 else posternum+1
       else:                             rank = num
       bannerThumbUrl = TVDB_IMAGES_URL + (banner.xpath('ThumbnailPath')[0].text if bannerType=='fanart' else bannerPath)
-      common.metadata_download(metadata, metatype, TVDB_IMAGES_URL + bannerPath, rank, "TVDB/"+bannerPath, bannerThumbUrl)
+      
+      if bannerType == 'season' and bannerType2=='season':
+        if not 'seasons'  in TheTVDB_dict:                     TheTVDB_dict['seasons']                    = {}
+        if not  season    in TheTVDB_dict['seasons']:          TheTVDB_dict['seasons'][season]            = {}
+        if not 'posters'  in TheTVDB_dict['seasons'][season]:  TheTVDB_dict['seasons'][season]['posters'] = {}
+        TheTVDB_dict['seasons'][season]['posters'][TVDB_IMAGES_URL + bannerPath] = ("TVDB/"+bannerPath, rank, None)
+      else:
+        if not metaname in TheTVDB_dict: TheTVDB_dict[metaname] = {}
+        TheTVDB_dict[metaname][TVDB_IMAGES_URL + bannerPath] = ("TVDB/"+bannerPath, rank, None)
+        
   if posternum == 0:                    error_log['TVDB posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (TVDB_SERIE_URL % TVDBid, TVDBid), TheTVDB_dict['title']))
   if seasonposternum == 0:              error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (TVDB_SERIE_URL % TVDBid, TVDBid), TheTVDB_dict['title']))
   if posternum * seasonposternum == 0:  Log.Warn("TVDB - No poster, check logs in ../../Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TVDB posters missing.htm to update Metadata Source")
 
-  ### Episode previews ###
-  for season in media.seasons:
-    for episode in media.seasons[season].episodes:
-      ep = episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or (metadata.id.startswith("tvdb3") or metadata.id.startswith("tvdb4")) and season != "0" else "s%se%s" % (season, episode)
-      if ep in TheTVDB_dict and 'filename' in TheTVDB_dict[ep] and TheTVDB_dict[ep]['filename']:  common.metadata_download(metadata, metadata.seasons[season].episodes[episode].thumbs, TVDB_IMAGES_URL + TheTVDB_dict[ep]['filename'], 1, "TVDB/episodes/"+ os.path.basename(TheTVDB_dict[ep]['filename']))
-
 ### TVDB - Load serie XML ###
-def GetMetadata(metadata, media, movie, lang, metadata_source, TVDBid, imdbid, defaulttvdbseason, error_log, current_date):
+def GetMetadata(metadata, media, movie, error_log, lang, metadata_source, TVDBid, IMDbid, defaulttvdbseason):
   TVDB_HTTP_API_URL = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/%s/all/%s.xml'                                     # TVDB Serie XML for episodes sumaries for now
-  Log.Info("TVDB - TVDBid: '%s', url: '%s'" % (TVDBid, TVDB_HTTP_API_URL % (TVDBid, lang)))
-  
+  Log.Info("".ljust(157, '-'))
+  Log.Info("TheTVDB.GetMetadata() - TVDBid: '%s', url: '%s'" % (TVDBid, TVDB_HTTP_API_URL % (TVDBid, lang)))
+  IMDbid_serie=""
   TheTVDB_xml=common.LoadFile(filename=TVDBid+".xml", relativeDirectory="TVDB", url=TVDB_HTTP_API_URL % (TVDBid, lang), cache= CACHE_1HOUR * 24 * 7)  # AniDB title database loaded once every 2 weeks
   if TheTVDB_xml:
     TheTVDB_xml = TheTVDB_xml.xpath('/Data')[0]
-    if not imdbid and GetElementText(TheTVDB_xml, 'Series/IMDB_ID'):
-      imdbid = GetElementText(TheTVDB_xml, 'Series/IMDB_ID')
-      Log.Warn("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % imdbid)
     TheTVDB_dict = { 'title'                  : GetElementText(TheTVDB_xml, 'Series/SeriesName'),
                      'summary'                : GetElementText(TheTVDB_xml, 'Series/Overview'  ),
                      'content_rating'         : GetElementText(TheTVDB_xml, 'Series/ContentRating'),
                      'studio'                 : GetElementText(TheTVDB_xml, 'Series/Network'),
-                     'content_rating'         : float(GetElementText(TheTVDB_xml, 'Series/Rating')) if '.' in GetElementText(TheTVDB_xml, 'Series/Rating') else None,
-                     'originally_available_at': Datetime.ParseDate(GetElementText(TheTVDB_xml, 'Series/FirstAired')).date(),
+                     'rating'                 : GetElementText(TheTVDB_xml, 'Series/Rating'),
+                     'originally_available_at': GetElementText(TheTVDB_xml, 'Series/FirstAired'),
                      'genres'                 : filter(None, GetElementText(TheTVDB_xml, 'Series/Genre').split("|")),
                      'episode_mapping'        : {}
                    }
+    if not IMDbid and GetElementText(TheTVDB_xml, 'Series/IMDB_ID'):  
+        IMDbid = GetElementText(TheTVDB_xml, 'Series/IMDB_ID')
+        Log.Warn("IMDB ID was empty, loaded through tvdb serie xml, IMDBID: '%s'" % IMDbid)
+    
     ### Absolute mode ###
     episode_missing, tvdb_special_missing, summary_missing_special, summary_missing, summary_present, abs_manual_placement_worked = [], [], [], [], [], True
     ep_count, abs_manual_placement_info, number_set = 0, [], False
@@ -117,30 +123,31 @@ def GetMetadata(metadata, media, movie, lang, metadata_source, TVDBid, imdbid, d
         if currentSeasonNum.isdigit() and int(currentSeasonNum) > 0 and (metadata_source in ("tvdb3", "tvdb4", "tvdb5") or metadata_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1):  season, episode, numbering =                1, currentAbsNum, "s1e" + currentAbsNum
         else:                                                                                                                                                                                                                season, episode, numbering = currentSeasonNum,  currentEpNum, "s%se%s" % (currentSeasonNum, currentEpNum)
         
-        if not 'seasons'  in TheTVDB_dict:                     TheTVDB_dict['seasons']                  = {}
-        if not  season    in TheTVDB_dict['seasons']:          TheTVDB_dict['seasons'][season]          = {}
-        if not  episode   in TheTVDB_dict['seasons'][season]:  TheTVDB_dict['seasons'][season][episode] = {}
+        if not 'seasons'  in TheTVDB_dict:                                 TheTVDB_dict['seasons']                              = {}
+        if not  season    in TheTVDB_dict['seasons']:                      TheTVDB_dict['seasons'][season]                      = {}
+        if not 'episodes' in TheTVDB_dict['seasons'][season]:              TheTVDB_dict['seasons'][season]['episodes']          = {}
+        if not  episode   in TheTVDB_dict['seasons'][season]['episodes']:  TheTVDB_dict['seasons'][season]['episodes'][episode] = {}
         
-        if        GetElementText(ep, 'EpisodeName'):  TheTVDB_dict['seasons'][season][episode]['title'                  ] = GetElementText(ep, 'EpisodeName')
-        if        GetElementText(ep, 'Director'   ):  TheTVDB_dict['seasons'][season][episode]['directors'              ] = GetElementText(ep, 'Director'   ).split(',')
-        if        GetElementText(ep, 'Writer'     ):  TheTVDB_dict['seasons'][season][episode]['writers'                ] = GetElementText(ep, 'Writer'     ).split(',')
-        if        GetElementText(ep, 'filename'   ):  TheTVDB_dict['seasons'][season][episode]['thumbs'                 ] = {TVDB_IMAGES_URL+GetElementText(ep, 'filename'): ("TVDB/episodes/"+ os.path.basename(GetElementText(ep, 'filename')), 1, None) } if GetElementText(ep, 'filename') else {}
-        if "." in GetElementText(ep, 'Rating'     ):  TheTVDB_dict['seasons'][season][episode]['rating'                 ] = float(GetElementText(ep, 'Rating'     ))
-        if currentAbsNum:                             TheTVDB_dict['seasons'][season][episode]['absolute_index'         ] = currentAbsNum
+        if        GetElementText(ep, 'EpisodeName'):  TheTVDB_dict['seasons'][season]['episodes'][episode]['title'    ] = GetElementText(ep, 'EpisodeName')
+        if        GetElementText(ep, 'Director'   ):  TheTVDB_dict['seasons'][season]['episodes'][episode]['directors'] = GetElementText(ep, 'Director'   ).split(',')
+        if        GetElementText(ep, 'Writer'     ):  TheTVDB_dict['seasons'][season]['episodes'][episode]['writers'  ] = GetElementText(ep, 'Writer'     ).split(',')
+        if        GetElementText(ep, 'filename'   ):  TheTVDB_dict['seasons'][season]['episodes'][episode]['thumbs'   ] = {TVDB_IMAGES_URL+GetElementText(ep, 'filename'): ("TVDB/episodes/"+ os.path.basename(GetElementText(ep, 'filename')), 1, None) } if GetElementText(ep, 'filename') else {}
+        if "." in GetElementText(ep, 'Rating'     ):  TheTVDB_dict['seasons'][season]['episodes'][episode]['rating'   ] = GetElementText(ep, 'Rating'     )
+        #if currentAbsNum:                             TheTVDB_dict['seasons'][season]['episodes'][episode]['absolute_number'] = currentAbsNum
         
         if GetElementText(ep, 'FirstAired'):
-          TheTVDB_dict['seasons'][season][episode]['originally_available_at'] = Datetime.ParseDate(GetElementText(ep, 'FirstAired')).date()
+          TheTVDB_dict['seasons'][season]['episodes'][episode]['originally_available_at'] = Datetime.ParseDate(GetElementText(ep, 'FirstAired')).date()
           currentAirDate = GetElementText(ep, 'FirstAired').replace('-','')
           currentAirDate = int(currentAirDate) if currentAirDate.isdigit() and int(currentAirDate) > 10000000 else 99999999
         else:  currentAirDate = 99999999
           
-        if GetElementText(ep, 'Overview'):  summary_present.append        (numbering);  TheTVDB_dict['seasons'][season][episode]['summary'] = GetElementText(ep, 'Overview')
+        if GetElementText(ep, 'Overview'):  summary_present.append        (numbering);  TheTVDB_dict['seasons'][season]['episodes'][episode]['summary'] = GetElementText(ep, 'Overview')
         elif currentSeasonNum == '0':       summary_missing_special.append(numbering)
         else:                               summary_missing.append        (numbering)
         
         ### Check for Missing Episodes ###
         if not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1 or metadata_source == "tvdb"):
-          if current_date <= (currentAirDate+1):  Log.Warn("TheTVDB.GetMetadata() - Episode '%s' is missing in Plex but air date '%s+1' is either missing (99999999) or in the future" % (numbering, currentAirDate))
+          if int(time.strftime("%Y%m%d")) <= (currentAirDate+1):  Log.Warn("TheTVDB.GetMetadata() - Episode '%s' is missing in Plex but air date '%s+1' is either missing (99999999) or in the future" % (numbering, currentAirDate))
           elif currentSeasonNum and not (
               ((not metadata_source in ["tvdb3","tvdb4"] or currentSeasonNum==0) and currentSeasonNum in media.seasons and currentEpNum in media.seasons[currentSeasonNum].episodes) or
               (metadata_source in ["tvdb3","tvdb4"] and [currentAbsNum in media.seasons[season].episodes for season in media.seasons].count(True) > 0)
@@ -158,5 +165,5 @@ def GetMetadata(metadata, media, movie, lang, metadata_source, TVDBid, imdbid, d
   if episode_missing:         error_log['Missing Episodes'         ].append("TVDBid: %s | Title: '%s' | Missing Episodes: %s"          % (common.WEB_LINK % (TVDB_SERIE_URL % TVDBid, TVDBid), TheTVDB_dict['title'], str(episode_missing        )))
   if tvdb_special_missing:    error_log['Missing Specials'         ].append("TVDBid: %s | Title: '%s' | Missing Specials: %s"          % (common.WEB_LINK % (TVDB_SERIE_URL % TVDBid, TVDBid), TheTVDB_dict['title'], str(tvdb_special_missing   )))
   
-  GetImages (metadata, media, error_log, TVDBid, TheTVDB_dict, movie, poster_id=1, force=False, defaulttvdbseason=defaulttvdbseason, num=1)
-  return TheTVDB_dict
+  GetImages (metadata, TheTVDB_dict, media, error_log, TVDBid, TheTVDB_dict, movie, poster_id=1, force=False, defaulttvdbseason=defaulttvdbseason, num=1)
+  return IMDbid, TheTVDB_dict
