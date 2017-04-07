@@ -413,7 +413,7 @@ class HamaCommonAgent:
         for genre in tvdbGenre: metadata.genres.add(genre)
         Log.Info("TVDB - tvdbGenre: '%s'" % str(tvdbgenre))
       list_eps = []
-      for media_season in media.seasons:
+      for media_season in media.seasons if movie else []:
         metadata.seasons[media_season].summary, metadata.seasons[media_season].title, metadata.seasons[media_season].show,metadata.seasons[media_season].source_title = "#" + tvdbOverview, "#" + tvdbtitle, "#" + tvdbtitle, "#" + tvdbNetwork
         for media_episode in media.seasons[media_season].episodes:
           ep, episode_count = media_episode if defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_id_source in ["tvdb3", "tvdb4"] and media_season != "0" else "s%se%s" % (media_season, media_episode), 0
