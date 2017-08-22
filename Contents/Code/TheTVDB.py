@@ -50,12 +50,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     if GetXml(xml, 'banner'                  ):  SaveDict((os.path.join('TheTVDB', 'xml', GetXml(ep, 'banner')), 1, None), TheTVDB_dict, 'banners', TVDB_IMAGES_URL+GetXml(ep, 'banner'))
     
     ### Absolute mode ###
-    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing = [], [], [], [], []
-    abs_number, abs_manual_placement_info, missing_abs_nb = 1, [], False
+    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, abs_manual_placement_info = [], [], [], [], [], []
+    abs_number, missing_abs_nb = 1, False
     for ep in xml.xpath('Episode') if not movie else []:
-      season = GetXml(ep, 'SeasonNumber') if not metadata_source in ("tvdb4", "tvdb5") or GetXml(ep, 'SeasonNumber')=='0' else '1'
-      if season!='0' and (metadata_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or 
-                             metadata_source in ("tvdb3", "tvdb4", "tvdb5")):
+      season = GetXml(ep, 'SeasonNumber')
+      if metadata_source in ("tvdb4", "tvdb5") and not season=='0':  season='1'
+      if season!='0' and (metadata_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_source in ("tvdb3", "tvdb4", "tvdb5")):
         episode = GetXml(ep, 'absolute_number') 
         if episode and not missing_abs_nb:  abs_number = int(GetXml(ep, 'absolute_number') ) #update abs_number with real abs number
         if not episode :
@@ -82,17 +82,16 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       elif season!='0':                                                                                       summary_missing.append(numbering)
       else:                                                                                                   summary_missing_special.append(numbering)
     
-      ### Check for Missing Episodes ###
-      if not movie and metadata_source.startswith("tvdb") or max(map(int, media.seasons.keys()))>1:  #tvdb mode
-        if metadata_source == 'tvdb5' or \
-           metadata_source in ('tvdb', 'tvdb2') and season in media.seasons and episode in media.seasons[season].episodes or \
-           metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for season in media.seasons if episode in media.seasons[season].episodes]:  continue
+      ### Check for Missing Episodes ### and tvdb mode
+      if (not movie and metadata_source.startswith("tvdb") or max(map(int, media.seasons.keys()))>1) and metadata_source != 'tvdb5' and \
+        not (metadata_source in ('tvdb',  'tvdb2') and season in media.seasons and episode in media.seasons[season].episodes) and \
+        not (metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for s in media.seasons if episode in media.seasons[s].episodes]):
         air_date = GetXml(ep, 'FirstAired')
         air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
         if int(time.strftime("%Y%m%d")) <= air_date+1:  Log.Warn("TheTVDB.GetMetadata() - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
-        elif season=='0':  tvdb_special_missing.append(str(abs_number))                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
-        else:              episode_missing.append(     str(abs_number) if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
-              
+        elif season=='0':  tvdb_special_missing.append(episode)                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
+        else:              episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
+      
       if season!='0':  abs_number += 1
       
     ### Logging ###
