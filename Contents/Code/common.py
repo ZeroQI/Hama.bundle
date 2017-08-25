@@ -379,9 +379,10 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   ### Prepare data for comparison ###
   try:
     if isinstance(meta_new, basestring):
-      if field == 'originally_available_at':                meta_new = Datetime.ParseDate(meta_new).date()
-      if field == 'rating':                                 meta_new = float(meta_new) if "." in meta_new    else None
-      if field in ('year', 'absolute_number', 'duration'):  meta_new = int  (meta_new) if meta_new.isdigit() else None
+      #if field == 'title_sort' and Prefs['SortTitlePrefixRemoval']:  meta_new = SortTitle(meta_new)
+      if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
+      if field == 'rating':                                          meta_new = float(meta_new) if "." in meta_new    else None
+      if field in ('year', 'absolute_number', 'duration'):           meta_new = int  (meta_new) if meta_new.isdigit() else None
       if field in  MetaFieldList:                           
         meta_new = re.sub(r'\([^)]*\)', '', meta_new)
         meta_new = meta_new.split(',' if ',' in meta_new else '|')
@@ -551,7 +552,18 @@ def LevenshteinDistance(first, second):
 def LevenshteinRatio(first, second):
   return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
 
-  '''
+def SortTitle(title, language="en"):
+  if not Prefs['SortTitlePrefixRemoval']: return title
+  dict_sort = { 'en': ["The", "A", "An"],
+                'fr': ["Le", "La", "Les", "L", "Un", "Une ", "Des "],
+                'sp': ["El", "La", "Las", "Lo", "Los", "Uno ", "Una "]
+              }
+  title  = title.replace("'", " ")
+  prefix = title.split(" ", 1)[0]
+  Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
+  return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+'''
     def CleanUpString(s):
 
       try:

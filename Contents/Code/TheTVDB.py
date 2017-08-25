@@ -34,15 +34,17 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     zap2it_id = GetXml(xml, 'Series/zap2it_id');
     Log.Info("TheTVDB.GetMetadata() - TVDBid: '{}', IMDbid: {}, url: '{}'".format(TVDBid, IMDbid, API_SERIE_URL))
     
-    SaveDict( GetXml(xml, 'Series/Overview'         ), TheTVDB_dict, 'summary'                )
-    SaveDict( GetXml(xml, 'Series/ContentRating'    ), TheTVDB_dict, 'content_rating'         )
-    SaveDict( GetXml(xml, 'Series/Network'          ), TheTVDB_dict, 'studio'                 )
-    SaveDict( GetXml(xml, 'Series/Rating'           ), TheTVDB_dict, 'rating'                 )
-    SaveDict( GetXml(xml, 'Series/FirstAired'       ), TheTVDB_dict, 'originally_available_at')
-    SaveDict( GetXml(xml, 'Series/SeriesName'       ), TheTVDB_dict, 'title'                  )
-    SaveDict( GetXml(xml, 'Series/Status'           ), TheTVDB_dict, 'status'                 )
-    SaveDict( GetXml(xml, 'Series/Genre' ).strip('|'), TheTVDB_dict, 'genres'                 )
-    SaveDict( GetXml(xml, 'Series/Actors').strip('|'), TheTVDB_dict, 'roles'                  )  #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|
+    SaveDict( GetXml(xml, 'Series/Overview'         ),                  TheTVDB_dict, 'summary'                )
+    SaveDict( GetXml(xml, 'Series/ContentRating'    ),                  TheTVDB_dict, 'content_rating'         )
+    SaveDict( GetXml(xml, 'Series/Network'          ),                  TheTVDB_dict, 'studio'                 )
+    SaveDict( GetXml(xml, 'Series/Rating'           ),                  TheTVDB_dict, 'rating'                 )
+    SaveDict( GetXml(xml, 'Series/FirstAired'       ),                  TheTVDB_dict, 'originally_available_at')
+    SaveDict( GetXml(xml, 'Series/Status'           ),                  TheTVDB_dict, 'status'                 )
+    SaveDict( GetXml(xml, 'Series/Genre' ).strip('|'),                  TheTVDB_dict, 'genres'                 )
+    SaveDict( GetXml(xml, 'Series/Actors').strip('|'),                  TheTVDB_dict, 'roles'                  )  #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|
+    SaveDict( GetXml(xml, 'Series/SeriesName'       ),                  TheTVDB_dict, 'title'                  )
+    SaveDict( common.SortTitle(GetXml(xml, 'Series/SeriesName'), "en" if lang ==Locale.Language.English else lang), TheTVDB_dict, 'title_sort'             )
+    
     
     if GetXml(xml, 'Series/Runtime').isdigit():  SaveDict(int(GetXml(xml, 'Series/Runtime'))*60*1000,                      TheTVDB_dict, 'duration')  #in ms in plex
     if GetXml(xml, 'poster'                  ):  SaveDict((os.path.join('TheTVDB', 'xml', GetXml(ep, 'poster')), 1, None), TheTVDB_dict, 'posters', TVDB_IMAGES_URL+GetXml(ep, 'poster'))
