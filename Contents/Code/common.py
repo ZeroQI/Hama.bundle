@@ -29,10 +29,9 @@ FieldListMovies   = ('original_title', 'title', 'roles', 'year', 'originally_ava
 FieldListSeries   = ('genres', 'tags' , 'collections', 'duration', 'rating', 'title', 'summary', 'originally_available_at', 'reviews', 'extras', 'countries', 'rating_count',
                      'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 'title_sort',
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
-#AttributeError: 'TV_Show' object has no attribute 'sort_title'
 FieldListSeasons  = ('summary', 'posters', 'art')
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration') #'titleSort, ''absolute_number' even in try: AttributeError: 'RecordObject' object has no attribute 'absolute_number'
-SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', "Simkl", "TVTunes")
+SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', "TVTunes") #"Simkl", 
 
 ### Logging class to join scanner and agent logging per serie
 # 
@@ -459,7 +458,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old = getattr(metadata, field)
-    for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
+    for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
       if source in MetaSources:
         if Dict(MetaSources, source, field):
           if field=='genres':
@@ -513,7 +512,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for field in FieldListEpisodes:  # Get a field
           try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
           except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
-          for source in [source.strip() for source in Prefs[field].split(',')]:
+          for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               new_episode = episode
               if   source=='AniDB' and not metadata.id.startswith("tvdb4") and metadata.id.startswith("tvdb" or max(map(int, media.seasons.keys())) >1):  new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)

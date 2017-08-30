@@ -25,7 +25,7 @@ AniDBMovieSets = AnimeLists.GetAniDBMovieSets()
 def ValidatePrefs():
   Log.Info("".ljust(157, '='))
   Log.Info ("ValidatePrefs()")
-  DefaultPrefs   = ("GetSingleOne", "Simkl", "localart", "adult", "MinimumWeight", "SerieLanguagePriority", "EpisodeLanguagePriority")
+  DefaultPrefs   = ("GetSingleOne", "localart", "adult", "MinimumWeight", "SerieLanguagePriority", "EpisodeLanguagePriority") #"Simkl", 
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + DefaultPrefs))  # set is un-ordered lsit so order is lost
   try:  
     for key in PrefsFieldList:  Log.Info("Prefs[{key:<{width}}] = {value}".format(key=key, width=max(map(len, PrefsFieldList)), value=Prefs[key] or "EMPTY, MODIFY AND SAVE"))
@@ -115,3 +115,17 @@ class HamaMovieAgent(Agent.Movies):
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
   def search (self, results,  media, lang, manual):  Search (results,  media, lang, manual, True)
   def update (self, metadata, media, lang, force ):  Update (metadata, media, lang, force,  True)
+
+'''
+Thread.Create(f, globalize=True, *args, **kwargs)
+Thread.CreateTimer(interval, f, globalize=True, *args, **kwargs)
+Thread.Sleep(interval)
+Thread.Lock(key=None)
+Thread.AcquireLock(key)
+Thread.ReleaseLock(key)
+Thread.Event(key=None)
+Thread.Block(key)
+Thread.Unblock(key)
+Thread.Wait(key, timeout=None)
+Thread.Semaphore(key=None, limit=1)
+'''

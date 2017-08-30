@@ -7,7 +7,7 @@
   { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                      },
   { "id": "GetSingleOne",             "label": "Fetch a single picture",          "type": "bool",  "default": "true"                                                       },
   { "id": "SortTitlePrefixRemoval",   "label": "Sort Title Prefix Removal",       "type": "bool",  "default": "false"                                                      },
-  { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB,TheTVDB"                                              },
+  { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                            },
   { "id": "title_sort",               "label": "T-EM 'title_sort'",               "type": "text",  "default": "AniDB,TheTVDB"                                              },
   { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TheTVDB"                                              },
   { "id": "content_rating",           "label": "T--M 'content_rating'",           "type": "text",  "default": "AniDB,TheTVDB"                                              },
