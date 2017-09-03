@@ -102,11 +102,11 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
       Log.Info("AnimeLists.GetMetadata() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['defaulttvdbseason'], mappingList['name']) )
       
       ### Update Metadata 
-      if TVDBid=="hentai":                                         SaveDict("X",                                                                      AnimeLists_dict, 'content_rating')
-      if anime.xpath("supplemental-info/studio"):                  SaveDict(GetXml(anime, 'studio'                    ),                              AnimeLists_dict, 'studio'        )
-      if anime.xpath("supplemental-info/director"):                SaveDict(GetXml(anime, "supplemental-info/director"),                              AnimeLists_dict, 'director'      )
-      if anime.xpath("supplemental-info/credits"):                 SaveDict(GetXml(anime, "supplemental-info/credits" ),                              AnimeLists_dict, 'writer'        )
-      for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                             AnimeLists_dict, 'genres'        )
+      if TVDBid=="hentai":                                         SaveDict("X",                                                                   AnimeLists_dict, 'content_rating')
+      if anime.xpath("supplemental-info/studio"):                  SaveDict(GetXml(anime, 'studio'                    ),                           AnimeLists_dict, 'studio'        )
+      if anime.xpath("supplemental-info/director"):                SaveDict(GetXml(anime, "supplemental-info/director"),                           AnimeLists_dict, 'director'      )
+      if anime.xpath("supplemental-info/credits"):                 SaveDict(GetXml(anime, "supplemental-info/credits" ),                           AnimeLists_dict, 'writer'        )
+      for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres'        )
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:("/".join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'           )
       
       for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
@@ -124,6 +124,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
     error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
     AniDBid, TVDBid = '', ''
   
+  Log.Info("AnimeLists.GetMetadata() - mappingList: " + str(mappingList))
   return AnimeLists_dict, AniDB_id or AniDBid, TVDB_id or TVDBid, tmdbid, imdbid, mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###

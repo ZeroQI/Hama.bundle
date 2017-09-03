@@ -30,7 +30,7 @@ FieldListSeries   = ('genres', 'tags' , 'collections', 'duration', 'rating', 'ti
                      'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 'title_sort',
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
 FieldListSeasons  = ('summary', 'posters', 'art')
-FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration') #'titleSort, ''absolute_number' even in try: AttributeError: 'RecordObject' object has no attribute 'absolute_number'
+FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort, ''absolute_number' even in try: AttributeError: 'RecordObject' object has no attribute 'absolute_number'
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', "TVTunes") #"Simkl", 
 
 ### Logging class to join scanner and agent logging per serie

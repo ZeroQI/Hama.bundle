@@ -10,7 +10,8 @@
   { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                            },
   { "id": "title_sort",               "label": "T-EM 'title_sort'",               "type": "text",  "default": "AniDB,TheTVDB"                                              },
   { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TheTVDB"                                              },
-  { "id": "content_rating",           "label": "T--M 'content_rating'",           "type": "text",  "default": "AniDB,TheTVDB"                                              },
+  { "id": "content_rating",           "label": "T-EM 'content_rating'",           "type": "text",  "default": "AniDB,TheTVDB"                                              },
+  { "id": "content_rating_age",       "label": "--E- 'content_rating_age'",       "type": "text",  "default": "None"                                                           },
   { "id": "original_title",           "label": "T-EM 'original_title'",           "type": "text",  "default": "AniDB,TheTVDB"                                              },
   { "id": "studio",                   "label": "T--M 'studio'",                   "type": "text",  "default": "AnimeLists, AniDB, TheTVDB, TheMovieDb"                     },
   { "id": "tagline",                  "label": "T--M 'tagline'",                  "type": "text",  "default": "TheMovieDb"                                                 },
@@ -42,5 +43,6 @@
   { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                       },
   { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                       },
   { "id": "countries",                "label": "T--M 'countries'",                "type": "text",  "default": "TheMovieDb"                                                 },
-  { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                       }
+  { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                       },
+  { "id": "absolute_index",           "label": "T--M 'absolute_index'",           "type": "text",  "default": "None"                                                       }
 ]
