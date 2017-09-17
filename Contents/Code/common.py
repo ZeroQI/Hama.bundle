@@ -403,8 +403,10 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
      isinstance(meta_new, list) and field not in MetaRoleList and set(meta_new)== set(meta_old):
     Log.Info("[=] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, format=type(meta_new).__name__, value=meta_new_short))
   else:
-    #Log.Info("field: '{}', meta_new: '{}'".format(str(field), str(meta_new)))
-    temp = [MetaSource.strip() for MetaSource in Prefs[field].split(',') if MetaSource and MetaSource.strip()]
+    Log.Info("4j")
+    Log.Info("field: '{}', meta_new: '{}'".format(str(field), str(meta_new)))
+    Log.Info("Prefs[field]: '{}'".format(Prefs[field]))
+    temp = [MetaSource.strip() for MetaSource in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if MetaSource and MetaSource.strip()]
     Log.Info("[{rank}] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, rank=temp.index(source)+1 if source in Prefs[field] else "x", format=type(meta_new).__name__, value=meta_new_short))
     
     if isinstance(meta_new, dict)and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
@@ -423,7 +425,9 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
       except Exception as e:  Log.Info("[!] {field:<29}  Type: {format:<20}  Source: {source:<11}  Value: {value}  Exception: {error}".format(field=field, source=source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short, error=e))
 
     else:  
-      try:                    setattr(metadata, field, meta_new)
+      Log.Info("[!] test")
+      try:                    
+        setattr(metadata, field, meta_new)
       except Exception as e:  Log.Info("[!] {field:<29}  Type: {format:<20}  Source: {source:<11}  Value: {value}  Exception: {error}".format(field=field, source=source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short, error=e))
   
 ### Update all metadata from a list of Dict according to set priorities ##############################################################################

@@ -29,7 +29,6 @@
   { "id": "trivia",                   "label": "---M 'trivia'",                   "type": "text",  "default": "None"                                                       },
   { "id": "quotes",                   "label": "---M 'quotes'",                   "type": "text",  "default": "None"                                                       },
   { "id": "themes",                   "label": "T--M 'themes'",                   "type": "text",  "default": "TVTunes, Plex"                                              },
-  { "id": "countries",                "label": "T--M 'countries'",                "type": "text",  "default": "TVTunes, Plex"                                              },
   { "id": "rating",                   "label": "T-EM 'rating'",                   "type": "text",  "default": "AniDB, TheTVDB, MyAnimeList, TheMovieDb, OMDb"              },
   { "id": "rating_image",             "label": "T--M 'rating_image'",             "type": "text",  "default": "None"                                                       },
   { "id": "audience_rating",          "label": "T--M 'audience_rating'",          "type": "text",  "default": "None"                                                       },
@@ -42,7 +41,6 @@
   { "id": "thumbs",                   "label": "--E- 'thumbs'",                   "type": "text",  "default": "TheTVDB"                                                    },
   { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                       },
   { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                       },
-  { "id": "countries",                "label": "T--M 'countries'",                "type": "text",  "default": "TheMovieDb"                                                 },
   { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                       },
   { "id": "absolute_index",           "label": "T--M 'absolute_index'",           "type": "text",  "default": "None"                                                       }
 ]
