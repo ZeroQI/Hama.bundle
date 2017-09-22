@@ -35,7 +35,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
   xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL, cache=CACHE_1DAY * 7)  # AniDB title database loaded once every 2 weeks
   if xml:
     AniDB_dict['title'], AniDB_dict['original_title'] = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-    AniDB_dict['title_sort']                          = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
+    AniDB_dict['title_sort'], _                       = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
     #languages = lang if lang else [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')]
     Log.Info("AniDB.GetMetadata() - 'title': {}, 'title_sort': {}, original_title: {}".format(AniDB_dict['title'], AniDB_dict['title_sort'], AniDB_dict['original_title']))
     
