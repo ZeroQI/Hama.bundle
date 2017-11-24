@@ -12,7 +12,7 @@ import os
 
 ### Functions ###
 def GetMetadata(movie, imdbid, num=98):  # return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
-  OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i=".format(api_key=Prefs[OMDbApiKey]) #'
+  OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i=".format(api_key=Prefs['OMDbApiKey']) #'
   OMDb_dict         = {}
   
   Log.Info("".ljust(157, '-'))

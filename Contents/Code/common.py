@@ -54,9 +54,9 @@ def serie_folder(LOGS_PATH, media):
   old_dir = dir
   #Log.Info("LOGS_PATH: {}, dir: {}, file: {}".format(LOGS_PATH, dir, os.path.join(LOGS_PATH, os.path.basename(dir)+'.log')))
   while dir and os.path.splitdrive(dir)[1] != os.sep:
-    file = os.path.join(LOGS_PATH, os.path.basename(dir)+'.log')
-    if os.path.isfile(file):  return file
-    #else:  Log.Info("Not found file: " + file)
+    file = os.path.join(LOGS_PATH, os.path.basename(dir)+'.agent.log')
+    #if os.path.isfile(file):  
+    return file     #else:  Log.Info("Not found file: " + file)
     dir = os.path.dirname(dir)
   Log.Info("No serie folder log. Is beta Scanner installed? dir from media: {}, basename: {}".format(old_dir, os.path.basename(old_dir)))
   return os.path.join(LOGS_PATH, '_root_.log')
@@ -157,7 +157,7 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
   except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}'".format(exception=e, relativeFilename=relativeFilename))
   
 ### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY *2):  #By Dingmatt, heavily moded
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1WEEK):  #By Dingmatt, heavily moded
   ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
   relativeFilename   = os.path.join(relativeDirectory, filename) 
   fullpathFilename   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
@@ -403,9 +403,9 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
      isinstance(meta_new, list) and field not in MetaRoleList and set(meta_new)== set(meta_old):
     Log.Info("[=] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, format=type(meta_new).__name__, value=meta_new_short))
   else:
-    Log.Info("4j")
-    Log.Info("field: '{}', meta_new: '{}'".format(str(field), str(meta_new)))
-    Log.Info("Prefs[field]: '{}'".format(Prefs[field]))
+    #Log.Info("4j")
+    #Log.Info("field: '{}', meta_new: '{}'".format(str(field), str(meta_new)))
+    #Log.Info("Prefs[field]: '{}'".format(Prefs[field]))
     temp = [MetaSource.strip() for MetaSource in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if MetaSource and MetaSource.strip()]
     Log.Info("[{rank}] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, rank=temp.index(source)+1 if source in Prefs[field] else "x", format=type(meta_new).__name__, value=meta_new_short))
     
@@ -423,11 +423,8 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
             for field in item:
               if item[field]:  setattr(meta_role, field, item[field]) 
       except Exception as e:  Log.Info("[!] {field:<29}  Type: {format:<20}  Source: {source:<11}  Value: {value}  Exception: {error}".format(field=field, source=source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short, error=e))
-
     else:  
-      Log.Info("[!] test")
-      try:                    
-        setattr(metadata, field, meta_new)
+      try:                    setattr(metadata, field, meta_new)
       except Exception as e:  Log.Info("[!] {field:<29}  Type: {format:<20}  Source: {source:<11}  Value: {value}  Exception: {error}".format(field=field, source=source, format=type(meta_old).__name__+"/"+type(meta_new).__name__, value=meta_new_short, error=e))
   
 ### Update all metadata from a list of Dict according to set priorities ##############################################################################
@@ -507,7 +504,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if not Dict(count, field):    
             source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'season', new_season, field) ]
             Log.Info("[#] {field:<29}  Type: {format:<20}  Source: '{source}', Field present in this sources: '{other}'".format(field=field, format=type(meta_old).__name__, source=Prefs[field], other=source_list))
-          
       ### Episodes ###
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
@@ -519,8 +515,12 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               new_episode = episode
-              if   source=='AniDB' and not metadata.id.startswith("tvdb4") and metadata.id.startswith("tvdb" or max(map(int, media.seasons.keys())) >1):  new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
-              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and                                  max(map(int, media.seasons.keys()))==1:   new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
+              if   source=='AniDB' and not metadata.id.startswith("tvdb4") and metadata.id.startswith("tvdb" or max(map(int, media.seasons.keys())) >1):
+                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s'" % (season, new_season, episode, new_episode))
+                #Log.Info("[!] mappingList: '%s'" % (mappingList))
+                new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
+                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s'" % (season, new_season, episode, new_episode))
+              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:   new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if season=='0':
                   #if metadata.id.startswith("anidb") and max(map(int, media.seasons.keys())) >1 and source=='TheTVDB':  continue
@@ -533,6 +533,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if not Dict(count, field):    
               source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'seasons', season, 'episodes', episode, field) ]
               Log.Info("[#] {field:<29}  Type: {format:<20}  Source: '{source}', Field present in this sources: '{other}'".format(field=field, format=type(meta_old).__name__, source=Prefs[field], other=source_list))
+              #Log.Info("[!] "+str(Dict(MetaSources, 'AniDB', 'seasons', new_season, 'episodes', new_episode, field)))
       # End Of for episode
     # End of for season
     Log.Info("".ljust(157, '-'))

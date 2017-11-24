@@ -1,5 +1,5 @@
 [
-  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": ""                                                           },
+  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None"                                                           },
   { "id": "SerieLanguagePriority",    "label": "Serie Language Priority",         "type": "text",  "default": "main, en, ja"                                               },
   { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",       "type": "text",  "default": "main, en, ja"                                               },
   { "id": "MinimumWeight",            "label": "AniDB genge minimum weight",      "type": "enum",  "values"  : ["600","500","400","300","200","100","0"], "default": "400" },

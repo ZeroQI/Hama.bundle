@@ -24,8 +24,8 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
 def GetAniDBTVDBMap():  
   MAPPING          = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                 # ScudLee mapping file url
   MAPPING_FIX      = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml' # ScudLee mapping file url online override
-  AniDBTVDBMap     = common.LoadFile(filename=os.path.basename(MAPPING    ), relativeDirectory="AnimeLists", url=MAPPING,     cache= CACHE_1DAY * 14)  # AniDB title database loaded once every 2 weeks
-  AniDBTVDBMap_fix = common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1DAY *  2)  # AniDB title database loaded once every 2 weeks
+  AniDBTVDBMap     = common.LoadFile(filename=os.path.basename(MAPPING    ), relativeDirectory="AnimeLists", url=MAPPING,     cache= CACHE_1WEEK)  # AniDB title database loaded once every 2 weeks
+  AniDBTVDBMap_fix = common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1WEEK)  # AniDB title database loaded once every 2 weeks
   MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix)
   if not AniDBTVDBMap:  Log.Critical("Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(MAPPING)))); AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
   return AniDBTVDBMap
@@ -34,7 +34,7 @@ AniDBTVDBMap     = GetAniDBTVDBMap()
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
   ANIME_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
-  AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK * 2)
+  AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK)
   if not AniDBMovieSets:  Log.Error ("Failed to load core file '%s'" % os.path.basename(MOVIE_COLLECTION));  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   return AniDBMovieSets
   
@@ -140,4 +140,4 @@ def anidb_ep(mappingList, season, episode):
   for key in mappingList:
     if mappingList[key]==(season, episode.split('-')[0]):  return tuple(key.lstrip('s').split('e'))
   if season==defaulttvdbseason and not season=='0':        return '1', str(int(episode) - int(episodeoffset))
-  return season, episode
+  return '1' if season else '0', episode

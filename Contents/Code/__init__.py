@@ -35,7 +35,7 @@ def ValidatePrefs():
 
 ### Pre-Defined Start function ############################################################################################################################################
 def Start():
-  common.Logging()
+  #common.Logging()
   Log.Info("".ljust(157, '='))
   Log.Info("HTTP Anidb Metadata Agent by ZeroQI (Forked from Atomicstrawberry's v0.4, AnimeLists XMLs by SdudLee) - CPU: {}, OS: {}".format(Platform.CPU, Platform.OS))
   HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
@@ -62,7 +62,7 @@ def Search(results, media, lang, manual, movie):
   else:  #if media.year is not None:  orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
     maxi, n = 0, 0
     if movie or max(map(int, media.seasons.keys()))<=1:  maxi, n = AniDB.Search(results, media, lang, manual, movie)
-    if maxi<50 and movie:                                maxi = TheMovieDB.Search (results, media, lang, manual, movie)
+    if maxi<50 and movie:                                maxi = TheMovieDb.Search (results, media, lang, manual, movie)
     if maxi<80 and not movie or n>1:                     maxi = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
   Log.Info("")
@@ -93,8 +93,8 @@ def Update(metadata, media, lang, force, movie):
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
-  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if TVDBid=='hentai' else {}
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if TVDBid=='hentai' else {}
+  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey']!='None' else {}  #TVDBid=='hentai'
+  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if TVDBid=='hentai'            else {}
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)

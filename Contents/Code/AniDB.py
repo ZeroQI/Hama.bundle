@@ -35,7 +35,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
   xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL, cache=CACHE_1DAY * 7)  # AniDB title database loaded once every 2 weeks
   if xml:
     AniDB_dict['title'], AniDB_dict['original_title'] = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-    AniDB_dict['title_sort']                          = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
+    AniDB_dict['title_sort'], _                       = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
     #languages = lang if lang else [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')]
     Log.Info("AniDB.GetMetadata() - 'title': {}, 'title_sort': {}, original_title: {}".format(AniDB_dict['title'], AniDB_dict['title_sort'], AniDB_dict['original_title']))
     
@@ -80,15 +80,14 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
     else:  Log.Info("AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
   
     ### not listed for serie but is for eps
-    Log.Info("AniDB.GetMetadata() - Fields: 'studio', 'directors', 'writers'")
-    roles = { "Animation Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
+    roles    = { "Animation Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
     ep_roles = {}
     for creator in xml.xpath('creators/name'):
       for role in roles: 
         if not role in creator.get('type'):  continue
-        if roles[role]=="studio":  ep_roles [roles[role]] = creator.text
+        if roles[role]=="studio":  SaveDict(creator.text, AniDB_dict, 'studio')
         else:                      SaveDict([creator.text], ep_roles, roles[role])
-        
+    Log.Info("AniDB.GetMetadata() - creators tag: " +str(ep_roles))
     if not movie:  #TV Library
       
       ### Translate into season/episode mapping
@@ -116,7 +115,10 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
         SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
         SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
         SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
-        
+        for role in ep_roles:
+          SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
+          #Log.Info("AniDB.GetMetadata() - role: '%s', value: %s " % (role, str(ep_roles[role])))
+                
         ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
         if metadata_source.startswith("anidb") and max(map(int, media.seasons.keys()))==1:  # AniDB mode
           ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
@@ -166,6 +168,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
     #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
   
   Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
+  Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid
 
 ### Get the AniDB title database #############################################################################################################################################
