@@ -140,7 +140,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         
       ### Rank ###
       rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], poster_total)[1] else count_valid[bannerType]+2
-      language          = GetXml(banner, 'Language')
+      language = GetXml(banner, 'Language')
       if Prefs['localart']:
         language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
         rank += 10*language_priority.index(language) if language and language in language_priority else 50
