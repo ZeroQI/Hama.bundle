@@ -444,7 +444,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for episode in sorted(MetaSources[source]['seasons'][season]['episodes'], key=natural_sort_key) if 'episodes' in MetaSources[source]['seasons'][season] else []:
           for field in MetaSources[source]['seasons'][season]['episodes'][episode]:
             if field in FieldListEpisodes:  episode_fields[field] = episode_fields[field] + 1 if field in episode_fields else 1
-            else:  Log.Info("                     {:<23} Season {:>3}, Episode: {:>3} is not a valid metadata field, value: '{!s}'".format(field, season, episode, MetaSources[source]['seasons'][season]['episodes'][episode][field])); ep_invalid+=1
+            elif field is not 'language_rank':  Log.Info("                     {:<23} Season {:>3}, Episode: {:>3} is not a valid metadata field, value: '{!s}'".format(field, season, episode, MetaSources[source]['seasons'][season]['episodes'][episode][field])); ep_invalid+=1
           ep_nb+=1
       if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields =' | '.join('{:<23} ({:>3})'.format(field,  season_fields[field]) for field in  season_fields)))
       if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields =' | '.join('{:<23} ({:>3})'.format(field, episode_fields[field]) for field in episode_fields)))
@@ -564,7 +564,7 @@ def SortTitle(title, language="en"):
               }
   title  = title.replace("'", " ")
   prefix = title.split(" ", 1)[0]
-  Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
+  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
 
 '''

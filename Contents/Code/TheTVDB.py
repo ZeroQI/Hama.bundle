@@ -24,8 +24,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   TVDB_BANNERS_URL  = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/{}/banners.xml'                        # TVDB Serie pictures xml: fanarts, posters, banners
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   TheTVDB_dict      = {}
-  xml               = common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK*2) or \
-                      common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL,                                 cache= CACHE_1WEEK*2)
+  xml               = common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK) or \
+                      common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL,                                 cache= CACHE_1WEEK)
   if not xml:  Log.Info("TheTVDB.GetMetadata() - url failed: '{}'".format(API_SERIE_URL))
   else:
     try:     xml = xml.xpath('/Data')[0]

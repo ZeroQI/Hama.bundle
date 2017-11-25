@@ -34,8 +34,8 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
   #cache = CACHE_1MONTH * 7 if False else CACHE_1DAY * 7
   xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL, cache=CACHE_1DAY * 7)  # AniDB title database loaded once every 2 weeks
   if xml:
-    AniDB_dict['title'], AniDB_dict['original_title'] = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-    AniDB_dict['title_sort'], _                       = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
+    AniDB_dict['title'], AniDB_dict['original_title'], language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
+    AniDB_dict['title_sort'], _ , _                                  = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
     #languages = lang if lang else [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')]
     Log.Info("AniDB.GetMetadata() - 'title': {}, 'title_sort': {}, original_title: {}".format(AniDB_dict['title'], AniDB_dict['title_sort'], AniDB_dict['original_title']))
     
@@ -72,8 +72,9 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
     for element in AniDBMovieSets.xpath("/anime-set-list/set/anime"):
       if element.get('anidbid').startswith('377'):  Log.Info(element.get('anidbid'))
       if element.get('anidbid') == AniDBid or element.get('anidbid') in AniDBid_table:
-        node        = element.getparent()
-        title, main = GetAniDBTitle(node.xpath('titles')[0])
+        node              = element.getparent()
+        title, main, language_rank = GetAniDBTitle(node.xpath('titles')[0])
+        SaveDict(language_rank, AniDB_dict, 'language_rank')
         SaveDict([title], AniDB_dict, 'collections')
         Log.Info("AniDB.GetMetadata() - AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(AniDBid_table)))
         break
@@ -97,11 +98,12 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
       for ep_obj in xml.xpath('episodes/episode'):   ### Episode Specific ###########################################################################################
         
         ### Episodes
-        title, main     = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
-        epNum           = ep_obj.xpath('epno')[0]
-        epNumType       = epNum.get('type')
-        season          = "1" if epNumType == "1" else "0"
-        episode         = epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
+        title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
+        epNum                      = ep_obj.xpath('epno')[0]
+        epNumType                  = epNum.get('type')
+        season                     = "1" if epNumType == "1" else "0"
+        episode                    = epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
+        Log.Info("AniDB.GetMetadata() - s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
         if epNumType=="3" and title.startswith("Ending"):
           if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
           episode = str( int(episode) +50 -op_nb)      #shifted to 150 for 1st ending.  
@@ -111,10 +113,11 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
           SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
           if season == "1":  numEpisodes, totalDuration = numEpisodes+1, totalDuration + int(GetXml(ep_obj, 'length'))
         
-        SaveDict(title or main,             AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )  #SaveDict(main, AniDB_dict, 'seasons', season, 'episodes', episode, 'title_sort')
+        SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
         SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
         SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
         SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
+        SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
         for role in ep_roles:
           SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
           #Log.Info("AniDB.GetMetadata() - role: '%s', value: %s " % (role, str(ep_roles[role])))
@@ -182,21 +185,21 @@ def GetAniDBTitlesDB():
 ### Extract the series/movie/Episode title from AniDB ########################################################################################################################
 def GetAniDBTitle(titles, lang=None, title_sort=False):
   languages = lang or [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')] #[ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ]  #override default language
-  if not 'main' in languages:  languages.append('main')                              # Add main to the selection if not present in list (main nearly same as x-jat)
-  type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}  # lower = highter priority
-  langLevel     = [20  for index in range(len(languages))]                           # languages: title order including main title, then choosen title
-  langTitles    = ["" for index in range(len(languages))]                            # languages: title order including main title, then choosen title
-  for title in titles:                                                               # Loop through all languages listed in the anime XML
-    type = title.get('type')
-    lang = title.get('{http://www.w3.org/XML/1998/namespace}lang') # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
-    if title_sort:  title.text = common.SortTitle(title.text, lang)
+  if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
+  type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
+  langLevel     = [20 for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+  langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
+  for title in titles:                                                                       # Loop through all languages listed in the anime XML
+    lang, type = title.get('{http://www.w3.org/XML/1998/namespace}lang'), title.get('type')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
+    if title_sort:  title.text = common.SortTitle(title.text, lang)                          # clean up title
+    #Log.Info("GetAniDBTitle - lang: {} type: {} title: {}".format(lang, type, title.text))
     if lang in languages and (type and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text.replace("`", "'"), type_priority [ type ] if type else 6 + languages.index(lang)
     if type=='main':                                                                                         langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text.replace("`", "'"), type_priority [ type ]
     if lang==languages[0] and type in ['main', ""]:  break
-  langTitles2 = filter(None, langTitles)
-  if   len(langTitles2)>=2:  return langTitles2[0], langTitles2[languages.index('main') if 'main' in langTitles2 else 1 if 1 in langTitles2 else 0]
-  elif len(langTitles2)==1:  return langTitles2[0], langTitles2[0]
-  else:                      return '', ''
+  for index, item in enumerate(langTitles+[]):
+    if item:  break
+  #Log.Info("GetAniDBTitle - lang index: '{}', langTitles: '{}', langLevel: '{}'".format(languages.index(lang) if lang in languages else '', str(langTitles), str(langLevel)))
+  return langTitles[index], langTitles[languages.index('main') if 'main' in languages else 1 if 1 in langTitles else 0], index
 
 ### Score word compared to string ###
 def WordsScore(words, title_cleansed):
