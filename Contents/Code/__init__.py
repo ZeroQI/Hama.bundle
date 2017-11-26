@@ -65,7 +65,6 @@ def Search(results, media, lang, manual, movie):
     if maxi<50 and movie:                                maxi = TheMovieDb.Search (results, media, lang, manual, movie)
     if maxi<80 and not movie or n>1:                     maxi = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
-  Log.Info("")
   
   ###test
   if not movie:  log.stop()

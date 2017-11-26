@@ -103,7 +103,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
         epNumType                  = epNum.get('type')
         season                     = "1" if epNumType == "1" else "0"
         episode                    = epNum.text if epNumType == "1" else str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
-        Log.Info("AniDB.GetMetadata() - s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
+        #Log.Info("AniDB.GetMetadata() - s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
         if epNumType=="3" and title.startswith("Ending"):
           if op_nb==0: op_nb = int(epNum.text[1:])-1 #first type 3 is first ending so epNum.text[1:] -1 = nb openings
           episode = str( int(episode) +50 -op_nb)      #shifted to 150 for 1st ending.  
@@ -138,7 +138,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
             elif epNumType == '1':
               if key:  SaveDict([numbering], movie_ep_groups, key)
               else:    missing_eps.append(numbering)
-            Log.Info("[!] Episode: {:>3} missing, epNumType: {}".format(numbering, epNumType))
+            #Log.Info("[!] Episode: {:>3} missing, epNumType: {}".format(numbering, epNumType))
       ### End of for ep_obj...
       
       if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
