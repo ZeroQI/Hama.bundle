@@ -181,8 +181,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1WEEK):  #By
   #
   if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
     file_time = os.stat(fullpathFilename).st_mtime
-    if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
-    else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() - cache)))
+    if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
+    else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
   else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}', url: '{url}' does not exists in cache".format(file=filename, path=relativeDirectory, url=url))
   if not file:
     netLock.acquire()
@@ -509,19 +509,23 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         count={'posters':0, 'art':0, 'thumbs':0}
-        new_season = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season
         for field in FieldListEpisodes:  # Get a field
           try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
           except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
           for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
+              new_season = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season
               new_episode = episode
-              if   source=='AniDB' and not metadata.id.startswith("tvdb4") and metadata.id.startswith("tvdb" or max(map(int, media.seasons.keys())) >1):
-                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s'" % (season, new_season, episode, new_episode))
+              Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s', field: '%s'" % (season, new_season, episode, new_episode, field))
+              if source== 'AniDB' and (metadata.id.startswith("tvdb") and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):
                 #Log.Info("[!] mappingList: '%s'" % (mappingList))
+                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 1" % (season, new_season, episode, new_episode))
                 new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
-                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s'" % (season, new_season, episode, new_episode))
-              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:   new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
+                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 2" % (season, new_season, episode, new_episode))
+              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:
+                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 1" % (season, new_season, episode, new_episode))
+                new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
+                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 2" % (season, new_season, episode, new_episode))
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if season=='0':
                   #if metadata.id.startswith("anidb") and max(map(int, media.seasons.keys())) >1 and source=='TheTVDB':  continue

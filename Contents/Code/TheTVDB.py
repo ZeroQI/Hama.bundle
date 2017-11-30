@@ -77,7 +77,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
             
       file = GetXml(ep, 'filename')  # KeyError: u'http://thetvdb.plexapp.com/banners/episodes/81797/383792.jpg' avoided below with str ???
       if file:  SaveDict((str("TVDB/episodes/"+ os.path.basename(file)), 1, None), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'thumbs', str(TVDB_IMAGES_URL+file))
-      
+      if file:  Log.Info("TheTVDB.GetMetadata() - numbering: '{}', file: '{}'".format(numbering, file))
+  
       ### Missing summaries logs ###
       if SaveDict( GetXml(ep, 'Overview'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  summary_present.append(numbering)
       elif season!='0':                                                                                       summary_missing.append(numbering)
@@ -105,14 +106,14 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes missing: "         + str(sorted(episode_missing, key=natural_sort_key)))
     
   ### Actors ###
-  #if not Prefs["GetSingleOne"]: ###disabled for now
-  #  if Dict(TheTVDB_dict, 'roles'):    #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|
-  #    xml = common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK) or \
-  #          common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL,                                 cache= CACHE_1WEEK)  # AniDB title database loaded once every 2 weeks
-  #    TheTVDB_dict['roles'] = []
-  #    for role in xml.xpath('/Actors/Actor') if xml else []:
-  #      try:                    SaveDict([{'role': role.find('Role').text, 'name': role.find('Name').text, 'photo': TVDB_IMAGES_URL + role.find('Image').text}], TheTVDB_dict, 'roles')
-  #      except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
+  if not Prefs["GetSingleOne"]: ###disabled for now
+    if Dict(TheTVDB_dict, 'roles'):    #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|
+      xml = common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK) or \
+            common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL,                                 cache= CACHE_1WEEK)  # AniDB title database loaded once every 2 weeks
+      TheTVDB_dict['roles'] = []
+      for role in xml.xpath('/Actors/Actor') if xml else []:
+        try:                    SaveDict([{'role': role.find('Role').text, 'name': role.find('Name').text, 'photo': TVDB_IMAGES_URL + role.find('Image').text}], TheTVDB_dict, 'roles')
+        except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
   
   ### Picture XML download ###
   xml=common.LoadFile(filename=TVDBid+".banners.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'banners'), url=TVDB_BANNERS_URL.format(TVDBid), cache= CACHE_1HOUR * 24 * 7)  # AniDB title database loaded once every 2 weeks
