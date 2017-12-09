@@ -124,7 +124,7 @@ Get the latest source zip in github release for hama https://github.com/ZeroQI/H
 Folders to copy in Plex main folder:
 
     * "Scanners"         "Scanners/Series" folder needs creating. Absolute series Scanner.py" goes inside. 
-    			 https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
+    			 https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
     * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
     * "Plug-ins support" https://github.com/ZeroQI/Hama.bundle/releases/tag/v1.0 > Plug-Ins.support.folders.7z Agent data folders (Plug-ins support/Data/com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
     * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library (optional but do not include it when sendings logs) [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
