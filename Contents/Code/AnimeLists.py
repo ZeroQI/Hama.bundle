@@ -53,7 +53,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
   Log.Info("AnimeLists.GetMetadata() - source: {}, id: {}, AniDB_id: {}, TVDB_id: {}".format(source, id, AniDB_id, TVDB_id))
       
   ### Load custom mapping file in serie folder or root
-  if movie: folder = os.path.foldername(media.items[0].parts[0].file)
+  if movie: folder = os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons:  #get first file path
       for e in media.seasons[s].episodes:  folder = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
