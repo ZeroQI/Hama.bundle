@@ -11,6 +11,9 @@ import re
 import logging
 import datetime        # datetime.now
 from string import maketrans
+from lxml import etree                                  # fromstring
+try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
+except ImportError:  from urllib2        import urlopen # urlopen Python 2.x #import urllib2 # urlopen
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 strptime             = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
@@ -33,6 +36,30 @@ FieldListSeasons  = ('summary', 'posters', 'art')
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort, ''absolute_number' even in try: AttributeError: 'RecordObject' object has no attribute 'absolute_number'
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', "TVTunes") #"Simkl", 
 
+### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
+if not os.path.isdir(PlexRoot):
+  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
+                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
+                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
+  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+
+### Plex Library XML ###
+PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
+Log.Info("test library: "+PlexRoot)  #Log.Info(file)
+if os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
+  Log.Info("'X-Plex-Token.id' file present")
+  token_file=Data.Load(os.path.join(PlexRoot, "X-Plex-Token.id"))
+  if token_file:
+    PLEX_LIBRARY_URL += "?X-Plex-Token=" + token_file.strip()
+    #Log.Info(PLEX_LIBRARY_URL) ##security risk if posting logs with token displayed
+ try:
+  library_xml = etree.fromstring(urlopen(PLEX_LIBRARY_URL).read())
+  for library in library_xml.iterchildren('Directory'):
+    for path in library.iterchildren('Location'):
+      PLEX_LIBRARY[path.get("path")] = library.get("title")
+      Log.Info( path.get("path") + " = " + library.get("title") )
+except Exception as e:  Log.Info("Place correct Plex token in X-Plex-Token.id file in logs folder or in PLEX_LIBRARY_URL variable to have a log per library - https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token" + str(e))
+ 
 ### Logging class to join scanner and agent logging per serie
 # 
 # Scanner:
@@ -40,39 +67,43 @@ SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'The
 #  - log = PlexLog(file='root/folder/[anidb2-xxxx].log', isAgent=False)
 # Agent:    log = common.PlexLog(file='mytest.log', isAgent=True )
 # Useage:   log.debug('some debug message: %s', 'test123')
-
-###
-def serie_folder(LOGS_PATH, media):
-  dir = ''
-  if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format( LOGS_PATH))
-  for s in media.seasons:
-    for e in media.seasons[s].episodes:
-      dir = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
-      #Log.Info("folder: {}, basename(folder): {}".format(dir, os.path.basename(dir)))
-      break
-    break
-  old_dir = dir
-  #Log.Info("LOGS_PATH: {}, dir: {}, file: {}".format(LOGS_PATH, dir, os.path.join(LOGS_PATH, os.path.basename(dir)+'.log')))
-  while dir and os.path.splitdrive(dir)[1] != os.sep:
-    file = os.path.join(LOGS_PATH, os.path.basename(dir)+'.agent.log')
-    #if os.path.isfile(file):  
-    return file     #else:  Log.Info("Not found file: " + file)
-    dir = os.path.dirname(dir)
-  Log.Info("No serie folder log. Is beta Scanner installed? dir from media: {}, basename: {}".format(old_dir, os.path.basename(old_dir)))
-  return os.path.join(LOGS_PATH, '_root_.log')
-    
 class PlexLog(object):
   Log.Info(str(dir(logging)))  # %(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s 
-  def __init__ (self, isAgent = False, log_format='%(message)s', file="", mode='', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
-    if not isAgent or True:  # Scanner
-      try:
-        log = logging.getLogger()                                      # update root logging's handler
-        for handler in log.handlers:  log.removeHandler(handler)       # remove all old handlers
-        new_handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'a' if isAgent else 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
-        new_handler.setFormatter(logging.Formatter(log_format))        # Set log format
-        log.addHandler(new_handler)                                    # set the new handler
-        log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
-      except IOError, e:  self.error('updateLoggingConfig: failed to set logfile: %s', str(e))
+  def __init__ (self, media=None, movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
+  
+    if not file:
+      #Get movie or serie episode folder location
+      if movie:  dir = os.path.dirname(media.items[0].parts[0].file)
+      else:
+        for s in media.seasons:
+          for e in media.seasons[s].episodes:
+            dir = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+            break
+          break
+      Log.Debug("dir: "+dir)
+      
+      #Get library, root and relative path by croossing folder path with Plex libraries root folder
+      Log.Debug("PLEX_LIBRARY: "+str(PLEX_LIBRARY))
+      for root in [os.sep.join(dir.split(os.sep)[0:x+1]) for x in range(0, dir.count(os.sep))]:
+        if root in PLEX_LIBRARY:  library, path       = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
+        else:  Log.Debug("root: '%s'" % root)
+      else:                       library, path, root = ''                , '_unknown_folder', ''
+      Log.Debug("library: '%s', path: '%s', root: '%s'" % (library, path, root))
+      extension = '.agent-search.log' if search else '.agent-update.log'
+      
+      if movie:  LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
+      else:      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
+      if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
+      file = os.path.join(LOGS_PATH, file)
+      Log.Debug(file)
+    try:
+      log = logging.getLogger()                                      # update root logging's handler
+      for handler in log.handlers:  log.removeHandler(handler)       # remove all old handlers
+      new_handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
+      new_handler.setFormatter(logging.Formatter(log_format))        # Set log format
+      log.addHandler(new_handler)                                    # set the new handler
+      log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
+    except IOError, e:  self.error('updateLoggingConfig: failed to set logfile: %s', str(e))
     self.isAgent = isAgent
   def debug    (self, msg, *args, **kwargs):  (Log.Debug    if self.isAgent else logging.debug   ) (msg, *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
   def info     (self, msg, *args, **kwargs):  (Log.Info     if self.isAgent else logging.info    ) (msg, *args, **kwargs)
@@ -84,14 +115,14 @@ class PlexLog(object):
     for handler in log.handlers:  log.removeHandler(handler)
     
 ### Save file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems creating folder(s) ###
-def Logging():
+#def Logging():
   #for handler in logging.getLogger('com.plexapp.agents.hama').handlers:
   #  handler.setFormatter(logging.Formatter('%(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s %(message)s'))
     #set_logging('com.plexapp.agents.hama', os.path.join(LOG_PATH, filename) 
     #handler = logging.FileHandler(os.path.join(LOG_PATH, filename), mode)
   #log = PlexLog(file=os.path.join(PlexRoot, 'Logs', 'mytest.log'), isAgent=True, mode='a')
   #log.debug('some debug message: ' + os.path.join(PlexRoot, 'mytest.log'))
-  pass
+  #pass
   
 ### Code reduction one-liners that get imported specifically ###
 def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field    ]>0) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"
@@ -157,7 +188,7 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
   except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}'".format(exception=e, relativeFilename=relativeFilename))
   
 ### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1WEEK):  #By Dingmatt, heavily moded
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #By Dingmatt, heavily moded
   ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
   relativeFilename   = os.path.join(relativeDirectory, filename) 
   fullpathFilename   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))

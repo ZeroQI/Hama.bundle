@@ -36,7 +36,6 @@ def ValidatePrefs():
 
 ### Pre-Defined Start function ############################################################################################################################################
 def Start():
-  #common.Logging()
   Log.Info("".ljust(157, '='))
   Log.Info("HTTP Anidb Metadata Agent by ZeroQI (Forked from Atomicstrawberry's v0.4, AnimeLists XMLs by SdudLee) - CPU: {}, OS: {}".format(Platform.CPU, Platform.OS))
   HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
@@ -44,9 +43,7 @@ def Start():
   
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
-  if not movie:
-    import os
-    log = common.PlexLog(file=common.serie_folder(os.path.join(common.CachePath, '_Logs', 'Series'), media), isAgent=True, mode='a')
+  log = common.PlexLog(media=media, movie=movie, search=True)
   orig_title = media.title if movie else media.show
   Log.Info('=== Search ============================================================================================================')
   Log.Info("Title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
@@ -72,12 +69,11 @@ def Search(results, media, lang, manual, movie):
         
 ### Update Movie/Serie from metadata.id assigned #########################################################################################################################
 def Update(metadata, media, lang, force, movie):
+  log = common.PlexLog(media=media, movie=movie, search=False)
   source    = metadata.id.split('-', 1)[0]
   error_log = { 'AniDB summaries missing'   :[], 'AniDB posters missing'      :[], 'anime-list AniDBid missing':[], 'anime-list studio logos'  :[],  
                 'TVDB posters missing'      :[], 'TVDB season posters missing':[], 'anime-list TVDBid missing' :[], 'Plex themes missing'      :[],
                 'Missing Episodes'          :[], 'Missing Specials'           :[], 'Missing Episode Summaries' :[], 'Missing Special Summaries':[]}
-  if movie:  log = common.PlexLog(file=common.serie_folder(os.path.join(common.CachePath, '_Logs', 'Movies'), media), isAgent=True, mode='a')
-  else:      log = common.PlexLog(file=common.serie_folder(os.path.join(common.CachePath, '_Logs', 'Series'), media), isAgent=True, mode='a')
   Log.Info('=== Update ==='.ljust(157, '='))
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
   #Log.Info("".ljust(157, '='))

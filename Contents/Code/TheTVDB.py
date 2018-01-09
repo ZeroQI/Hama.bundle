@@ -24,8 +24,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   TVDB_BANNERS_URL  = 'http://thetvdb.com/api/A27AD9BE0DA63333/series/{}/banners.xml'                        # TVDB Serie pictures xml: fanarts, posters, banners
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   TheTVDB_dict      = {}
-  xml               = common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK) or \
-                      common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL,                                 cache= CACHE_1WEEK)
+  xml               = common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL.replace('.com', '.plexapp.com')) or \
+                      common.LoadFile(filename=TVDBid+".xml", relativeDirectory=os.path.join('TheTVDB', 'xml'), url=API_SERIE_URL)
   if not xml:  Log.Info("TheTVDB.GetMetadata() - url failed: '{}'".format(API_SERIE_URL))
   else:
     try:     xml = xml.xpath('/Data')[0]
@@ -108,15 +108,15 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   ### Actors ###
   if not Prefs["GetSingleOne"]: ###disabled for now
     if Dict(TheTVDB_dict, 'roles'):    #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|
-      xml = common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL.replace('.com', '.plexapp.com'), cache= CACHE_1WEEK) or \
-            common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL,                                 cache= CACHE_1WEEK)  # AniDB title database loaded once every 2 weeks
+      xml = common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL.replace('.com', '.plexapp.com'), cache= CACHE_1MONTH) or \
+            common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL,                                 cache= CACHE_1MONTH)  # AniDB title database loaded once every 2 weeks
       TheTVDB_dict['roles'] = []
       for role in xml.xpath('/Actors/Actor') if xml else []:
         try:                    SaveDict([{'role': role.find('Role').text, 'name': role.find('Name').text, 'photo': TVDB_IMAGES_URL + role.find('Image').text}], TheTVDB_dict, 'roles')
         except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
   
   ### Picture XML download ###
-  xml=common.LoadFile(filename=TVDBid+".banners.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'banners'), url=TVDB_BANNERS_URL.format(TVDBid), cache= CACHE_1HOUR * 24 * 7)  # AniDB title database loaded once every 2 weeks
+  xml=common.LoadFile(filename=TVDBid+".banners.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'banners'), url=TVDB_BANNERS_URL.format(TVDBid), cache= CACHE_1MONTH)  # AniDB title database loaded once every 2 weeks
   if not xml:  Log.Info("TheTVDB.GetMetadata() - XML loading failed")
   else:
     metanames     = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons"}
