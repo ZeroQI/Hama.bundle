@@ -52,7 +52,7 @@ if os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
   if token_file:
     PLEX_LIBRARY_URL += "?X-Plex-Token=" + token_file.strip()
     #Log.Info(PLEX_LIBRARY_URL) ##security risk if posting logs with token displayed
- try:
+try:
   library_xml = etree.fromstring(urlopen(PLEX_LIBRARY_URL).read())
   for library in library_xml.iterchildren('Directory'):
     for path in library.iterchildren('Location'):
@@ -278,7 +278,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
 def cleanse_title(string):#def CleanTitle(title):
   import unicodedata
   DeleteChars  = ""
-  ReplaceChars = maketrans("`’:~/*?-–.,", "''         ") #.;_
+  ReplaceChars = maketrans("`Â’:~/*?-Â–.,", "''         ") #.;_
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
   try:       string = string.encode('ascii', 'replace')        # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass
