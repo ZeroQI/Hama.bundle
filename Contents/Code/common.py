@@ -278,7 +278,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
 def cleanse_title(string):#def CleanTitle(title):
   import unicodedata
   DeleteChars  = ""
-  ReplaceChars = maketrans("`:~/*?-.,", "''         ") #.;_
+  ReplaceChars = maketrans("`:~/*?-.,", "         ") #.;_
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
   try:       string = string.encode('ascii', 'replace')        # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass
