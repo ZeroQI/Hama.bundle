@@ -53,7 +53,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
   Log.Info("AnimeLists.GetMetadata() - source: {}, id: {}, AniDB_id: {}, TVDB_id: {}".format(source, id, AniDB_id, TVDB_id))
       
   ### Load custom mapping file in serie folder or root
-  if movie: folder = os.path.foldername(media.items[0].parts[0].file)
+  if movie: folder = os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons:  #get first file path
       for e in media.seasons[s].episodes:  folder = os.path.dirname( media.seasons[s].episodes[e].items[0].parts[0].file); break
@@ -95,9 +95,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
             for ep in filter(None, season.text.split(';')) if season.text else []:
               mappingList[ 's'+season.get("anidbseason")+'e'+ep.split('-')[0] ] = (season.get("tvdbseason"), ep.split('-')[1] if len(ep.split('-'))>1 else '')
         except Exception as e:  Log.Error("AnimeLists.GetMetadata() - mappingList creation exception, Exception: '%s'" % e)
-      elif TVDBid in ("", "unknown"):  error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
-      else:
-        error_log['anime-list TVDBid missing'].append("AniDBid: '%s' | TVDBid: '%s' | Serie not in thetvdb" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), TVDBid))
+      elif TVDBid in ("", "unknown"):
+        error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         Log.Warn("'anidbTvdbMapping() - anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
       Log.Info("AnimeLists.GetMetadata() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['defaulttvdbseason'], mappingList['name']) )
       

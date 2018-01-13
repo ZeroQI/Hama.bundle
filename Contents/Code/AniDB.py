@@ -89,7 +89,10 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
         if roles[role]=="studio":  SaveDict(creator.text, AniDB_dict, 'studio')
         else:                      SaveDict([creator.text], ep_roles, roles[role])
     Log.Info("AniDB.GetMetadata() - creators tag: " +str(ep_roles))
-    if not movie:  #TV Library
+    if movie:  #Movie Library
+      if SaveDict( GetXml(xml, 'startdate'  )[0:4], AniDB_dict, 'year'):  Log.Info("AniDB.GetMetadata() - 'year': '{}'".format(AniDB_dict['year']))
+     
+    else:      #TV Library
       
       ### Translate into season/episode mapping
       numEpisodes, totalDuration, mapped_eps, missing_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], [], {}, 0 
@@ -287,29 +290,6 @@ def Search (results, media, lang, manual, movie):
   
   return best_score, n
   
-  '''if best_score==0:
-    start_time = time.time()
-    best_score_entry, best_title_entry, best_type_entry, best_lang_entry = 0, "", "", ""
-    for element in AniDBTitlesDB.xpath(u"/animetitles/anime/title"):
-      aid            = element.get('aid',  '')
-      Type           = element.get('type', '')
-      Lang           = element.get('{http://www.w3.org/XML/1998/namespace}lang', '')
-      title          = element.text
-      title_cleansed = common.cleanse_title(title)
-      common_part = String.LongestCommonSubstring(title_cleansed, orig_title_cleansed)
-      if len(common_part)<=6:  continue
-      score= 100*(len(common_part)+1)/ max(len(orig_title_cleansed), len(title_cleansed))
-      if score>best_score_entry or score==best_score_entry and (not best_type_entry or type_order.index(Type)<type_order.index(best_type_entry)):
-        best_score_entry, best_title_entry, best_type_entry, best_lang_entry = score, title, Type, Lang
-        Log.Info("[-] score: '{}', title: '{}', aid: '{}'".format(best_score_entry, best_title_entry, aid))
-      if score >80:
-        levenstein = int(100 * Util.LevenshteinRatio(title_cleansed, orig_title_cleansed)) #100 - 200 * Util.LevenshteinDistance(title_cleansed, orig_title_cleansed) / (len(title_cleansed) + len(orig_title_cleansed))
-        Log.Info("levenstein: {}".format(levenstein))
-        results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang}): {aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
-    Log.Info("[=] score: '{}', best_title: '{}', aid: '{}'".format(best_score, best_title, best_aid))
-    Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
-  '''
-
 ### Always on variables ###
 AniDBTitlesDB = GetAniDBTitlesDB()
 
