@@ -80,22 +80,19 @@ class PlexLog(object):
             dir = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
             break
           break
-      Log.Debug("dir: "+dir)
       
       #Get library, root and relative path by croossing folder path with Plex libraries root folder
-      Log.Debug("PLEX_LIBRARY: "+str(PLEX_LIBRARY))
-      for root in [os.sep.join(dir.split(os.sep)[0:x+1]) for x in range(0, dir.count(os.sep))]:
-        if root in PLEX_LIBRARY:  library, path       = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
-        else:  Log.Debug("root: '%s'" % root)
-      else:                       library, path, root = ''                , '_unknown_folder', ''
-      Log.Debug("library: '%s', path: '%s', root: '%s'" % (library, path, root))
+      for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
+        if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], ".".join(os.path.basename(media.items[0].parts[0].file).split('.')[:-1]) if movie and dir==root else os.path.relpath(dir, root); break
+      else:                 library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
+      Log.Debug("library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
       extension = '.agent-search.log' if search else '.agent-update.log'
       
       if movie:  LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
       else:      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
       file = os.path.join(LOGS_PATH, file)
-      Log.Debug(file)
+      Log.Debug("Log file: " + file)
     try:
       log = logging.getLogger()                                      # update root logging's handler
       for handler in log.handlers:  log.removeHandler(handler)       # remove all old handlers
@@ -113,17 +110,7 @@ class PlexLog(object):
   def stop     (self                      ):
     log = logging.getLogger()                                      # update root logging's handler
     for handler in log.handlers:  log.removeHandler(handler)
-    
-### Save file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems creating folder(s) ###
-#def Logging():
-  #for handler in logging.getLogger('com.plexapp.agents.hama').handlers:
-  #  handler.setFormatter(logging.Formatter('%(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s %(message)s'))
-    #set_logging('com.plexapp.agents.hama', os.path.join(LOG_PATH, filename) 
-    #handler = logging.FileHandler(os.path.join(LOG_PATH, filename), mode)
-  #log = PlexLog(file=os.path.join(PlexRoot, 'Logs', 'mytest.log'), isAgent=True, mode='a')
-  #log.debug('some debug message: ' + os.path.join(PlexRoot, 'mytest.log'))
-  #pass
-  
+
 ### Code reduction one-liners that get imported specifically ###
 def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field    ]>0) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
@@ -207,7 +194,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
   #      date - cache_file_date >= 7 days and serie in progress or   # every 7 days afterwards if in progress
   #      serie not in progress and date - cache_file_date >= 90 days )  #every 3 months if terminated
   # 
-  #if not file or 
+  #if not file or  
   #  file = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=20, cacheTime=cache)) 
   #
   if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
@@ -547,30 +534,28 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if source in MetaSources:
               new_season = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season
               new_episode = episode
-              Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s', field: '%s'" % (season, new_season, episode, new_episode, field))
+              #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s', field: '%s'" % (season, new_season, episode, new_episode, field))
               if source== 'AniDB' and (metadata.id.startswith("tvdb") and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):
                 #Log.Info("[!] mappingList: '%s'" % (mappingList))
-                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 1" % (season, new_season, episode, new_episode))
+                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 1" % (season, new_season, episode, new_episode))
                 new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
-                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 2" % (season, new_season, episode, new_episode))
               elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:
-                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 1" % (season, new_season, episode, new_episode))
+                #Log.Info("[!] mappingList: '%s'" % (mappingList))
+                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 1" % (season, new_season, episode, new_episode))
                 new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
-                Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 2" % (season, new_season, episode, new_episode))
+              #if not season==new_season and not episode==new_episode:  Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 2" % (season, new_season, episode, new_episode))
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if season=='0':
                   #if metadata.id.startswith("anidb") and max(map(int, media.seasons.keys())) >1 and source=='TheTVDB':  continue
                   if (metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys())) >1) and source=='AniDB' and new_season==season and new_episode==episode:  continue
                 UpdateMetaField(metadata, (metadata, season, episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
-                if field in count:  count[field] = count[field] + 1
+                count[field] = count[field] + 1 if field in count else 1
                 if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):  continue  #try other meta source if index not 0 which is the first selected language
-              if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
+                if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
             elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
-          else:
-            if not Dict(count, field):    
-              source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'seasons', season, 'episodes', episode, field) ]
-              Log.Info("[#] {field:<29}  Type: {format:<20}  Source: '{source}', Field present in this sources: '{other}'".format(field=field, format=type(meta_old).__name__, source=Prefs[field], other=source_list))
-              #Log.Info("[!] "+str(Dict(MetaSources, 'AniDB', 'seasons', new_season, 'episodes', new_episode, field)))
+          if not Dict(count, field):
+            source_list = [ source for source in MetaSources if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field) ]
+            Log.Info("[!] {field:<29}  Type: {format:<20}  Source: '{source}', Field present in this sources: '{other}', count: '{count}'".format(field=field, format=type(meta_old).__name__, source=Prefs[field], other=source_list, count=Dict(count, field)))
       # End Of for episode
     # End of for season
     Log.Info("".ljust(157, '-'))
