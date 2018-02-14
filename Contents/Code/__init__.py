@@ -85,13 +85,8 @@ def Update(metadata, media, lang, force, movie):
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
-<<<<<<< HEAD
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', "", "N/A") else {}  #TVDBid=='hentai'
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
-=======
-  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey']!='None' else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                       else {}  #TVDBid=='hentai'
->>>>>>> 58b7fddea41a7132c30c1d5b4df7c24de526068b
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
@@ -109,8 +104,6 @@ class HamaMovieAgent(Agent.Movies):
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
   def search (self, results,  media, lang, manual):  Search (results,  media, lang, manual, True)
   def update (self, metadata, media, lang, force ):  Update (metadata, media, lang, force,  True)
-<<<<<<< HEAD
-=======
 
 '''
 Thread.Create(f, globalize=True, *args, **kwargs)
@@ -125,4 +118,3 @@ Thread.Unblock(key)
 Thread.Wait(key, timeout=None)
 Thread.Semaphore(key=None, limit=1)
 '''
->>>>>>> 58b7fddea41a7132c30c1d5b4df7c24de526068b
