@@ -47,7 +47,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
   tmdbid, imdbid, folder                          = "", "", ""
   
   Log.Info("".ljust(157, '-'))
-  source, id = id.split('-', 1)
+  source, id = id.split('-', 1) if '-' in id else ("",id)
   AniDB_id = id if source.startswith('anidb') else ""
   TVDB_id  = id if source.startswith( 'tvdb') else ""
   Log.Info("AnimeLists.GetMetadata() - source: {}, id: {}, AniDB_id: {}, TVDB_id: {}".format(source, id, AniDB_id, TVDB_id))

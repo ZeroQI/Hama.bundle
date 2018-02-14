@@ -13,17 +13,18 @@ import os
 def GetMetadata(movie, MALid):
   Log.Info("".ljust(157, '-'))
   Log.Info("MyAnimeList.GetMetadata() - MALid: '%s'" % MALid)
-  if not MALid.isdigit():  return {}
+  if not MALid or not MALid.isdigit():  return {}
   
   MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
   MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
   MyAnimeList_dict = {}
   xml              = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid, cache=CACHE_1DAY * 7)
   if xml:
-    SaveDict( GetXml(xml, 'title'     ), MyAnimeList_dict, 'title'                  )
-    SaveDict( GetXml(xml, 'synopsis'  ), MyAnimeList_dict, 'summary'                )
-    SaveDict( GetXml(xml, 'rating'    ), MyAnimeList_dict, 'content_rating'         )
-    SaveDict( GetXml(xml, 'firstAired'), MyAnimeList_dict, 'originally_available_at')
+    SaveDict( GetXml(xml, 'title'         ), MyAnimeList_dict, 'title'                  )
+    SaveDict( GetXml(xml, 'synopsis'      ), MyAnimeList_dict, 'summary'                )
+    SaveDict( GetXml(xml, 'rating'        ), MyAnimeList_dict, 'score'                  )
+    #SaveDict( GetXml(xml, 'content_rating').split(" ")[0], MyAnimeList_dict, 'rating'   )
+    SaveDict( GetXml(xml, 'firstAired'    ), MyAnimeList_dict, 'originally_available_at')
       
     #for item in xml.xpath('//anime/genres/genre' or []):  SaveDict([item.text], MyAnimeList_dict, 'genres')
     if GetXml(xml, '//anime/genres/genre'):          SaveDict( [item.text for item in xml.xpath('//anime/genres/genre')], MyAnimeList_dict, 'genres') 

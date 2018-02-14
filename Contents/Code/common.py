@@ -28,7 +28,7 @@ TVDB_SERIE_URL       = 'http://thetvdb.com/?tab=series&id='
 ANIDB_SERIE_URL      = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
 FieldListMovies   = ('original_title', 'title', 'roles', 'year', 'originally_available_at', 'studio', 'tagline', 'summary', 'content_rating', 'content_rating_age',
-                     'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes')
+                     'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating')
 FieldListSeries   = ('genres', 'tags' , 'collections', 'duration', 'rating', 'title', 'summary', 'originally_available_at', 'reviews', 'extras', 'countries', 'rating_count',
                      'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 'title_sort',
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
@@ -421,7 +421,6 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
      isinstance(meta_new, list) and field not in MetaRoleList and set(meta_new)== set(meta_old):
     Log.Info("[=] {field:<23}  {len:>4}  Type: {format:<20}  Source: {source:<11}  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, format=type(meta_new).__name__, value=meta_new_short))
   else:
-    #Log.Info("4j")
     #Log.Info("field: '{}', meta_new: '{}'".format(str(field), str(meta_new)))
     #Log.Info("Prefs[field]: '{}'".format(Prefs[field]))
     temp = [MetaSource.strip() for MetaSource in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if MetaSource and MetaSource.strip()]
@@ -532,22 +531,13 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
           for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
-              new_season = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season
-              new_episode = episode
-              #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s', field: '%s'" % (season, new_season, episode, new_episode, field))
-              if source== 'AniDB' and (metadata.id.startswith("tvdb") and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):
-                #Log.Info("[!] mappingList: '%s'" % (mappingList))
-                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' anidb_ep 1" % (season, new_season, episode, new_episode))
-                new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
-              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:
-                #Log.Info("[!] mappingList: '%s'" % (mappingList))
-                #Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 1" % (season, new_season, episode, new_episode))
-                new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
+              new_season, new_episode = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season, episode
+              if source== 'AniDB' and (metadata.id.startswith("tvdb") and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):  new_season, new_episode = AnimeLists.anidb_ep(mappingList, season, episode)
+              elif source=='TheTVDB'  and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:                                    new_season, new_episode = AnimeLists.tvdb_ep (mappingList, season, episode)
               #if not season==new_season and not episode==new_episode:  Log.Info("[!] season: '%s', new_season: '%s', episode: '%s', new_episode: '%s' tvdb_ep 2" % (season, new_season, episode, new_episode))
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
-                if season=='0':
-                  #if metadata.id.startswith("anidb") and max(map(int, media.seasons.keys())) >1 and source=='TheTVDB':  continue
-                  if (metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys())) >1) and source=='AniDB' and new_season==season and new_episode==episode:  continue
+                #if metadata.id.startswith("anidb") and max(map(int, media.seasons.keys())) >1 and source=='TheTVDB':  continue
+                if season=='0' and (metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys())) >1) and source=='AniDB' and new_season==season and new_episode==episode:  continue
                 UpdateMetaField(metadata, (metadata, season, episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
                 count[field] = count[field] + 1 if field in count else 1
                 if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):  continue  #try other meta source if index not 0 which is the first selected language
@@ -589,6 +579,10 @@ def SortTitle(title, language="en"):
   #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
 
+  ###test
+  #if not movie:  log.stop()
+  
+
 '''
     def CleanUpString(s):
 
@@ -605,3 +599,16 @@ def SortTitle(title, language="en"):
       # Strip diacritics and punctuation.
       s = u''.join([c for c in s if not unicodedata.combining(c) and not unicodedata.category(c).startswith('P')])
   '''
+'''
+Thread.Create(f, globalize=True, *args, **kwargs)
+Thread.CreateTimer(interval, f, globalize=True, *args, **kwargs)
+Thread.Sleep(interval)
+Thread.Lock(key=None)
+Thread.AcquireLock(key)
+Thread.ReleaseLock(key)
+Thread.Event(key=None)
+Thread.Block(key)
+Thread.Unblock(key)
+Thread.Wait(key, timeout=None)
+Thread.Semaphore(key=None, limit=1)
+'''

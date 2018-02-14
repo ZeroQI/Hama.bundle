@@ -31,12 +31,11 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
   ANIDB_PIC_THUMB_URL = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   ANNid, MALid,       = "", ""
   AniDB_dict          = {}
-  #cache = CACHE_1MONTH * 7 if False else CACHE_1DAY * 7
+  
   xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
   if xml:
     AniDB_dict['title'], AniDB_dict['original_title'], language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
     AniDB_dict['title_sort'], _ , _                                  = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
-    #languages = lang if lang else [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')]
     Log.Info("AniDB.GetMetadata() - 'title': {}, 'title_sort': {}, original_title: {}".format(AniDB_dict['title'], AniDB_dict['title_sort'], AniDB_dict['original_title']))
     
     if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("AniDB.GetMetadata() - 'originally_available_at': '{}'".format(AniDB_dict['originally_available_at']))
@@ -51,6 +50,7 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
       except:  Log.Info("AniDB.GetMetadata() - 'roles' - Seyiuu error")
     
     if SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating'):  Log.Info("AniDB.GetMetadata() - 'rating': '{}'".format(AniDB_dict['rating']))
+    
     ###
     if GetXml(xml, 'picture'):
       #thumbLocalPath = functions.ParseImage(bannerPath, constants.ANIDB_PIC_BASE_URL, os.path.join("AniDB", id, "season"), constants.ANIDB_PIC_THUMB_URL % os.path.splitext(bannerPath)[0]
@@ -94,6 +94,8 @@ def GetMetadata(media, movie, error_log, metadata_source, AniDBid, TVDBid, AniDB
      
     else:      #TV Library
       
+      if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("AniDB.GetMetadata() - 'movie': '{}'".format(AniDB_dict['movie']))
+    
       ### Translate into season/episode mapping
       numEpisodes, totalDuration, mapped_eps, missing_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], [], {}, 0 
       specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}

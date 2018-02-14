@@ -59,9 +59,9 @@ def Search(results, media, lang, manual, movie):
     Log.Info("Forced ID - source: {}, id: {}, title: '{}'".format(match.group('source'), match.group('guid'), match.group('show')))
   else:  #if media.year is not None:  orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
     maxi, n = 0, 0
-    if movie or max(map(int, media.seasons.keys()))<=1:  maxi, n = AniDB.Search(results, media, lang, manual, movie)
-    if maxi<50 and movie:                                maxi = TheMovieDb.Search (results, media, lang, manual, movie)
-    if maxi<80 and not movie or n>1:                     maxi = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
+    if movie or max(map(int, media.seasons.keys()))<=1:  maxi, n =       AniDB.Search(results, media, lang, manual, movie)
+    if maxi<50 and movie:                                maxi    =  TheMovieDb.Search(results, media, lang, manual, movie)
+    if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
   
   ###test
@@ -76,9 +76,6 @@ def Update(metadata, media, lang, force, movie):
                 'Missing Episodes'          :[], 'Missing Specials'           :[], 'Missing Episode Summaries' :[], 'Missing Special Summaries':[]}
   Log.Info('=== Update ==='.ljust(157, '='))
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
-  #Log.Info("".ljust(157, '='))
-  #if movie: Log.Info("Update() - " + media.items[0].parts[0].file)
-  #else:   [ Log.Info("Update() - " + media.seasons[s].episodes[e].items[0].parts[0].file) for s in sorted(media.seasons) for e in sorted(media.seasons[s].episodes)]
   
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id,                   AniDBMovieSets) #, AniDBTVDBMap
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
@@ -88,16 +85,13 @@ def Update(metadata, media, lang, force, movie):
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
-  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey']!='None' else {}  #TVDBid=='hentai'
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if TVDBid=='hentai'            else {}
+  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', "", "N/A") else {}  #TVDBid=='hentai'
+  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'TheTVDB': dict_TheTVDB, 'AniDB': dict_AniDB, 'Plex': dict_Plex, 'MyAnimeList': dict_MyAnimeList, 
-                                             'TheMovieDb': dict_TheMovieDb, 'TVTunes': dict_TVTunes, 'tvdb4': dict_tvdb4, 'OMDb': dict_OMDb, 'FanartTV':    dict_FanartTV}, mappingList)
-  ###test
-  if not movie:  log.stop()
-  
+    'TheMovieDb': dict_TheMovieDb, 'TVTunes': dict_TVTunes, 'tvdb4': dict_tvdb4, 'OMDb': dict_OMDb, 'FanartTV': dict_FanartTV}, mappingList)
 ### Agent declaration ##################################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows):  # 'com.plexapp.agents.none', 'com.plexapp.agents.opensubtitles'
   name, primary_provider, fallback_agent, contributes_to, accepts_from = 'HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] 
@@ -110,17 +104,3 @@ class HamaMovieAgent(Agent.Movies):
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
   def search (self, results,  media, lang, manual):  Search (results,  media, lang, manual, True)
   def update (self, metadata, media, lang, force ):  Update (metadata, media, lang, force,  True)
-
-'''
-Thread.Create(f, globalize=True, *args, **kwargs)
-Thread.CreateTimer(interval, f, globalize=True, *args, **kwargs)
-Thread.Sleep(interval)
-Thread.Lock(key=None)
-Thread.AcquireLock(key)
-Thread.ReleaseLock(key)
-Thread.Event(key=None)
-Thread.Block(key)
-Thread.Unblock(key)
-Thread.Wait(key, timeout=None)
-Thread.Semaphore(key=None, limit=1)
-'''
