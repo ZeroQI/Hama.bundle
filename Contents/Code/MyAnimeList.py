@@ -22,7 +22,7 @@ def GetMetadata(movie, MALid):
   if xml:
     SaveDict( GetXml(xml, 'title'         ), MyAnimeList_dict, 'title'                  )
     SaveDict( GetXml(xml, 'synopsis'      ), MyAnimeList_dict, 'summary'                )
-    SaveDict( GetXml(xml, 'rating'        ), MyAnimeList_dict, 'score'                  )
+    SaveDict( GetXml(xml, 'score'        ), MyAnimeList_dict, 'rating'                  )
     #SaveDict( GetXml(xml, 'content_rating').split(" ")[0], MyAnimeList_dict, 'rating'   )
     SaveDict( GetXml(xml, 'firstAired'    ), MyAnimeList_dict, 'originally_available_at')
       
