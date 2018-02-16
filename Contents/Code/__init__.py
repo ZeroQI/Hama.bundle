@@ -84,15 +84,9 @@ def Update(metadata, media, lang, force, movie):
   dict_FanartTV                                                 =    FanartTV.GetMetadata(       movie,                                   TVDBid, TMDbid, IMDbid)
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
-<<<<<<< HEAD
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
-=======
-  dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))         #
-  dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {}  #TVDBid=='hentai'
->>>>>>> 5661197a555460b3f331365ac6f57f6d2fc5af90
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
