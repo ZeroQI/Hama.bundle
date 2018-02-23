@@ -129,14 +129,20 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode):
   if Dict(mappingList, 's'+season+'e'+episode.split('-')[0]) in mappingList:  return mappingList [ 's'+season+'e'+episode.split('-')[0] ]          # Season Individual episode mapping + start-end offset
-  elif Dict(mappingList, 'defaulttvdbseason') and season=="1":                return Dict(mappingList, 'defaulttvdbseason'), str(int(episode) + int(Dict(mappingList, 'episodeoffset', default="0")))
-  return season, episode
+  elif Dict(mappingList, 'defaulttvdbseason') and not season=='0':                return season, str(int(episode) + int(Dict(mappingList, 'episodeoffset', default="0")))
+  return season or '0', episode
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   for key in mappingList:
-    if mappingList[key]==(season, episode.split('-')[0]):  return tuple(key.lstrip('s').split('e'))
-  if season==defaulttvdbseason and not season=='0':        return '1', str(int(episode) - int(episodeoffset))
-  return '1' if season else '0', episode
+    if mappingList[key]==(season, episode.split('-')[0]):  
+      #Log.Info("anidb_ep 1 - defaulttvdbseason: '{}', episodeoffset: '{}', season: '{}', mappingList: '{}'".format(defaulttvdbseason, episodeoffset, season, mappingList))
+      return tuple(key.lstrip('s').split('e'))
+  if defaulttvdbseason == season and not season=='0':
+    #Log.Info("anidb_ep 2 - defaulttvdbseason: '{}', episodeoffset: '{}', season: '{}', mappingList: '{}'".format(defaulttvdbseason, episodeoffset, season, mappingList))
+    return season, str(int(episode) - int(episodeoffset))
+  #Log.Info("anidb_ep 3 default - defaulttvdbseason: '{}', episodeoffset: '{}', season: '{}', mappingList: '{}'".format(defaulttvdbseason, episodeoffset, season, mappingList))
+  return season or '0', episode
+  

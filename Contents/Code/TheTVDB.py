@@ -68,6 +68,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       else:  episode = GetXml(ep, 'EpisodeNumber')
       numbering = "s{}e{}".format(season, episode)
       
+      SaveDict( abs_number                    , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
       SaveDict( GetXml(ep, 'EpisodeName'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
       SaveDict( GetXml(ep, 'Director'        ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'directors'              )
       SaveDict( GetXml(ep, 'Writer'          ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'writers'                )

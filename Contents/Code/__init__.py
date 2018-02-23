@@ -63,9 +63,7 @@ def Search(results, media, lang, manual, movie):
     if maxi<50 and movie:                                maxi    =  TheMovieDb.Search(results, media, lang, manual, movie)
     if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
-  
-  ###test
-  if not movie:  log.stop()
+  log.stop()
         
 ### Update Movie/Serie from metadata.id assigned #########################################################################################################################
 def Update(metadata, media, lang, force, movie):
@@ -92,6 +90,7 @@ def Update(metadata, media, lang, force, movie):
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'TheTVDB': dict_TheTVDB, 'AniDB': dict_AniDB, 'Plex': dict_Plex, 'MyAnimeList': dict_MyAnimeList, 
     'TheMovieDb': dict_TheMovieDb, 'TVTunes': dict_TVTunes, 'tvdb4': dict_tvdb4, 'OMDb': dict_OMDb, 'FanartTV': dict_FanartTV}, mappingList)
+  log.stop()
 
 ### Agent declaration ##################################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows):  # 'com.plexapp.agents.none', 'com.plexapp.agents.opensubtitles'

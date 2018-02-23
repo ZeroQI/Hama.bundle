@@ -42,5 +42,5 @@
   { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                       },
   { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                       },
   { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                       },
-  { "id": "absolute_index",           "label": "T--M 'absolute_index'",           "type": "text",  "default": "None"                                                       }
+  { "id": "absolute_index",           "label": "T--M 'absolute_index'",           "type": "text",  "default": "TheTVDB"                                                    }
 ]
