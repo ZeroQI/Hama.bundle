@@ -33,10 +33,13 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   AniDB_array              = Dict(mappingList, 'poster_id_array', TVDBid)
   AniDB_array2             = [key for key in AniDB_array if AniDB_array[key][0] in media.seasons.keys()+['a']]  #[anidbid] for each default season actuality present on disk
   original                 = AniDBid
+  Log.Info("AniDB.GetMetadata() - AniDB_array:  " + str(AniDB_array ))
+  Log.Info("AniDB.GetMetadata() - AniDB_array2: " + str(AniDB_array2))
+  
   for AniDBid in AniDB_array2:
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
     if xml:
-      if AniDBid==original: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
+      if AniDBid==original or len(AniDB_array2)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
         AniDB_dict['title'], AniDB_dict['original_title'], language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
         AniDB_dict['title_sort'], _ , _                                  = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
         Log.Info("AniDB.GetMetadata() - 'title': {}, 'title_sort': {}, original_title: {}".format(AniDB_dict['title'], AniDB_dict['title_sort'], AniDB_dict['original_title']))
@@ -83,7 +86,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             break
         else:  Log.Info("AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
       
+        
+      ### Capture for all concerned AniDBid ###
+      if not movie:
+        
         ### not listed for serie but is for eps
+        Log.Info("AniDB.GetMetadata() - Roles:")
         roles    = { "Animation Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
         ep_roles = {}
         for creator in xml.xpath('creators/name'):
@@ -95,8 +103,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         if     movie and SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("AniDB.GetMetadata() - 'year': '{}'".format(AniDB_dict['year']))
         if not movie and SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("AniDB.GetMetadata() - 'movie': '{}'".format(AniDB_dict['movie']))
       
-      ### Capture for all concerned AniDBid ###
-      if not movie:
         ### Translate into season/episode mapping
         numEpisodes, totalDuration, mapped_eps, missing_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], [], {}, 0 
         specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
@@ -146,7 +152,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
                 else:    missing_eps.append(numbering)
               #Log.Info("[!] Episode: {:>3} missing, epNumType: {}".format(numbering, epNumType))
         ### End of for ep_obj...
-        
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
           Log.Info("AniDB.get_metadata() - Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
         
