@@ -36,7 +36,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   Log.Info("AniDB.GetMetadata() - AniDB_array:  " + str(AniDB_array ))
   Log.Info("AniDB.GetMetadata() - AniDB_array2: " + str(AniDB_array2))
   
-  for AniDBid in AniDB_array2:
+  for AniDBid in AniDBid +AniDB_array2.remove(AniDBid):
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
     if xml:
       if AniDBid==original or len(AniDB_array2)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
