@@ -30,13 +30,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
-  AniDB_array              = Dict(mappingList, 'poster_id_array', TVDBid)
-  AniDB_array2             = [key for key in AniDB_array if AniDB_array[key][0] in media.seasons.keys()+['a']]  #[anidbid] for each default season actuality present on disk
   original                 = AniDBid
-  Log.Info("AniDB.GetMetadata() - AniDB_array:  " + str(AniDB_array ))
-  Log.Info("AniDB.GetMetadata() - AniDB_array2: " + str(AniDB_array2))
+  AniDB_array              = Dict(mappingList, 'poster_id_array', TVDBid) or []
+  AniDB_array2             = [key for key in AniDB_array if AniDB_array[key][0] in media.seasons.keys()+['a']]  #[anidbid] for each default season actuality present on disk
+  Log.Info("AniDB.GetMetadata() - AniDB_array:  '{}', AniDB_array2: '{}'".format(AniDB_array, AniDB_array2))
   
-  for AniDBid in AniDBid +AniDB_array2.remove(AniDBid):
+  for AniDBid in [AniDBid]+(AniDB_array2.remove(AniDBid) if AniDBid in AniDB_array2 else []):
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
     if xml:
       if AniDBid==original or len(AniDB_array2)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
