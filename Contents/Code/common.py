@@ -379,7 +379,7 @@ def GetMetadata(media, movie, source, TVDBid, num=0):
       season, url       = line.strip().split("|",1)
       season            = season.lstrip("0") if season.lstrip("0") else "0"
       seasonposternum  += 1
-      SaveDict(("TVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
+      SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
   return TVDB4_dict
 
 ### Update meta field ###
