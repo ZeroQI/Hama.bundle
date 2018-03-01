@@ -82,6 +82,7 @@ class PlexLog(object):
           break
       
       #Get library, root and relative path by croossing folder path with Plex libraries root folder
+      #log_filename = path.split(os.sep, 1)[0] if path else '_root_'
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
         if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], ".".join(os.path.basename(media.items[0].parts[0].file).split('.')[:-1]) if movie and dir==root else os.path.relpath(dir, root); break
       else:                 library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
@@ -511,13 +512,13 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
       count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
-      new_season = season #'1' if metadata.id.startswith('tvdb4') and not season=='0' else season
       for field in FieldListSeasons:
         meta_old = getattr(metadata.seasons[season], field)
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
+          new_season = season
           if source in MetaSources:
-            if source=='AniDB' and (metadata.id.startswith("tvdb") and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') else '1'
-            if source=='TheTVDB' and metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:                                       new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
+            if source=='AniDB'   and (metadata.id.startswith("tvdb" ) and not metadata.id.startswith("tvdb4") or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') and Dict(mappingList, 'defaulttvdbseason') !='a' else '1'
+            if source=='TheTVDB' and  metadata.id.startswith("anidb") and max(map(int, media.seasons.keys()))==1:                                         new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
             if Dict(MetaSources, source, 'seasons', new_season, field) and (season in metadata.seasons or metadata.id.startswith('tvdb4')):
               UpdateMetaField(metadata, metadata.seasons[season], MetaSources[source]['seasons'][new_season], FieldListSeasons, field, source, movie)
               if field in count:  count[field] = count[field] + 1
