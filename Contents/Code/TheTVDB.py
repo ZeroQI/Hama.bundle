@@ -77,8 +77,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       SaveDict( GetXml(ep, 'FirstAired'      ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at') 
             
       file = GetXml(ep, 'filename')  # KeyError: u'http://thetvdb.plexapp.com/banners/episodes/81797/383792.jpg' avoided below with str ???
-      if file:  SaveDict((str("TVDB/episodes/"+ os.path.basename(file)), 1, None), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'thumbs', str(TVDB_IMAGES_URL+file))
-      if file:  Log.Info("TheTVDB.GetMetadata() - numbering: '{}', file: '{}'".format(numbering, file))
+      if file:  SaveDict((str("TheTVDB/episodes/"+ os.path.basename(file)), 1, None), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'thumbs', str(TVDB_IMAGES_URL+file))
+      #if file:  Log.Info("TheTVDB.GetMetadata() - numbering: '{}', file: '{}'".format(numbering, file))
   
       ### Missing summaries logs ###
       if SaveDict( GetXml(ep, 'Overview'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  summary_present.append(numbering)
@@ -113,9 +113,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
             common.LoadFile(filename=TVDBid+"-actors.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'actors'), url=API_ACTORS_URL,                                 cache= CACHE_1MONTH)  # AniDB title database loaded once every 2 weeks
       TheTVDB_dict['roles'] = []
       for role in xml.xpath('/Actors/Actor') if xml else []:
-        try:                    SaveDict([{'role': role.find('Role').text, 'name': role.find('Name').text, 'photo': TVDB_IMAGES_URL + role.find('Image').text}], TheTVDB_dict, 'roles')
+        try:                    SaveDict([{'role': role.find('Role').text, 'name': role.find('Name').text, 'photo': (TVDB_IMAGES_URL + role.find('Image').text) if role.find('Image').text else ""}], TheTVDB_dict, 'roles')
         except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
-  
+      # error: 'cannot concatenate 'str' and 'NoneType' objects'
   ### Picture XML download ###
   xml=common.LoadFile(filename=TVDBid+".banners.xml", relativeDirectory=os.path.join('TheTVDB', 'xml', 'banners'), url=TVDB_BANNERS_URL.format(TVDBid), cache= CACHE_1MONTH)  # AniDB title database loaded once every 2 weeks
   if not xml:  Log.Info("TheTVDB.GetMetadata() - XML loading failed")
@@ -146,11 +146,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       if Prefs['localart']:
         language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
         rank += 10*language_priority.index(language) if language and language in language_priority else 50
-      if bannerType in ('poster', 'season'):  Log.Info("[!] bannerType: {}, season: {:>2}, rank: {:>3}, language: {:>2}, filename: {}".format(bannerType, season, rank, language, GetXml(banner, 'BannerPath')))
+      #if bannerType in ('poster', 'season'):  Log.Info("[!] bannerType: {}, season: {:>2}, rank: {:>3}, language: {:>2}, filename: {}".format(bannerType, season, rank, language, GetXml(banner, 'BannerPath')))
       
       ### Adding picture ###
       url       = TVDB_IMAGES_URL + GetXml(banner, 'BannerPath')
-      filename  = "TVDB/"         + GetXml(banner, 'BannerPath')
+      filename  = "TheTVDB/"      + GetXml(banner, 'BannerPath')
       thumb_url = TVDB_IMAGES_URL + GetXml(banner, 'ThumbnailPath') if GetXml(banner, 'ThumbnailPath') else None
       if not GetMeta('TheTVDB', metaname):                                               continue
       if movie and not bannerType in ('fanart', 'poster') or bannerType2=='seasonwide':  continue

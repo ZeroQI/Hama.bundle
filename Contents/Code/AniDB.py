@@ -30,11 +30,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
-  AniDB_array              = Dict(mappingList, 'poster_id_array', TVDBid)
-  AniDB_array2             = [key for key in AniDB_array if AniDB_array[key][0] in media.seasons.keys()+['a']]  #[anidbid] for each default season actuality present on disk
   original                 = AniDBid
-  Log.Info("AniDB.GetMetadata() - AniDB_array:  " + str(AniDB_array ))
-  Log.Info("AniDB.GetMetadata() - AniDB_array2: " + str(AniDB_array2))
+  AniDB_array              = Dict(mappingList, 'poster_id_array', TVDBid) or []
+  AniDB_array2             = ([AniDBid] if AniDBid else []) + [key for key in AniDB_array if key is not AniDBid and AniDB_array[key][0] in media.seasons.keys()+['a']]  #[anidbid] for each default season actuality present on disk
+  Log.Info("AniDB.GetMetadata() - AniDB_array:  '{}', AniDB_array2: '{}'".format(AniDB_array, AniDB_array2))
   
   for AniDBid in AniDB_array2:
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
@@ -302,7 +301,7 @@ def Search (results, media, lang, manual, movie):
 AniDBTitlesDB = GetAniDBTitlesDB()
 
 ### Notes ###
-# [].cound(True) replaces any() (not declared in Python 2.4, gives "NameError: global name 'any' is not defined")
+# [].count(True) replaces any() (not declared in Python 2.4, gives "NameError: global name 'any' is not defined")
 #for element in AniDBTitlesDB.xpath(u"/animetitles/anime[title[@type='official' or @type='main' or @type='syn' or @type='short']/text()[contains(.,'%s')]]" % str(orig_title) ):  #parent::node()
 #score          = 100*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed)) / max_length # - type_order.index(Type)  #Movies can have same title
 #temp_score  = sum([len(String.LongestCommonSubstring(word, title)) for word in words]) / len(" ".join(words))

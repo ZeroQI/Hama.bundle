@@ -166,6 +166,7 @@ def GetStatusCode(url):
   
 ### Save file to cache
 def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for folder creation ability
+  #Log.Debug("common.SaveFile() - file: "+filename)
   relativeFilename            = os.path.join (relativeDirectory, filename) 
   relativeDirectory, filename = os.path.split(relativeFilename) #if os.sep in filename:
   fullpathDirectory           = os.path.abspath(os.path.join(CachePath, relativeDirectory))
@@ -174,6 +175,9 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
   try:                    Data.Save(relativeFilename, file)
   except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}'".format(exception=e, relativeFilename=relativeFilename))
   
+  #if os.path.exists(fullpathDirectory): Log.Debug("common.SaveFile() - path exist")
+  #else:                                 Log.Debug("common.SaveFile() - path does not exist: " + fullpathDirectory)
+
 ### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #By Dingmatt, heavily moded
   ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
@@ -238,6 +242,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
     if metatype==metadata.themes:              return "themes",  Prefs['themes']
     if filename.startswith("TVDB/episodes/"):  return "thumbs",  Prefs['thumbs']
     return "seasons", GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
+  
   string, test = GetMetadata(metatype)
   global downloaded
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
@@ -256,7 +261,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
     if file:
       try:                    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
       except Exception as e:  Log.Error("issue adding File to plex - url downloaded: '{}', filename: '{}', Exception: '{!s}'".format(url_thumbnail if url_thumbnail else url, filename, e)); return #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) # remove many posters, to avoid
-      else:                   Log.Info( "url: '%s', num: '%d', filename: '%s'%s" % (url, num, filename, status))
+      #!#else:                   Log.Info( "url: '%s', num: '%d', filename: '%s' %s" % (url, num, filename, status))
   downloaded[string] = downloaded[string] + 1
   
 ### Cleanse title and translate anidb '`' ############################################################################################################
@@ -381,7 +386,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   if field not in meta_root:  Log.Info("meta field: '%s' not in meta_root" % field);  return
   if type(metadata).__name__=="tuple":  
     metadata2 = metadata
-    metadata = metadata[0].seasons[metadata[1]].episodes[metadata[2]]; ep=True
+    metadata  = metadata[0].seasons[metadata[1]].episodes[metadata[2]]; ep=True
   else: metadata2=None
   
   meta_old       = getattr( metadata, field) # getattr( metadata, field, None)
@@ -430,7 +435,8 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     if isinstance(meta_new, dict)and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
       for url in meta_new:
         if not url in meta_old and isinstance(meta_new[url], tuple):  metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
-    
+        #metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
+        
     elif isinstance(meta_new, list) and field in MetaRoleList:
       try:
         meta_old.clear()
