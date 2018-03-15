@@ -106,6 +106,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
     Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes missing: "         + str(sorted(episode_missing, key=natural_sort_key)))
     
+  ### Collection ###
+  #
+  # get all anidbids sharing the same tvdbids
+  #
+  
   ### Actors ###
   if not Prefs["GetSingleOne"]: ###disabled for now
     if Dict(TheTVDB_dict, 'roles'):    #|Kana Hanazawa|Mamiko Noto|Yui Horie|Atsushi Abe|Yukari Tamura|

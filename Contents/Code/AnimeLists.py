@@ -126,7 +126,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):  #, AniDBTVDBMap
     error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
     AniDBid, TVDBid = '', ''
   
-  Log.Info("AnimeLists.GetMetadata() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['defaulttvdbseason'], mappingList['name']) )
+  Log.Info("AnimeLists.GetMetadata() - anidb: '%s', tvbdid: '%s', tmdbid: '%s', imbdid: '%s', defaulttvdbseason: '%s', name: '%s'" % (AniDBid, TVDBid, tmdbid, imdbid, mappingList['defaulttvdbseason'] if 'defaulttvdbseason' in mappingList else 'N/A', mappingList['name'] if 'name' in mappingList else 'N/A') )
   Log.Info("mappingList: "+str(mappingList))
   return AnimeLists_dict, AniDB_id or AniDBid, TVDB_id or TVDBid, tmdbid, imdbid, mappingList
 

@@ -22,16 +22,32 @@ import os
 ### Variables ###
 AniDBMovieSets = AnimeLists.GetAniDBMovieSets()
 
+### Reset the Media Extentions to the defaults ###
+#def ResetValidExtensions():
+#  myHTTPPrefix = 'http://localhost:32400'/:/plugins/com.plexapp.plugins.findUnmatch/prefs/'
+#  myURL = myHTTPPrefix + 'set?RESET=0'
+#  Log.Debug('Prefs Sending : ' + myURL)
+#  HTTP.Request(myURL, immediate=True)
+#  myURL = myHTTPPrefix + 'set?COOL_STUFF=Barkley is the coolest'
+#  Log.Debug('Prefs Sending : ' + myURL)
+#  HTTP.Request(myURL, immediate=True)
+#  Prefs['RESET']=False
+  
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
   Log.Info("".ljust(157, '='))
   Log.Info ("ValidatePrefs()")
+  #DefaultPrefs.json:  { "id": "RESET",                    "label": "Reset to default all Prefs",      "type": "bool",  "default": "false"                                                      }
+  #HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.findUnmatch/prefs/set?VARIABLE1=VALUE1&VARIABLE2=VALUE2', immediate=True)
+  
   DefaultPrefs   = ("GetSingleOne", "localart", "adult", "MinimumWeight", "SerieLanguagePriority", "EpisodeLanguagePriority") #"Simkl", 
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + DefaultPrefs))  # set is un-ordered lsit so order is lost
   try:  
     for key in PrefsFieldList:  Log.Info("Prefs[{key:<{width}}] = {value}".format(key=key, width=max(map(len, PrefsFieldList)), value=Prefs[key] or "EMPTY, MODIFY AND SAVE"))
   except:  Log.Error("DefaultPrefs.json, Value '%s' missing, update+save" % key);  return MessageContainer ('Error',   "Value '%s' missing from 'DefaultPrefs.json'" % key)
   Log.Info("".ljust(157, '='))
+  
+  #if Prefs['RESET']:  ResetValidExtensions()
   return MessageContainer('Success', "DefaultPrefs.json valid")
 
 ### Pre-Defined Start function ############################################################################################################################################

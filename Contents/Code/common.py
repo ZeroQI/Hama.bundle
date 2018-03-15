@@ -553,7 +553,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
                 UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
                 count[field] = count[field] + 1 if field in count else 1
                 if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):
-                  #Log.Info("[!] Dict(MetaSources, source, 'language_rank'): {}".format(Dict(MetaSources, source, 'language_rank')))
+                  Log.Info("[!] language skip Dict(MetaSources, source, 'language_rank'): {}".format(Dict(MetaSources, source, 'language_rank')))
                   continue  #try other meta source if index not 0 which is the first selected language
                 if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
             elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
