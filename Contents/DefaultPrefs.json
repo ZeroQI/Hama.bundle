@@ -1,5 +1,5 @@
 [
-  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None"                                                       },
+  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                },
   { "id": "SerieLanguagePriority",    "label": "Serie Language Priority",         "type": "text",  "default": "x-jat, en, ja"                                              },
   { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",       "type": "text",  "default": "x-jat, en, ja"                                              },
   { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "values"  : ["600","500","400","300","200","100","0"], "default": "400" },
@@ -22,7 +22,7 @@
   { "id": "genres",                   "label": "T--M 'genres'",                   "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"              },
   { "id": "tags",                     "label": "T--M 'tags'",                     "type": "text",  "default": "MyAnimeList"                                                },
   { "id": "writers",                  "label": "T-EM 'writers'",                  "type": "text",  "default": "AniDB,TheTVDB"                                              },
-  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "AnimeLists, AniDB, TheTVDB, MyAnimeList, TheMovieDb, OMDb"  },
+  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "AniDB, TheMovieDb, TheTVDB"                                 },
   { "id": "duration",                 "label": "T--M 'duration'",                 "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"              },
   { "id": "roles",                    "label": "T--M 'roles'",                    "type": "text",  "default": "AniDB, TheTVDB"                                             },
   { "id": "year",                     "label": "---M 'year'",                     "type": "text",  "default": "AniDB"                                                      },
