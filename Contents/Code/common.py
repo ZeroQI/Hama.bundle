@@ -10,8 +10,9 @@ import time            # datetime.datetime.now()
 import re
 import logging
 import datetime        # datetime.now
+from io     import open
 from string import maketrans
-from lxml import etree                                  # fromstring
+from lxml   import etree                                  # fromstring
 try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
 except ImportError:  from urllib2        import urlopen # urlopen Python 2.x #import urllib2 # urlopen
 
@@ -82,15 +83,19 @@ class PlexLog(object):
           break
       
       #Get library, root and relative path by croossing folder path with Plex libraries root folder
-      #log_filename = path.split(os.sep, 1)[0] if path else '_root_'
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
         if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], ".".join(os.path.basename(media.items[0].parts[0].file).split('.')[:-1]) if movie and dir==root else os.path.relpath(dir, root); break
-      else:                 library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
+      else:  #401 no right to list libraries (windows)
+        with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:
+          line=file.read()
+          #break how?
+        for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
+          if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
+        else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
       Log.Debug("library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
-      extension = '.agent-search.log' if search else '.agent-update.log'
       
-      if movie:  LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
-      else:      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
+      extension = '.agent-search.log' if search else '.agent-update.log'
+      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
       file = os.path.join(LOGS_PATH, file)
       Log.Debug("Log file: " + file)
