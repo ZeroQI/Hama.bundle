@@ -17,32 +17,26 @@ try:                 from urllib.request import urlopen # urlopen Python 3.0 and
 except ImportError:  from urllib2        import urlopen # urlopen Python 2.x #import urllib2 # urlopen
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
-strptime             = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
-PlexRoot             = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", ".."))
-CachePath            = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
-downloaded           = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
-AniDB_WaitUntil      = datetime.datetime.now() 
-netLock              = Thread.Lock()
-netLocked            = {}
-WEB_LINK             = "<a href='%s' target='_blank'>%s</a>"
-TVDB_SERIE_URL       = 'http://thetvdb.com/?tab=series&id='
-ANIDB_SERIE_URL      = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
-Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
+strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
+PlexRoot          = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", ".."))
+CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
+downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
+AniDB_WaitUntil   = datetime.datetime.now() 
+netLock           = Thread.Lock()
+netLocked         = {}
+WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
+TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
+ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
+DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "MinimumWeight", "localart", "adult", "GetSingleOne", 'SortTitlePrefixRemoval', 'OMDbApiKey') #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'roles', 'year', 'originally_available_at', 'studio', 'tagline', 'summary', 'content_rating', 'content_rating_age',
-                     'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating')
+                     'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
 FieldListSeries   = ('genres', 'tags' , 'collections', 'duration', 'rating', 'title', 'summary', 'originally_available_at', 'reviews', 'extras', 'countries', 'rating_count',
                      'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 'title_sort',
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
 FieldListSeasons  = ('summary', 'posters', 'art')
-FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort, ''absolute_number' even in try: AttributeError: 'RecordObject' object has no attribute 'absolute_number'
-SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', "TVTunes") #"Simkl", 
-
-### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
-if not os.path.isdir(PlexRoot):
-  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
-                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
-                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
-  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
+SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
+Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -61,6 +55,33 @@ try:
       Log.Info( path.get("path") + " = " + library.get("title") )
 except Exception as e:  Log.Info("Place correct Plex token in X-Plex-Token.id file in logs folder or in PLEX_LIBRARY_URL variable to have a log per library - https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token" + str(e))
  
+### Get media directory ###
+def GetMediaDir (media, movie):
+  if movie:  return os.path.dirname(media.items[0].parts[0].file)
+  else:
+    for s in media.seasons:
+      for e in media.seasons[s].episodes:
+        return os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+
+### Get media root folder ###
+def GetLibraryRootPath(dir):
+  for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
+    if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
+  else:  #401 no right to list libraries (windows)
+    with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:  line=file.read()
+    for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
+      if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
+    else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
+  Log.Debug("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
+  return library, root, path
+
+### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
+if not os.path.isdir(PlexRoot):
+  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
+                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
+                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
+  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+
 ### Logging class to join scanner and agent logging per serie
 # 
 # Scanner:
@@ -73,28 +94,9 @@ class PlexLog(object):
   def __init__ (self, media=None, movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
   
     if not file:
-      #Get movie or serie episode folder location
-      if movie:  dir = os.path.dirname(media.items[0].parts[0].file)
-      else:
-        for s in media.seasons:
-          for e in media.seasons[s].episodes:
-            dir = os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
-            break
-          break
-      
-      #Get library, root and relative path by croossing folder path with Plex libraries root folder
-      for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
-        if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], ".".join(os.path.basename(media.items[0].parts[0].file).split('.')[:-1]) if movie and dir==root else os.path.relpath(dir, root); break
-      else:  #401 no right to list libraries (windows)
-        with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:
-          line=file.read()
-          #break how?
-        for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-          if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
-        else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
-      Log.Debug("library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
-      
-      extension = '.agent-search.log' if search else '.agent-update.log'
+      dir                 = GetMediaDir(media, movie)
+      library, root, path = GetLibraryRootPath(dir)#Get movie or serie episode folder location      
+      extension           = '.agent-search.log' if search else '.agent-update.log'
       LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
       file = os.path.join(LOGS_PATH, file)

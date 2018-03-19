@@ -1,9 +1,9 @@
 ### github.com/ScudLee/anime-lists ###
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
-import os        # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
-import common    # 
-from common import GetXml, SaveDict, Dict
+import os          # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
+import common      # 
+from   common import GetXml, SaveDict, Dict
 
 ### Variables ###
 

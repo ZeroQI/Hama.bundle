@@ -21,33 +21,58 @@ import os
     
 ### Variables ###
 AniDBMovieSets = AnimeLists.GetAniDBMovieSets()
-
-### Reset the Media Extentions to the defaults ###
-#def ResetValidExtensions():
-#  myHTTPPrefix = 'http://localhost:32400'/:/plugins/com.plexapp.plugins.findUnmatch/prefs/'
-#  myURL = myHTTPPrefix + 'set?RESET=0'
-#  Log.Debug('Prefs Sending : ' + myURL)
-#  HTTP.Request(myURL, immediate=True)
-#  myURL = myHTTPPrefix + 'set?COOL_STUFF=Barkley is the coolest'
-#  Log.Debug('Prefs Sending : ' + myURL)
-#  HTTP.Request(myURL, immediate=True)
-#  Prefs['RESET']=False
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
   Log.Info("".ljust(157, '='))
-  Log.Info ("ValidatePrefs()")
-  #DefaultPrefs.json:  { "id": "RESET",                    "label": "Reset to default all Prefs",      "type": "bool",  "default": "false"                                                      }
-  #HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.findUnmatch/prefs/set?VARIABLE1=VALUE1&VARIABLE2=VALUE2', immediate=True)
-  
-  DefaultPrefs   = ("GetSingleOne", "localart", "adult", "MinimumWeight", "SerieLanguagePriority", "EpisodeLanguagePriority") #"Simkl", 
-  PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + DefaultPrefs))  # set is un-ordered lsit so order is lost
-  try:  
-    for key in PrefsFieldList:  Log.Info("Prefs[{key:<{width}}] = {value}".format(key=key, width=max(map(len, PrefsFieldList)), value=Prefs[key] or "EMPTY, MODIFY AND SAVE"))
-  except:  Log.Error("DefaultPrefs.json, Value '%s' missing, update+save" % key);  return MessageContainer ('Error',   "Value '%s' missing from 'DefaultPrefs.json'" % key)
+  Log.Info ("ValidatePrefs(), PlexRoot: "+common.PlexRoot)
+  PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
+  filename       = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
+  if os.path.isfile(filename):
+    try:  ### Load 'DefaultPrefs.json' to have access to default settings ###
+      from io import open
+      with open(filename, 'r') as file:  json = JSON.ObjectFromString(file.read(), encoding=None)
+    except Exception as e:  json = None; Log.Info("Error :"+str(e)+", filename: "+filename)
+    if json:
+      Log.Info ("Loaded: "+filename)
+      Pref_list={}
+      for entry in json:  #Build Pref_list dict from json file
+        Pref_list[entry['id']]=entry   #if key in Prefs gives: KeyError: "No preference named '0' found." so building dict
+        if entry['type']=='bool':
+          if entry['type']==1:  Pref_list[entry['id']]['value'] = 'true'
+          else:                 Pref_list[entry['id']]['value'] = 'false'
+      for entry in Pref_list:  # Check fields not in PrefsFieldList and sources mispelled
+        if   entry not in PrefsFieldList:  Log.Info("Next entry not in PrefsFieldList, so will not be updated by the engine") 
+        elif entry not in common.DefaultPrefs:  # Check for mispelled metadata sources
+          for source in Prefs[entry].replace('|', ',').split(','):
+            if source.strip() not in common.SourceList+('None', ''):
+              Log.Info(" - Source '{}' invalid".format(source.strip()))
+        Log.Info("Prefs[{key:<{width}}] = {value:<{width2}}{default}".format(key=entry, width=max(map(len, PrefsFieldList)), value=Prefs[entry] if Prefs[entry]!='' else "Error, go in agent settings, set value and save", width2=max(map(len, [Pref_list[x]['default'] for x in Pref_list])), default=' (still default value)' if Prefs[entry] == Pref_list[entry]['default'] else " (Default: "+Pref_list[entry]['default']+")"))
+      for entry in PrefsFieldList:
+        if entry not in Pref_list:  Log.Info("Prefs[{key:<{width}}] does not exist".format(key=entry, width=max(map(len, PrefsFieldList))))
   Log.Info("".ljust(157, '='))
   
-  #if Prefs['RESET']:  ResetValidExtensions()
+  ### Leaving commented if the above give issues we can reuse the old code ###
+  #try:  
+  #  key="_"
+  #  for key in PrefsFieldList:
+  #    Log.Info("Prefs[{key:<{width}}] = {value}".format(key=key, width=max(map(len, PrefsFieldList)), value=Prefs[key]))
+  #except:  Log.Error("[DefaultPrefs.json] '%s' error, update+save" % key);  return MessageContainer ('Error',   "Value '%s' missing from 'DefaultPrefs.json'" % key)
+  
+  ### IF we can reset agents settings from the agent:
+  #DefaultPrefs.json:  { "id": "RESET",                    "label": "Reset to default all Prefs",      "type": "bool",  "default": "false"                                                      }
+  #if 'RESET' in Prefs and Prefs['RESET']:  HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.findUnmatch/prefs/set?VARIABLE1=VALUE1&VARIABLE2=VALUE2', immediate=True)
+  ### Reset the Media Extentions to the defaults ###
+  #def ResetValidExtensions():
+  #  myHTTPPrefix = 'http://localhost:32400'/:/plugins/com.plexapp.plugins.findUnmatch/prefs/'
+  #  myURL = myHTTPPrefix + 'set?RESET=0'
+  #  Log.Debug('Prefs Sending : ' + myURL)
+  #  HTTP.Request(myURL, immediate=True)
+  #  myURL = myHTTPPrefix + 'set?COOL_STUFF=Barkley is the coolest'
+  #  Log.Debug('Prefs Sending : ' + myURL)
+  #  HTTP.Request(myURL, immediate=True)
+  #  Prefs['RESET']=False
+
   return MessageContainer('Success', "DefaultPrefs.json valid")
 
 ### Pre-Defined Start function ############################################################################################################################################
@@ -55,7 +80,8 @@ def Start():
   Log.Info("".ljust(157, '='))
   Log.Info("HTTP Anidb Metadata Agent by ZeroQI (Forked from Atomicstrawberry's v0.4, AnimeLists XMLs by SdudLee) - CPU: {}, OS: {}".format(Platform.CPU, Platform.OS))
   HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
-  ValidatePrefs() #if Prefs['Simkl']:  Simkl.Register()
+  ValidatePrefs()
+  #if Prefs['Simkl']:  Simkl.Register()
   
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
@@ -101,6 +127,7 @@ def Update(metadata, media, lang, force, movie):
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {} #
+  #dict_Local                                                    =       Local.GetMetadata(movie, MALid )
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
