@@ -23,7 +23,7 @@
   { "id": "genres",                   "label": "T--M 'genres'",                   "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"              },
   { "id": "tags",                     "label": "T--M 'tags'",                     "type": "text",  "default": "MyAnimeList"                                                },
   { "id": "writers",                  "label": "T-EM 'writers'",                  "type": "text",  "default": "AniDB,TheTVDB"                                              },
-  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "AniDB, TheMovieDb, TheTVDB"                                 },
+  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "Local, AniDB, TheMovieDb, TheTVDB"                                 },
   { "id": "duration",                 "label": "T--M 'duration'",                 "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"              },
   { "id": "roles",                    "label": "T--M 'roles'",                    "type": "text",  "default": "AniDB, TheTVDB"                                             },
   { "id": "year",                     "label": "---M 'year'",                     "type": "text",  "default": "AniDB"                                                      },

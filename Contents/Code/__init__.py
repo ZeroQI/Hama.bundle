@@ -17,13 +17,14 @@ import OMDb        # Functions: GetMetadata                                     
 import FanartTV    # Functions: GetMetadata                                                Variables: None
 import Plex        # Functions: GetMetadata                                                Variables: None
 import TVTunes     # Functions: GetMetadata                                                Variables: None
-import os
+import Local       # Functions: GetMetadata                                                Variables: None
     
 ### Variables ###
 AniDBMovieSets = AnimeLists.GetAniDBMovieSets()
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
+  import os
   Log.Info("".ljust(157, '='))
   Log.Info ("ValidatePrefs(), PlexRoot: "+common.PlexRoot)
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
@@ -127,7 +128,7 @@ def Update(metadata, media, lang, force, movie):
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {} #
-  #dict_Local                                                    =       Local.GetMetadata(movie, MALid )
+  dict_Local                                                    =       Local.GetMetadata(media, movie)
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
