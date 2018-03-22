@@ -65,14 +65,17 @@ def GetMediaDir (media, movie):
 
 ### Get media root folder ###
 def GetLibraryRootPath(dir):
+  library, root, path = '', '', ''
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
     if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
   else:  #401 no right to list libraries (windows)
-    with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:  line=file.read()
-    for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-      if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
-    else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
-  Log.Debug("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
+    filename = open(os.path.join(CachePath, '_Logs', '_root_.scanner.log')
+    if os.path.isfile(filename):
+      with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:  line=file.read()
+      for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
+        if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
+      else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
+    Log.Debug("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
   return library, root, path
 
 ### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
@@ -126,6 +129,16 @@ def natural_sort_key(s):  return [int(text) if text.isdigit() else text for text
 def urlFilename     (url):                              return "/".join(url.split('/')[3:])
 def urlDomain       (url):                              return "/".join(url.split('/')[:3])
 
+### Return dict value if all fields exists "" otherwise (to allow .isdigit()), avoid key errors
+def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
+  """ Return the value of an (imbricated) dictionnary, return "" if doesn't exist unless "default=new_value" specified as end argument
+      Ex: Dict(variable_dict, 'field1', 'field2', default = 0)
+  """
+  for key in arg:
+    if isinstance(var, dict) and key and key in var:  var = var[key]
+    else:  return kwarg['default'] if kwarg and 'default' in kwarg else ""   # Allow Dict(var, tvdbid).isdigit() for example
+  return kwarg['default'] if var in (None, '', 'N/A', 'null') and kwarg and 'default' in kwarg else "" if var in (None, '', 'N/A', 'null') else var
+
 ### Save non null value in imbricated dict without error if not created yet, add if destination exist and is a list
 def SaveDict(value, var, *arg):
   """ Save value to a Dictionary field (can be imbricated) and if value is a list, it exten the lsit instead
@@ -144,16 +157,6 @@ def SaveDict(value, var, *arg):
   else:                                                         var[arg[-1]].append (value)
   return value
   
-### Return dict value if all fields exists "" otherwise (to allow .isdigit()), avoid key errors
-def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
-  """ Return the value of an (imbricated) dictionnary, return "" if doesn't exist unless "default=new_value" specified as end argument
-      Ex: Dict(variable_dict, 'field1', 'field2', default = 0)
-  """
-  for key in arg:
-    if isinstance(var, dict) and key and key in var:  var = var[key]
-    else:  return kwarg['default'] if kwarg and 'default' in kwarg else ""   # Allow Dict(var, tvdbid).isdigit() for example
-  return kwarg['default'] if var in (None, '', 'N/A', 'null') and kwarg and 'default' in kwarg else "" if var in (None, '', 'N/A', 'null') else var
-
 ### Gives HTTP status code using header info only ##########################################################################################################################
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data from the host.
@@ -599,3 +602,10 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+### Collections
+# metadata.collections.clear()
+# metadata.collections.add(collection)
+#
+#
+  
