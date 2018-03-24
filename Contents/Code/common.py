@@ -69,9 +69,9 @@ def GetLibraryRootPath(dir):
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
     if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
   else:  #401 no right to list libraries (windows)
-    filename = open(os.path.join(CachePath, '_Logs', '_root_.scanner.log')
+    filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
     if os.path.isfile(filename):
-      with open(os.path.join(CachePath, '_Logs', '_root_.scanner.log'), 'r') as file:  line=file.read()
+      with open(filename, 'r') as file:  line=file.read()
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
         if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
       else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")

@@ -83,7 +83,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
         offset      = season.get('offset') or '0'
         start       = season.get('start')
         end         = season.get('end')
-        Log.Info("AnimeLists.GetMetadata() - [!] anidbseason: {}, tvdbseason: {}, start: {}, end: {}, offset: {}, text: {}".format(anidbseason, tvdbseason, start, end, offset, season.text.strip(';')))
+        Log.Info("AnimeLists.GetMetadata() - [!] anidbseason: {}, tvdbseason: {}, start: {}, end: {}, offset: {}, text: {}".format(anidbseason, tvdbseason, start, end, offset, season.text))
         for ep in range (int(start), int(end)+1)       if       start else []:  mappingList[ 's'+anidbseason+'e'+ep               ] = (tvdbseason, str(ep+int(offset)))
         for ep in filter(None, season.text.split(';')) if season.text else []:  mappingList[ 's'+anidbseason+'e'+ep.split('-')[0] ] = (tvdbseason, ep.split('-')[1] if len(ep.split('-'))>1 else '')
     elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
