@@ -52,28 +52,6 @@ def ValidatePrefs():
       for entry in PrefsFieldList:
         if entry not in Pref_list:  Log.Info("Prefs[{key:<{width}}] does not exist".format(key=entry, width=max(map(len, PrefsFieldList))))
   Log.Info("".ljust(157, '='))
-  
-  ### Leaving commented if the above give issues we can reuse the old code ###
-  #try:  
-  #  key="_"
-  #  for key in PrefsFieldList:
-  #    Log.Info("Prefs[{key:<{width}}] = {value}".format(key=key, width=max(map(len, PrefsFieldList)), value=Prefs[key]))
-  #except:  Log.Error("[DefaultPrefs.json] '%s' error, update+save" % key);  return MessageContainer ('Error',   "Value '%s' missing from 'DefaultPrefs.json'" % key)
-  
-  ### IF we can reset agents settings from the agent:
-  #DefaultPrefs.json:  { "id": "RESET",                    "label": "Reset to default all Prefs",      "type": "bool",  "default": "false"                                                      }
-  #if 'RESET' in Prefs and Prefs['RESET']:  HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.findUnmatch/prefs/set?VARIABLE1=VALUE1&VARIABLE2=VALUE2', immediate=True)
-  ### Reset the Media Extentions to the defaults ###
-  #def ResetValidExtensions():
-  #  myHTTPPrefix = 'http://localhost:32400'/:/plugins/com.plexapp.plugins.findUnmatch/prefs/'
-  #  myURL = myHTTPPrefix + 'set?RESET=0'
-  #  Log.Debug('Prefs Sending : ' + myURL)
-  #  HTTP.Request(myURL, immediate=True)
-  #  myURL = myHTTPPrefix + 'set?COOL_STUFF=Barkley is the coolest'
-  #  Log.Debug('Prefs Sending : ' + myURL)
-  #  HTTP.Request(myURL, immediate=True)
-  #  Prefs['RESET']=False
-
   return MessageContainer('Success', "DefaultPrefs.json valid")
 
 ### Pre-Defined Start function ############################################################################################################################################
@@ -82,7 +60,6 @@ def Start():
   Log.Info("HTTP Anidb Metadata Agent by ZeroQI (Forked from Atomicstrawberry's v0.4, AnimeLists XMLs by SdudLee) - CPU: {}, OS: {}".format(Platform.CPU, Platform.OS))
   HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
   ValidatePrefs()
-  #if Prefs['Simkl']:  Simkl.Register()
   
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
@@ -125,7 +102,7 @@ def Update(metadata, media, lang, force, movie):
   dict_FanartTV                                                 =    FanartTV.GetMetadata(       movie,                                   TVDBid, TMDbid, IMDbid)
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
-  dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, 'name'))  #Sources[m:eval('dict_'+m)]
+  dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {} #
   dict_Local                                                    =       Local.GetMetadata(media, movie)

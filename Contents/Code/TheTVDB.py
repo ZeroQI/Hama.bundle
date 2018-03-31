@@ -68,6 +68,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       else:  episode = GetXml(ep, 'EpisodeNumber')
       numbering = "s{}e{}".format(season, episode)
       
+      #If anidb numbering used, save tvdb episode meta using anidb numbering
+      if metadata_source=="anidb" and max(map(int, media.seasons.keys()))<=1:  season, episode, _ = AnimeLists.anidb_ep(mappingList, season, episode)
+      
       SaveDict( abs_number                    , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
       SaveDict( GetXml(ep, 'EpisodeName'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
       SaveDict( GetXml(ep, 'Director'        ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'directors'              )
@@ -129,7 +132,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     count         = {key: 0 for key in metanames}
     count_valid   = {key: 0 for key in metanames}
     poster_total  = len([True for banner in xml.xpath('/Banners/Banner') if GetXml(banner, 'BannerType')=="poster"])
-    anidb_array   = Dict(mappingList, 'poster_id_array', TVDBid) or {}
+    anidb_array   = Dict(mappingList, 'TVDB') or {}
     anidb_offset  = sorted(anidb_array.keys()).index(AniDBid) if AniDBid in anidb_array else 0  
     Log.Info( "TheTVDB.GetMetadata() - anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(anidb_offset, AniDBid, str(anidb_array.keys())))
     for banner in xml.xpath('/Banners/Banner'): 

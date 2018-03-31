@@ -5,7 +5,6 @@
   { "id": "localart",                 "label": "Prefer Language artwork",         "type": "bool",  "default": "true"                                                       },
   { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                      },
   { "id": "GetSingleOne",             "label": "Fetch a single picture",          "type": "bool",  "default": "true"                                                       },
-  { "id": "SortTitlePrefixRemoval",   "label": "Sort Title Prefix Removal",       "type": "bool",  "default": "false"                                                      },
   { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                },
   
   { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                            },
