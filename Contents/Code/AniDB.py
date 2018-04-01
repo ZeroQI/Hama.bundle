@@ -31,7 +31,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    full_array  = [ key for season in Dict(mappingList, 'TVDB') for key in Dict(mappingList, 'TVDB', season) if key.isdigit() ]
+    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') for anidbid in Dict(mappingList, 'TVDB', season) if 'e' not in season and anidbid.isdigit() ]
     AniDB_array = []
     for season in sorted(media.seasons, key=common.natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       

@@ -1,15 +1,20 @@
-#Download files
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/README.md"                   , "README.md"                   )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Info.plist"         , "Contents/Info.plist"         )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/DefaultPrefs.json"  , "Contents/DefaultPrefs.json"  )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/__init__.py"   , "Contents/Code/__init__.py"   )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/common.py"     , "Contents/Code/common.py"     )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/AnimeLists.py" , "Contents/Code/AnimeLists.py" )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/AniDB.py"      , "Contents/Code/AniDB.py"      )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TheTVDB.py"    , "Contents/Code/TheTVDB.py"    )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/FanartTV.py"   , "Contents/Code/FanartTV.py"   )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TheMovieDb.py" , "Contents/Code/TheMovieDb.py" )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/MyAnimeList.py", "Contents/Code/MyAnimeList.py")
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TVTunes.py"    , "Contents/Code/TVTunes.py")
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/OMDb.py"       , "Contents/Code/OMDb.py"       )
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/Plex.py"       , "Contents/Code/Plex.py"       )
+#Root
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/README.md"                    -OutFile "README.md"
+
+#Contents
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Info.plist"          -OutFile "Contents/Info.plist"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/DefaultPrefs.json"   -OutFile "Contents/DefaultPrefs.json"
+
+#Contents/Code
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/__init__.py"    -OutFile "Contents/Code/__init__.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/common.py"      -OutFile "Contents/Code/common.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/AnimeLists.py"  -OutFile "Contents/Code/AnimeLists.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/AniDB.py"       -OutFile "Contents/Code/AniDB.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/TheTVDB.py"     -OutFile "Contents/Code/TheTVDB.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/FanartTV.py"    -OutFile "Contents/Code/FanartTV.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/TheMovieDb.py"  -OutFile "Contents/Code/TheMovieDb.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/MyAnimeList.py" -OutFile "Contents/Code/MyAnimeList.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/TVTunes.py"     -OutFile "Contents/Code/TVTunes.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/OMDb.py"        -OutFile "Contents/Code/OMDb.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/Plex.py"        -OutFile "Contents/Code/Plex.py"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/Beta-Agent/Contents/Code/Local.py"       -OutFile "Contents/Code/Local.py"

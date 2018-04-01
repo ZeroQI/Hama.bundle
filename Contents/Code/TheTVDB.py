@@ -134,7 +134,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     poster_total  = len([True for banner in xml.xpath('/Banners/Banner') if GetXml(banner, 'BannerType')=="poster"])
     anidb_array   = Dict(mappingList, 'TVDB') or {}
     anidb_offset  = sorted(anidb_array.keys()).index(AniDBid) if AniDBid in anidb_array else 0  
-    Log.Info( "TheTVDB.GetMetadata() - anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(anidb_offset, AniDBid, str(anidb_array.keys())))
+    Log.Info( "TheTVDB.GetMetadata() - Images - anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(anidb_offset, AniDBid, anidb_array.keys()))
     for banner in xml.xpath('/Banners/Banner'): 
       
       ### Banner Types ###  #seriesName  = GetXml(banner, 'SeriesName'   )
@@ -160,13 +160,13 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       url       = TVDB_IMAGES_URL + GetXml(banner, 'BannerPath')
       filename  = "TheTVDB/"      + GetXml(banner, 'BannerPath')
       thumb_url = TVDB_IMAGES_URL + GetXml(banner, 'ThumbnailPath') if GetXml(banner, 'ThumbnailPath') else None
-      if not GetMeta('TheTVDB', metaname):                                               continue
-      if movie and not bannerType in ('fanart', 'poster') or bannerType2=='seasonwide':  continue
+      if not GetMeta('TheTVDB', metaname):                                               Log.Info("GetMeta(TheTVDB', {}) return False, hence skiping".format(metaname));  continue
+      if movie and not bannerType in ('fanart', 'poster') or bannerType2=='seasonwide':  Log.Info("slipped, movie: {}, bannerType: {}, bannerType2: {}".format(movie, bannerType, bannerType2));  continue
       if bannerType == 'season':  SaveDict((filename, rank, thumb_url), TheTVDB_dict, 'seasons', season, 'posters', url)
       else:                       SaveDict((filename, rank, thumb_url), TheTVDB_dict, metaname, url)
       count_valid[bannerType] = count_valid[bannerType] + 1  #Otherwise SyntaxError: Line 142: Augmented assignment of object items and slices is not allowed
       
-    Log.Info("TheTVDB.GetImages() - Posters : {}/{}, Season posters: {}/{}, Art: {}/{}".format(count_valid['poster'], count['poster'], count_valid['season'], count['season'], count_valid['fanart'], count['fanart']))
+    Log.Info("TheTVDB.GetMetadata() - Images - Posters : {}/{}, Season posters: {}/{}, Art: {}/{}".format(count_valid['poster'], count['poster'], count_valid['season'], count['season'], count_valid['fanart'], count['fanart']))
     if count['poster'] == 0:  error_log['TVDB posters missing'       ].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
     if count['season'] == 0:  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
     #Log.Info("TheTVDB_dict: "+str(TheTVDB_dict))
