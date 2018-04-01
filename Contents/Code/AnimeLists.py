@@ -59,6 +59,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if (not AniDBid or AniDBid != AniDB_id) and (not TVDBid or TVDBid !=TVDB_id):  continue  #if not (AniDB_id and AniDBid == AniDB_id) and not(TVDB_id and TVDB_id == TVDBid):  continue
     Log.Info("AnimeLists.GetMetadata() - AniDBid: {}, TVDBid: {}, defaulttvdbseason: {}, episodeoffset: {}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
+    if AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0'):
+      if not TVDB_id:   TVDB_id  = TVDBid
+      if not AniDB_id:  AniDB_id = AniDBid
+    
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
       
@@ -73,7 +77,6 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres')
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
       
-      TVDB_id = TVDBid
       if max(map(int, media.seasons.keys()))<=1:  break  #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
       
     ### TheTVDB numbered series ###
@@ -90,11 +93,9 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
           for ep in filter(None, season.text.split(';')) if season.text else []:  SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
       
       elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
-      
       elif TVDBid in ("", "unknown", None):
         error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         Log.Warn("anidbTvdbMapping() - 'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
-  
   else:
     AniDBid, TVDBid = '', ''
     if not found:

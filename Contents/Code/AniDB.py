@@ -23,7 +23,7 @@ ns['clean-title'] = lambda context, s: common.cleanse_title(s)
 
 ### ###
 def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets, mappingList):
-  ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='+AniDBid
+  ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
   ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
@@ -54,7 +54,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in AniDB_array:
-    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL)  # AniDB title database loaded once every 2 weeks
+    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
     if xml:
       title,      original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       title_sort, _,              _             = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)

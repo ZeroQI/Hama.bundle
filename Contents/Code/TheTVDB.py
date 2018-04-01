@@ -170,7 +170,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     if count['poster'] == 0:  error_log['TVDB posters missing'       ].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
     if count['season'] == 0:  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
     #Log.Info("TheTVDB_dict: "+str(TheTVDB_dict))
-    common.downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   return TheTVDB_dict, IMDbid
   
 ### search for TVDB id series ###

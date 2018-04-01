@@ -245,7 +245,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
     if metatype==metadata.banners:             return "banners", GetMeta('', 'banners')
     if metatype==metadata.themes:              return "themes",  Prefs['themes']
     if filename.startswith("TVDB/episodes/"):  return "thumbs",  Prefs['thumbs']
-    return "seasons", GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
+    return "seasons", True  #GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
   
   string, test = GetMetadata(metatype)
   global downloaded
