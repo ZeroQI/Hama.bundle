@@ -74,10 +74,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
       
       TVDB_id = TVDBid
-      break  #if max(map(int, media.seasons.keys()))>1:  TVDB_id = TVDBid    #TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB) #else:                                      break               #anidb guid need 1 anidb xml only
-    
+      if max(map(int, media.seasons.keys()))<=1:  break  #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
+      
     ### TheTVDB numbered series ###
-    elif TVDB_id:
+    if TVDB_id or max(map(int, media.seasons.keys()))>1:  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         found = True
         if anime.get('defaulttvdbseason'):

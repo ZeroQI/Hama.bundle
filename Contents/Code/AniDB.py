@@ -30,8 +30,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   original                 = AniDBid
   
   ### Build the list of anidbids for files present ####
+  Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') for anidbid in Dict(mappingList, 'TVDB', season) if 'e' not in season and anidbid.isdigit() ]
+    Log.Info(str(mappingList))  #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
+    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = []
     for season in sorted(media.seasons, key=common.natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       
@@ -48,7 +50,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       else:  continue
       break  #cascade break
   else: full_array, AniDB_array = [AniDBid], [AniDBid]
-  Log.Info("".ljust(157, '-'))
   Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}, AniDBids present on disk: {}".format(AniDBid, full_array, AniDB_array))
   
   ### Load anidb xmls in tvdb numbering format if needed ###

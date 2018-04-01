@@ -123,7 +123,7 @@ class PlexLog(object):
     for handler in log.handlers:  log.removeHandler(handler)
 
 ### Code reduction one-liners that get imported specifically ###
-def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field    ]>0) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"
+def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"  #not Prefs['GetSingleOne'] or downloaded[field    ]>0 fails randomly due to downloaded emptied  #Log.Info("test - downloaded[field]: {}, downloaded: {}".format(downloaded[field]<=1, downloaded))
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
 def natural_sort_key(s):  return [int(text) if text.isdigit() else text for text in re.split(re.compile('([0-9]+)'), str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
 def urlFilename     (url):                              return "/".join(url.split('/')[3:])
@@ -199,17 +199,10 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
   global AniDB_WaitUntil
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   # missing_meta = False  # data in agent dict
-  # if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):
-  #  file = Data.Load(relativeFilename)
-  #  for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
-  #    for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
-  #  missing_meta = ??? #title/summary
   #  if missing_meta and its info is not in cache file and
   #    ( prev 7 days=< date - ep release date<= 14 days or #everyday refresh within 7 days of new release
   #      date - cache_file_date >= 7 days and serie in progress or   # every 7 days afterwards if in progress
   #      serie not in progress and date - cache_file_date >= 90 days )  #every 3 months if terminated
-  #if not file or  
-  #  file = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=20, cacheTime=cache)) 
   if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
     file_time = os.stat(fullpathFilename).st_mtime
     if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
@@ -564,7 +557,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       # End Of for episode
     # End of for season
     Log.Info("".ljust(157, '-'))
-
+  downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
+  
 ### Compute Levenshtein distance.
 def LevenshteinDistance(first, second):
   if len(first) > len(second):  first, second = second, first
