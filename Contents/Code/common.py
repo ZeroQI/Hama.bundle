@@ -557,6 +557,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       # End Of for episode
     # End of for season
     Log.Info("".ljust(157, '-'))
+  global downloaded
   downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   
 ### Compute Levenshtein distance.
