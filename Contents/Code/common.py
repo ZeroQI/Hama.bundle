@@ -59,7 +59,7 @@ except Exception as e:  Log.Info("Place correct Plex token in X-Plex-Token.id fi
 def GetMediaDir (media, movie):
   if movie:  return os.path.dirname(media.items[0].parts[0].file)
   else:
-    for s in media.seasons:
+    for s in media.seasons if media else []: # TV_Show:
       for e in media.seasons[s].episodes:
         return os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
 
@@ -293,7 +293,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
       time.sleep(1)
       sleep_time += 1
       if sleep_time > sleep_time_max:
-        Log.Error("Could not obtain the lock in {}sec & lock age is {}sec. Skipping log update.".format(sleep_time_max, int(time.time())-netLocked[1]))
+        Log.Error("Could not obtain the lock in {}sec & lock age is {}sec. Skipping log update.".format(sleep_time_max, int(time.time())-netLocked[1] if 1 in netLocked else "never"))
         continue #break #netLock.acquire()
     netLocked[log] = (True, int(time.time()))
   
