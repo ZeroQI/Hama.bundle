@@ -266,8 +266,8 @@ def Search (results, media, lang, manual, movie):
     elif orig_title.lower()  == title.lower()              :  title_cleansed, score = title.lower(), 99
     else: #contained in title
       title_cleansed = common.cleanse_title(title)
-      score1 = 98*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n
-      score2 = 98 - 98 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n
+      score1 = 98*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n if max(len(title_cleansed), len(orig_title_cleansed)) else 0
+      score2 = 98 - 98 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n  if max(len(title_cleansed), len(orig_title_cleansed)) else 0
       score=max(score1, score2)
     if score>=100 and not aid==best_aid:  n+=1
     results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (title, "anidb", aid), year=media.year, lang=lang, score=score))

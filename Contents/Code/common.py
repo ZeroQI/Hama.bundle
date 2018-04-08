@@ -274,8 +274,10 @@ def cleanse_title(string):#def CleanTitle(title):
   DeleteChars  = ""
   ReplaceChars = maketrans("`:~/*?-.,", "         ") #.;_
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
-  try:       string = string.encode('ascii', 'replace')        # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
+  try:       string2 = string.encode('ascii', 'replace')       # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass
+  else:      
+    if not string2.count('?'): string=string2
   while re.match(".*\([^\(\)]*?\).*", string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
 
