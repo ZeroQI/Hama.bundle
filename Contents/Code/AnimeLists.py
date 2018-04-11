@@ -57,6 +57,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
     if (not AniDBid or AniDBid != AniDB_id) and (not TVDBid or TVDBid !=TVDB_id):  continue  #if not (AniDB_id and AniDBid == AniDB_id) and not(TVDB_id and TVDB_id == TVDBid):  continue
+    found = True
     Log.Info("AnimeLists.GetMetadata() - AniDBid: {}, TVDBid: {}, defaulttvdbseason: {}, episodeoffset: {}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
     if AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0'):
@@ -82,10 +83,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     ### TheTVDB numbered series ###
     if TVDB_id or movie and max(map(int, media.seasons.keys()))>1:  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
-        found = True
-        if anime.get('defaulttvdbseason'):
-          SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
-          #if anime.get('defaulttvdbseason')=='1':  AniDB_id = AniDBid  #tvdbid get main anidbid while i create multi anidbid mapping support
+        if anime.get('defaulttvdbseason'):  SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
           Log.Info("AnimeLists.GetMetadata() - [!] anidbseason: {}, tvdbseason: {}, start: {}, end: {}, offset: {}, text: {}".format(anidbseason, tvdbseason, start, end, offset, season.text))
