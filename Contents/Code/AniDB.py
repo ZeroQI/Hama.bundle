@@ -31,11 +31,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   ### Build the list of anidbids for files present ####
   Log.Info("".ljust(157, '-'))
-  if source.startswith("tvdb") or source.startswith("anidb") and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
+  if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
     Log.Info(str(mappingList))  #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = []
-    for season in sorted(media.seasons, key=common.natural_sort_key):  # For each season, media, then use metadata['season'][season]...
+    for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       
       #Season check
       if len(Dict(mappingList, 'TVDB', 's'+season))==1: #import anidbif if one instance of the defaulttvdbseason exist as it has files
@@ -141,7 +141,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           numbering       = "s{}e{}".format(season, episode)
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
-          if source.startswith("tvdb") or source.startswith("anidb") and max(map(int, media.seasons.keys()))>1:  season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source)
+          if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source)
           
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
@@ -157,7 +157,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             #Log.Info("AniDB.GetMetadata() - role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-          if source.startswith("anidb") and max(map(int, media.seasons.keys()))==1:  # AniDB mode
+          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))==1:  # AniDB mode
             ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
             key =''
             if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
