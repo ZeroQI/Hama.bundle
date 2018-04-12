@@ -95,10 +95,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
         error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         Log.Warn("anidbTvdbMapping() - 'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
   else:
-    AniDBid, TVDBid = '', ''
     if not found:
       Log.Error("AnimeLists.GetMetadata() - source '{}', id: '{}' not found in file".format(source, id))
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
+    AniDBid, TVDBid = '', ''
     
   ### Update collection 
   #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:

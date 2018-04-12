@@ -289,6 +289,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
   ### File lock ###
   global netLocked
   sleep_time_max = 10
+  Log.Info("error_log: {}".format(error_log))
   for log in error_log:
     sleep_time = 0
     while log in netLocked and netLocked[log][0]:
@@ -322,8 +323,10 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
     import re
-    Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
-    #netLock.release()
+    Log.Info("error_log_array: {}".format(error_log_array))
+    try:     Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
+    except Exception as e:  Log.Error("Exception: '%s'" % e)
+    
     netLocked[log] = (False, 0)
 
 ### Add genre tags: Status, Extension, Dubbed/Subbed ###
