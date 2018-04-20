@@ -121,13 +121,15 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, source=''):
+  if source.startswith('tvdb4') and season!='0':  season='1'
+  
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   key               = 's'+season+'e'+episode.split('-')[0]
-  if key in mappingList:   mapping = mappingList [ key ] # Season Individual episode mapping + start-end offset
-  elif defaulttvdbseason:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
-  else:                    mapping = (season or '0', episode)
-  if source.startswith('tvdb4') and season!='0':  season='1'
+  #if season=='0' and episode=='1':  Log.Info('defaulttvdbseason: {}, episodeoffset: {},  Dict(mappingList, key): {}, []: {}'.format(defaulttvdbseason, episodeoffset, Dict(mappingList, key), str([x for x in Dict(mappingList, 'TVDB')])))
+  if key in mappingList:                                                                    mapping = mappingList [ key ] # Season Individual episode mapping + start-end offset
+  elif defaulttvdbseason and not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
+  else:                                                                                     mapping = ('0', '0')#(season or '0', episode)
   return mapping
 
 ### Translate TVDB numbering into AniDB numbering ###
