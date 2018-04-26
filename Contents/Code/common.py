@@ -73,7 +73,7 @@ def GetLibraryRootPath(dir):
     if os.path.isfile(filename):
       with open(filename, 'r') as file:  line=file.read()
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-        if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root); break
+        if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root).rstrip('.'); break
       else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
     Log.Debug("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
   return library, root, path
@@ -128,6 +128,9 @@ def GetXml          (xml,      field                ):  return xml.xpath(field)[
 def natural_sort_key(s):  return [int(text) if text.isdigit() else text for text in re.split(re.compile('([0-9]+)'), str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
 def urlFilename     (url):                              return "/".join(url.split('/')[3:])
 def urlDomain       (url):                              return "/".join(url.split('/')[:3])
+def replaceList     (string, a,b, *args):
+  for index in a:  string.replace(a[index], b[index], *args)
+  return string
 
 ### Return dict value if all fields exists "" otherwise (to allow .isdigit()), avoid key errors
 def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
@@ -147,13 +150,19 @@ def SaveDict(value, var, *arg):
       # ex: SaveDict(genre1,                      TheTVDB_dict, genre) to add    to current list
       # ex: SaveDict([genre1, genre2],            TheTVDB_dict, genre) to extend to current list
   """
-  if not value or not arg:  return ""  # update dict only as string would revert to pre call value being immutable
-  for key in arg[:-1]:                 # if var boin to element new content is not written to given dict
+  if not value:  return ""  # update dict only as string would revert to pre call value being immutable
+  if not arg and (isinstance(var, list) or isinstance(var, dict)):
+    if not (isinstance(var, list) or isinstance(var, dict)):  var = value
+    elif isinstance(value, list) or isinstance(value, dict):  var.extend (value)
+    else:                                                     var.append (value)
+    return value
+    
+  for key in arg[:-1]:
     if not isinstance(var, dict):  return ""
     if not key in var:  var[key] = {}
     var = var[key]
   if not arg[-1] in var or not isinstance(var[arg[-1]], list):  var[arg[-1]] = value
-  elif isinstance(value, list):                                 var[arg[-1]].extend (value)
+  elif isinstance(value, list) or isinstance(value, dict):      var[arg[-1]].extend (value)
   else:                                                         var[arg[-1]].append (value)
   return value
   
@@ -182,7 +191,10 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
   relativeDirectory, filename = os.path.split(relativeFilename) #if os.sep in filename:
   fullpathDirectory           = os.path.abspath(os.path.join(CachePath, relativeDirectory))
   if os.path.exists(fullpathDirectory):  Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory present".format(path=CachePath, file=relativeFilename))
-  else: os.makedirs(fullpathDirectory);  Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory absent.".format(path=CachePath, file=relativeFilename))
+  else:
+    try:                    os.makedirs(fullpathDirectory)
+    except Exception as e:  Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory absent, exception: {exception}".format(path=CachePath, file=relativeFilename, exception=e))
+    else:                   Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory absent.".format(path=CachePath, file=relativeFilename))
   try:                    Data.Save(relativeFilename, file)
   except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}'".format(exception=e, relativeFilename=relativeFilename))
   
@@ -398,7 +410,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     metadata       = metadata[0].seasons[metadata[1]].episodes[metadata[2]]
   else:  ep_string = ""
   
-  meta_old       = getattr( metadata, field) # getattr( metadata, field, None)
+  meta_old       = getattr(metadata, field) # getattr( metadata, field, None)
   meta_new       = meta_root[field]
   meta_new_short = (meta_new[:80]).replace("\n", " ")+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
   MetaFieldList  = ('directors', 'writers', 'producers', 'guest_stars', 'collections', 'genres', 'tags', 'countries')
@@ -490,8 +502,10 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [!] Error assigning
   Log.Info("Plex.UpdateMeta() - Metadata Fields (items #), type, source provider, value, ")
   count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
+  languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old = getattr(metadata, field)
+    if field=='title':  rank, found = len(languages), False
     for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
       if source in MetaSources:
         if Dict(MetaSources, source, field):
@@ -499,6 +513,14 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if '|' in MetaSources[source]['genres'] or ',' in MetaSources[source]['genres']:
               MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')
               MetaSources[source]['genres'].extend( Other_Tags(media, movie, Dict(MetaSources, 'AniDB', 'status')) )
+          if field=='title':
+            if rank==0:  break     #Lowest ranked language reached already
+            language_rank = Dict(MetaSources, source, 'language_rank')
+            if language_rank is not None:
+              if language_rank<rank:  rank = language_rank
+              else:                   continue  #Lower index (or same index at higher index metadata source) title exists
+            elif rank==len(languages) and not found and Dict(MetaSources, source,  'tittle'):  found = True  #Will update title then
+            else:                     continue    #no language priority and found or no title
           UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie)
           if field in count:  count[field] = count[field] + 1
           if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break  #one one meta apart from images unless single one was choosen
@@ -538,6 +560,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if not Dict(count, field):    
             source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'season', new_season, field) ]
             Log.Info("[#] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside: {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
+      
       ### Episodes ###
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
@@ -545,15 +568,27 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for field in FieldListEpisodes:  # Get a field
           try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
           except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
+          if field=='title':  rank, found = len(languages), False
           for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               new_season, new_episode = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season, episode
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
+                #@parallelize  def xxx()  @task
+                if field=='title':
+                  if rank==0:  break     #Lowest ranked language reached already
+                  language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                  if language_rank is not None:
+                    if language_rank<rank:  rank = language_rank
+                    else:                   continue  #Lower index (or same index at higher index metadata source) title exists
+                  elif rank==len(languages) and not found and Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'tittle'):  found = True  #Will update title then
+                  else:                     continue    #no language priority and found or no title
                 UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
                 count[field] = count[field] + 1 if field in count else 1
-                if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):
-                  Log.Info("[!] language skip Dict(MetaSources, source, 'language_rank'): {}".format(Dict(MetaSources, source, 'language_rank')))
-                  continue  #try other meta source if index not 0 which is the first selected language
+                if field=="title":
+                  if Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank'):
+                    Log.Info("[!] language skip Dict(MetaSources, source, 'language_rank'): {}".format(Dict(MetaSources, source, 'language_rank')))
+                    continue  #try other meta source if index not 0 which is the first selected language
+                  else:  break
                 if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
             elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
           if not Dict(count, field):

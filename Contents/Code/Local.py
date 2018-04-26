@@ -21,20 +21,20 @@ def GetMetadata(media, movie):
   library, root, path = GetLibraryRootPath(dir)
   if not path=='_unknown_folder':
   
+    Log.Info('Local.GetMetadata() - dir: {}, library:{}, root:{}, path:{}'.format(dir, library, root, path))
     series_root_folder  = os.path.join(root, path.split(os.sep, 1)[0])
     subfolder_count     = len([file for file in os.listdir(series_root_folder) if os.path.isdir(os.path.join(series_root_folder, file))])
-    Log.Info("subfolder_count: {}".format(subfolder_count))
+    Log.Info('Local.GetMetadata() - series_root_folder: {}, subfolder_count: {}'.format(series_root_folder, subfolder_count))
     
     ### Extract season and transparent folder to reduce complexity and use folder as serie name ###
     reverse_path, season_folder_first = list(reversed(path.split(os.sep))), False
-    SEASON_RX                 = [                                                                                                                                                       ### Seasons Folders 
-                                'Specials',                                                                                                                                           # Specials (season 0)
-                                '(Season|Series|Book|Saison|Livre|S)[ _\-]*(?P<season>[0-9]{1,2}).*',                                                                                 # Season ##, Series #Book ## Saison ##, Livre ##, S##, S ##
-                                '(?P<show>.*?)[\._\- ]+[sS](?P<season>[0-9]{2})',                                                                                                     # (title) S01
-                                '(?P<season>[0-9]{1,2})a? Stagione.*',                                                                                                                # ##a Stagione
-                                '(?P<season>[0-9]{1,2}).*',	                                                                                                                          # ##
-                                '^.*([Ss]aga]|([Ss]tory )?[Aa][Rr][KkCc]).*$'                                                                                                         # Last entry in array, folder name droped but files kept: Story, Arc, Ark, Video
-                              ]                                                                                                                                                       #
+    SEASON_RX = [ 'Specials',                                                                                                                                           # Specials (season 0)
+                  '(Season|Series|Book|Saison|Livre|S)[ _\-]*(?P<season>[0-9]{1,2}).*',                                                                                 # Season ##, Series #Book ## Saison ##, Livre ##, S##, S ##
+                  '(?P<show>.*?)[\._\- ]+[sS](?P<season>[0-9]{2})',                                                                                                     # (title) S01
+                  '(?P<season>[0-9]{1,2})a? Stagione.*',                                                                                                                # ##a Stagione
+                  '(?P<season>[0-9]{1,2}).*',	                                                                                                                          # ##
+                  '^.*([Ss]aga]|([Ss]tory )?[Aa][Rr][KkCc]).*$'                                                                                                         # Last entry in array, folder name droped but files kept: Story, Arc, Ark, Video
+                ]                                                                                                                                                       #
     for folder in reverse_path[:-1]:                 # remove root folder from test, [:-1] Doesn't thow errors but gives an empty list if items don't exist, might not be what you want in other cases
       for rx in SEASON_RX :                          # in anime, more specials folders than season folders, so doing it first
         if re.match(rx, folder, re.IGNORECASE):      # get season number but Skip last entry in seasons (skipped folders)

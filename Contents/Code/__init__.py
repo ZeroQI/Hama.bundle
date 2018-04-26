@@ -10,7 +10,7 @@ import common      # Functions: Logging, SaveFile, LoadFile, metadata_download, 
 from   common import Dict  #import Simkl       # Functions: GetMetadata, Register                                      Variables: None
 import AnimeLists  # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSet, MergeMaps  Variables: MAPPING_FEEDBACK
 import AniDB       # Functions: GetMetadata, Search, GetAniDBTitlesDB, GetAniDBTitle       Variables: ANIDB_SERIE_URL
-import TheTVDB     # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
+import TheTVDBv2     # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
 import TheMovieDb  # Functions: GetMetadata, Search                                        Variables: None
 import MyAnimeList # Functions: GetMetadata                                                Variables: None
 import OMDb        # Functions: GetMetadata                                                Variables: None
@@ -67,7 +67,10 @@ def Search(results, media, lang, manual, movie):
   orig_title = media.title if movie else media.show
   Log.Info('=== Search ============================================================================================================')
   Log.Info("Title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
-  if orig_title == "clear-cache":  HTTP.ClearCache();  return
+  if orig_title == "clear-cache":  
+    HTTP.ClearCache()
+    results.Append(MetadataSearchResult(id='clear-cache', name='Plex web cache cleared', year=media.year, lang=lang, score=0))
+    return
   if not orig_title:  return
   
   ### Check if a guid is specified "Show name [anidb-id]" ###
@@ -81,7 +84,7 @@ def Search(results, media, lang, manual, movie):
     maxi, n = 0, 0
     if movie or max(map(int, media.seasons.keys()))<=1:  maxi, n =       AniDB.Search(results, media, lang, manual, movie)
     if maxi<50 and movie:                                maxi    =  TheMovieDb.Search(results, media, lang, manual, movie)
-    if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
+    if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDBv2.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
   log.stop()
         
@@ -97,7 +100,7 @@ def Update(metadata, media, lang, force, movie):
   
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id,                   AniDBMovieSets) #, AniDBTVDBMap
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
-  dict_TheTVDB,                             IMDbid              =     TheTVDB.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
+  dict_TheTVDB,                             IMDbid              =     TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)
   dict_FanartTV                                                 =    FanartTV.GetMetadata(       movie,                                   TVDBid, TMDbid, IMDbid)
   dict_tvdb4                                                    =      common.GetMetadata(media, movie, source, TVDBid)
@@ -107,6 +110,7 @@ def Update(metadata, media, lang, force, movie):
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {} #
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   Log.Info("".ljust(157, '-')) 
+  Log.Info(str(dict_TheTVDB))
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'TheTVDB': dict_TheTVDB, 'AniDB': dict_AniDB, 'Plex': dict_Plex, 'MyAnimeList': dict_MyAnimeList, 

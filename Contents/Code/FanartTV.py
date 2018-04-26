@@ -18,11 +18,13 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100)
   Log.Info("FanartTv.GetMetadata() - movie:'{movie}', TVDBid: '{TVDBid}', tmdbid: '{tmdbid}', imdbid:'{imdbid}', season: '{season}', num: '{num}'".format(movie=movie, TVDBid=TVDBid, tmdbid=tmdbid, imdbid=imdbid, season=season, num=num))
   if "," in imdbid:  (GetMetadata(metadata, movie, "", "", imdbid_unique, season, num) for imdbid_unique in (tmdbid or imdbid).split(",")); return  #recusive call for each imdbid to reduce complexity
   if "," in tmdbid:  (GetMetadata(metadata, movie, "", tmdbid_unique, "", season, num) for tmdbid_unique in tmdbid.split(","));             return  #recusive call for each tmdbid to reduce complexity
-  if not movie and TVDBid:            id, relativeDirectory, url = TVDBid,           "FanartTV/tv/"   +TVDBid,               API_TV_URL.format(id=TVDBid,           api_key=API_KEY)
+  if not movie and TVDBid.isdigit():  id, relativeDirectory, url = TVDBid,           "FanartTV/tv/"   +TVDBid,               API_TV_URL.format(id=TVDBid,           api_key=API_KEY)
   elif movie and (imdbid or tmdbid):  id, relativeDirectory, url = imdbid or tmdbid, "FanartTV/movie/"+imdbid or tmdbid, API_MOVIES_URL.format(id=imdbid or tmdbid, api_key=API_KEY)
   else:                               return
   if (GetMeta('FanartTV', 'posters') or GetMeta('FanartTV', 'art') or GetMeta('FanartTV', 'banners')) and (TVDBid or tmdbid or imdbid):
     json = common.LoadFile(filename=id+".json", relativeDirectory=relativeDirectory, url=url, cache=CACHE_1WEEK)
+    
+    #Movies
     if json and (imdbid or tmdbid):
       if GetMeta('FanartTV', 'posters'):
         for item in Dict(json, 'movieposter'    ) or []:
@@ -30,7 +32,9 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100)
       if GetMeta('FanartTV', 'art'):
         for item in Dict(json, 'moviebackground') or []:
           SaveDict((relativeDirectory+"{id}/moviebackground/{filename}.jpg".format(id=id, filename=item['id']), num, None), FanartTV_dict, 'art',     item['url'])
-    if json and TVDBid:
+    
+    #Series
+    if json and TVDBid.isdigit():
       if GetMeta('FanartTV', 'posters'):
         for item in Dict(json, 'tvposter'       ) or []:
           SaveDict((relativeDirectory+"{id}/tvposter/{filename}.jpg".format(       id=id, filename=item['id']), num, None), FanartTV_dict, 'posters', item['url'])

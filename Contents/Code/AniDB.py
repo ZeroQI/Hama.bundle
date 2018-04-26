@@ -141,7 +141,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           numbering       = "s{}e{}".format(season, episode)
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
-          if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source)
+          if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source)#;  Log.Info('numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
           
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
