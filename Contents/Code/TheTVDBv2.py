@@ -126,10 +126,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     #Log.Info('s{:>2}e{:>3} ep: {}'.format(season, episode, episode_json))
     if metadata_source in ("tvdb4", "tvdb5") and not season=='0':  season='1'
     if season!='0' and (metadata_source=="anidb" and Dict(mappingList, 'defaulttvdbseason')=="a" and not movie and max(map(int, media.seasons.keys()))==1 or metadata_source in ("tvdb3", "tvdb4", "tvdb5")):
-      abs_number = str(Dict(episode_json, 'absoluteNumber'))
+      if Dict(episode_json, 'absoluteNumber'):  abs_number = str(Dict(episode_json, 'absoluteNumber'))
       if not episode:           episode = abs_number, missing_abs_nb = abs_number, True;  abs_manual_placement_info.append("s%se%s = abs %s" % (str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber')), str(Dict(episode_json, 'absoluteNumber'))))
       elif not missing_abs_nb:  episode = abs_number #update abs_number with real abs number
-      elif episode !=str(abs_number):
+      elif episode != abs_number:
         Log.Error("TheTVDB.GetMetadata() - Abs number (s{}e{}) present after manually placing our own abs numbers ({})".format(str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber')), abs_number))
         continue
     numbering = "s{}e{}".format(season, episode)
@@ -162,7 +162,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         elif season=='0':                               tvdb_special_missing.append(episode)                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
         else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
     
-      if season!='0':  abs_number += 1
+      if season!='0':  abs_number = str(int(abs_number) + 1)
     
     ### Ep advance information ###
     id = str(Dict(episode_json, 'id'))
