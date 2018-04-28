@@ -44,7 +44,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #Episode check if more than 1 anidnid for this season
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
         if len(AniDB_array)==len(full_array):  break  #if all anidbid needed stop looping
-        new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
+        new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode, source)
         #Log.Info("anidbid: {}, season: {}, episode: {}, new_season: {}, new_episode: {}".format(anidbid, season, episode, new_season, new_episode))
         if anidbid and anidbid not in AniDB_array:  AniDB_array.append(anidbid)
       else:  continue

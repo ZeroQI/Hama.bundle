@@ -23,10 +23,10 @@ def GetAniDBTVDBMap():
   MAPPING       = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
   MAPPING_FIX   = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'                  # ScudLee mapping file url online override
   MAPPING_LOCAL = os.path.join(common.CachePath, 'AnimeLists', 'anime-list-custom.xml')                                            # Custom mapping list(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems", 'AnimeLists', 'anime-list-corrections.xml')
-  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(MAPPING), relativeDirectory="AnimeLists", url=MAPPING, cache= CACHE_1WEEK)  # 
+  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(MAPPING), relativeDirectory="AnimeLists", url=MAPPING, cache= CACHE_1DAY*6)  # 
   if not AniDBTVDBMap:  Log.Critical("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(MAPPING)))); AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
   
-  MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1WEEK))  #Online ScudLee anidb to tvdb mapping list
+  MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1DAY*6))  #Online ScudLee anidb to tvdb mapping list
     
   if os.path.exists(MAPPING_LOCAL):  #Local  ScudLee anidb to tvdb mapping list
     Log.Info("GetAniDBTVDBMap() - Loading local custom mapping - url: " + MAPPING_LOCAL)
@@ -38,7 +38,7 @@ def GetAniDBTVDBMap():
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
   ANIME_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
-  AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK)
+  AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK*4)
   if not AniDBMovieSets:  Log.Error ("Failed to load core file '%s'" % os.path.basename(MOVIE_COLLECTION))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   return AniDBMovieSets
   

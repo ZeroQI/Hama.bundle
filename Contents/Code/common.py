@@ -390,7 +390,7 @@ def GetMetadata(media, movie, source, TVDBid, num=0):
   
   TVDB4_dict = {}
   if TVDB4_xml: Log.Debug("common.GetMetadata() - 'tvdb4.posters.xml' file detected locally")
-  else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 7)  # AniDB title database loaded once every 2 weeks
+  else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if TVDB4_xml:
     seasonposternum = 0
     entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
