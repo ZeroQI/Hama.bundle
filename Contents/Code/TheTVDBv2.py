@@ -33,6 +33,7 @@ HEADERS                    = {'User-agent': 'Plex/Nine'}
 def set_JWT_token():
   #Authentication_string = {"apikey": "A27AD9BE0DA63333", "userkey": "4BF214C112AEB9B0", "username": "ZeroQI"}  # username and key are ONLY required for the /user routes.
   #{"token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MjA5NzgzOTYsImlkIjoiSEFNQSIsIm9yaWdfaWF0IjoxNTIwODkxOTk2LCJ1c2VyaWQiOjM4MzM2MiwidXNlcm5hbWUiOiJaZXJvUUkifQ.CXhbF50PqjuNorXDeKy6UR7WUVv4C0Q2EfhXmB2UQ5imcJ7J28l7ZcJYt8KFOzxvBcm_sE6nXcKTdGtZGpMXUGlF0KNzCXnCIhXsivD3vPpcp0SOX_V1aO-FuhmvCLWFiFVjw5uzhlHeFGJ7DemhBEWv3D88ZI_Q-G9_bMmAsYJ9M_LQj6Q5t4dyhuhLw43QVYzF_oVeu6JmnsW5lh2VTI414FYr-CLSmicHLfWfLGnz3OHLPOPo-_bEAn74WHb-UzCo37kjbfuj9hB9zxKukTqi07tqg2epAePWNplrjQkKQ2N89nq_JvC_hC92R2nZu7tkjm4gPfXTFY1BBgSxvQ"}
+  #Log.Info('set_JWT_token()')
   try:                    response = JSON.ObjectFromString(HTTP.Request(TVDB_LOGIN_URL, data=JSON.StringFromObject(dict(apikey=TVDB_API_KEY)), headers={'Content-type': 'application/json'}).content)
   except Exception, e:    Log("JWT Error: (%s) - %s" % (e, e.message))
   else:
@@ -45,12 +46,12 @@ def GetResultFromNetwork(url, fetchContent=True, additionalHeaders=None, data=No
   if 'Authorization' not in HEADERS: set_JWT_token()  # Grab New Auth token
   local_headers = HEADERS.copy()
   local_headers.update(additionalHeaders)
-  
-  Log("Retrieving URL: " + url) #'Accept: application/json'
+  #Log.Info('local_headers: {}'.format(local_headers))
+  #Log("Retrieving URL: " + url) #'Accept: application/json'
   try:  result = HTTP.Request(url, headers=local_headers, timeout=60, data=data)
-  except Exception:
-    try:     set_JWT_token();  result = HTTP.Request(url, headers=local_headers, timeout=60, data=data)
-    except Exception, e:  Log.Info(' Exception, e: {}'.format(e));  return None
+  except Exception:  Log.Info(' Exception, e: {}'.format(e));  return None
+    #try:     set_JWT_token();  result = HTTP.Request(url, headers=local_headers, timeout=60, data=data)
+    #except Exception, e:  Log.Info(' Exception, e: {}'.format(e));  return None
   if fetchContent:
     try:                  result = result.content
     except Exception, e:  Log('Content Error (%s) - %s' % (e, e.message))
@@ -59,7 +60,7 @@ def GetResultFromNetwork(url, fetchContent=True, additionalHeaders=None, data=No
     json = JSON.ObjectFromString(result)
     if 'errors' in json:
       for key in json['errors']:  Log.Info('"{}": "{}", additionalHeaders: "{}"'.format(key, json['errors'][key], additionalHeaders))
-  except:  pass
+  except:  json = []
   return json  
       
 ### TVDB - Load serie JSON ###
@@ -124,7 +125,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     episode = str(Dict(episode_json, 'airedEpisodeNumber') or Dict(episode_json, 'dvdEpisodeNumber'))
     #Log.Info('s{:>2}e{:>3} ep: {}'.format(season, episode, episode_json))
     if metadata_source in ("tvdb4", "tvdb5") and not season=='0':  season='1'
-    if season!='0' and (metadata_source=="anidb" and defaulttvdbseason=="a" and max(map(int, media.seasons.keys()))==1 or metadata_source in ("tvdb3", "tvdb4", "tvdb5")):
+    if season!='0' and (metadata_source=="anidb" and Dict(mappingList, 'defaulttvdbseason')=="a" and not movie and max(map(int, media.seasons.keys()))==1 or metadata_source in ("tvdb3", "tvdb4", "tvdb5")):
       abs_number = str(Dict(episode_json, 'absoluteNumber'))
       if not episode:           episode = abs_number, missing_abs_nb = abs_number, True;  abs_manual_placement_info.append("s%se%s = abs %s" % (str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber')), str(Dict(episode_json, 'absoluteNumber'))))
       elif not missing_abs_nb:  episode = abs_number #update abs_number with real abs number
@@ -139,26 +140,33 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     SaveDict( Dict(episode_json, 'episodeName'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
     SaveDict( Dict(episode_json, 'firstAired' ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at') 
       
-    ### Missing summaries logs ###
-    if SaveDict( Dict(episode_json, 'overview'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  summary_present.append(numbering)
-    elif season!='0':                                                                                               summary_missing.append(numbering)
-    else:                                                                                                           summary_missing_special.append(numbering)
-  
     ### Check for Missing Episodes ### and tvdb mode
-    if (not movie and metadata_source.startswith("tvdb") or max(map(int, media.seasons.keys()))>1) and metadata_source != 'tvdb5' and \
-      not (metadata_source in ('tvdb',  'tvdb2') and season in media.seasons and episode in media.seasons[season].episodes) and \
-      not (metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for s in media.seasons if episode in media.seasons[s].episodes]):
-      air_date = Dict(episode_json, 'FirstAired')
-      air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
-      if int(time.strftime("%Y%m%d")) <= air_date+1:  pass  #Log.Warn("TheTVDB.GetMetadata() - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
-      elif season=='0':                               tvdb_special_missing.append(episode)                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
-      else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
+    if movie: 
+      if metadata_source=='anidb' and movie:
+        new_season, new_episode = tvdb_ep(mappingList, '1', '1')
+        if season != new_season and episode != new_episode:  continue
     
-    if season!='0':  abs_number += 1
-      
+    else: #TV Series
+    
+      ### Missing summaries logs ###
+      if SaveDict( Dict(episode_json, 'overview'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  summary_present.append(numbering)
+      elif season!='0':                                                                                               summary_missing.append(numbering)
+      else:                                                                                                           summary_missing_special.append(numbering)
+        
+      if not movie and (( metadata_source.startswith("tvdb") or max(map(int, media.seasons.keys()))>1) and metadata_source != 'tvdb5' and \
+        not (metadata_source in ('tvdb',  'tvdb2') and season in media.seasons and episode in media.seasons[season].episodes) and \
+        not (metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for s in media.seasons if episode in media.seasons[s].episodes])):
+        air_date = Dict(episode_json, 'FirstAired')
+        air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
+        if int(time.strftime("%Y%m%d")) <= air_date+1:  pass  #Log.Warn("TheTVDB.GetMetadata() - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
+        elif season=='0':                               tvdb_special_missing.append(episode)                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
+        else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
+    
+      if season!='0':  abs_number += 1
+    
     ### Ep advance information ###
     id = str(Dict(episode_json, 'id'))
-    episode_details_json = GetResultFromNetwork(TVDB_EPISODE_DETAILS_URL + id, additionalHeaders={'Accept-Language': language_episodes[0]} if language_episodes and language_episodes[0]!='en' else {})['data']
+    episode_details_json = Dict(GetResultFromNetwork(TVDB_EPISODE_DETAILS_URL + id, additionalHeaders={'Accept-Language': language_episodes[0]} if language_episodes and language_episodes[0]!='en' else {}), 'data')
     if episode_details_json:
       #Log.Info(episode_details_json)  #firstAired, overview, episodeName, seriesId, dvdDiscid, absoluteNumber, imdbId, firstAired
       SaveDict( Dict(episode_details_json, 'writers'            ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'writers'                )
@@ -186,18 +194,21 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   
   ### Collection ###  # get all anidbids sharing the same tvdbids
   
-  ### Logging ###
-  Log.Info("TheTVDB.GetMetadata(): abs_manual_placement_info: "+str(abs_manual_placement_info))
-  if summary_missing:          error_log['Missing Episode Summaries'].append("TVDBid: %s | Title: '%s' | Missing Episode Summaries: %s" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(summary_missing        )))
-  if summary_missing_special:  error_log['Missing Special Summaries'].append("TVDBid: %s | Title: '%s' | Missing Special Summaries: %s" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(summary_missing_special)))
-  if episode_missing:          error_log['Missing Episodes'         ].append("TVDBid: %s | Title: '%s' | Missing Episodes: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(episode_missing        )))
-  if tvdb_special_missing:     error_log['Missing Specials'         ].append("TVDBid: %s | Title: '%s' | Missing Specials: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(tvdb_special_missing   )))
-  Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
-  Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes missing: "         + str(sorted(episode_missing, key=natural_sort_key)))
-  
+  if not movie:
+    ### Logging ###
+    Log.Info("TheTVDB.GetMetadata(): abs_manual_placement_info: "+str(abs_manual_placement_info))
+    if summary_missing:          error_log['Missing Episode Summaries'].append("TVDBid: %s | Title: '%s' | Missing Episode Summaries: %s" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(summary_missing        )))
+    if summary_missing_special:  error_log['Missing Special Summaries'].append("TVDBid: %s | Title: '%s' | Missing Special Summaries: %s" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(summary_missing_special)))
+    if episode_missing:          error_log['Missing Episodes'         ].append("TVDBid: %s | Title: '%s' | Missing Episodes: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(episode_missing        )))
+    if tvdb_special_missing:     error_log['Missing Specials'         ].append("TVDBid: %s | Title: '%s' | Missing Specials: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(tvdb_special_missing   )))
+    Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
+    Log.Debug("TheTVDB.GetMetadata() - TVDB - Episodes missing: "         + str(sorted(episode_missing, key=natural_sort_key)))
+    
   ### Picture types JSON download ###
   Log.Info("TheTVDB.GetMetadata() - Images")
-  try:              bannerTypes = GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': language} if language!='en' else {})['data']
+  try:
+    bannerTypes = Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': language} if language!='en' else {}),'data') or \
+                  Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': 'en'}),'data')
   except KeyError:  Log("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
   else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
     metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
@@ -205,7 +216,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     anidb_offset      = sorted(Dict(mappingList, 'poster_id_array', TVDBid).keys()).index(AniDBid) if AniDBid in Dict(mappingList, 'poster_id_array', TVDBid) else 0  
     language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
     Log.Info("TheTVDB.GetMetadata() - bannerTypes: {}, anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(bannerTypes, anidb_offset, AniDBid, str((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys())))
-    for bannerType in bannerTypes:
+    for bannerType in bannerTypes or []:
       
       #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
       if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images

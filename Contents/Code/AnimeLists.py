@@ -127,10 +127,12 @@ def tvdb_ep(mappingList, season, episode, source=''):
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   key               = 's'+season+'e'+episode.split('-')[0]
   #if season=='0' and episode=='1':  Log.Info('defaulttvdbseason: {}, episodeoffset: {},  Dict(mappingList, key): {}, []: {}'.format(defaulttvdbseason, episodeoffset, Dict(mappingList, key), str([x for x in Dict(mappingList, 'TVDB')])))
-  if key in mappingList:                                                                    mapping = mappingList [ key ] # Season Individual episode mapping + start-end offset
-  elif defaulttvdbseason and not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
-  else:                                                                                     mapping = ('0', '0')#(season or '0', episode)
+  if key in mappingList:                                                                                                                                        mapping = mappingList [ key ] # Season Individual episode mapping + start-end offset
+  elif defaulttvdbseason not in (None, '0') and (not Dict(mappingList, 'TVDB') or not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]):  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
+  else:                                                                                                                                                         mapping = ('0', '0')#(season or '0', episode)
   return mapping
+#AnimeLists.GetMetadata() - AniDBid: 11680, TVDBid: 257516, defaulttvdbseason: 0, episodeoffset: 10, name: Accel World: Infinite Burst
+#anidbTvdbMapping() - mappingList: {'defaulttvdbseason': '0', 'name': 'Accel World: Infinite Burst', 'episodeoffset': '10'}
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
