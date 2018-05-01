@@ -514,16 +514,15 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
               MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')
               MetaSources[source]['genres'].extend( Other_Tags(media, movie, Dict(MetaSources, 'AniDB', 'status')) )
           if field=='title':
-            if rank==0:  break     #Lowest ranked language reached already
             language_rank = Dict(MetaSources, source, 'language_rank')
-            if language_rank is not None:
-              if language_rank<rank:  rank = language_rank
-              else:                   continue  #Lower index (or same index at higher index metadata source) title exists
-            elif rank==len(languages) and not found and Dict(MetaSources, source,  'tittle'):  found = True  #Will update title then
-            else:                     continue    #no language priority and found or no title
+            title         = Dict(MetaSources, source, 'title'        )
+            #Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
+            if title and (language_rank not in (None, '') and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
+            else:                                                                                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
           UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie)
           if field in count:  count[field] = count[field] + 1
-          if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break  #one one meta apart from images unless single one was choosen
+          if field in ['posters', 'art', 'banners', 'themes', 'thumbs'] and not Prefs['GetSingleOne'] or field=="title" and language_rank==0:  continue
+          else:                                                                                                                                break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
       if not Dict(count, field):
@@ -573,23 +572,16 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if source in MetaSources:
               new_season, new_episode = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season, episode
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
-                #@parallelize  def xxx()  @task
                 if field=='title':
-                  if rank==0:  break     #Lowest ranked language reached already
                   language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
-                  if language_rank is not None:
-                    if language_rank<rank:  rank = language_rank
-                    else:                   continue  #Lower index (or same index at higher index metadata source) title exists
-                  elif rank==len(languages) and not found and Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'tittle'):  found = True  #Will update title then
-                  else:                     continue    #no language priority and found or no title
+                  title         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title')
+                  #Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
+                  if title and (language_rank not in (None, '') and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
+                  else:                                                                                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
                 UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
                 count[field] = count[field] + 1 if field in count else 1
-                if field=="title":
-                  if Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank'):
-                    Log.Info("[!] language skip Dict(MetaSources, source, 'language_rank'): {}".format(Dict(MetaSources, source, 'language_rank')))
-                    continue  #try other meta source if index not 0 which is the first selected language
-                  else:  break
-                if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
+                if field in ['posters', 'art', 'banners', 'themes', 'thumbs'] and not Prefs['GetSingleOne'] or field=="title" and language_rank==0:  continue
+                else:                                                                                                                                break
             elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
           if not Dict(count, field):
             source_list = [ source for source in MetaSources if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field) ]

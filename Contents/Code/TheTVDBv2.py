@@ -70,9 +70,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   if not TVDBid.isdigit(): return {}, IMDbid
   
   TheTVDB_dict      = {}
+  language_series   = Prefs['SerieLanguagePriority'  ].split(',')
   language_episodes = Prefs['EpisodeLanguagePriority'].split(',')
+  language_series   = [language.strip() if language not in ('x-jat') else '' for language in language_series   if language]
   language_episodes = [language.strip() if language not in ('x-jat') else '' for language in language_episodes if language]
-  Log.Info('language_episodes: {}'.format(language_episodes))
+  Log.Info('language_series : {}, language_episodes: {}'.format(language_series , language_episodes))
   
   ### TVDB Series Actors JSON ###
   if not Prefs["GetSingleOne"]:  #cache= CACHE_1MONTH, url=API_ACTORS_URL.replace('.com', '.plexapp.com')
@@ -94,9 +96,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   else:  #serie_json { "id","seriesId", "airsDayOfWeek", "imdbId", "zap2itId", "added", "addedBy", "lastUpdated", "seriesName", "aliases", "banner", "status", 
          #             "firstAired", "network", "networkId", "runtime", "genre, "overview", "airsTime", "rating" , "siteRating", "siteRatingCount" }
     Log.Info('TheTVDB.GetMetadata() - serie_json: {}'.format(serie_json))
-    SaveDict( language_episodes.index(lang) if lang in language_episodes else len(language_episodes), TheTVDB_dict, 'language_rank')
-    SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
+    SaveDict( language_series.index(lang) if lang in language_series else len(language_series), TheTVDB_dict, 'language_rank')
     SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'title'                  )
+    SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
     SaveDict( Dict(serie_json, 'zap2it_id' ), TheTVDB_dict, 'zap2itId'               )
     SaveDict( Dict(serie_json, 'rating'    ), TheTVDB_dict, 'content_rating'         )
     SaveDict( Dict(serie_json, 'overview'  ), TheTVDB_dict, 'summary'                )
@@ -137,9 +139,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
     SaveDict( Dict(serie_json  , 'rating'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
     SaveDict( Dict(serie_json  , 'runtime'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
-    SaveDict( Dict(episode_json, 'episodeName'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
     SaveDict( Dict(episode_json, 'firstAired' ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at') 
-      
+    if Dict(episode_json, 'episodeName'):
+      SaveDict( Dict(episode_json, 'episodeName'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title')
+      SaveDict( language_episodes.index(lang) if lang in language_episodes else len(language_episodes), TheTVDB_dict, 'language_rank')
+      rank=language_episodes.index(lang) if lang in language_episodes else len(language_episodes)
+    else:  rank = len(language_episodes)
     ### Check for Missing Episodes ### and tvdb mode
     if movie: 
       if metadata_source=='anidb' and movie:
@@ -185,9 +190,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     for lang_rank, language in enumerate(language_episodes[1:rank-1] if len(language_episodes)>1 and rank>=2 else []):
       if not language:  continue
       episode_details_json = GetResultFromNetwork(TVDB_EPISODE_DETAILS_URL + id, additionalHeaders={'Accept-Language': language} if language!='en' else {})['data']
-      if Dict(episode_details_json, 'language', 'episodeName') and Dict(episode_details_json, 'episodeName'):  
+      if Dict(episode_details_json, 'episodeName') :  
         SaveDict( Dict(episode_details_json, 'episodeName'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title')
         SaveDict( lang_rank                                , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'language_rank')
+        #Log.Info('language: {}, lang_rank: {}, title: '.format(language, lang_rank, Dict(episode_details_json, 'episodeName')))
         rank=lang_rank
         break
       else:  Log.Info('no ep title in language: {}'.format(language_episodes[lang_rank]))
