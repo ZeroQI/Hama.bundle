@@ -83,11 +83,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     else:             #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
       Log("TheTVDB.GetMetadata() - TVDB_ACTORS_URL: {}, actor_json: {}".format(TVDB_ACTORS_URL % TVDBid, actor_json))  
       TheTVDB_dict['roles'] = []
-      for role in actor_json:
-        try:
-          SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
-          Log.Info('TheTVDB.GetMetadata() - role: "{}", name: "{}", photo: "{}"'.format(Dict(role, 'role'), Dict(role, 'name'), Dict(role, 'image')))
-        except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
+      if actor_json is not None:
+        for role in actor_json:
+          try:
+            SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
+            Log.Info('TheTVDB.GetMetadata() - role: "{}", name: "{}", photo: "{}"'.format(Dict(role, 'role'), Dict(role, 'name'), Dict(role, 'image')))
+          except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
   
   ### TVDB Series JSON ###
   serie_json = {}
