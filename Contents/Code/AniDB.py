@@ -44,7 +44,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #Episode check if more than 1 anidnid for this season
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
         if len(AniDB_array)==len(full_array):  break  #if all anidbid needed stop looping
-        new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode, source)
+        new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
         #Log.Info("anidbid: {}, season: {}, episode: {}, new_season: {}, new_episode: {}".format(anidbid, season, episode, new_season, new_episode))
         if anidbid and anidbid not in AniDB_array:  AniDB_array.append(anidbid)
       else:  continue
@@ -203,6 +203,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #if metadata.studio       and 'studio' in AniDB_dict and AniDB_dict ['studio'] and AniDB_dict ['studio'] != metadata.studio:  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
     
+      Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
       Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   #Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid

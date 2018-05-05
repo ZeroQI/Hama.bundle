@@ -83,12 +83,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     else:             #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
       Log("TheTVDB.GetMetadata() - TVDB_ACTORS_URL: {}, actor_json: {}".format(TVDB_ACTORS_URL % TVDBid, actor_json))  
       TheTVDB_dict['roles'] = []
-      for role in actor_json:
+      for role in actor_json or []:
         try:
           SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
           Log.Info('TheTVDB.GetMetadata() - role: "{}", name: "{}", photo: "{}"'.format(Dict(role, 'role'), Dict(role, 'name'), Dict(role, 'image')))
         except Exception as e:  Log.Info("TheTVDB.GetMetadata() - 'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
-  
+ 
   ### TVDB Series JSON ###
   serie_json = {}
   try:     serie_json = GetResultFromNetwork(TVDB_SERIES_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {})['data']
@@ -219,7 +219,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
     metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
     count_valid       = {key: 0 for key in metanames}
-    anidb_offset      = sorted(Dict(mappingList, 'poster_id_array', TVDBid).keys()).index(AniDBid) if AniDBid in Dict(mappingList, 'poster_id_array', TVDBid) else 0  
+    anidb_offset      = sorted((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys()).index(AniDBid) if AniDBid and AniDBid in Dict(mappingList, 'poster_id_array', TVDBid) else 0  
     language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
     Log.Info("TheTVDB.GetMetadata() - bannerTypes: {}, anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(bannerTypes, anidb_offset, AniDBid, str((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys())))
     for bannerType in bannerTypes or []:

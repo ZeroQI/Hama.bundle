@@ -19,7 +19,7 @@ def GetMetadata(media, movie):
   Local_dict          = {}
   dir                 = GetMediaDir(media, movie)
   library, root, path = GetLibraryRootPath(dir)
-  if not path=='_unknown_folder':
+  if not path in ('_unknown_folder', '.'):
   
     Log.Info('Local.GetMetadata() - dir: {}, library:{}, root:{}, path:{}'.format(dir, library, root, path))
     series_root_folder  = os.path.join(root, path.split(os.sep, 1)[0])
