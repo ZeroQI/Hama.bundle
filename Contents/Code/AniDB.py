@@ -239,7 +239,7 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
 def WordsScore(words, title_cleansed):
   max_length = max(len("".join(words)), len(title_cleansed))
   score=0
-  for word in words:  score+= 100*(len(String.LongestCommonSubstring(word, title_cleansed))+1)/ max_length
+  for word in words:  score+= 100*len(String.LongestCommonSubstring(word, title_cleansed))/max_length
   return score
  
 ### AniDB Search #############################################################################################################################################################
