@@ -284,7 +284,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
 def cleanse_title(string):#def CleanTitle(title):
   import unicodedata
   DeleteChars  = ""
-  ReplaceChars = maketrans("`:~/*?-.,", "         ") #.;_
+  ReplaceChars = maketrans("`:~/*?-.,;", "          ") #.;_
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
   try:       string2 = string.encode('ascii', 'replace')       # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass
@@ -561,6 +561,10 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             Log.Info("[#] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside: {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
       
       ### Episodes ###
+      # @parallelize
+      #def UpdateEpisodes():
+      #@task
+      #def UpdateEpisode(episode=episode, episode_info=episode_info):
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         count={'posters':0, 'art':0, 'thumbs':0}
@@ -570,7 +574,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if field=='title':  rank, found = len(languages), False
           for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
-              new_season, new_episode = '1' if metadata.id.startswith('tvdb4') and not season=='0' else season, episode
+              new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if field=='title':
                   language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')

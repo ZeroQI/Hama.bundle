@@ -5,19 +5,19 @@
 # - search word pick serie, do levenstein i partially match only (few chars difference)
 
 ### Imports ###
-import common      # Functions: Logging, SaveFile, LoadFile, metadata_download, WriteLogs, cleanse_title, GetMetadata, UpdateMeta, UpdateMetaField
-                   # Functions: GetMeta, natural_sort_key, SaveDict, Dict, GetXml, GetStatusCode
-from   common import Dict  #import Simkl       # Functions: GetMetadata, Register                                      Variables: None
-import AnimeLists  # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSet, MergeMaps  Variables: MAPPING_FEEDBACK
-import AniDB       # Functions: GetMetadata, Search, GetAniDBTitlesDB, GetAniDBTitle       Variables: ANIDB_SERIE_URL
-import TheTVDBv2     # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
-import TheMovieDb  # Functions: GetMetadata, Search                                        Variables: None
-import MyAnimeList # Functions: GetMetadata                                                Variables: None
-import OMDb        # Functions: GetMetadata                                                Variables: None
-import FanartTV    # Functions: GetMetadata                                                Variables: None
-import Plex        # Functions: GetMetadata                                                Variables: None
-import TVTunes     # Functions: GetMetadata                                                Variables: None
-import Local       # Functions: GetMetadata                                                Variables: None
+import common            # Functions: Logging, SaveFile, LoadFile, metadata_download, WriteLogs, cleanse_title, GetMetadata, UpdateMeta, UpdateMetaField
+                         # Functions: GetMeta, natural_sort_key, SaveDict, Dict, GetXml, GetStatusCode
+from common import Dict  #import Simkl       # Functions: GetMetadata, Register                                      Variables: None
+import AnimeLists        # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSet, MergeMaps  Variables: MAPPING_FEEDBACK
+import AniDB             # Functions: GetMetadata, Search, GetAniDBTitlesDB, GetAniDBTitle       Variables: ANIDB_SERIE_URL
+import TheTVDBv2         # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
+import TheMovieDb        # Functions: GetMetadata, Search                                        Variables: None
+import MyAnimeList       # Functions: GetMetadata                                                Variables: None
+import OMDb              # Functions: GetMetadata                                                Variables: None
+import FanartTV          # Functions: GetMetadata                                                Variables: None
+import Plex              # Functions: GetMetadata                                                Variables: None
+import TVTunes           # Functions: GetMetadata                                                Variables: None
+import Local             # Functions: GetMetadata                                                Variables: None
     
 ### Variables ###
 AniDBMovieSets = AnimeLists.GetAniDBMovieSets()

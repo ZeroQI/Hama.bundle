@@ -267,8 +267,8 @@ def Search (results, media, lang, manual, movie):
     elif orig_title.lower()  == title.lower()              :  title_cleansed, score = title.lower(), 99
     else: #contained in title
       title_cleansed = common.cleanse_title(title)
-      score1 = 98*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n if max(len(title_cleansed), len(orig_title_cleansed)) else 0
-      score2 = 98 - 98 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n  if max(len(title_cleansed), len(orig_title_cleansed)) else 0
+      score1 = 100*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n if max(len(title_cleansed), len(orig_title_cleansed)) else 0
+      score2 = 100 - 100 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n  if max(len(title_cleansed), len(orig_title_cleansed)) else 0
       score=max(score1, score2)
     if score>=100 and not aid==best_aid:  n+=1
     results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (title, "anidb", aid), year=media.year, lang=lang, score=score))
@@ -302,7 +302,8 @@ def Search (results, media, lang, manual, movie):
       Type           = element.get('type', '')
       Lang           = element.get('{http://www.w3.org/XML/1998/namespace}lang', '')
       title_cleansed = common.cleanse_title(title)
-      if title_cleansed == orig_title_cleansed:  score =  98
+      #if title_cleansed == orig_title.lower(): Log.Info('100% match')
+      if title_cleansed == orig_title_cleansed:  score =  98 if ';' not in title else 100
       else:                                      score = WordsScore(orig_title_cleansed.split(), title_cleansed)  # - type_order.index(Type)  #Movies can have same title
       if score>best_score_entry or score==best_score_entry and (not best_type_entry or type_order.index(Type)<type_order.index(best_type_entry)):
         best_score_entry, best_title_entry, best_type_entry, best_lang_entry, best_title_entry_cleansed = score, title, Type, Lang, title_cleansed
