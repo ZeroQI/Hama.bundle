@@ -229,7 +229,7 @@ Support thread for agent:
 - https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
 Include the library name, the symptoms, the logs mentionned above.
 
-Bugs Fixes ([X] to be included in next version, removed from list once solve)
+Bugs Fixes 
 ==========
 - [X] TheTVDB not putting images in TheTVDB subfolder
 - [X] animetitles.xml.tgz downloaded every time plex starts leading to ban with anidb.net not responding
@@ -243,3 +243,7 @@ Feature Requests: ([X] to be included in next version)
 - [ ] Package of 30s long Theme Songs, local loading works, name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3
 - [ ] Add RSS links to AniDB missing episodes summary
 - [ ] Any ideas ?
+
+Note:
+- [X] to be included in next version
+- items removed from list once resolved in current code
