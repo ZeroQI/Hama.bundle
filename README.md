@@ -229,8 +229,17 @@ Support thread for agent:
 - https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
 Include the library name, the symptoms, the logs mentionned above.
 
-To Do
-=====
-- [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons. Will not work on that
-- [ ] Package of 30s Theme Songs, local loading name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3. will not work on that but local loading works
-- [ ] Add RSS links to AniDB missing episodes summary ?
+Bugs Fixes ([X] to be included in next version, removed from list once solve)
+==========
+- [X] TheTVDB not putting images in TheTVDB subfolder
+- [X] animetitles.xml.tgz downloaded every time plex starts leading to ban with anidb.net not responding
+- [X] fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
+- [ ] tvdb4 season posters not falling back to standard posters
+- [ ] AniDB season mapped to season >1 get TheTVDB metadata season 1
+
+Feature Requests: ([X] to be included in next version)
+=================
+- [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons.
+- [ ] Package of 30s long Theme Songs, local loading works, name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3
+- [ ] Add RSS links to AniDB missing episodes summary
+- [ ] Any ideas ?
