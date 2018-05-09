@@ -231,11 +231,15 @@ Include the library name, the symptoms, the logs mentionned above.
 
 Bugs Fixes ([X] to be included in next version, removed from list once solve)
 ==========
-- [X] TheTVDB not putting images in TheTVDB subfolder
 - [X] animetitles.xml.tgz downloaded every time plex starts leading to ban with anidb.net not responding
-- [X] fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
-- [ ] tvdb4 season posters not falling back to standard posters
-- [ ] AniDB season mapped to season >1 get TheTVDB metadata season 1
+- [X] Bug #193 sven-7  - TheTVDB not putting images in TheTVDB subfolder
+- [X] Bug #192 sven-7  - AniDB.py line 174 TypeError: anidb_ep() takes exactly 3 arguments (4 given)
+- [ ] Bug #192b mdcx   - W:\Anime\Adventure\[Asenshi] Little Witch Academia ep 1 to 25 get mapped to ep 25 metadata
+- [ ] Bug #192c mdcx   - TheTVDB absolute_index: Provided content of type 'str' is not of the required type 'int'
+- [ ] Bug #191 KurtzPT - AniDB season mapped to season >1 get TheTVDB metadata season 1
+- [X] Bug #152 KurtzPT - fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
+- [ ] Bug #152 KurtzPT - tvdb4 season posters not falling back to standard posters
+- [X] Bug #179 mdcx    - TMDb search fix provided
 
 Feature Requests: ([X] to be included in next version)
 =================
