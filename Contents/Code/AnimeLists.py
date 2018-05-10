@@ -9,15 +9,15 @@ from   common import GetXml, SaveDict, Dict
 
 ### Merge Source ScudLee anidb to tvdb mapping list witl Online and local fix ones ###
 def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
-  dict_nodes = {}
-  count      = 0
-  for node in AniDBTVDBMap_fix:  dict_nodes[node.get('anidbid')] = node         # save mod list and nodes
-  Log.Info("MergeMaps() - AniDBids concerned: " + str(dict_nodes.keys()))       #
-  for node in AniDBTVDBMap if AniDBTVDBMap_fix else []:                         # LOOP IN EVERY ANIME IN MAPPING FILE
-    if node.get('anidbid') in dict_nodes:  AniDBTVDBMap.remove(node); count+=1  #   if a correction exists: remove old mapping from AniDBTVDBMap
-    if count == len(dict_nodes):           break                                #   if deleted all exit loop
-  for key in dict_nodes:  AniDBTVDBMap.append( dict_nodes[key] )                # add all new anidb mapping
-
+  dict_nodes, count = {}, 0
+  if type(AniDBTVDBMap_fix).__name__ == '_Element':
+    for node in AniDBTVDBMap_fix or []:  dict_nodes[node.get('anidbid')] = node           # save mod list and nodes
+    Log.Info("MergeMaps() - AniDBids concerned: " + str(dict_nodes.keys()))                #
+  for node in AniDBTVDBMap or []:                                                        # LOOP IN EVERY ANIME IN MAPPING FILE
+    if node and node.get('anidbid') in dict_nodes:  AniDBTVDBMap.remove(node); count+=1  #   if a correction exists: remove old mapping from AniDBTVDBMap
+    if count == len(dict_nodes):                    break                                #   if deleted all exit loop
+  for key in dict_nodes or {}:  AniDBTVDBMap.append( dict_nodes[key] )                   # add all new anidb mapping
+  
 ### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from MAPPING url with MAPPING_FIX corrections ###
 def GetAniDBTVDBMap():  
   MAPPING       = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
@@ -136,12 +136,15 @@ def tvdb_ep(mappingList, season, episode, source=''):
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
-  ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])  #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
-  if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]
-  anidbid_list = Dict(mappingList, 'TVDB', 's'+season)  #anidbid_list: '{'10747': '0', '12291': '8'}'
+  ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
+  if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
+  anidbid_list = Dict(mappingList, 'TVDB', 's'+season)                          #anidbid_list: '{'10747': '0', '12291': '8'}'
   for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True) if anidbid_list else[]:  #reverse value&index and sort per offset
-    if int(episode.split('-')[0])> int(offset): return 1, int(episode.split('-')[0])-int(offset), anidbid   #Lvl 1 - defaulttvdbseason + offset
-  return season or '1', episode, ''
+    if int(episode.split('-')[0])> int(offset):  Log.Info('defaulttvdbseason');  return 1, int(episode.split('-')[0])-int(offset), anidbid   #Lvl 1 - defaulttvdbseason + offset
+  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
+  episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
+  if defaulttvdbseason and season==defaulttvdbseason:  return 1, int(episode)-int(episodeoffset), ''
+  else:                                                return 0, 0, ''
 
 ### Variables ###
 AniDBTVDBMap = GetAniDBTVDBMap()

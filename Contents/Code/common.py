@@ -1,20 +1,20 @@
-### common ### #@parallelize @task
+### common ###
 # https://www.python.org/dev/peps/pep-0008/
-# https://github.com/plexinc-agents/PlexMovie.bundle/blob/master/Contents/Code/__init__.py
-#  audience rating line 940
+# https://github.com/plexinc-agents/PlexMovie.bundle/blob/master/Contents/Code/__init__.py #  audience rating line 940
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import os              #path.abspath, join, dirname
 import inspect         # getfile, currentframe
 import time            # datetime.datetime.now() 
-import re
-import logging
-import datetime        # datetime.now
-from io     import open
-from string import maketrans
-from lxml   import etree                                  # fromstring
-try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
-except ImportError:  from urllib2        import urlopen # urlopen Python 2.x #import urllib2 # urlopen
+import re                     #
+import logging                #
+import datetime               # datetime.now
+import ssl, urllib2           # urlopen
+from io     import open       #
+from string import maketrans  #
+from lxml   import etree      # fromstring
+#try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
+#except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
@@ -40,7 +40,7 @@ Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG",
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-Log.Info("test library: "+PlexRoot)  #Log.Info(file)
+Log.Info("Library: "+PlexRoot)  #Log.Info(file)
 if os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
   Log.Info("'X-Plex-Token.id' file present")
   token_file=Data.Load(os.path.join(PlexRoot, "X-Plex-Token.id"))
@@ -48,7 +48,7 @@ if os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
     PLEX_LIBRARY_URL += "?X-Plex-Token=" + token_file.strip()
     #Log.Info(PLEX_LIBRARY_URL) ##security risk if posting logs with token displayed
 try:
-  library_xml = etree.fromstring(urlopen(PLEX_LIBRARY_URL).read())
+  library_xml = etree.fromstring(urllib2.urlopen(PLEX_LIBRARY_URL).read())
   for library in library_xml.iterchildren('Directory'):
     for path in library.iterchildren('Location'):
       PLEX_LIBRARY[path.get("path")] = library.get("title")
@@ -93,7 +93,7 @@ if not os.path.isdir(PlexRoot):
 # Agent:    log = common.PlexLog(file='mytest.log', isAgent=True )
 # Useage:   log.debug('some debug message: %s', 'test123')
 class PlexLog(object):
-  Log.Info(str(dir(logging)))  # %(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s 
+  #Log.Info(str(dir(logging)))  # %(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s 
   def __init__ (self, media=None, movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
   
     if not file:
@@ -132,6 +132,26 @@ def replaceList     (string, a,b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
 
+#Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
+def ssl_open(url, headers=None, timeout=20):
+  if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0',
+	                             'appversion': '5.0.14'
+                             }
+  #Log.Info(url)
+  if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
+  else:                           return urllib2.urlopen(url, timeout=timeout).read()
+  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
+      1. Do not verify certificates. A bit like how older Python versions worked:
+      Import ssl and urllib2
+      Use urllib2 with a default ssl context (which does not verify the certificate).
+      Or:
+      2. Use external Python libraries
+      Add those libraries to your project bundle and use them.
+      Set PlexPluginCodePolicy to Elevated in Info.plist
+      Import certifi and requests into your Python code
+      Use requests in your code
+  '''
+  
 ### Return dict value if all fields exists "" otherwise (to allow .isdigit()), avoid key errors
 def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the value of an (imbricated) dictionnary, return "" if doesn't exist unless "default=new_value" specified as end argument
@@ -165,7 +185,10 @@ def SaveDict(value, var, *arg):
   elif isinstance(value, list) or isinstance(value, dict):      var[arg[-1]].extend (value)
   else:                                                         var[arg[-1]].append (value)
   return value
-  
+
+### import var 2 dict into var and returns it
+def UpdateDict(var, var2):  var.update(var2);  return var
+
 ### Gives HTTP status code using header info only ##########################################################################################################################
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data from the host.
@@ -203,13 +226,13 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
 
 ### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #By Dingmatt, heavily moded
+  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
   relativeFilename   = os.path.join(relativeDirectory, filename) 
   fullpathFilename   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   too_old, converted = False, False
   file               = None
   global AniDB_WaitUntil
-  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   # missing_meta = False  # data in agent dict
   #  if missing_meta and its info is not in cache file and
   #    ( prev 7 days=< date - ep release date<= 14 days or #everyday refresh within 7 days of new release
@@ -219,24 +242,33 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
     file_time = os.stat(fullpathFilename).st_mtime
     if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
     else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
-  else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}', url: '{url}' does not exists in cache".format(file=filename, path=relativeDirectory, url=url))
+  else:  Log.Debug("common.LoadFile() - relativeFilename: '{relativeFilename}', Data.Exists(relativeFilename): {de}, fe: {fe},  url: '{url}' does not exists in cache".format(relativeFilename=relativeFilename, de=Data.Exists(relativeFilename), fe=os.path.isfile(fullpathFilename), url=url))
   if not file:
     netLock.acquire()
     if url.startswith(ANIDB_HTTP_API_URL):
       if AniDB_WaitUntil > datetime.datetime.now():  Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
       while AniDB_WaitUntil > datetime.datetime.now():  time.sleep(1)
       AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-    try:                    file = str(HTTP.Request(url, headers={'Accept-Encoding':'gzip'}, timeout=20, cacheTime=cache))                                     # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-    #else:                   Log.Info("common.LoadFile() - url loaded: '%s'" %url)
+    try:                    file = ssl_open(url, headers={'Accept-Encoding':'gzip', 'Cache-Control':'max-age=518400'}, timeout=20)  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
+    except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))  # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     finally:                netLock.release()
     if file:
-      Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
+      Log.Debug("LoadFile() - url: '{url}' loaded. file: {file}".format(url=url, file=file))
       if len(file)>1024:  SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif too_old:                                     file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-  try:     return XML.ElementFromString(file)
-  except:  
+  try:
+    if isinstance(file, basestring):
+      if file.startswith('<?xml '):
+        result = XML.ElementFromString(file)
+        if type(result).__name__ == '_Element':  return result
+        else:                                    raise Exception("corrupted xml...")
+      else:
+        try:     return JSON.ObjectFromString(file, encoding=None)
+        except:  return file
+    return None
+  except Exception as e:    #file = None;       
+    Log.Warn('Exception: {}'.format(e))  
     if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
       Log.Info("corrupted xml")
       import unicodedata
@@ -244,11 +276,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
       except:
         Log.Info("still corrupted xml after normalization")
         Data.Remove(relativeFilename)  #DELETE CACHE AS CORRUPTED
-    else:
-      try:     return JSON.ObjectFromString(file, encoding=None)
-      except:  pass
-  return file
-
+      return file
+  
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
   def GetMetadata(metatype): 
@@ -267,12 +296,12 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
     file, status = None, ""
     if filename and Data.Exists(filename):  file = Data.Load(filename); status += ", Found locally"
     else:
-      try:                    file = HTTP.Request(url_thumbnail if url_thumbnail else url, cacheTime=None).content                                  
+      try:                    file = ssl_open(url_thumbnail or url)                                 
       except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception!s}, url: '{url}'".format(exception=e, url=url)); return
       if file:                status += ", Downloaded";  SaveFile(filename, file);  status += "Saved locally"
       elif 'thetvdb.com' in url:
         Log.Info("TheTVDB.com times out, using Plex server")
-        try:                    file = HTTP.Request((url_thumbnail if url_thumbnail else url).replace('thetvdb.com', 'thetvdb.plexapp.com'), cacheTime=0).content
+        try:                    file = ssl_open((url_thumbnail or url).replace('thetvdb.com', 'thetvdb.plexapp.com')).content
         except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception!s}, url: '{url}'".format(exception=e, url=url)); return
     if file:
       try:                    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
@@ -580,7 +609,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
                     if field=='title':
                       language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                       title         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title')
-                      #Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
+                      Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
                       if title and (language_rank not in (None, '') and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
                       else:                                                                                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
                     UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)

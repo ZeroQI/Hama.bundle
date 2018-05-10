@@ -17,8 +17,6 @@ ns = etree.FunctionNamespace(None)
 ns['lower-case' ] = lambda context, s: s[0].lower()
 ns['clean-title'] = lambda context, s: common.cleanse_title(s)
   
-### Variables ###
-
 ### Functions ###
 
 ### ###
@@ -211,8 +209,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
 ### Get the AniDB title database #############################################################################################################################################
 def GetAniDBTitlesDB():
   ANIDB_TITLES  = 'http://anidb.net/api/anime-titles.xml.gz'               # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
-  AniDBTitlesDB = common.LoadFile(filename=os.path.basename(ANIDB_TITLES), relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 30)  # AniDB title database loaded once every 2 weeks
-  #AniDBTitlesDB_dict = {}
+  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
   return AniDBTitlesDB
 
@@ -322,6 +319,7 @@ def Search (results, media, lang, manual, movie):
   
   return best_score, n
   
+### Variables ###
 ### Always on variables ###
 AniDBTitlesDB = GetAniDBTitlesDB()
 
