@@ -9,7 +9,7 @@ from   common import GetXml, SaveDict, Dict
 
 ### Merge Source ScudLee anidb to tvdb mapping list witl Online and local fix ones ###
 def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
-  dict_nodes, count = {}, 0
+  dict_nodes, count = {}, 0  #Log.Info('type1: {}, type2: {}'.format(type(AniDBTVDBMap).__name__ , type(AniDBTVDBMap_fix).__name__))
   if type(AniDBTVDBMap_fix).__name__ == '_Element':
     for node in AniDBTVDBMap_fix or []:  dict_nodes[node.get('anidbid')] = node           # save mod list and nodes
     Log.Info("MergeMaps() - AniDBids concerned: " + str(dict_nodes.keys()))                #
@@ -140,11 +140,11 @@ def anidb_ep(mappingList, season, episode):
   if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
   anidbid_list = Dict(mappingList, 'TVDB', 's'+season)                          #anidbid_list: '{'10747': '0', '12291': '8'}'
   for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True) if anidbid_list else[]:  #reverse value&index and sort per offset
-    if int(episode.split('-')[0])> int(offset):  Log.Info('defaulttvdbseason');  return 1, int(episode.split('-')[0])-int(offset), anidbid   #Lvl 1 - defaulttvdbseason + offset
+    if int(episode.split('-')[0])> int(offset):  Log.Info('defaulttvdbseason');  return '1', str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
-  if defaulttvdbseason and season==defaulttvdbseason:  return 1, int(episode)-int(episodeoffset), ''
-  else:                                                return 0, 0, ''
+  if defaulttvdbseason and season==defaulttvdbseason:  return '1', str(int(episode)-int(episodeoffset)), ''
+  else:                                                return '0', '0', ''
 
 ### Variables ###
 AniDBTVDBMap = GetAniDBTVDBMap()

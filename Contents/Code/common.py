@@ -3,13 +3,14 @@
 # https://github.com/plexinc-agents/PlexMovie.bundle/blob/master/Contents/Code/__init__.py #  audience rating line 940
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
-import os              #path.abspath, join, dirname
-import inspect         # getfile, currentframe
-import time            # datetime.datetime.now() 
+import os                     # path.abspath, join, dirname
+import inspect                # getfile, currentframe
+import time                   # datetime.datetime.now() 
 import re                     #
 import logging                #
 import datetime               # datetime.now
 import ssl, urllib2           # urlopen
+import unicodedata            #
 from io     import open       #
 from string import maketrans  #
 from lxml   import etree      # fromstring
@@ -137,7 +138,6 @@ def ssl_open(url, headers=None, timeout=20):
   if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0',
 	                             'appversion': '5.0.14'
                              }
-  #Log.Info(url)
   if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
   else:                           return urllib2.urlopen(url, timeout=timeout).read()
   ''' SSLV3_ALERT_HANDSHAKE_FAILURE
@@ -226,13 +226,13 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
 
 ### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #By Dingmatt, heavily moded
-  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
   relativeFilename   = os.path.join(relativeDirectory, filename) 
   fullpathFilename   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   too_old, converted = False, False
   file               = None
   global AniDB_WaitUntil
+  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   # missing_meta = False  # data in agent dict
   #  if missing_meta and its info is not in cache file and
   #    ( prev 7 days=< date - ep release date<= 14 days or #everyday refresh within 7 days of new release
@@ -242,42 +242,37 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
     file_time = os.stat(fullpathFilename).st_mtime
     if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
     else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
-  else:  Log.Debug("common.LoadFile() - relativeFilename: '{relativeFilename}', Data.Exists(relativeFilename): {de}, fe: {fe},  url: '{url}' does not exists in cache".format(relativeFilename=relativeFilename, de=Data.Exists(relativeFilename), fe=os.path.isfile(fullpathFilename), url=url))
+  else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}', url: '{url}' does not exists in cache".format(file=filename, path=relativeDirectory, url=url))
   if not file:
     netLock.acquire()
     if url.startswith(ANIDB_HTTP_API_URL):
       if AniDB_WaitUntil > datetime.datetime.now():  Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
       while AniDB_WaitUntil > datetime.datetime.now():  time.sleep(1)
       AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-    try:                    file = ssl_open(url, headers={'Accept-Encoding':'gzip', 'Cache-Control':'max-age=518400'}, timeout=20)  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))  # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    try:                    file = str(HTTP.Request(url, headers={}, timeout=20, cacheTime=cache))             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
+    except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     finally:                netLock.release()
     if file:
-      Log.Debug("LoadFile() - url: '{url}' loaded. file: {file}".format(url=url, file=file))
+      Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
       if len(file)>1024:  SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif too_old:                                     file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-  try:
-    if isinstance(file, basestring):
-      if file.startswith('<?xml '):
-        result = XML.ElementFromString(file)
-        if type(result).__name__ == '_Element':  return result
-        else:                                    raise Exception("corrupted xml...")
-      else:
-        try:     return JSON.ObjectFromString(file, encoding=None)
-        except:  return file
-    return None
-  except Exception as e:    #file = None;       
-    Log.Warn('Exception: {}'.format(e))  
-    if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
-      Log.Info("corrupted xml")
-      import unicodedata
-      try:     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
-      except:
-        Log.Info("still corrupted xml after normalization")
-        Data.Remove(relativeFilename)  #DELETE CACHE AS CORRUPTED
-      return file
   
+  if isinstance(file, basestring):
+    if file.startswith('<?xml '):
+      try:     return XML.ElementFromString(file)
+      except:  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
+        Log.Info("corrupted xml")
+        try:     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
+        except:
+          Log.Info("still corrupted xml after normalization")
+          Data.Remove(relativeFilename)  #DELETE CACHE AS CORRUPTED
+    else:
+      try:     return JSON.ObjectFromString(file, encoding=None)
+      except:  pass
+  Log.Info('LoadFile() - returning string')
+  return file
+ 
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
   def GetMetadata(metatype): 
@@ -401,7 +396,7 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
   
 ### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
 def GetMetadata(media, movie, source, TVDBid, num=0):
-  TVDB4_POSTERS_URL = 'http://rawgit.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
+  TVDB4_POSTERS_URL = 'http://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
   TVDB4_xml         = None
   if movie or not source == "tvdb4": return {}
   Log.Info("".ljust(157, '-'))
@@ -484,8 +479,8 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     
     if isinstance(meta_new, dict)and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
       for url in meta_new:
+        if field=='thumbs':  Log.Info('thumbs: {}'.format(url))
         if not url in meta_old and isinstance(meta_new[url], tuple):  metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
-        #metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
         
     elif isinstance(meta_new, list) and field in MetaRoleList:
       try:
@@ -597,7 +592,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
           count={'posters':0, 'art':0, 'thumbs':0}
           @task
-          def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count ):
+          def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode):
             for field in FieldListEpisodes:  # Get a field
               try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
               except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
@@ -620,6 +615,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
               if not Dict(count, field):
                 source_list = [ source for source in MetaSources if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field) ]
                 Log.Info("[!] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside : {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
+          # End of @task
+          
         # End Of for episode
       # End of for season
     Log.Info("".ljust(157, '-'))

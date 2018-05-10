@@ -256,6 +256,7 @@ def Search (results, media, lang, manual, movie):
   best_aid, best_score, best_title, n = "", 0, "", 0
   start_time = time.time()
   #Log.Info( str(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower()) )
+  Log.Info('len: {}'.format(len(AniDBTitlesDB)))
   for element in AniDBTitlesDB.xpath(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower().replace("'", " ")):
     aid            = element.getparent().get('aid',  '')
     title          = element.text
