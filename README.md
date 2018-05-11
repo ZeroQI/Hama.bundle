@@ -242,6 +242,7 @@ Feature Requests:
 - [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons.
 - [ ] Package of 30s long Theme Songs, local loading works, name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3
 - [ ] Add RSS links to AniDB missing episodes summary
+- [ ] sync the watch state in Plex with the watch state on aniDB?
 - [ ] Any ideas ?
 
 Note:
