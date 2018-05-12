@@ -232,21 +232,17 @@ Include the library name, the symptoms, the logs mentionned above.
 
 Bugs Fixes
 ==========
-- [X] Bug #xxx ZeroQI  - animetitles.xml.tgz downloaded every time plex starts leading to ban with anidb.net not responding
-- [X] Bug #193 sven-7  - TheTVDB not putting images in TheTVDB subfolder
-- [X] Bug #192 sven-7  - AniDB.py line 174 TypeError: anidb_ep() takes exactly 3 arguments (4 given)
-- [ ] Bug #192b mdcx   - W:\Anime\Adventure\[Asenshi] Little Witch Academia ep 1 to 25 get mapped to ep 25 metadata
-- [ ] Bug #192c mdcx   - TheTVDB absolute_index: Provided content of type 'str' is not of the required type 'int'
-- [ ] Bug #191 KurtzPT - AniDB season mapped to season >1 get TheTVDB metadata season 1
+- [X] Bug #192b mdcx   - W:\Anime\Adventure\[Asenshi] Little Witch Academia ep 1 to 25 get mapped to ep 25 metadata
 - [X] Bug #152 KurtzPT - fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
+- [ ] Bug #179 mdcx    - TMDb search fix provided
 - [ ] Bug #152 KurtzPT - tvdb4 season posters not falling back to standard posters
-- [X] Bug #179 mdcx    - TMDb search fix provided
 
 Feature Requests:
 =================
 - [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons.
 - [ ] Package of 30s long Theme Songs, local loading works, name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3
 - [ ] Add RSS links to AniDB missing episodes summary
+- [ ] sync the watch state in Plex with the watch state on aniDB?
 - [ ] Any ideas ?
 
 Note:
