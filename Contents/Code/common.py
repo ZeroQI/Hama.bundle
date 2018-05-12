@@ -189,6 +189,18 @@ def SaveDict(value, var, *arg):
 ### import var 2 dict into var and returns it
 def UpdateDict(var, var2):  var.update(var2);  return var
 
+### return dict of fields containing their max length ###
+def DisplayDictLen(items={}, fields=[]):  
+  len_fields = {}
+  for item in items or []:
+    for field in fields:  len_fields[field] = max(len(Dict(item, field)), Dict(len_fields, field, default = 0))
+  return len_fields
+  
+### Display alligned dict entries ###
+def DisplayDict(items={}, fields=[]):
+  len_fields = DisplayDictLen(items, fields)
+  for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
+
 ### Gives HTTP status code using header info only ##########################################################################################################################
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data from the host.
@@ -241,7 +253,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
   if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
     file_time = os.stat(fullpathFilename).st_mtime
     if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
-    else:          file = Data.Load(relativeFilename);  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
+    else:          file = Data.Load(relativeFilename)#;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
   else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}', url: '{url}' does not exists in cache".format(file=filename, path=relativeDirectory, url=url))
   if not file:
     netLock.acquire()
@@ -253,7 +265,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
     except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     finally:                netLock.release()
     if file:
-      Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
+      #Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
       if len(file)>1024:  SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif too_old:                                     file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
@@ -563,62 +575,67 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       
     ### Seasons ###
     AniDB_numbered = not(metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys()))>=1)
-    @parallelize
-    def addMeta():
-      for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
-        Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
-        count = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
-        for field in FieldListSeasons:
-          meta_old = getattr(metadata.seasons[season], field)
-          for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
-            new_season = season
+    cached_logs={}
+    #@parallelize
+    #def addMeta():
+    for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
+      Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
+      count = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
+      for field in FieldListSeasons:
+        meta_old = getattr(metadata.seasons[season], field)
+        for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
+          new_season = season
+          if source in MetaSources:
+            if source=='AniDB'   and (metadata.id.startswith("tvdb" ) or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') and Dict(mappingList, 'defaulttvdbseason') !='a' else '1'
+            if source=='TheTVDB' and  AniDB_numbered:  new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
+            if Dict(MetaSources, source, 'seasons', new_season, field) and (season in metadata.seasons or metadata.id.startswith('tvdb4')):
+              UpdateMetaField(metadata, metadata.seasons[season], MetaSources[source]['seasons'][new_season], FieldListSeasons, field, source, movie)
+              if field in count:  count[field] = count[field] + 1
+              if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):  continue  #try other meta source if index not 0 which is the first selected language
+              if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break 
+          elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(source))
+        else:  #nothing found
+          if not Dict(count, field):    
+            source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'season', new_season, field) ]
+            Log.Info("[#] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside: {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
+      
+      ### Episodes ###
+      for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
+        Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
+        count={'posters':0, 'art':0, 'thumbs':0}
+        #@task
+        #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
+        for field in FieldListEpisodes:  # Get a field
+          try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
+          except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
+          if field=='title':  rank, found = len(languages), False
+          for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
-              if source=='AniDB'   and (metadata.id.startswith("tvdb" ) or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') and Dict(mappingList, 'defaulttvdbseason') !='a' else '1'
-              if source=='TheTVDB' and  AniDB_numbered:  new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
-              if Dict(MetaSources, source, 'seasons', new_season, field) and (season in metadata.seasons or metadata.id.startswith('tvdb4')):
-                UpdateMetaField(metadata, metadata.seasons[season], MetaSources[source]['seasons'][new_season], FieldListSeasons, field, source, movie)
-                if field in count:  count[field] = count[field] + 1
-                if field=="title" and 'language_rank' in source and Dict(MetaSources, source, 'language_rank'):  continue  #try other meta source if index not 0 which is the first selected language
-                if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break 
-            elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(source))
-          else:  #nothing found
-            if not Dict(count, field):    
-              source_list = [ source for source in MetaSources if source not in Prefs[field] and Dict(MetaSources, source, 'season', new_season, field) ]
-              Log.Info("[#] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside: {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
-        
-        ### Episodes ###
-        #def UpdateEpisode(episode=episode, episode_info=episode_info):
-        for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
-          Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
-          count={'posters':0, 'art':0, 'thumbs':0}
-          @task
-          def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode):
-            for field in FieldListEpisodes:  # Get a field
-              try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
-              except Exception as e:  Log.Info("[!] "+str(e)); meta_old=""
-              if field=='title':  rank, found = len(languages), False
-              for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
-                if source in MetaSources:
-                  new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
-                  if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
-                    if field=='title':
-                      language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
-                      title         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title')
-                      Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
-                      if title and (language_rank not in (None, '') and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
-                      else:                                                                                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
-                    UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
-                    count[field] = count[field] + 1 if field in count else 1
-                    if field in ['posters', 'art', 'banners', 'themes', 'thumbs'] and not Prefs['GetSingleOne'] or field=="title" and language_rank==0:  continue
-                    else:                                                                                                                                break
-                elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
-              if not Dict(count, field):
-                source_list = [ source for source in MetaSources if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field) ]
-                Log.Info("[!] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside : {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
-          # End of @task
-          
-        # End Of for episode
-      # End of for season
+              new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
+              if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
+                if field=='title':
+                  language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                  title         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title')
+                  Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
+                  if title and (language_rank not in (None, '') and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
+                  else:                                                                                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
+                UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie)
+                count[field] = count[field] + 1 if field in count else 1
+                if field in ['posters', 'art', 'banners', 'themes', 'thumbs'] and not Prefs['GetSingleOne'] or field=="title" and language_rank==0:  continue
+                else:                                                                                                                                break
+            elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(str(source)))
+          if not Dict(count, field):
+            source_list = [ source for source in MetaSources if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field) ]
+            Log.Info("[!] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside : {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list))
+            SaveDict(["[X] {field:<29}  Sources: {sources:<60}  Type: {format:<20}  Inside : {other}".format(field=field, format=type(meta_old).__name__, sources=Prefs[field], other=source_list)], cached_logs, season, episode)
+        # End of @task
+      # End Of for episode
+    # End of for season
+    #for season in sorted(cached_logs):
+    #  for episode in sorted(cached_logs[season]or []):
+    #    for line in cached_logs[season][episode]or []:
+    #      Log.Info(line)
+    # End of @parallelize
     Log.Info("".ljust(157, '-'))
   global downloaded
   downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 

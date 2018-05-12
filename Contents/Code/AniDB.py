@@ -150,12 +150,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
           SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
           SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
-          for role in ep_roles:
-            SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
+          for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("AniDB.GetMetadata() - role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))==1:  # AniDB mode
+          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:  # AniDB mode
             ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
             key =''
             if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
@@ -201,7 +200,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #if metadata.studio       and 'studio' in AniDB_dict and AniDB_dict ['studio'] and AniDB_dict ['studio'] != metadata.studio:  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
     
-      Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
       Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   #Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid
