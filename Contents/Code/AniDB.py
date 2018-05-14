@@ -53,7 +53,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in AniDB_array:
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
-    if xml:
+    if xml and not xml=='<error>aid Missing or Invalid</error>':
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       title_sort, _, _                     = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
       Log.Info("AniDBid: {}, url: {}".format(AniDBid, ANIDB_HTTP_API_URL+AniDBid).ljust(157, '-'))
@@ -99,9 +99,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             Log.Info("'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(AniDBid_table)))
             break
         else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
-        
-      ### Capture for all concerned AniDBid ###
-      if not movie:
+      
+      if  movie:
+        if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("'year': '{}'".format(AniDB_dict['year']))
+          
+      ### Series ###
+      else:
         
         ### not listed for serie but is for eps
         roles    = { "Animation Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
@@ -112,8 +115,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if roles[role]=="studio":  SaveDict(creator.text, AniDB_dict, 'studio')
             else:                      SaveDict([creator.text], ep_roles, roles[role])
         Log.Info("Roles (creators tag): " +str(ep_roles))
-        if     movie and SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("'year': '{}'".format(AniDB_dict['year']))
-        if not movie and SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
+        if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
       
         ### Translate into season/episode mapping
         numEpisodes, totalDuration, mapped_eps, missing_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], [], {}, 0 
@@ -152,11 +154,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
             if season == "1":  numEpisodes, totalDuration = numEpisodes+1, totalDuration + int(GetXml(ep_obj, 'length'))
           
-          SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
-          SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
-          SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
-          SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
-          SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
+          SaveDict(title,                            AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
+          SaveDict(float(GetXml(ep_obj, 'rating' )), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
+          SaveDict(GetXml(ep_obj, 'airdate'),        AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
+          SaveDict(GetXml(ep_obj, 'summary'),        AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
+          SaveDict(language_rank,                    AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   

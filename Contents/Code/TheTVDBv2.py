@@ -104,6 +104,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       episodes_json_page = GetResultFromNetwork(TVDB_EPISODES_URL % (TVDBid, page), additionalHeaders={'Accept-Language': lang} if lang!='en' else {})
       episodes_json.extend(episodes_json_page['data'])  #Log.Info('TVDB_EPISODES_URL: {}, links: {}'.format(TVDB_EPISODES_URL % (TVDBid, page), Dict(episodes_json_page, 'links')))
       page = Dict(episodes_json_page, 'links', 'next')
+    
     sorted_episodes_json = {}
     for episode_json in episodes_json: sorted_episodes_json['s{:02d}e{:03d}'.format(Dict(episode_json, 'airedSeason'), Dict(episode_json, 'airedEpisodeNumber'))] = episode_json
     sorted_episodes_index_list = sorted(sorted_episodes_json, key=natural_sort_key)  #Log.Info('len: {}, sorted_episodes_index_list: {}'.format(len(sorted_episodes_index_list), sorted_episodes_index_list))
@@ -136,12 +137,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       else:                       summary_missing_special.append(numbering)
 
       ### Check for Missing Episodes ###
-      if season=='0' and episode=='0' or  metadata_source=="anidb" and max(map(int, media.seasons.keys()))<=1 and (season not in media.seasons or not episode in media.seasons[season].episodes):  continue
+      if season=='0' and episode=='0' or  metadata_source=="anidb" and not movie and max(map(int, media.seasons.keys()))<=1 and (season not in media.seasons or not episode in media.seasons[season].episodes):  continue
       if not movie and (( metadata_source.startswith("tvdb") or max(map(int, media.seasons.keys()))>1) and \
            metadata_source != 'tvdb5' and \
            not (metadata_source in ('tvdb',  'tvdb2') and season in media.seasons and episode in media.seasons[season].episodes) and \
-           not (metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for s in media.seasons if episode in media.seasons[s].episodes])) \
-          or movie and metadata_source=='anidb' and tvdb_ep(mappingList, '1', '1', source)==(season, episode):
+           not (metadata_source in ('tvdb3', 'tvdb4') and season >=1 and [True for s in media.seasons if episode in media.seasons[s].episodes])):
         
         # Episodes not on disk
         air_date = Dict(episode_json, 'FirstAired')
@@ -150,6 +150,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         elif season=='0':                               tvdb_special_missing.append(episode)                                                          #Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
         else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)  #Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
         
+      elif movie and metadata_source=='anidb' and tvdb_ep(mappingList, '1', '1', metadata_source)!=(season, episode):  continue
       else:
         SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(episode_json, 'overview'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )

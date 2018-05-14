@@ -564,7 +564,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           else:                                                                                                                                break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
-      if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: '{source_list}'  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
+      if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
         
   if not movie:
     import AnimeLists
@@ -582,14 +582,15 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
       count = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
+      new_season = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season
+      #new_season = season
+      #if source=='AniDB'   and (metadata.id.startswith("tvdb" ) or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') and Dict(mappingList, 'defaulttvdbseason') !='a' else '1'
+      #if source=='TheTVDB' and  AniDB_numbered:  new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
+      source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, field) ]
       for field in FieldListSeasons:
         meta_old = getattr(metadata.seasons[season], field)
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
-          new_season = season
           if source in MetaSources:
-            if source=='AniDB'   and (metadata.id.startswith("tvdb" ) or max(map(int, media.seasons.keys()))>1):  new_season = Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason') and Dict(mappingList, 'defaulttvdbseason') !='a' else '1'
-            if source=='TheTVDB' and  AniDB_numbered:  new_season = (Dict(mappingList, 'defaulttvdbseason') or season) if season!='0' else season
-            source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, field) ]
             if Dict(MetaSources, source, 'seasons', new_season, field) and (season in metadata.seasons or metadata.id.startswith('tvdb4')):
               UpdateMetaField(metadata, metadata.seasons[season], MetaSources[source]['seasons'][new_season], FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
@@ -603,14 +604,13 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         count={'posters':0, 'art':0, 'thumbs':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
+        new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
         for field in FieldListEpisodes:  # Get a field
-          try:                    meta_old = getattr(metadata.seasons[season].episodes[episode], field)
-          except Exception as e:  Log.Info("[!] exception: {error}".format(error=e)); meta_old=""
+          meta_old = getattr(metadata.seasons[season].episodes[episode], field)
           if field=='title':  rank, found = len(languages)+1, False
-          for source in [source.strip() for source in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
+          source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
+          for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
-              new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
-              source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', episode, field) ]
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if field=='title':  #Manage title language for AniDB and TheTVDB by recording the rank
                   language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
