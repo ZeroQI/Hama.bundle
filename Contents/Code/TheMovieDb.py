@@ -77,9 +77,11 @@ def Search (results, media, lang, manual, movie):
   #'Uchiage Hanabi, Shita kara Miru ka？ Yoko kara Miru ka？ 打ち上げ花火、下から見るか？横から見るか？' Failed with: TypeError: not all arguments converted during string formatting
   #Fixed with:tmdb_url = TMDB_MOVIE_SEARCH.format(String.Quote(orig_title)) Log.Info("TMDB - url: " + tmdb_url) try: json = JSON.ObjectFromURL(tmdb_url, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2) except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" % (tmdb_url, e) )
   TMDB_MOVIE_SEARCH = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query={}&year=&language=en&include_adult=true'
-  orig_title        = String.Quote(media.title if movie else media.show)
+
+  orig_title = String.Quote(media.name if manual and movie else media.title if movie else media.show)
+  
   Log.Info("TMDB  - url: " + TMDB_MOVIE_SEARCH.format(orig_title))
-  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH % String.Quote(orig_title), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH.format(orig_title), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
   except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %( TMDB_MOVIE_SEARCH % orig_title, e)) # json   = common.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
   else:
     if isinstance(json, dict) and 'results' in json:
@@ -88,9 +90,8 @@ def Search (results, media, lang, manual, movie):
         score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
         id    = movie['id']
         Log.Info("TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
-        results.Append(MetadataSearchResult(id="tmdb-"+movie['id'], name="{} [{}-{}]".format(movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
+        results.Append(MetadataSearchResult(id="tmdb-"+str(movie['id']), name="{} [{}-{}]".format(movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
         if '' in movie and movie['adult']!="null":  Log.Info("adult: '{}'".format(movie['adult']))
-
 ### Trailers (Movie Library Only) ###
 ### For when youtube mp4 url can be gotten again
 '''
