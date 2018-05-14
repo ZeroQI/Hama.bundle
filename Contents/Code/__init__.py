@@ -78,6 +78,7 @@ def Search(results, media, lang, manual, movie):
   match = re.search(u"(?P<show>.*?) ?\[(?P<source>([a-zA-Z0-9]*))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE) if ' [' in orig_title else False
   if match:
     guid=match.group('source') + '-' + match.group('guid')
+    if guid.startswith('anidb') and max(map(int, media.seasons.keys()))>1:  Log.Info('[!] multiple seasons = tvdb numbering, BAKA!')
     results.Append(MetadataSearchResult(id=guid, name=match.group('show')+" ["+guid+']', year=media.year, lang=lang, score=100))
     Log.Info("Forced ID - source: {}, id: {}, title: '{}'".format(match.group('source'), match.group('guid'), match.group('show')))
   else:  #if media.year is not None:  orig_title = orig_title + " (" + str(media.year) + ")"  ### Year - if present (manual search or from scanner but not mine), include in title ###
@@ -99,6 +100,7 @@ def Update(metadata, media, lang, force, movie):
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
   
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id,                   AniDBMovieSets) #, AniDBTVDBMap
+  Log.Info('TVDBid: '+TVDBid)
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
   dict_TheTVDB,                             IMDbid              =     TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)

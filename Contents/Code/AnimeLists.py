@@ -49,6 +49,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   source, id                     = id.split('-', 1) if '-' in id else ("",id)
   AniDB_id                       = id if source.startswith('anidb') else ""
   TVDB_id                        = id if source.startswith( 'tvdb') else ""
+  tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
   
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
@@ -59,9 +60,9 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     found = True
     Log.Info("AnimeLists.GetMetadata() - AniDBid: {}, TVDBid: {}, defaulttvdbseason: {}, episodeoffset: {}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
-    if AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0'):
-      if not TVDB_id:   TVDB_id  = TVDBid
-      if not AniDB_id:  AniDB_id = AniDBid
+    Log.Info('tvdb_numbering: {}, AniDBid: {}, TVDBid: {}'.format(tvdb_numbering, AniDBid, TVDBid))
+    if not tvdb_numbering and not TVDB_id:   TVDB_id  = TVDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id = AniDBid
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
