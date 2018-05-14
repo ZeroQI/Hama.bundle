@@ -88,15 +88,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     ### TVDB Series Actors JSON ###
     if not Prefs["GetSingleOne"]:  #cache= CACHE_1MONTH, url=API_ACTORS_URL.replace('.com', '.plexapp.com')
       actor_json = Dict( GetResultFromNetwork(TVDB_ACTORS_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
-      if actor_json:             #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
+      if actor_json:               #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
         Log("TheTVDB.GetMetadata() - TVDB_ACTORS_URL: {}".format(TVDB_ACTORS_URL % TVDBid))  
-        #len_fields = common.DisplayDictLen(actor_json, ['role', 'name'])
         for role in actor_json or []:
-          try:
-            SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
-            #Log.Info('TheTVDB.GetMetadata() - role: {role:<{width1}}, name: {name:<{width2}}, photo: {photo}'.format(role=Dict(role, 'role'), width1=Dict(len_fields, 'role', default=20), name=Dict(role, 'name'), width2=Dict(len_fields, 'name', default=20), photo=Dict(role, 'image')))
+          try:                    SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
           except Exception as e:  Log.Info("'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
-        common.DisplayDict(actor_json, ['role', 'name', 'image'])
+        #common.DisplayDict(actor_json, ['role', 'name', 'image'])
       
     ### Absolute mode ###  #Load pages of episodes
     episodes_json, page = [], 1

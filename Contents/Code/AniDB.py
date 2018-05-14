@@ -154,11 +154,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
             if season == "1":  numEpisodes, totalDuration = numEpisodes+1, totalDuration + int(GetXml(ep_obj, 'length'))
           
-          SaveDict(title,                            AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
-          SaveDict(float(GetXml(ep_obj, 'rating' )), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
-          SaveDict(GetXml(ep_obj, 'airdate'),        AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
-          SaveDict(GetXml(ep_obj, 'summary'),        AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
-          SaveDict(language_rank,                    AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
+          SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
+          SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
+          SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
+          SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
+          SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
