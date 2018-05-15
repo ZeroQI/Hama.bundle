@@ -222,7 +222,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
         if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
-        try:              images = GetResultFromNetwork(TVDB_SERIES_IMG_QUERY_URL % (TVDBid, bannerType), additionalHeaders={'Accept-Language': lang} if lang!='en' else {})['data']
+        try:              images = Dict(GetResultFromNetwork(TVDB_SERIES_IMG_QUERY_URL % (TVDBid, bannerType), additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
         except KeyError:  Log("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
         for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
           
