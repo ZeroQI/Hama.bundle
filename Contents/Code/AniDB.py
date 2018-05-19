@@ -30,14 +30,16 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ### Build the list of anidbids for files present ####
   Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    Log.Info(str(mappingList))  #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
+    #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
-    AniDB_array = []
+    AniDB_array = [ AniDBid ] if Dict(mappingList, 'TVDB', 'sa') else [] 
+    Log.Info(str(AniDB_array))
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       
+      Log.Info("season: {}, AniDBid: {}, Dict(mappingList, 'TVDB', 's'+season): {}, Dict(mappingList, 'defaulttvdbseason'): {}".format(season, AniDBid, Dict(mappingList, 'TVDB', 's'+season), Dict(mappingList, 'defaulttvdbseason')))
       #Season check
-      if len(Dict(mappingList, 'TVDB', 's'+season))==1: #import anidbif if one instance of the defaulttvdbseason exist as it has files
-        if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  continue
+      if len(Dict(mappingList, 'TVDB', 's'+season))==1 or Dict(mappingList, 'defaulttvdbseason')=='a': #import anidbif if one instance of the defaulttvdbseason exist as it has files
+        if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  Log.Info('Bazinga'); continue
       
       #Episode check if more than 1 anidnid for this season
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
@@ -48,7 +50,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       else:  continue
       break  #cascade break
   else: full_array, AniDB_array = [AniDBid], [AniDBid]
-  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}, AniDBids present on disk: {}".format(AniDBid, full_array, AniDB_array))
+  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids present on disk: {}, AniDBids list: {}".format(AniDBid, AniDB_array, full_array))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in AniDB_array:
@@ -122,7 +124,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
         movie_ep_groups = {}
         missing={'0': [], '1':[]}
-        
+                
         ### Episodes (and specials) not always in right order ###
         ending_offset = 99
         for ep_obj in xml.xpath('episodes/episode'):
@@ -144,8 +146,15 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           numbering = "s{}e{:>3}".format(season, episode)
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
-          if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source)#;  Log.Info('numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
-          if season not in media.seasons or episode not in media.seasons[season].episodes:  SaveDict([episode], missing, season); continue
+          #Log.Info('before numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
+          if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
+            season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source) ###Broken for tvdbseason='a'
+            if season=='0' and episode=='0':  continue
+            Log.Info('after tvdb, numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
+          if season in media.seasons and episode in media.seasons[season].episodes:  Log.Info('numbering: {}, season: {}, episode: {} present'.format(numbering, season, episode))
+          else:
+            #Log.Info('numbering: {}, season: {}, episode: {} missing'.format(numbering, season, episode))
+            SaveDict([episode], missing, season); continue
           
           ### Episodes
           #Log.Info("s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
