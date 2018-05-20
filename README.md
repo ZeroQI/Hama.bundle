@@ -212,30 +212,28 @@ If subtitles are not loaded, check Settings > Server > Agents > Shows > HamaTV a
 To avoid already solved issues, and make sure you do include all relevant logs in one go, please do the following:
 - delete the library
 - stop plex
-- Update to the latest on github Hama and Absolute Series Scanner
+- Update to the latest Absolute Series Scanner (master branch), Hama (Beta branch for now) and Plex
 - deleting all Plex logs leaving folders intact
 - restart Plex
 - re-create the library
 - including all the following logs: (location: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log (Agent logs)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log (show why the agent cannot launch)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) - Library_name.log (episodes info)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info IF library name log doesn't exist)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.filelist.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.scanner.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-search.log (guid assignment)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-update.log (metadata update)
    - Screen capture to illustrate if needed. Above logs are still mandatory
 
 Support thread for agent:
+- https://github.com/ZeroQI/Hama.bundle/issues (proven or confident enough it's a bug. Include the library name, the symptoms, the logs mentionned above)
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
-- https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
-Include the library name, the symptoms, the logs mentionned above.
-
 
 Bugs Fixes
 ==========
-- [X] Bug #192b mdcx   - W:\Anime\Adventure\[Asenshi] Little Witch Academia ep 1 to 25 get mapped to ep 25 metadata
-- [X] Bug #152 KurtzPT - fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
 - [ ] Bug #179 mdcx    - TMDb search fix provided
 - [ ] Bug #152 KurtzPT - tvdb4 season posters not falling back to standard posters
+- [ ] defaulttvdb='a' mapping issues for anidb
 
 Feature Requests:
 =================
