@@ -76,7 +76,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if len(file)>512:                                 SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif not file_valid:                              file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-
+  return file
+  
 def GetResultFromNetwork(url, additionalHeaders={}, data=None):
   ''' Download from API v2 Json which requires auth token in headers  # DO NOT CALL additionalHeaders WITH VARIABLE
   '''
@@ -112,6 +113,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   
   ### TVDB Series JSON ###
   serie_json = Dict(GetResultFromNetwork(TVDB_SERIES_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
+  #serie_json = Dict(common.LoadFile(filename=os.path.relpath(TVDB_SERIES_URL % TVDBid, TVDB_BASE_URL), relativeDirectory="TheTVDB\json", url=TVDB_SERIES_URL % TVDBid, cache=CACHE_1DAY*6, headers={'Accept-Language': lang} if lang!='en' else {}), 'data')
   if serie_json:
     #serie_json { "id","seriesId", "airsDayOfWeek", "imdbId", "zap2itId", "added", "addedBy", "lastUpdated", "seriesName", "aliases", "banner", "status", 
     #             "firstAired", "network", "networkId", "runtime", "genre, "overview", "airsTime", "rating" , "siteRating", "siteRatingCount" }
