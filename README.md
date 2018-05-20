@@ -60,8 +60,8 @@ Subtitle files are supported through that
 
 Plex's trailer feature also supports displaying trailers from a URL - the metadata agent just needs to add the relevant URL at which Plex can reach the trailer. If we added support for this, it'd mean that user who don't have the trailer as a file can also benefit from having the trailer available.
 
-Metadata source
-===============
+Metadata sources
+================
 I use AniDB HTTP title database file and ScudLee's XML files with his approval
 
 ScudLee's XMLs:                 https://github.com/ScudLee/anime-lists/
@@ -117,6 +117,46 @@ I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidb-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
 
 Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
+
+Configuration
+=============
+
+Agents settings will have the Metadata source for each field customizable, but not all fields exists on all sources.
+Fields shared by both series and episodes can use '|' to split the series from the episode part
+Sources are:
+- AnimeLists: collections
+- 'AniDB'
+- 'TheTVDB'
+- 'MyAnimeList'
+- 'FanartTV'
+- 'OMDb': API key in agent settings needed
+- 'TheMovieDb'
+- 'Plex': themes
+- 'AnimeLists'
+- 'tvdb4': season posters
+- 'TVTunes': themes
+- 'Local': collections if grouping folder present
+
+The titles priority can have the usual languages 'en', 'fr', 'sp', 'ja', etc... and the following for asian languages
+The titles will be in the priority indicated first and secondarily by the metadata source
+
+<TABLE>
+<THEAD>
+<TR> <TH> Languages codes       </TH> <TH> AniDB    </TH> <TH> TheTVDB </TH> </TR>
+</THEAD>
+<TBODY>
+<TR> <TD> chinese (unspecified)    </TD> <TD> zh       </TD> <TD> zh   </TD> </TR>
+<TR> <TD> chinese (traditional)    </TD> <TD> zh-Hant  </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (simplified)     </TD> <TD> zh-Hans  </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (cantonese)      </TD> <TD> zh-x-yue </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (mandarin)       </TD> <TD> zh-x-cmn </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (taiwanese)      </TD> <TD> zh-x-nan </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> japanese                 </TD> <TD> ja       </TD> <TD> ja   </TD> </TR>
+<TR> <TD> japanese (transcription) </TD> <TD> jap      </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> korean                   </TD> <TD> ko       </TD> <TD> ko   </TD> </TR>
+<TR> <TD> korean (transcription)   </TD> <TD> x-kot    </TD> <TD> N/A  </TD> </TR>
+</TBODY>
+</TABLE>
 
 Installation
 ============
@@ -212,30 +252,28 @@ If subtitles are not loaded, check Settings > Server > Agents > Shows > HamaTV a
 To avoid already solved issues, and make sure you do include all relevant logs in one go, please do the following:
 - delete the library
 - stop plex
-- Update to the latest on github Hama and Absolute Series Scanner
+- Update to the latest Absolute Series Scanner (master branch), Hama (Beta branch for now) and Plex
 - deleting all Plex logs leaving folders intact
 - restart Plex
 - re-create the library
 - including all the following logs: (location: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log (Agent logs)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log (show why the agent cannot launch)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) - Library_name.log (episodes info)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS).log (episodes info IF library name log doesn't exist)
-   - [...]/Plex Media Server/Logs/Plex Media Scanner (custom ASS) filelist.log (library file list)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.filelist.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.scanner.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-search.log (guid assignment)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-update.log (metadata update)
    - Screen capture to illustrate if needed. Above logs are still mandatory
 
 Support thread for agent:
+- https://github.com/ZeroQI/Hama.bundle/issues (proven or confident enough it's a bug. Include the library name, the symptoms, the logs mentionned above)
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
-- https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
-Include the library name, the symptoms, the logs mentionned above.
-
 
 Bugs Fixes
 ==========
-- [X] Bug #192b mdcx   - W:\Anime\Adventure\[Asenshi] Little Witch Academia ep 1 to 25 get mapped to ep 25 metadata
-- [X] Bug #152 KurtzPT - fixing SSLV3_ALERT_HANDSHAKE_FAILURE for linux/OSX with centralised function (ssl and urllib2 for now)
 - [ ] Bug #179 mdcx    - TMDb search fix provided
 - [ ] Bug #152 KurtzPT - tvdb4 season posters not falling back to standard posters
+- [ ] defaulttvdb='a' mapping issues for anidb
 
 Feature Requests:
 =================
