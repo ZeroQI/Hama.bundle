@@ -12,6 +12,7 @@ from AnimeLists import tvdb_ep, anidb_ep
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 TVDB_API_KEY               = 'A27AD9BE0DA63333'
+TVDB_IMG_ROOT              = 'https://thetvdb.plexapp.com/banners/' 
 TVDB_BASE_URL              = 'https://api.thetvdb.com'  #'https://api-beta.thetvdb.com' #tvdb v2 plex proxy site'' # TODO Start using TVDB's production api (TVDB is behind CF) when available and possibly a plex proxy for it
 TVDB_LOGIN_URL             = TVDB_BASE_URL + '/login'
 TVDB_SERIES_URL            = TVDB_BASE_URL + '/series/%s'
@@ -21,55 +22,100 @@ TVDB_ACTORS_URL            = TVDB_BASE_URL + '/series/%s/actors'
 TVDB_SERIES_IMG_INFO_URL   = TVDB_BASE_URL + '/series/%s/images'
 TVDB_SERIES_IMG_QUERY_URL  = TVDB_BASE_URL + '/series/%s/images/query?keyType=%s'
 TVDB_SEARCH_URL            = TVDB_BASE_URL + '/search/series?name=%s'
-TVDB_IMG_ROOT              = 'https://thetvdb.plexapp.com/banners/' 
-
-THETVDB_LANGUAGES_CODE     = { 'cs': '28', 'da': '10', 'de': '14', 'el': '20', 'en':  '7', 'es': '16', 'fi': '11', 'fr': '17', 'he': '24', 
-                               'hr': '31', 'hu': '19', 'it': '15', 'ja': '25', 'ko': '32', 'nl': '13', 'no':  '9', 'pl': '18', 'pt': '26',
-                               'ru': '22', 'sv':  '8', 'tr': '21', 'zh': '27', 'sl': '30'}
+#THETVDB_LANGUAGES_CODE     = { 'cs': '28', 'da': '10', 'de': '14', 'el': '20', 'en':  '7', 'es': '16', 'fi': '11', 'fr': '17', 'he': '24', 
+#                               'hr': '31', 'hu': '19', 'it': '15', 'ja': '25', 'ko': '32', 'nl': '13', 'no':  '9', 'pl': '18', 'pt': '26',
+#                               'ru': '22', 'sv':  '8', 'tr': '21', 'zh': '27', 'sl': '30'}
 HEADERS                    = {'User-agent': 'Plex/Nine'}
    
 ### Functions ###  
   
-### Download from API v2 Json which requires auth token in headers  # DO NOT CALL additionalHeaders WITH VARIABLE
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
+  ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
+      Usage (TheTVDBv2): 
+  '''
+  relativeFilename            = os.path.join(relativeDirectory, filename) 
+  fullpathFilename            = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
+  file_valid, converted, file = False, False, None
+  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
+  
+  # Load from cache if recent
+  if Data.Exists(relativeFilename):
+    file_time  = os.stat(fullpathFilename).st_mtime
+    file_valid = file_time+cache < time.time()
+    if file_valid:  file = Data.Load(relativeFilename);
+    Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' valid: '{valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), valid=valid))
+  else:  Log.Debug("common.LoadFile() - file not cached - Filename: '{file}', Directory: '{path}', url: '{url}'".format(file=filename, path=relativeDirectory, url=url))
+  
+  if not file:
+    # AniDB
+    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
+      global AniDB_WaitUntil
+      netLock.acquire()
+      while AniDB_WaitUntil > datetime.datetime.now():
+        Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
+        time.sleep(4)
+      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
+    
+    # TheTVDB
+    elif url.startswith('https://api.thetvdb.com'):
+      if 'Authorization' not in HEADERS:  # Normal loading, already Authentified
+        try:
+          HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(url, data=JSON.StringFromObject(dict(apikey=TVDB_API_KEY)), headers={'Content-type': 'application/json'}).content)['token']
+          result = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, data=data).content
+        except Exception, e:    Log.Info('Error 2: (%s) - %s' % (e, e.message))
+        else:                   Log.Info('TVDB Access token: {}'.format(HEADERS['Authorization']))
+      
+    # File download
+    try:                    file = str(HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), data=data, timeout=60, cacheTime=cache))             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
+    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    netLock.release()
+    
+    # File checks and saving as cache
+    if file:
+      #Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
+      if len(file)>512:                                 SaveFile(filename, file, relativeDirectory)
+      elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
+      elif not file_valid:                              file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+
 def GetResultFromNetwork(url, additionalHeaders={}, data=None):
+  ''' Download from API v2 Json which requires auth token in headers  # DO NOT CALL additionalHeaders WITH VARIABLE
+  '''
+  # Access Token if needed
   result = None
   if 'Authorization' in HEADERS:  # Normal loading, already Authentified
-    try:                  result = HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), timeout=60, data=data).content  #if not result:    set_JWT_token();  result = HTTP.Request(url, headers=local_headers, timeout=60, data=data)
-    except Exception, e:  Log.Info('Error: (%s) - %s' % (e, e.message))
-  
-  # Access Token if needed
+    try:                  result = HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), timeout=60, data=data).content
+    except Exception, e:  Log.Info('Error 1: (%s) - %s' % (e, e.message))
   if 'Authorization' not in HEADERS or not result:  # Grab New Auth token
     try:
       HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(TVDB_LOGIN_URL, data=JSON.StringFromObject(dict(apikey=TVDB_API_KEY)), headers={'Content-type': 'application/json'}).content)['token']
       result = HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), timeout=60, data=data).content
-    except Exception, e:    Log.Info('Error: (%s) - %s' % (e, e.message))
-    else:                   Log.Info('Access token: {}'.format(HEADERS['Authorization']))
+    except Exception, e:    Log.Info('Error 2: (%s) - %s' % (e, e.message))
+    else:                   Log.Info('TVDB Access token: {}'.format(HEADERS['Authorization']))
   
   # JSON
   try:                    json = JSON.ObjectFromString(result)
-  except Exception as e:  json = None;    Log.Info(' Exception, e: {}, e.message: {}'.format(e, e.message))
+  except Exception as e:  Log.Info(' Error 3: e: {}, e.message: {}'.format(e, e.message));  return None
   for key in Dict(json, 'errors') or []:  Log.Info('"{}": "{}", additionalHeaders: "{}"'.format(key, json['errors'][key], additionalHeaders))
   return json
   
-### TVDB - Load serie JSON ###
 def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
+  ''' TVDB - Load serie JSON
+  '''
   Log.Info("".ljust(157, '-'))
   Log.Info("TheTVDB.GetMetadata() - TVDBid: '{}', IMDbid: '{}'".format(TVDBid, IMDbid))
   if not TVDBid.isdigit(): return {}, IMDbid
   
   TheTVDB_dict      = {}
-  language_series   = [language.strip() for language in Prefs['SerieLanguagePriority'  ].split(',') if language.strip() not in ('x-jat',)]
-  language_episodes = [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',') if language.strip() not in ('x-jat',)]
+  language_series   = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['SerieLanguagePriority'  ].split(',') ]
+  language_episodes = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['EpisodeLanguagePriority'].split(',') ]
   Log.Info('language_series : {}, language_episodes: {}'.format(language_series , language_episodes))
   
   ### TVDB Series JSON ###
-  serie_json = GetResultFromNetwork(TVDB_SERIES_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {})
-  Log.Info('serie_json: {}'.format(serie_json))
-  serie_json = Dict(serie_json, 'data')
+  serie_json = Dict(GetResultFromNetwork(TVDB_SERIES_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
   if serie_json:
     #serie_json { "id","seriesId", "airsDayOfWeek", "imdbId", "zap2itId", "added", "addedBy", "lastUpdated", "seriesName", "aliases", "banner", "status", 
     #             "firstAired", "network", "networkId", "runtime", "genre, "overview", "airsTime", "rating" , "siteRating", "siteRatingCount" }
-    #Log.Info('TheTVDB.GetMetadata() - serie_json: {}'.format(serie_json))
+    #Log.Info('serie_json: {}'.format(serie_json))
     SaveDict( language_series.index(lang) if lang in language_series else len(language_series), TheTVDB_dict, 'language_rank')
     SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'title'                  )
     SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
@@ -83,13 +129,13 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     SaveDict( Dict(serie_json, 'status'    ), TheTVDB_dict, 'status'                 )
     if Dict(serie_json, 'runtime') and Dict(serie_json, 'runtime').isdigit():  SaveDict(int(Dict(serie_json, 'runtime'))*60*1000, TheTVDB_dict, 'duration')  #in ms in plex
     #if Dict(serie_json, 'banner'):                                             SaveDict((os.path.join('TheTVDB', 'banner', Dict(serie_json, 'banner')), 1, None), TheTVDB_dict, 'banners', TVDB_IMG_ROOT+Dict(serie_json, 'banner'))
-    Log.Info("TheTVDB.GetMetadata() - TVDBid: '{}', IMDbid: {}, url: '{}'".format(TVDBid, IMDbid, TVDB_SERIES_URL % TVDBid))
+    Log.Info("TVDBid: '{}', IMDbid: {}, url: '{}'".format(TVDBid, IMDbid, TVDB_SERIES_URL % TVDBid))
     
     ### TVDB Series Actors JSON ###
     if not Prefs["GetSingleOne"]:  #cache= CACHE_1MONTH, url=API_ACTORS_URL.replace('.com', '.plexapp.com')
       actor_json = Dict( GetResultFromNetwork(TVDB_ACTORS_URL % TVDBid, additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
       if actor_json:               #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
-        Log("TheTVDB.GetMetadata() - TVDB_ACTORS_URL: {}".format(TVDB_ACTORS_URL % TVDBid))  
+        Log("TVDB_ACTORS_URL: {}".format(TVDB_ACTORS_URL % TVDBid))  
         for role in actor_json or []:
           try:                    SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
           except Exception as e:  Log.Info("'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
@@ -218,8 +264,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     ### Picture types JSON download ###
     Log.Info("TheTVDB.GetMetadata() - Images")
     try:
-      bannerTypes = Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': language} if language!='en' else {}),'data') or \
-                    Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': 'en'}),'data')
+      bannerTypes = Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={'Accept-Language': language if language!='en' else 'en'}),'data') or \
+                    Dict(GetResultFromNetwork(TVDB_SERIES_IMG_INFO_URL % TVDBid, additionalHeaders={}),'data')      
+                    #{'Accept-Language': language} if language!='en' else {
     except KeyError:  Log("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
     else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
       metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
@@ -233,6 +280,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
         try:              images = Dict(GetResultFromNetwork(TVDB_SERIES_IMG_QUERY_URL % (TVDBid, bannerType), additionalHeaders={'Accept-Language': lang} if lang!='en' else {}), 'data')
         except KeyError:  Log("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
+        if bannerType=='season':  Log.Info('json: {}'.format(images))
         for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
           
           #rank
@@ -244,6 +292,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
           if bannerType == 'season':  
             season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))
+            #Log.Info("season: {}, image['subKey']: {}, url: {}".format(season, image['subKey'], TVDB_IMG_ROOT + image['fileName']))
             SaveDict((                          'TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', season, 'posters', TVDB_IMG_ROOT + image['fileName'])
           else:                       SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType],        TVDB_IMG_ROOT + image['fileName'])
           count_valid[bannerType] = count_valid[bannerType] + 1  #Otherwise with += SyntaxError: Line 142: Augmented assignment of object items and slices is not allowed
@@ -255,8 +304,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     
   return TheTVDB_dict, IMDbid
   
-### search for TVDB id series ###
 def Search (results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Search_TVDB(results, media, lang, manual, movie)
+  '''search for TVDB id series
+  '''
   #series_data = JSON.ObjectFromString(GetResultFromNetwork(TVDB_SEARCH_URL % mediaShowYear, additionalHeaders={'Accept-Language': lang}))['data'][0]
   TVDB_SERIE_SEARCH = 'http://thetvdb.com/api/GetSeries.php?seriesname='
   orig_title = ( media.title if movie else media.show )

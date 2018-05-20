@@ -33,10 +33,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = [ AniDBid ] if Dict(mappingList, 'TVDB', 'sa') else [] 
-    Log.Info(str(AniDB_array))
+    #Log.Info(str(AniDB_array))
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
-      
       Log.Info("season: {}, AniDBid: {}, Dict(mappingList, 'TVDB', 's'+season): {}, Dict(mappingList, 'defaulttvdbseason'): {}".format(season, AniDBid, Dict(mappingList, 'TVDB', 's'+season), Dict(mappingList, 'defaulttvdbseason')))
+      
       #Season check
       if len(Dict(mappingList, 'TVDB', 's'+season))==1 or Dict(mappingList, 'defaulttvdbseason')=='a': #import anidbif if one instance of the defaulttvdbseason exist as it has files
         if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  Log.Info('Bazinga'); continue
@@ -150,7 +150,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source) ###Broken for tvdbseason='a'
             if season=='0' and episode=='0':  continue
-            Log.Info('after tvdb, numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
+            #Log.Info('after tvdb, numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
           if season in media.seasons and episode in media.seasons[season].episodes:  Log.Info('numbering: {}, season: {}, episode: {} present'.format(numbering, season, episode))
           else:
             #Log.Info('numbering: {}, season: {}, episode: {} missing'.format(numbering, season, episode))
