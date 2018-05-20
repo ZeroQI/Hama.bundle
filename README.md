@@ -60,8 +60,8 @@ Subtitle files are supported through that
 
 Plex's trailer feature also supports displaying trailers from a URL - the metadata agent just needs to add the relevant URL at which Plex can reach the trailer. If we added support for this, it'd mean that user who don't have the trailer as a file can also benefit from having the trailer available.
 
-Metadata source
-===============
+Metadata sources
+================
 I use AniDB HTTP title database file and ScudLee's XML files with his approval
 
 ScudLee's XMLs:                 https://github.com/ScudLee/anime-lists/
@@ -117,6 +117,46 @@ I did change the metadata id from the Anidb ID to "anidb-xxxxx" with xxxxx being
 You can use anidb.id file in series or Series/Extras folder or in the serie name " [anidb-xxxxx]" at the end of serie folder name, works also for tvdb " [tvdb-xxxxxxx]". Older agents before that need to re-create the library to have a metadata.id beginning with "anidb-"
 
 Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
+
+Configuration
+=============
+
+Agents settings will have the Metadata source for each field customizable, but not all fields exists on all sources.
+Fields shared by both series and episodes can use '|' to split the series from the episode part
+Sources are:
+- AnimeLists: collections
+- 'AniDB'
+- 'TheTVDB'
+- 'MyAnimeList'
+- 'FanartTV'
+- 'OMDb': API key in agent settings needed
+- 'TheMovieDb'
+- 'Plex': themes
+- 'AnimeLists'
+- 'tvdb4': season posters
+- 'TVTunes': themes
+- 'Local': collections if grouping folder present
+
+The titles priority can have the usual languages 'en', 'fr', 'sp', 'ja', etc... and the following for asian languages
+The titles will be in the priority indicated first and secondarily by the metadata source
+
+<TABLE>
+<THEAD>
+<TR> <TH> Languages codes       </TH> <TH> AniDB    </TH> <TH> TheTVDB </TH> </TR>
+</THEAD>
+<TBODY>
+<TR> <TD> chinese (unspecified)    </TD> <TD> zh       </TD> <TD> zh   </TD> </TR>
+<TR> <TD> chinese (traditional)    </TD> <TD> zh-Hant  </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (simplified)     </TD> <TD> zh-Hans  </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (cantonese)      </TD> <TD> zh-x-yue </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (mandarin)       </TD> <TD> zh-x-cmn </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> chinese (taiwanese)      </TD> <TD> zh-x-nan </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> japanese                 </TD> <TD> ja       </TD> <TD> ja   </TD> </TR>
+<TR> <TD> japanese (transcription) </TD> <TD> jap      </TD> <TD> N/A  </TD> </TR>
+<TR> <TD> korean                   </TD> <TD> ko       </TD> <TD> ko   </TD> </TR>
+<TR> <TD> korean (transcription)   </TD> <TD> x-kot    </TD> <TD> N/A  </TD> </TR>
+</TBODY>
+</TABLE>
 
 Installation
 ============
