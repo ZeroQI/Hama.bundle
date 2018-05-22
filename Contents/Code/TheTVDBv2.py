@@ -29,27 +29,6 @@ HEADERS                    = {'User-agent': 'Plex/Nine'}
    
 ### Functions ###  
   
-def GetResultFromNetwork(url, additionalHeaders={}, data=None):
-  ''' Download from API v2 Json which requires auth token in headers  # DO NOT CALL additionalHeaders WITH VARIABLE
-  '''
-  # Access Token if needed
-  result = None
-  if 'Authorization' in HEADERS:  # Normal loading, already Authentified
-    try:                  result = HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), timeout=60, data=data).content
-    except Exception, e:  Log.Info('Error 1: (%s) - %s' % (e, e.message))
-  if 'Authorization' not in HEADERS or not result:  # Grab New Auth token
-    try:
-      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(TVDB_LOGIN_URL, data=JSON.StringFromObject(dict(apikey=TVDB_API_KEY)), headers={'Content-type': 'application/json'}).content)['token']
-      result = HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), timeout=60, data=data).content
-    except Exception, e:    Log.Info('Error 2: (%s) - %s' % (e, e.message))
-    else:                   Log.Info('TVDB Access token: {}'.format(HEADERS['Authorization']))
-  
-  # JSON
-  try:                    json = JSON.ObjectFromString(result)
-  except Exception as e:  Log.Info(' Error 3: e: {}, e.message: {}'.format(e, e.message));  return None
-  for key in Dict(json, 'errors') or []:  Log.Info('"{}": "{}", additionalHeaders: "{}"'.format(key, json['errors'][key], additionalHeaders))
-  return json
-  
 def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
   ''' TVDB - Load serie JSON
   '''
@@ -155,9 +134,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         elif season=='0':                               tvdb_special_missing.append(episode);  Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
         else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering);  Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
         
-      else:  # File present on disk
+      # File present on disk
+      else:
         #Log.Info('abs_number: {}, season: {:2>}, episode: {:3>}, title: {}'.format(abs_number, Dict(episode_json, 'airedSeason'), episode, Dict(episode_json, 'episodeName'))) #otherwise give season 1 for tvdb3/4/5
-        
         SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(episode_json, 'overview'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
         SaveDict( Dict(serie_json  , 'rating'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )

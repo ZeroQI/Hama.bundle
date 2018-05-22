@@ -477,7 +477,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     if isinstance(meta_new, basestring):
       if field == 'title_sort':                                      meta_new = SortTitle(meta_new)
       if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
-      if field == 'rating':                                          meta_new = float(meta_new) if isinstance(meta_new, str) and "." in meta_new or isinstance(meta_new, int) else None
+      if field == 'rating':                                          meta_new = float(meta_new) if isinstance(meta_new, str) or isinstance(meta_new, int) else None
       if field in ('year', 'absolute_number', 'duration'):           meta_new = int  (meta_new) if meta_new.isdigit() else None
       if field in  MetaFieldList:                           
         meta_new = re.sub(r'\([^)]*\)', '', meta_new)
