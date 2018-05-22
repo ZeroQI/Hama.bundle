@@ -38,6 +38,7 @@ FieldListSeasons  = ('summary', 'posters', 'art')
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
+HEADERS           = {'User-agent': 'Plex/Nine', 'Content-type': 'application/json'}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -236,41 +237,52 @@ def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for 
   #if os.path.exists(fullpathDirectory): Log.Debug("common.SaveFile() - path exist")
   #else:                                 Log.Debug("common.SaveFile() - path does not exist: " + fullpathDirectory)
 
-### Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed ###
-
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #By Dingmatt, heavily moded
-  ANIDB_HTTP_API_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='  # this prevent CONSTANTS.py module loaded on every module, only common.py loaded on modules and all modules on __init__.py
-  relativeFilename   = os.path.join(relativeDirectory, filename) 
-  fullpathFilename   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
-  too_old, converted = False, False
-  file               = None
-  global AniDB_WaitUntil
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
+  ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
+      Usage (TheTVDBv2): 
+  '''
+  relativeFilename            = os.path.join(relativeDirectory, filename) 
+  fullpathFilename            = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
+  file_valid, converted, file = False, False, None
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
-  # missing_meta = False  # data in agent dict
-  #  if missing_meta and its info is not in cache file and
-  #    ( prev 7 days=< date - ep release date<= 14 days or #everyday refresh within 7 days of new release
-  #      date - cache_file_date >= 7 days and serie in progress or   # every 7 days afterwards if in progress
-  #      serie not in progress and date - cache_file_date >= 90 days )  #every 3 months if terminated
-  if relativeFilename and Data.Exists(relativeFilename) and os.path.isfile(fullpathFilename):       
-    file_time = os.stat(fullpathFilename).st_mtime
-    if file_time+cache < time.time():  too_old = True;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' needs reloading..".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
-    else:          file = Data.Load(relativeFilename)#;  Log.Debug("common.LoadFile() - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' loaded from cache".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache)))
-  else:  Log.Debug("common.LoadFile() - Filename: '{file}', Directory: '{path}', url: '{url}' does not exists in cache".format(file=filename, path=relativeDirectory, url=url))
+  
+  # Load from cache if recent
+  if Data.Exists(relativeFilename):
+    file_time  = os.stat(fullpathFilename).st_mtime
+    file_valid = file_time+cache > time.time()
+    if file_valid:  file = Data.Load(relativeFilename);
+    Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
+  
   if not file:
     netLock.acquire()
-    if url.startswith(ANIDB_HTTP_API_URL):
-      if AniDB_WaitUntil > datetime.datetime.now():  Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
-      while AniDB_WaitUntil > datetime.datetime.now():  time.sleep(1)
+    
+    # AniDB
+    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
+      global AniDB_WaitUntil
+      while AniDB_WaitUntil > datetime.datetime.now():
+        Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
+        time.sleep(4)
       AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-    try:                    file = str(HTTP.Request(url, headers={}, timeout=20, cacheTime=cache))             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except Exception as e:  file = None;       Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-    finally:                netLock.release()
+    
+    # TheTVDB
+    elif url.startswith('https://api.thetvdb.com'):
+      if 'Authorization' in HEADERS:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content  # Normal loading, already Authentified
+      if not file:
+        try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
+        except Exception as e:    Log.Info('Error: {}'.format(e))
+        else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
+    # File download
+    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
+    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    netLock.release()
+    
+    # File checks and saving as cache
     if file:
-      #Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
-      if len(file)>1024:  SaveFile(filename, file, relativeDirectory)
+      #Log.Debug("LoadFile() - relativeDirectory: {}, filename: {}, file: {}".format(relativeDirectory, filename, file))
+      if len(file)>64:                                  SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
-      elif too_old:                                     file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-  
+      elif Data.Exists(relativeFilename):               file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+
   if isinstance(file, basestring):
     if file.startswith('<?xml '):
       try:     return XML.ElementFromString(file)
@@ -285,57 +297,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6):  #B
       except:  pass
   Log.Info('LoadFile() - returning string')
   return file
-'''
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
-  # Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
-  #    Usage (TheTVDBv2): 
-  
-  relativeFilename            = os.path.join(relativeDirectory, filename) 
-  fullpathFilename            = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
-  file_valid, converted, file = False, False, None
-  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
-  
-  # Load from cache if recent
-  if Data.Exists(relativeFilename):
-    file_time  = os.stat(fullpathFilename).st_mtime
-    file_valid = file_time+cache < time.time()
-    if file_valid:  file = Data.Load(relativeFilename);
-    Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
-  else:  Log.Debug("common.LoadFile() - file not cached - Filename: '{file}', Directory: '{path}', url: '{url}'".format(file=filename, path=relativeDirectory, url=url))
-  
-  if not file:
-    netLock.acquire()
-    
-    # AniDB
-    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
-      global AniDB_WaitUntil
-      while AniDB_WaitUntil > datetime.datetime.now():
-        Log("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
-        time.sleep(4)
-      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-    
-    # TheTVDB
-    elif url.startswith('https://api.thetvdb.com'):
-      if 'Authorization' not in HEADERS:  # Normal loading, already Authentified
-        try:
-          HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(url, data=JSON.StringFromObject(dict(apikey=TVDB_API_KEY)), headers={'Content-type': 'application/json'}).content)['token']
-          result = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, data=data).content
-        except Exception, e:    Log.Info('Error 2: (%s) - %s' % (e, e.message))
-        else:                   Log.Info('TVDB Access token: {}'.format(HEADERS['Authorization']))
       
-    # File download
-    try:                    file = str(HTTP.Request(url, headers=UpdateDict(additionalHeaders, HEADERS), data=data, timeout=60, cacheTime=cache))             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
-    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-    netLock.release()
-    
-    # File checks and saving as cache
-    if file:
-      #Log.Debug("LoadFile() - url: '{url}' loaded".format(url=url))
-      if len(file)>512:                                 SaveFile(filename, file, relativeDirectory)
-      elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
-      elif not file_valid:                              file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-  return file
-''' 
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
   def GetMetadata(metatype): 
