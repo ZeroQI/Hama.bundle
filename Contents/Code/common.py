@@ -1,18 +1,18 @@
 ### common ###
 # https://www.python.org/dev/peps/pep-0008/
-# https://github.com/plexinc-agents/PlexMovie.bundle/blob/master/Contents/Code/__init__.py #  audience rating line 940
+# Usage: "common.GetPosters" = "from common import GetPosters"
 
-### Imports ###  "common.GetPosters" = "from common import GetPosters"
+### Imports ###               ### Functions used ###
 import os                     # path.abspath, join, dirname
 import inspect                # getfile, currentframe
 import time                   # datetime.datetime.now() 
-import re                     #
+import re                     # sub
 import logging                #
 import datetime               # datetime.now
 import ssl, urllib2           # urlopen
 import unicodedata            #
-from io     import open       #
-from string import maketrans  #
+from io     import open       # open
+from string import maketrans  # maketrans
 from lxml   import etree      # fromstring
 #try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
 #except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
@@ -77,7 +77,7 @@ def GetLibraryRootPath(dir):
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
         if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root).rstrip('.'); break
       else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
-    Log.Debug("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
+    Log.Info("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
   return library, root, path
 
 ### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
@@ -134,7 +134,7 @@ def replaceList     (string, a,b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
 
-#Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
+### Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
 def ssl_open(url, headers=None, timeout=20):
   if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0',
 	                             'appversion': '5.0.14'
@@ -346,11 +346,11 @@ def cleanse_title(string):#def CleanTitle(title):
 ### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
   Log.Info("".ljust(157, '-'))
+  Log.Info("common.write_logs()")
   
   ### File lock ###
   global netLocked
   sleep_time_max = 10
-  Log.Info("error_log: {}".format(error_log))
   for log in error_log:
     sleep_time = 0
     while log in netLocked and netLocked[log][0]:
@@ -362,7 +362,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     netLocked[log] = (True, int(time.time()))
   
     ### Load previous entries ###
-    Log.Debug("common.write_logs() - {log:<{width}}: {content}".format(log=log, width=max(map(len, error_log)), content=str(error_log[log])))
+    Log.Info("{log:<{width}}: {content}".format(log=log, width=max(map(len, error_log)), content=str(error_log[log])))
     error_log_array    = {}
     log_line_separator = "<br />\r\n"
     if Data.Exists(os.path.join('_Logs', log+'.htm')):
@@ -383,8 +383,6 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
-    import re
-    Log.Info("error_log_array: {}".format(error_log_array))
     try:     Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
     except Exception as e:  Log.Error("Exception: '%s'" % e)
     
@@ -529,7 +527,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
 #if AniDB_dict['originally_available_at']:  AniDB_dict['year'] = AniDB_dict['originally_available_at'].year
 def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   Log.Info("".ljust(157, '-'))
-  Log.Info("common.UpdateMeta() - List of Metadata Sources and their movie/serie, season, episodes fields gathered")
+  Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
     if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields =' | '.join('{:<23} ({:>3})'.format(field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for field in MetaSources[source])))
     if type(MetaSources[source]).__name__ == 'NoneType':  Log.Info("[!] source: '%s', type: '%s', bad return in function, should return an empty dict" % (source, type(MetaSources[source]).__name__))
@@ -553,7 +551,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [x] Xst/nd/th source had the field
   # [#] no source for that field
   # [!] Error assigning
-  Log.Info("Plex.UpdateMeta() - Metadata Fields (items #), type, source provider, value, ")
+  Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value, ")
   count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   for field in FieldListMovies if movie else FieldListSeries:
@@ -671,6 +669,3 @@ def SortTitle(title, language="en"):
 ### Collections
 # metadata.collections.clear()
 # metadata.collections.add(collection)
-#
-#
-  

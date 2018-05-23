@@ -19,8 +19,87 @@ ns['clean-title'] = lambda context, s: common.cleanse_title(s)
   
 ### Functions ###
 
-### ###
+def Search (results, media, lang, manual, movie):
+  ''' AniDB Search assign an anidbid to a series or movie
+  '''
+  FILTER_SEARCH_WORDS  = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only ####################################
+  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
+  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater', 'and', # En Continued
+  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses', 'world', 'in', 'another', 'this', 'story', 'life', 'name',                                                                                        # Fr
+  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                                    # Roman digits
+  SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
+  orig_title           = media.title if movie else media.show
+  orig_title_cleansed  = common.cleanse_title(orig_title)
+  Log.Info("".ljust(157, '-'))
+  Log.Info("AniDB.Search() - orig_title: '{}', orig_title_cleansed: '{}'".format(orig_title, orig_title_cleansed))
+  
+  ### Full title search = 1.3s
+  best_aid, best_score, best_title, n = "", 0, "", 0
+  start_time = time.time()
+  #Log.Info( str(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower()) )
+  Log.Info('len: {}'.format(len(AniDBTitlesDB)))
+  for element in AniDBTitlesDB.xpath(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower().replace("'", " ")):
+    aid            = element.getparent().get('aid',  '')
+    title          = element.text
+    if aid==best_aid and best_score>=100:  continue
+    if orig_title            == title                      :  title_cleansed, score = title,        100 
+    elif orig_title.lower()  == title.lower()              :  title_cleansed, score = title.lower(), 99
+    else: #contained in title
+      title_cleansed = common.cleanse_title(title)
+      score1 = 100*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n if max(len(title_cleansed), len(orig_title_cleansed)) else 0
+      score2 = 100 - 100 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n  if max(len(title_cleansed), len(orig_title_cleansed)) else 0
+      score=max(score1, score2)
+    if score>=100 and not aid==best_aid:  n+=1
+    results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (title, "anidb", aid), year=media.year, lang=lang, score=score))
+    Log.Info("[+] score: {:>3}, aid: {:>5}, title: '{}', title_cleansed: {}".format(score, aid, title, title_cleansed))
+    if score > best_score:  best_score, best_title, best_aid = score, title, aid
+  if best_score:  Log.Info("[=] best_score: {:>3}, best_aid: {:>5}, best_title: {}".format(best_score, best_aid, best_title))
+  Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
+  if best_score>=90:  return best_score, n
+  
+  ### Keyword match using Xpath
+  words, words_skipped  = [], []
+  for i in SPLIT_CHARS:  orig_title_cleansed = orig_title_cleansed.replace(i, " ")
+  orig_title_cleansed = orig_title_cleansed.replace("'", '')
+  for word in orig_title_cleansed.split():  (words_skipped if word in FILTER_SEARCH_WORDS or len(word) <= 3 else words).append(word)
+  if not words:  words, words_skipped = orig_title_cleansed.split(), []  #Prevent CRITICAL Exception in the search function of agent named 'HamaTV', called with keyword arguments {'show': 'No 6', 'id': '20145', 'year': None} (most recent call last):
+  Log.Info("".ljust(157, '-'))
+  Log.Info("Keyword Search - Words: {}, skipped: {}".format(str(words), str(words_skipped)))
+  type_order=('main', 'official', 'syn', 'short', '')
+  best_score, best_title, best_aid, best_type, best_lang = 0, "", "", "", ""
+  last_chance, best_score_entry=[], 0
+  start_time = time.time()
+  
+  for element in AniDBTitlesDB.xpath(u"/animetitles/anime[title[{}]]".format(" or ".join(["contains(lower-case(text()), '{}')".format(x.lower()) for x in words]) )):
+    aid = element.get('aid',  '')
+    best_score_entry, best_title_entry, best_type_entry, best_lang_entry = 0, "", "", ""
+    for element in element.xpath(u"title[%s]" % " or ".join(["contains(lower-case(text()), '%s')" % x.lower() for x in words]) ):
+      title          = element.text
+      Type           = element.get('type', '')
+      Lang           = element.get('{http://www.w3.org/XML/1998/namespace}lang', '')
+      title_cleansed = common.cleanse_title(title)
+      if title_cleansed == orig_title_cleansed:  score =  98 if ';' not in title else 100
+      else:                                      score = WordsScore(orig_title_cleansed.split(), title_cleansed)  # - type_order.index(Type)  #Movies can have same title
+      if score>best_score_entry or score==best_score_entry and (not best_type_entry or type_order.index(Type)<type_order.index(best_type_entry)):
+        best_score_entry, best_title_entry, best_type_entry, best_lang_entry, best_title_entry_cleansed = score, title, Type, Lang, title_cleansed
+    if best_score_entry<25:  last_chance.append((best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid));  continue
+    Log.Info("[-] score: {:>3}, aid: {:>5}, title: {}, title_cleansed: {}".format(best_score_entry, aid, best_title_entry, best_title_entry_cleansed))
+    #Log.Info("levenstein: {}".format(100 - 200 * Util.LevenshteinDistance(title_cleansed, orig_title_cleansed) / (len(title_cleansed) + len(orig_title_cleansed)) ))
+    results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang})] [anidb-{aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
+    if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
+  if best_score <50:  # Add back lower than 25 if nothin above 50
+    for best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid in last_chance:
+      Log.Info("[-] score: '{}', title: '{}', aid: '{}'".format(best_score_entry, best_title_entry, aid))
+      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang}): {aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
+    if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
+  Log.Info("[=] score: '{}', best_title: '{}', aid: '{}'".format(best_score, best_title, best_aid))
+  Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
+  
+  return best_score, n
+
 def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets, mappingList):
+  ''' Download metadata to dict_AniDB, ANNid, MALid
+  '''
   ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
   ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
@@ -30,12 +109,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ### Build the list of anidbids for files present ####
   Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    #{'defaulttvdbseason': '1', 'name': 'Sword Art Online', 'episodeoffset': '0'}
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
-    AniDB_array = [ AniDBid ] if Dict(mappingList, 'TVDB', 'sa') else [] 
-    #Log.Info(str(AniDB_array))
+    AniDB_array = [ AniDBid ] if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else [] 
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
-      Log.Info("season: {}, AniDBid: {}, Dict(mappingList, 'TVDB', 's'+season): {}, Dict(mappingList, 'defaulttvdbseason'): {}".format(season, AniDBid, Dict(mappingList, 'TVDB', 's'+season), Dict(mappingList, 'defaulttvdbseason')))
+      #Log.Info("season: {}, AniDBid: {}, Dict(mappingList, 'TVDB', 's'+season): {}, Dict(mappingList, 'defaulttvdbseason'): {}".format(season, AniDBid, Dict(mappingList, 'TVDB', 's'+season), Dict(mappingList, 'defaulttvdbseason')))
       
       #Season check
       if len(Dict(mappingList, 'TVDB', 's'+season))==1 or Dict(mappingList, 'defaulttvdbseason')=='a': #import anidbif if one instance of the defaulttvdbseason exist as it has files
@@ -132,7 +209,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           epNumType = epNum.get('type')
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           if epNumType=="3" and title.startswith("Ending") and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
-        Log.Info('ending_offset: {}'.format(ending_offset))  
+        #Log.Info('ending_offset: {}'.format(ending_offset))  
         
         for ep_obj in xml.xpath('episodes/episode'):
           
@@ -151,10 +228,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source) ###Broken for tvdbseason='a'
             if season=='0' and episode=='0':  continue
             #Log.Info('after tvdb, numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
-          if season in media.seasons and episode in media.seasons[season].episodes:  Log.Info('numbering: {}, season: {}, episode: {} present'.format(numbering, season, episode))
-          else:
-            #Log.Info('numbering: {}, season: {}, episode: {} missing'.format(numbering, season, episode))
-            SaveDict([episode], missing, season); continue
+          if season in media.seasons and episode in media.seasons[season].episodes:  pass  #Log.Info('numbering: {}, season: {}, episode: {} present'.format(numbering, season, episode))
+          else:                                                                      SaveDict([episode], missing, season); continue
           
           ### Episodes
           #Log.Info("s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
@@ -217,7 +292,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       # Logs
       if not Dict(AniDB_dict, 'summary'):  error_log['AniDB summaries missing'].append("AniDBid: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid) + " | Title: '%s'" % Dict(AniDB_dict, 'title')))
       if not Dict(AniDB_dict, 'posters'):  error_log['AniDB posters missing'  ].append("AniDBid: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid) + " | Title: '%s'" % Dict(AniDB_dict, 'title')))
-      #if not Dict(AniDB_dict, 'studio' ):  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
+      #if not Dict(AniDB_dict, 'studio' ):                                                                                          error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio       and 'studio' in AniDB_dict and AniDB_dict ['studio'] and AniDB_dict ['studio'] != metadata.studio:  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
     
@@ -226,15 +301,17 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   #Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid
 
-### Get the AniDB title database #############################################################################################################################################
 def GetAniDBTitlesDB():
+  ''' Get the AniDB title database
+  '''
   ANIDB_TITLES  = 'http://anidb.net/api/anime-titles.xml.gz'               # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
   AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
   return AniDBTitlesDB
 
-### Extract the series/movie/Episode title from AniDB ########################################################################################################################
 def GetAniDBTitle(titles, lang=None, title_sort=False):
+  ''' Extract the series/movie/Episode title from AniDB
+  '''
   languages = lang or [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')] #[ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ]  #override default language
   if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
   type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
@@ -252,101 +329,17 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
   #Log.Info("GetAniDBTitle - lang index: '{}', langTitles: '{}', langLevel: '{}'".format(languages.index(lang) if lang in languages else '', str(langTitles), str(langLevel)))
   return langTitles[index], langTitles[languages.index('main') if 'main' in languages else 1 if 1 in langTitles else 0], index
 
-### Score word compared to string ###
 def WordsScore(words, title_cleansed):
+  ''' Score word compared to string in percents
+  '''
   max_length = max(len("".join(words)), len(title_cleansed))
   score=0
   for word in words:  score+= 100*len(String.LongestCommonSubstring(word, title_cleansed))/max_length
   return score
  
-### AniDB Search #############################################################################################################################################################
-def Search (results, media, lang, manual, movie):
-  FILTER_SEARCH_WORDS  = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only ####################################
-  'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
-  'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater', 'and', # En Continued
-  'le', 'la', 'un', 'les', 'nos', 'vos', 'des', 'ses', 'world', 'in', 'another', 'this', 'story', 'life', 'name',                                                                                        # Fr
-  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi']                                                                    # Roman digits
-  SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
-  orig_title           = media.title if movie else media.show
-  orig_title_cleansed  = common.cleanse_title(orig_title)
-  Log.Info("".ljust(157, '-'))
-  Log.Info("AniDB.Search() - orig_title: '{}', orig_title_cleansed: '{}'".format(orig_title, orig_title_cleansed))
-  
-  ### Full title search = 1.3s
-  best_aid, best_score, best_title, n = "", 0, "", 0
-  start_time = time.time()
-  #Log.Info( str(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower()) )
-  Log.Info('len: {}'.format(len(AniDBTitlesDB)))
-  for element in AniDBTitlesDB.xpath(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower().replace("'", " ")):
-    aid            = element.getparent().get('aid',  '')
-    title          = element.text
-    if aid==best_aid and best_score>=100:  continue
-    if orig_title            == title                      :  title_cleansed, score = title,        100 
-    elif orig_title.lower()  == title.lower()              :  title_cleansed, score = title.lower(), 99
-    else: #contained in title
-      title_cleansed = common.cleanse_title(title)
-      score1 = 100*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed))/max(len(title_cleansed), len(orig_title_cleansed))-n if max(len(title_cleansed), len(orig_title_cleansed)) else 0
-      score2 = 100 - 100 * Util.LevenshteinDistance (orig_title_cleansed, title_cleansed) /max(len(title_cleansed), len(orig_title_cleansed))-n  if max(len(title_cleansed), len(orig_title_cleansed)) else 0
-      score=max(score1, score2)
-    if score>=100 and not aid==best_aid:  n+=1
-    results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="%s [%s-%s]" % (title, "anidb", aid), year=media.year, lang=lang, score=score))
-    Log.Info("[+] score: {:>3}, aid: {:>5}, title: '{}', title_cleansed: {}".format(score, aid, title, title_cleansed))
-    if score > best_score:  best_score, best_title, best_aid = score, title, aid
-  if best_score:  Log.Info("[=] best_score: {:>3}, best_aid: {:>5}, best_title: {}".format(best_score, best_aid, best_title))
-  Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
-  if best_score>=90:  return best_score, n
-  
-  ### Keyword match using Xpath
-  words, words_skipped  = [], []
-  for i in SPLIT_CHARS:  orig_title_cleansed = orig_title_cleansed.replace(i, " ")
-  orig_title_cleansed = orig_title_cleansed.replace("'", '')
-  for word in orig_title_cleansed.split():  (words_skipped if word in FILTER_SEARCH_WORDS or len(word) <= 3 else words).append(word)
-  if not words:  words, words_skipped = orig_title_cleansed.split(), []  #Prevent CRITICAL Exception in the search function of agent named 'HamaTV', called with keyword arguments {'show': 'No 6', 'id': '20145', 'year': None} (most recent call last):
-  Log.Info("".ljust(157, '-'))
-  Log.Info("Keyword Search - Words: {}, skipped: {}".format(str(words), str(words_skipped)))
-  type_order=('main', 'official', 'syn', 'short', '')
-  best_score, best_title, best_aid, best_type, best_lang = 0, "", "", "", ""
-  last_chance, best_score_entry=[], 0
-  start_time = time.time()
-  
-  #temp = " or ".join(["contains(lower-case(text()), '{}')".format(x.lower()) for x in words])
-  #result = AniDBTitlesDB.xpath(u"""./anime/title[contains(clean-title(string(text())), "%s")]""" % temp)  
-  #for element in AniDBTitlesDB.xpath(u"/animetitles/anime[title[{}]]".format(" or ".join(["contains(lower-case(text()), '{}')".format(x.lower()) for x in words]) )):
-  for element in AniDBTitlesDB.xpath(u"/animetitles/anime[title[{}]]".format(" or ".join(["contains(lower-case(text()), '{}')".format(x.lower()) for x in words]) )):
-    aid = element.get('aid',  '')
-    best_score_entry, best_title_entry, best_type_entry, best_lang_entry = 0, "", "", ""
-    for element in element.xpath(u"title[%s]" % " or ".join(["contains(lower-case(text()), '%s')" % x.lower() for x in words]) ):
-      title          = element.text
-      Type           = element.get('type', '')
-      Lang           = element.get('{http://www.w3.org/XML/1998/namespace}lang', '')
-      title_cleansed = common.cleanse_title(title)
-      #if title_cleansed == orig_title.lower(): Log.Info('100% match')
-      if title_cleansed == orig_title_cleansed:  score =  98 if ';' not in title else 100
-      else:                                      score = WordsScore(orig_title_cleansed.split(), title_cleansed)  # - type_order.index(Type)  #Movies can have same title
-      if score>best_score_entry or score==best_score_entry and (not best_type_entry or type_order.index(Type)<type_order.index(best_type_entry)):
-        best_score_entry, best_title_entry, best_type_entry, best_lang_entry, best_title_entry_cleansed = score, title, Type, Lang, title_cleansed
-    if best_score_entry<25:  last_chance.append((best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid));  continue
-    Log.Info("[-] score: {:>3}, aid: {:>5}, title: {}, title_cleansed: {}".format(best_score_entry, aid, best_title_entry, best_title_entry_cleansed))
-    #Log.Info("levenstein: {}".format(100 - 200 * Util.LevenshteinDistance(title_cleansed, orig_title_cleansed) / (len(title_cleansed) + len(orig_title_cleansed)) ))
-    results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang})] [anidb-{aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
-    if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
-  if best_score <50:  # Add back lower than 25 if nothin above 50
-    for best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid in last_chance:
-      Log.Info("[-] score: '{}', title: '{}', aid: '{}'".format(best_score_entry, best_title_entry, aid))
-      results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang}): {aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
-    if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
-  Log.Info("[=] score: '{}', best_title: '{}', aid: '{}'".format(best_score, best_title, best_aid))
-  Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
-  
-  return best_score, n
-  
 ### Variables ###
 ### Always on variables ###
 AniDBTitlesDB = GetAniDBTitlesDB()
 
 ### Notes ###
 # [].count(True) replaces any() (not declared in Python 2.4, gives "NameError: global name 'any' is not defined")
-#for element in AniDBTitlesDB.xpath(u"/animetitles/anime[title[@type='official' or @type='main' or @type='syn' or @type='short']/text()[contains(.,'%s')]]" % str(orig_title) ):  #parent::node()
-#score          = 100*len(String.LongestCommonSubstring(orig_title_cleansed, title_cleansed)) / max_length # - type_order.index(Type)  #Movies can have same title
-#temp_score  = sum([len(String.LongestCommonSubstring(word, title)) for word in words]) / len(" ".join(words))
-#Levenshtein = 100 - 200 * Util.LevenshteinDistance(title_cleansed, orig_title_cleansed) / (len(title_cleansed) + len(orig_title_cleansed) )

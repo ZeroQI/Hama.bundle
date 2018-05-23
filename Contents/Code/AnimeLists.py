@@ -53,20 +53,18 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
+  Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
     if (not AniDBid or AniDBid != AniDB_id) and (not TVDBid or TVDBid !=TVDB_id):  continue  #if not (AniDB_id and AniDBid == AniDB_id) and not(TVDB_id and TVDB_id == TVDBid):  continue
     found = True
-    Log.Info("AnimeLists.GetMetadata() - AniDBid: {}, TVDBid: {}, defaulttvdbseason: {}, episodeoffset: {}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
-    
-    Log.Info('tvdb_numbering: {}, AniDBid: {}, TVDBid: {}'.format(tvdb_numbering, AniDBid, TVDBid))
+    Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     if not tvdb_numbering and not TVDB_id:   TVDB_id  = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id = AniDBid
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
-      
       SaveDict(anime.get('tmdbid',        ""),              mappingList, 'tmdbid'           )
       SaveDict(anime.get('imdbid',        ""),              mappingList, 'imdbid'           )
       SaveDict(anime.get('defaulttvdbseason'),              mappingList, 'defaulttvdbseason')
@@ -77,7 +75,6 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       SaveDict(GetXml(anime, "supplemental-info/credits" ), AnimeLists_dict, 'writer'        )
       for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres')
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
-      
       if movie or max(map(int, media.seasons.keys()))<=1:  break  #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
       
     ### TheTVDB numbered series ###
@@ -87,24 +84,24 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
           if anime.get('defaulttvdbseason')in ['a', '1']:  
             SaveDict('a', mappingList, 'defaulttvdbseason')
             AniDB_id = AniDBid
-          #  Log.Info('defaulttvdbseason="a"')  #mappingList['TVDB'][s1][anidbid]=episodeoffset
-          #else:                                    
           SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
-          Log.Info("AnimeLists.GetMetadata() - [!] anidbseason: {}, tvdbseason: {}, start: {}, end: {}, offset: {}, text: {}".format(anidbseason, tvdbseason, start, end, offset, season.text))
+          Log.Info("    - season: [{:>2}],           [{:>2}], range:      [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, season.text.strip(';')))
           for ep in range(int(start), int(end)+1)        if start       else []:  SaveDict((anidbseason, ep,               AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
           for ep in filter(None, season.text.split(';')) if season.text else []:  SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
       
       elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
       elif TVDBid in ("", "unknown", None):
         error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
-        Log.Warn("anidbTvdbMapping() - 'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
+        Log.Warn("'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
   else:
     if not found:
-      Log.Error("AnimeLists.GetMetadata() - source '{}', id: '{}' not found in file".format(source, id))
+      Log.Error("source '{}', id: '{}' not found in file".format(source, id))
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
     AniDBid, TVDBid = '', ''
+  Log.Info('             -----          ------'.format(AniDBid, TVDBid))
+  Log.Info('             {:>5}          {:>6}'.format(AniDBid, TVDBid))
     
   ### Update collection 
   #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
@@ -122,7 +119,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       if anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset')=='':  title = GetXml(anime, 'name')
   if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collection')
   
-  Log.Info("anidbTvdbMapping() - mappingList.keys(): {}, mappingList['tvdb']: {}, mappingList: {}".format(mappingList.keys(), (Dict(mappingList, 'TVDB') or {}).keys(), mappingList))
+  #Log.Info("anidbTvdbMapping() - mappingList.keys(): {}, mappingList['tvdb']: {}, mappingList: {}".format(mappingList.keys(), (Dict(mappingList, 'TVDB') or {}).keys(), mappingList))
   return AnimeLists_dict, AniDB_id or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", tmdbid, imdbid, mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###
