@@ -455,7 +455,8 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   if type(metadata).__name__=="tuple":  
     ep_string      = ' new season: {:<2}, new_episode: {:<3}'.format(metadata[3], metadata[4])
     metadata       = metadata[0].seasons[metadata[1]].episodes[metadata[2]]
-  else:  ep_string = ""
+    is_episode     = True
+  else:  ep_string, is_episode = "", False
   
   meta_old       = getattr(metadata, field) # getattr( metadata, field, None)
   meta_new       = meta_root[field]
@@ -472,16 +473,17 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   '''
   ### Prepare data for comparison ###
   try:
+    if isinstance(meta_new, int):
+      if field == 'rating':                                          meta_new = float(meta_new)
     if isinstance(meta_new, basestring):
+      if field == 'rating':                                          meta_new = float(meta_new)
       if field == 'title_sort':                                      meta_new = SortTitle(meta_new)
       if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
-      if field == 'rating':                                          meta_new = float(meta_new) if isinstance(meta_new, str) or isinstance(meta_new, int) else None
       if field in ('year', 'absolute_number', 'duration'):           meta_new = int  (meta_new) if meta_new.isdigit() else None
       if field in  MetaFieldList:                           
         meta_new = re.sub(r'\([^)]*\)', '', meta_new)
         meta_new = meta_new.split(',' if ',' in meta_new else '|')
     if isinstance(meta_new, list) and field in MetaRoleList:
-      #meta_new = [{key:Dict(obj, key) for key in ('role', 'name', 'photo')} if isinstance(obj, dict) else {'role':None, 'name':obj, 'photo':None} for obj in meta_new if obj]
       meta_new = [{'role': Dict(obj, 'role'), 'name': Dict(obj, 'name'), 'photo': Dict(obj,'photo')} if isinstance(obj, dict) else \
                   {'role': None,              'name': obj,               'photo': None} for obj in meta_new]
   except Exception as e:  Log.Info("[!] 1{field:<23}  Sources: {sources:<60}  Value: {value}  Exception: {error}".format(field=field, sources=sources, value=meta_new_short, error=e))
@@ -494,17 +496,14 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
       
   ### Update ONLY IF REQUIRED ###
   if '|' in Prefs[field]:
-    if metadata_root==metadata:  sources = '|'.join([Prefs[field].split('|')[0].replace(source, '('+source+')'), Prefs[field].split('|')[1]])
-    else:                        sources = '|'.join([Prefs[field].split('|')[0], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
+    if metadata_root==metadata:  sources = '|'.join([Prefs[field].split('|')[is_episode].replace(source, '('+source+')'), Prefs[field].split('|')[1]])
+    else:                        sources = '|'.join([Prefs[field].split('|')[is_episode], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
   else:  sources = Prefs[field].replace(source, '('+source+')')
   
-  if meta_new == meta_old_value or field not in MetaRoleList and \
-   (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
-    Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, format=type(meta_new).__name__, value=meta_new_short, source_list=source_list))
-  else:  #Type: {format:<20}  #format=type(meta_new).__name__, 
-    temp = [MetaSource.strip() for MetaSource in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if MetaSource and MetaSource.strip()]
-    Log.Info("[{rank}] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", source=source, sources=sources, rank=temp.index(source)+1 if source in Prefs[field] else "x", value=meta_new_short, source_list=source_list))
-    
+  if meta_new == meta_old_value or field not in MetaRoleList and (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
+    Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
+  else: 
+    Log.Info("[x] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
     if isinstance(meta_new, dict)and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
       for url in meta_new:
         if not url in meta_old and isinstance(meta_new[url], tuple):  metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
