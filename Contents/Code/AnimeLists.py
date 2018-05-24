@@ -100,8 +100,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       Log.Error("source '{}', id: '{}' not found in file".format(source, id))
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
     AniDBid, TVDBid = '', ''
-  Log.Info('             -----          ------'.format(AniDBid, TVDBid))
-  Log.Info('             {:>5}          {:>6}'.format(AniDBid, TVDBid))
+  Log.Info('             -----          ------')
+  Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDBid, TVDB_id or TVDBid))
     
   ### Update collection 
   #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
