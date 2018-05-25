@@ -599,7 +599,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
-              UpdateMetaField(metadata, metadata.seasons[season], MetaSources[source]['seasons'][season], FieldListSeasons, field, source, movie, source_list)
+              UpdateMetaField(metadata, metadata.seasons[season], Dict(MetaSources, source, 'seasons', season), FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
               if field not in ['posters', 'art'] or Prefs['GetSingleOne']:  break 
           elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(source))
@@ -624,7 +624,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
                   #Log.Info("[!] source: {}, rank: {}, language_rank: '{}', found: {}, title: {}".format(source, rank, language_rank, found, title))
                   if title and (language_rank not in [None, ''] and language_rank<rank or not found):  found, rank = True, language_rank or len(languages)
                   else:                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
-                UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), MetaSources[source]['seasons'][new_season]['episodes'][new_episode], FieldListEpisodes, field, source, movie, source_list)
+                UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
                 count[field] = count[field] + 1 if field in count else 1
                 if not field in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne'] and (field !='title' or rank==0):  break
             elif not source=="None": Log.Info("[!] '{}' source not in MetaSources but in: '{}'".format(source, source_list))
