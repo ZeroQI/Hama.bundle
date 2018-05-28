@@ -11,11 +11,15 @@ import logging                #
 import datetime               # datetime.now
 import ssl, urllib2           # urlopen
 import unicodedata            #
+import logging                #
 from io     import open       # open
 from string import maketrans  # maketrans
 from lxml   import etree      # fromstring
 #try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
 #except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
+import threading              #local,
+tlocal = threading.local()
+Log.Info('tlocal: {}'.format(dir(tlocal)))
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
@@ -87,32 +91,32 @@ if not os.path.isdir(PlexRoot):
                     'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
   PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
-### Logging class to join scanner and agent logging per serie
-# 
-# Scanner:
-#  - from "../../Plug-ins/Hama.bundle/Contents/code/common" import PlexLog
-#  - log = PlexLog(file='root/folder/[anidb2-xxxx].log', isAgent=False)
-# Agent:    log = common.PlexLog(file='mytest.log', isAgent=True )
-# Useage:   log.debug('some debug message: %s', 'test123')
 class PlexLog(object):
-  #Log.Info(str(dir(logging)))  # %(asctime)-15s (%(thread)+9x/%(module)-15s/%(funcName)-18s/%(lineno)4d) %(levelname)-8s 
+  ''' Logging class to join scanner and agent logging per serie
+      Usage Scanner: (not used currently in scanner as independant from Hama)
+       - from "../../Plug-ins/Hama.bundle/Contents/code/common" import PlexLog
+       - log = PlexLog(file='root/folder/[anidb2-xxxx].log', isAgent=False)
+      Usage Agent:
+       - log = common.PlexLog(file='mytest.log', isAgent=True )
+       - log.debug('some debug message: %s', 'test123')
+  '''
   def __init__ (self, media=None, movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
-  
     if not file:
-      dir                 = GetMediaDir(media, movie)
-      library, root, path = GetLibraryRootPath(dir)#Get movie or serie episode folder location      
-      extension           = '.agent-search.log' if search else '.agent-update.log'
-      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+extension, 'a' if path=='_unknown_folder' else 'w'
+      library, root, path   = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
+      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+'.agent-search.log' if search else '.agent-update.log', 'a' if path=='_unknown_folder' else 'w'
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
+      if not path:  path='_root_'
       file = os.path.join(LOGS_PATH, file)
       Log.Debug("Log file: " + file)
     try:
       log = logging.getLogger()                                      # update root logging's handler
-      for handler in log.handlers:  log.removeHandler(handler)       # remove all old handlers
-      new_handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
-      new_handler.setFormatter(logging.Formatter(log_format))        # Set log format
-      log.addHandler(new_handler)                                    # set the new handler
-      log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
+      #for handler in log.handlers:  log.removeHandler(handler)      # remove all old handlers
+      handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
+      handler.setFormatter(logging.Formatter(log_format))            # Set log format
+      #f = InjectingFilter(self)
+      #handler.addFilter(f)
+      log.addHandler(handler)
+      #log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
     except IOError, e:  self.error('updateLoggingConfig: failed to set logfile: %s', str(e))
     self.isAgent = isAgent
   def debug    (self, msg, *args, **kwargs):  (Log.Debug    if self.isAgent else logging.debug   ) (msg, *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
@@ -123,39 +127,43 @@ class PlexLog(object):
   def stop     (self                      ):
     log = logging.getLogger()                                      # update root logging's handler
     for handler in log.handlers:  log.removeHandler(handler)
+    
+#class InjectingFilter(logging.Filter):      # Injects data into the LogRecord as well as acting as a filter.
+#  def __init__(self, app):  self.app = app  # 
+#  def filter(self, record):
+#     record.appName = tlocal.appName         # keep a reference to the app in the filter, and this also allows the injection of the appName attribute into the LogRecord
+#    return  tlocal.appName == self.app.name  # check if the current thread belongs to its app's set
+#    # return threading.currentThread().getName() in self.app.threads
 
 ### Code reduction one-liners that get imported specifically ###
 def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"  #not Prefs['GetSingleOne'] or downloaded[field    ]>0 fails randomly due to downloaded emptied  #Log.Info("test - downloaded[field]: {}, downloaded: {}".format(downloaded[field]<=1, downloaded))
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
-def natural_sort_key(s):  return [int(text) if text.isdigit() else text for text in re.split(re.compile('([0-9]+)'), str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
-def urlFilename     (url):                              return "/".join(url.split('/')[3:])
-def urlDomain       (url):                              return "/".join(url.split('/')[:3])
-def replaceList     (string, a,b, *args):
+def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
+def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
+def LevenshteinRatio(first, second                  ):  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
+def natural_sort_key(s                              ):  return [int(text) if text.isdigit() else text for text in re.split(re.compile('([0-9]+)'), str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
+def replaceList     (string, a, b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
 
 ### Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
 def ssl_open(url, headers=None, timeout=20):
-  if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0',
-	                             'appversion': '5.0.14'
-                             }
+  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
+      1. Do not verify certificates. A bit like how older Python versions worked
+         Import ssl and urllib2
+         Use urllib2 with a default ssl context (which does not verify the certificate).
+      Or:
+      2. Set PlexPluginCodePolicy to Elevated in Info.plist
+         Add external Python libraries to your project bundle
+         Import certifi and requests into your Python code
+         Use requests
+  '''
+  if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0', 'appversion': '5.0.14'}
   if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
   else:                           return urllib2.urlopen(url, timeout=timeout).read()
-  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
-      1. Do not verify certificates. A bit like how older Python versions worked:
-      Import ssl and urllib2
-      Use urllib2 with a default ssl context (which does not verify the certificate).
-      Or:
-      2. Use external Python libraries
-      Add those libraries to your project bundle and use them.
-      Set PlexPluginCodePolicy to Elevated in Info.plist
-      Import certifi and requests into your Python code
-      Use requests in your code
-  '''
   
-### Return dict value if all fields exists "" otherwise (to allow .isdigit()), avoid key errors
 def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
-  """ Return the value of an (imbricated) dictionnary, return "" if doesn't exist unless "default=new_value" specified as end argument
+  """ Return the value of an (imbricated) dictionnary, if all fields exist else return "" unless "default=new_value" specified as end argument
       Ex: Dict(variable_dict, 'field1', 'field2', default = 0)
   """
   for key in arg:
@@ -163,9 +171,8 @@ def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is 
     else:  return kwarg['default'] if kwarg and 'default' in kwarg else ""   # Allow Dict(var, tvdbid).isdigit() for example
   return kwarg['default'] if var in (None, '', 'N/A', 'null') and kwarg and 'default' in kwarg else "" if var in (None, '', 'N/A', 'null') else var
 
-### Save non null value in imbricated dict without error if not created yet, add if destination exist and is a list
 def SaveDict(value, var, *arg):
-  """ Save value to a Dictionary field (can be imbricated) and if value is a list, it exten the lsit instead
+  """ Save non empty value to a (nested) Dictionary fields unless value is a list or dict for which it will extend it instead
       # ex: SaveDict(GetXml(ep, 'Rating'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'rating')
       # ex: SaveDict(Dict(TheTVDB_dict, 'title'), TheTVDB_dict, 'title_sort')
       # ex: SaveDict(genre1,                      TheTVDB_dict, genre) to add    to current list
@@ -202,9 +209,8 @@ def DisplayDict(items={}, fields=[]):
   len_fields = DisplayDictLen(items, fields)
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
-### Gives HTTP status code using header info only ##########################################################################################################################
 def GetStatusCode(url):
-    """ This function retreives the status code of a website by requesting HEAD data from the host.
+    """ This function retreives the status code of a website by requesting HEAD data only from the host.
         This means that it only requests the headers. If the host cannot be reached or something else goes wrong, it returns None instead.
         urllib.parse.quote(string, safe='/', encoding=None, errors=None)
         - string:   string your trying to encode
@@ -214,29 +220,23 @@ def GetStatusCode(url):
         #host = "/".join(url.split('/', 3)[:-1])  #path = url.replace(" ", "%20").split('/', 3)[3]  #Log.Info("host: '%s', path: '%s'" % (host, path))
     """ 
     try:
-      import urllib2
       request            = urllib2.Request(url) #urllib.quote #urllib2.quote(url,':/')
       request.get_method = lambda: 'HEAD'
       return urllib2.urlopen(request).getcode() # if "Content-Type: audio/mpeg" in response.info(): Log.Info("Content-Type: audio/mpeg")
     except Exception as e:  return str(e)
   
-### Save file to cache
-def SaveFile(filename="", file="", relativeDirectory=""):  #Thanks Dingmatt for folder creation ability
-  #Log.Debug("common.SaveFile() - file: "+filename)
+def SaveFile(filename="", file="", relativeDirectory=""):
+  ''' Save file to cache, Thanks Dingmatt for folder creation ability
+  '''
   relativeFilename            = os.path.join (relativeDirectory, filename) 
   relativeDirectory, filename = os.path.split(relativeFilename) #if os.sep in filename:
   fullpathDirectory           = os.path.abspath(os.path.join(CachePath, relativeDirectory))
-  if os.path.exists(fullpathDirectory):  Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory present".format(path=CachePath, file=relativeFilename))
-  else:
-    try:                    os.makedirs(fullpathDirectory)
-    except Exception as e:  Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory absent, exception: {exception}".format(path=CachePath, file=relativeFilename, exception=e))
-    else:                   Log.Debug("common.SaveFile() - CachePath: '{path}', file: '{file}', directory absent.".format(path=CachePath, file=relativeFilename))
-  try:                    Data.Save(relativeFilename, file)
-  except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}'".format(exception=e, relativeFilename=relativeFilename))
-  
-  #if os.path.exists(fullpathDirectory): Log.Debug("common.SaveFile() - path exist")
-  #else:                                 Log.Debug("common.SaveFile() - path does not exist: " + fullpathDirectory)
-
+  try:
+    if not os.path.exists(fullpathDirectory):  os.makedirs(fullpathDirectory)
+    Data.Save(relativeFilename, file)
+  except Exception as e:  Log.Debug("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}', file: '{file}'".format(exception=e, relativeFilename=relativeFilename, file=file))
+  else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
+   
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
   ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
       Usage (TheTVDBv2): 
@@ -278,7 +278,6 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # File checks and saving as cache
     if file:
-      #Log.Debug("LoadFile() - relativeDirectory: {}, filename: {}, file: {}".format(relativeDirectory, filename, file))
       if len(file)>64:                                  SaveFile(filename, file, relativeDirectory)
       elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
       elif Data.Exists(relativeFilename):               file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
@@ -300,38 +299,30 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
-  def GetMetadata(metatype): 
-    if metatype==metadata.posters:             return "posters", GetMeta('', 'posters')
-    if metatype==metadata.art:                 return "art",     GetMeta('', 'art')
-    if metatype==metadata.banners:             return "banners", GetMeta('', 'banners')
-    if metatype==metadata.themes:              return "themes",  Prefs['themes']
-    if filename.startswith("TVDB/episodes/"):  return "thumbs",  Prefs['thumbs']
-    return "seasons", True  #GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
+  if   metatype==metadata.posters:             string, test = "posters", GetMeta('', 'posters')
+  elif metatype==metadata.art:                 string, test = "art",     GetMeta('', 'art')
+  elif metatype==metadata.banners:             string, test = "banners", GetMeta('', 'banners')
+  elif metatype==metadata.themes:              string, test = "themes",  Prefs['themes']
+  elif filename.startswith("TVDB/episodes/"):  string, test = "thumbs",  Prefs['thumbs']
+  else:                                        string, test = "seasons", True  #GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
   
-  string, test = GetMetadata(metatype)
   global downloaded
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
   elif not test:       Log.Info("url: '%s', num: '%d', filename: '%s' Not in Plex but threshold exceded or thumbs/themes agent setting not selected" % (url, num, filename))
   else:
     file, status = None, ""
-    if filename and Data.Exists(filename):  file = Data.Load(filename); status += ", Found locally"
-    else:
-      try:                    file = ssl_open(url_thumbnail or url)                                 
-      except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception!s}, url: '{url}'".format(exception=e, url=url)); return
-      if file:                status += ", Downloaded";  SaveFile(filename, file);  status += "Saved locally"
-      elif 'thetvdb.com' in url:
-        Log.Info("TheTVDB.com times out, using Plex server")
-        try:                    file = ssl_open((url_thumbnail or url).replace('thetvdb.com', 'thetvdb.plexapp.com')).content
-        except Exception as e:  Log.Info("common.SaveFile() - Exception: {exception!s}, url: '{url}'".format(exception=e, url=url)); return
-    if file:
-      try:                    metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
-      except Exception as e:  Log.Error("issue adding File to plex - url downloaded: '{}', filename: '{}', Exception: '{!s}'".format(url_thumbnail if url_thumbnail else url, filename, e)); return #metatype.validate_keys( url_thumbnail if url_thumbnail else url ) # remove many posters, to avoid
-      #!#else:                   Log.Info( "url: '%s', num: '%d', filename: '%s' %s" % (url, num, filename, status))
+    try:
+      if filename and Data.Exists(filename):  status += ", Found locally"; file = Data.Load(filename)
+      else:
+        file = (ssl_open((url_thumbnail or url).replace('thetvdb.com', 'thetvdb.plexapp.com')) if 'thetvdb.com' in url else False) or ssl_open(url_thumbnail or url)
+        if file:  status += ", Downloaded and Saved locally";  SaveFile(filename, file)
+      if file:  metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
+    except Exception as e:  Log.Info("common.SaveFile() - Exception: {}, url: '{}', filename: '{}'".format(e, url, filename));  return
   downloaded[string] = downloaded[string] + 1
   
-### Cleanse title and translate anidb '`' ############################################################################################################
-def cleanse_title(string):#def CleanTitle(title):
-  import unicodedata
+def cleanse_title(string):
+  """ Cleanse title and translate anidb '`'
+  """
   DeleteChars  = ""
   ReplaceChars = maketrans("`:~/*?-.,;", "          ") #.;_
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
@@ -341,10 +332,10 @@ def cleanse_title(string):#def CleanTitle(title):
     if not string2.count('?'): string=string2
   while re.match(".*\([^\(\)]*?\).*", string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
-
   
-### HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems ###
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
+  """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
+  """
   Log.Info("".ljust(157, '-'))
   Log.Info("common.write_logs()")
   
@@ -388,8 +379,9 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     
     netLocked[log] = (False, 0)
 
-### Add genre tags: Status, Extension, Dubbed/Subbed ###
 def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'status') or Dict(TheTVDB_dict, 'status'))
+  """ Add genre tags: Status, Extension, Dubbed/Subbed
+  """
   tags = []
   if movie:  file = media.items[0].parts[0]    
   else:
@@ -417,8 +409,9 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
         
   return tags
   
-### [tvdb4.posters.xml] Attempt to get the ASS's image data ###############################################################################################################
 def GetMetadata(media, movie, source, TVDBid, num=0):
+  """ [tvdb4.posters.xml] Attempt to get the ASS's image data
+  """
   TVDB4_POSTERS_URL = 'http://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
   TVDB4_xml         = None
   if movie or not source == "tvdb4": return {}
@@ -522,9 +515,9 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
       try:                    setattr(metadata, field, meta_new)  #Type: {format:<20}  #format=type(meta_old).__name__+"/"+type(meta_new).__name__, 
       except Exception as e:  Log.Info("[!] {field:<29}  Sources: {sources:<60}  Value: {value}  Exception: {error}".format(field=field, sources=sources, value=meta_new_short, error=e))
   
-### Update all metadata from a list of Dict according to set priorities ##############################################################################
-#if AniDB_dict['originally_available_at']:  AniDB_dict['year'] = AniDB_dict['originally_available_at'].year
 def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
+  """ Update all metadata from a list of Dict according to set priorities 
+  """
   Log.Info("".ljust(157, '-'))
   Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
@@ -544,7 +537,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields =' | '.join('{:<23} ({:>3})'.format(field,  season_fields[field]) for field in  season_fields)))
       if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields =' | '.join('{:<23} ({:>3})'.format(field, episode_fields[field]) for field in episode_fields)))
   Log.Info("".ljust(157, '-'))
-  
+  #if AniDB_dict['originally_available_at']:  AniDB_dict['year'] = AniDB_dict['originally_available_at'].year
+
   ### Metadata review display. Legend for the '[ ]' display:
   # [=] already at the right value for that source
   # [x] Xst/nd/th source had the field
@@ -637,8 +631,9 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   global downloaded
   downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   
-### Compute Levenshtein distance.
 def LevenshteinDistance(first, second):
+  """ Compute Levenshtein distance
+  """
   if len(first) > len(second):  first, second = second, first
   if len(second) == 0: return len(first)
   first_length    = len(first ) + 1
@@ -651,12 +646,9 @@ def LevenshteinDistance(first, second):
       distance_matrix[i][j] = min(distance_matrix[i][j-1]+1, distance_matrix[i-1][j]+1, distance_matrix[i-1][j-1] + (1 if first[i-1] != second[j-1] else 0))
   return distance_matrix[first_length-1][second_length-1]
 
-### Levenshtein ratio.
-def LevenshteinRatio(first, second):
-  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
-
-### SortTitle ###
 def SortTitle(title, language="en"):
+  """ SortTitle
+  """
   dict_sort = { 'en': ["The", "A", "An"],
                 'fr': ["Le", "La", "Les", "L", "Un", "Une ", "Des "],
                 'sp': ["El", "La", "Las", "Lo", "Los", "Uno ", "Una "]
@@ -664,7 +656,3 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
-
-### Collections
-# metadata.collections.clear()
-# metadata.collections.add(collection)

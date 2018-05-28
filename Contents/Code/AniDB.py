@@ -321,7 +321,7 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
     lang, type = title.get('{http://www.w3.org/XML/1998/namespace}lang'), title.get('type')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
     if title_sort:  title.text = common.SortTitle(title.text, lang)                          # clean up title
     #Log.Info("GetAniDBTitle - lang: {} type: {} title: {}".format(lang, type, title.text))
-    if lang in languages and (type and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text.replace("`", "'"), type_priority [ type ] if type else 6 + languages.index(lang)
+    if lang in languages and (type!='short' and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text.replace("`", "'"), type_priority [ type ] if type else 6 + languages.index(lang)
     if type=='main':                                                                                         langTitles[languages.index('main')], langLevel [languages.index('main')] = title.text.replace("`", "'"), type_priority [ type ]
     if lang==languages[0] and type in ['main', ""]:  break
   for index, item in enumerate(langTitles+[]):
