@@ -33,10 +33,10 @@ WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
 ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "MinimumWeight", "localart", "adult", "GetSingleOne", 'OMDbApiKey') #"Simkl", 
-FieldListMovies   = ('original_title', 'title', 'roles', 'year', 'originally_available_at', 'studio', 'tagline', 'summary', 'content_rating', 'content_rating_age',
+FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
-FieldListSeries   = ('genres', 'tags' , 'collections', 'duration', 'rating', 'title', 'summary', 'originally_available_at', 'reviews', 'extras', 'countries', 'rating_count',
-                     'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 'title_sort',
+FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration','rating',  'reviews', 'collections', 'genres', 'tags' , 'summary', 'extras', 'countries', 'rating_count',
+                     'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
 FieldListSeasons  = ('summary', 'posters', 'art')
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
@@ -162,6 +162,12 @@ def ssl_open(url, headers=None, timeout=20):
   if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
   else:                           return urllib2.urlopen(url, timeout=timeout).read()
   
+def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not iterable
+  """ Return the length of the array or index no errors
+  """
+  try:     return var[index]
+  except:  return '' 
+  
 def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the value of an (imbricated) dictionnary, if all fields exist else return "" unless "default=new_value" specified as end argument
       Ex: Dict(variable_dict, 'field1', 'field2', default = 0)
@@ -178,7 +184,7 @@ def SaveDict(value, var, *arg):
       # ex: SaveDict(genre1,                      TheTVDB_dict, genre) to add    to current list
       # ex: SaveDict([genre1, genre2],            TheTVDB_dict, genre) to extend to current list
   """
-  if not value:  return ""  # update dict only as string would revert to pre call value being immutable
+  if not value and value!=0:  return ""  # update dict only as string would revert to pre call value being immutable
   if not arg and (isinstance(var, list) or isinstance(var, dict)):
     if not (isinstance(var, list) or isinstance(var, dict)):  var = value
     elif isinstance(value, list) or isinstance(value, dict):  var.extend (value)
@@ -550,22 +556,25 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
-    if field=='title':  rank, found = len(languages), False
+    if field=='title':
+      rank, found, found_source = len(languages), False, False
+      for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
+        title, language_rank = Dict(MetaSources, source, 'title'), Dict(MetaSources, source, 'language_rank')
+        if title and language_rank not in (None, '') and language_rank<rank or not found and rank in (language_rank, len(languages)):
+          found, found_source, rank = True, source, language_rank
+          MetaSources[source]['title_sort'] = SortTitle(title, IsIndex(languages, language_rank))
+          #Log.Info("title: {}, title_sort: {}, languages: {}, language_rank: {}, language: {}".format(title, SortTitle(title, IsIndex(languages, language_rank)), languages, language_rank, IsIndex(languages, language_rank)))
+      if found:  UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
+      continue
     for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
       if source in MetaSources:
         if Dict(MetaSources, source, field):
-          if field=='genres':
-            if '|' in MetaSources[source]['genres'] or ',' in MetaSources[source]['genres']:
-              MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')
-              MetaSources[source]['genres'].extend( Other_Tags(media, movie, Dict(MetaSources, 'AniDB', 'status')) )
-          if field=='title':  #Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
-            title, language_rank = Dict(MetaSources, source, 'title'), Dict(MetaSources, source, 'language_rank')
-            if title and language_rank not in (None, '') and language_rank<rank or not found and rank in (language_rank, len(languages)):  found, rank = True, language_rank
-            else:                                                                                                                          continue  #Lower index (or same index at higher index metadata source) title exists
+          if field=='genres'and ('|' in MetaSources[source]['genres'] or ',' in MetaSources[source]['genres']):
+            MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')
+            MetaSources[source]['genres'].extend( Other_Tags(media, movie, Dict(MetaSources, 'AniDB', 'status')) )
           UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
           if field in count:  count[field] = count[field] + 1
-          if field in ['posters', 'art', 'banners', 'themes', 'thumbs'] and not Prefs['GetSingleOne'] or field=="title" and language_rank==0:  continue
-          else:                                                                                                                                break
+          if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
       if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))

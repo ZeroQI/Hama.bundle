@@ -134,11 +134,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
     if xml and not xml=='<error>aid Missing or Invalid</error>':
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-      title_sort, _, _                     = GetAniDBTitle(xml.xpath('/anime/titles/title'), None, True)
       Log.Info("AniDBid: {}, url: {}".format(AniDBid, ANIDB_HTTP_API_URL+AniDBid).ljust(157, '-'))
-      Log.Info("'title': {}, 'title_sort': {}, original_title: {}".format(title, title_sort, original_title))
+      Log.Info("'title': {}, original_title: {}".format(title, original_title))
       if AniDBid==original or len(AniDB_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
-        AniDB_dict['title'], AniDB_dict['original_title'], AniDB_dict['title_sort'] = title, original_title, title_sort
+        SaveDict(title,          AniDB_dict, 'title'         )
+        SaveDict(original_title, AniDB_dict, 'original_title')
+        SaveDict(language_rank,  AniDB_dict, 'language_rank');  Log.Info("language_rank: {}".format(language_rank))
         if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("'originally_available_at': '{}'".format(AniDB_dict['originally_available_at']))
         if SaveDict( re.sub(r'http://anidb\.net/[a-z]{1,2}[0-9]+ \[(.+?)\]', r'\1', GetXml(xml, 'description')).replace("`", "'"), AniDB_dict, 'summary'):
           Log.Info("'summary' empty: '{}'".format(not GetXml(xml, 'description')))
@@ -173,8 +174,9 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           if element.get('anidbid') == AniDBid or element.get('anidbid') in AniDBid_table:
             node              = element.getparent()
             title, main, language_rank = GetAniDBTitle(node.xpath('titles')[0])
-            SaveDict(language_rank, AniDB_dict, 'language_rank')
+            #SaveDict(language_rank, AniDB_dict, 'language_rank')
             SaveDict([title], AniDB_dict, 'collections')
+            #Log.Info("language_rank: {}".format(language_rank))
             Log.Info("'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(AniDBid_table)))
             break
         else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
