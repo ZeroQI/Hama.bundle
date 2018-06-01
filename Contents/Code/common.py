@@ -246,6 +246,16 @@ def SaveFile(filename="", file="", relativeDirectory=""):
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
   ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
       Usage (TheTVDBv2): 
+      2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
+      2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - TheTVDB.GetMetadata() - TVDBid: '280330', IMDbid: '', language_series : ['en'], language_episodes: ['en']
+      2018-05-31 05:32:31,048 (2384) :  DEBUG (networking:166) - Requesting 'https://api.thetvdb.com/login'
+      2018-05-31 05:32:33,694 (2384) :  ERROR (networking:219) - Error opening URL 'https://api.thetvdb.com/login'
+      2018-05-31 05:32:33,694 (2384) :  INFO (logkit:16) - Error: HTTP Error 503: Service Unavailable
+      2018-05-31 05:32:33,710 (2384) :  DEBUG (networking:166) - Requesting 'https://api.thetvdb.com/series/280330'
+      2018-05-31 05:32:35,138 (2384) :  ERROR (networking:219) - Error opening URL 'https://api.thetvdb.com/series/280330'
+      2018-05-31 05:32:35,138 (2384) :  WARNING (logkit:19) - common.LoadFile() - issue loading url: 'https://api.thetvdb.com/series/280330', filename: 'series.json', Exception: 'HTTP Error 503: Service Unavailable'
+      2018-05-31 05:32:35,140 (2384) :  INFO (logkit:16) - LoadFile() - returning string
+      2018-05-31 05:32:35,141 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
   '''
   relativeFilename            = os.path.join(relativeDirectory, filename) 
   fullpathFilename            = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
@@ -524,6 +534,8 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
 def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   """ Update all metadata from a list of Dict according to set priorities 
   """
+  
+  # Display source field table
   Log.Info("".ljust(157, '-'))
   Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
@@ -556,28 +568,24 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
-    if field=='title':
-      rank, found, found_source = len(languages), False, False
-      for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
-        title, language_rank = Dict(MetaSources, source, 'title'), Dict(MetaSources, source, 'language_rank')
-        if title and language_rank not in (None, '') and language_rank<rank or not found and rank in (language_rank, len(languages)):
-          found, found_source, rank = True, source, language_rank
-          MetaSources[source]['title_sort'] = SortTitle(title, IsIndex(languages, language_rank))
-          #Log.Info("title: {}, title_sort: {}, languages: {}, language_rank: {}, language: {}".format(title, SortTitle(title, IsIndex(languages, language_rank)), languages, language_rank, IsIndex(languages, language_rank)))
-      if found:  UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
-      continue
+    language_rank, language_source = len(languages)+1, None
     for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
       if source in MetaSources:
         if Dict(MetaSources, source, field):
           if field=='genres'and ('|' in MetaSources[source]['genres'] or ',' in MetaSources[source]['genres']):
             MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')
             MetaSources[source]['genres'].extend( Other_Tags(media, movie, Dict(MetaSources, 'AniDB', 'status')) )
-          UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
+          if field=='title':
+            title, rank = Dict(MetaSources, source, 'title'), Dict(MetaSources, source, 'language_rank')
+            if rank in (None, ''):  rank = len(languages)
+            if rank<language_rank:  MetaSources[source]['title_sort'], language_rank, language_source = SortTitle(title, IsIndex(languages, rank)), rank, source
+          else:  UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
           if field in count:  count[field] = count[field] + 1
-          if field not in ['posters', 'art', 'banners', 'themes', 'thumbs'] or Prefs['GetSingleOne']:  break
+          if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
-      if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
+      if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
+      elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
         
   if not movie:
     import AnimeLists
