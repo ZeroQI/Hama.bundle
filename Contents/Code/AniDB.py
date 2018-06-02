@@ -116,7 +116,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       
       #Season check
       if len(Dict(mappingList, 'TVDB', 's'+season))==1 or Dict(mappingList, 'defaulttvdbseason')=='a': #import anidbif if one instance of the defaulttvdbseason exist as it has files
-        if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  Log.Info('Bazinga'); continue
+        if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  continue
       
       #Episode check if more than 1 anidnid for this season
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):

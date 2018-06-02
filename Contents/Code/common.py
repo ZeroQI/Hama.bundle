@@ -19,7 +19,7 @@ from lxml   import etree      # fromstring
 #except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
 import threading              #local,
 tlocal = threading.local()
-Log.Info('tlocal: {}'.format(dir(tlocal)))
+#Log.Info('tlocal: {}'.format(dir(tlocal)))
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
@@ -73,15 +73,20 @@ def GetMediaDir (media, movie):
 def GetLibraryRootPath(dir):
   library, root, path = '', '', ''
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
-    if root in PLEX_LIBRARY:  library, path = PLEX_LIBRARY[root], os.path.relpath(dir, root); break
+    if root in PLEX_LIBRARY:
+      library = PLEX_LIBRARY[root]
+      path    = os.path.relpath(dir, root)
+      break
   else:  #401 no right to list libraries (windows)
     filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
     if os.path.isfile(filename):
       with open(filename, 'r') as file:  line=file.read()
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-        if "root: '{}'".format(root) in line:   library, path = '', os.path.relpath(dir, root).rstrip('.'); break
-      else:  library, path, root = '', '_unknown_folder', '';  Log.Debug("root not found")
-    Log.Info("GetLibraryRootPath() - library: '{}', path: '{}', root: '{}', dir:'{}', PLEX_LIBRARY: '{}'".format(library, path, root, dir, str(PLEX_LIBRARY)))
+        if "root: '{}'".format(root) in line:
+          path = os.path.relpath(dir, root).rstrip('.')
+          break
+      else: path, root = '_unknown_folder', '';  
+    else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
   return library, root, path
 
 ### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
@@ -100,22 +105,37 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def __init__ (self, media=None, movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
+  def __init__ (self, media=None, name='', movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
+    Log.Info("".ljust(157, '-'))
+    Log.Info('common.PlexLog(file="{}", movie={})'.format(file, movie))
     if not file:
-      library, root, path   = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
-      LOGS_PATH, file, mode = os.path.join(CachePath, '_Logs', library), path.split(os.sep, 1)[0]+'.agent-search.log' if search else '.agent-update.log', 'a' if path=='_unknown_folder' else 'w'
-      if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("common.PlexLog() - folder: '{}', directory absent".format(LOGS_PATH))
-      if not path:  path='_root_'
+      library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
+      mode                = 'a' if path in ('_unknown_folder', '_root_', '') else 'w'
+      
+      #Logs folder
+      LOGS_PATH = os.path.join(CachePath, '_Logs', library)
+      if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("[!] folder: '{}'created".format(LOGS_PATH))
+      
+      #Logs file
+      file = path.split(os.sep, 1)[0]+'.agent-search.log' if search else path.split(os.sep, 1)[0]+'.agent-update.log'
+      Log.Info('[ ] library:    "{}"'.format(library))
+      Log.Info('[ ] root:       "{}"'.format(root))
+      Log.Info('[ ] path:       "{}"'.format(path))
+      Log.Info('[ ] Plex root:  "{}"'.format(PlexRoot))
+      Log.Info('[ ] Log folder: "{}"'.format(os.path.relpath(LOGS_PATH, PlexRoot)))
+      Log.Info('[ ] Log file:   "{}"'.format(file))
+      Log.Info('[ ] mode:       "{}"'.format(mode))
       file = os.path.join(LOGS_PATH, file)
-      Log.Debug("Log file: " + file)
+    
     try:
-      log = logging.getLogger()                                      # update root logging's handler
-      #for handler in log.handlers:  log.removeHandler(handler)      # remove all old handlers
+      log = logging.getLogger(name)                                      # update root logging's handler
+      for handler in log.handlers:  log.removeHandler(handler)      # remove all old handlers
       handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
       handler.setFormatter(logging.Formatter(log_format))            # Set log format
       #f = InjectingFilter(self)
       #handler.addFilter(f)
       log.addHandler(handler)
+      #log.propagate = 0
       #log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
     except IOError, e:  self.error('updateLoggingConfig: failed to set logfile: %s', str(e))
     self.isAgent = isAgent
@@ -124,9 +144,9 @@ class PlexLog(object):
   def warning  (self, msg, *args, **kwargs):  (Log.Warning  if self.isAgent else logging.warning ) (msg, *args, **kwargs)
   def error    (self, msg, *args, **kwargs):  (Log.Error    if self.isAgent else logging.error   ) (msg, *args, **kwargs)
   def critical (self, msg, *args, **kwargs):  (Log.Critical if self.isAgent else logging.critical) (msg, *args, **kwargs)
-  def stop     (self                      ):
-    log = logging.getLogger()                                      # update root logging's handler
-    for handler in log.handlers:  log.removeHandler(handler)
+  def stop     (self                      ):  
+    log = logging.getLogger()  # update root logging's handler
+    for handler in log.handlers:   log.removeHandler(handler)
     
 #class InjectingFilter(logging.Filter):      # Injects data into the LogRecord as well as acting as a filter.
 #  def __init__(self, app):  self.app = app  # 

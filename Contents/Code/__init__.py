@@ -18,20 +18,22 @@ import FanartTV          # Functions: GetMetadata                               
 import Plex              # Functions: GetMetadata                                                Variables: None
 import TVTunes           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
-    
+
+import re
+import os
+from io import open
+      
 ### Variables ###
 AniDBMovieSets = AnimeLists.GetAniDBMovieSets()
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
-  import os
   Log.Info("".ljust(157, '='))
   Log.Info ("ValidatePrefs(), PlexRoot: "+common.PlexRoot)
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
   filename       = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
   if os.path.isfile(filename):
     try:  ### Load 'DefaultPrefs.json' to have access to default settings ###
-      from io import open
       with open(filename, 'r') as file:  json = JSON.ObjectFromString(file.read(), encoding=None)
     except Exception as e:  json = None; Log.Info("Error :"+str(e)+", filename: "+filename)
     if json:
@@ -50,7 +52,8 @@ def ValidatePrefs():
               Log.Info(" - Source '{}' invalid".format(source.strip()))
         Log.Info("Prefs[{key:<{width}}] = {value:<{width2}}{default}".format(key=entry, width=max(map(len, PrefsFieldList)), value=Prefs[entry] if Prefs[entry]!='' else "Error, go in agent settings, set value and save", width2=max(map(len, [Pref_list[x]['default'] for x in Pref_list])), default=' (still default value)' if Prefs[entry] == Pref_list[entry]['default'] else " (Default: "+Pref_list[entry]['default']+")"))
       for entry in PrefsFieldList:
-        if entry not in Pref_list:  Log.Info("Prefs[{key:<{width}}] does not exist".format(key=entry, width=max(map(len, PrefsFieldList))))
+        if entry not in Pref_list:
+          Log.Info("Prefs[{key:<{width}}] does not exist".format(key=entry, width=max(map(len, PrefsFieldList))))
   Log.Info("".ljust(157, '='))
   return MessageContainer('Success', "DefaultPrefs.json valid")
 
@@ -63,18 +66,20 @@ def Start():
   
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
-  log = common.PlexLog(media=media, movie=movie, search=True)
   orig_title = media.title if movie else media.show
+  log = common.PlexLog(media=media, movie=movie, search=True)
   Log.Info('=== Search ============================================================================================================')
   Log.Info("Title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
+  Log.Info("".ljust(157, '='))
+  if not orig_title:  return
+  
+  #clear-cache directive
   if orig_title == "clear-cache":  
     HTTP.ClearCache()
     results.Append(MetadataSearchResult(id='clear-cache', name='Plex web cache cleared', year=media.year, lang=lang, score=0))
     return
-  if not orig_title:  return
   
   ### Check if a guid is specified "Show name [anidb-id]" ###
-  import re
   match = re.search(u"(?P<show>.*?) ?\[(?P<source>([a-zA-Z0-9]*))-(tt)?(?P<guid>[0-9]{1,7})\]", orig_title, re.IGNORECASE) if ' [' in orig_title else False
   if match:
     guid=match.group('source') + '-' + match.group('guid')
