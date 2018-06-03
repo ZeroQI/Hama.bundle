@@ -133,6 +133,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   for AniDBid in AniDB_array:
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
     if xml and not xml=='<error>aid Missing or Invalid</error>':
+      if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       Log.Info("AniDBid: {}, url: {}".format(AniDBid, ANIDB_HTTP_API_URL+AniDBid).ljust(157, '-'))
       Log.Info("'title': {}, original_title: {}".format(title, original_title))

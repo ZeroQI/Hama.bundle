@@ -320,7 +320,9 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     if file:
       if len(file)>64:                                                                   SaveFile(filename, file, relativeDirectory)
       else:
-        if str(file).startswith("<Element error at ") or file=='<error>Banned</error>':  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, file: {}, result: '{}'".format(file, result)); file=None
+        Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
+        file=None
+        #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
         if Data.Exists(relativeFilename):                                                file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
 
   if isinstance(file, basestring):
