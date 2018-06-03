@@ -62,12 +62,12 @@ try:
 except Exception as e:  Log.Info("Exception: '{}' - Place correct Plex token in X-Plex-Token.id file in logs folder or in PLEX_LIBRARY_URL variable to have a log per library - https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token".format(e))
  
 ### Get media directory ###
-def GetMediaDir (media, movie):
+def GetMediaDir (media, movie, file=False):
   if movie:  return os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons if media else []: # TV_Show:
       for e in media.seasons[s].episodes:
-        return os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
+        return media.seasons[s].episodes[e].items[0].parts[0].file if file else os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
 
 ### Get media root folder ###
 def GetLibraryRootPath(dir):
@@ -78,13 +78,16 @@ def GetLibraryRootPath(dir):
       path    = os.path.relpath(dir, root)
       break
   else:  #401 no right to list libraries (windows)
+    Log.Info('[!] Library access denied')
     filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
     if os.path.isfile(filename):
+      Log.Info('[!] ASS root scanner file present: "{}"'.format(filename))
       with open(filename, 'r') as file:  line=file.read()
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
         if "root: '{}'".format(root) in line:
           path = os.path.relpath(dir, root).rstrip('.')
           break
+        Log.Info('[!] root not found: "{}"'.format(root))
       else: path, root = '_unknown_folder', '';  
     else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
   return library, root, path
@@ -105,28 +108,29 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def __init__ (self, media=None, name='', movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
+  def __init__ (self, media=None, name='', movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='a', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
     Log.Info("".ljust(157, '-'))
     Log.Info('common.PlexLog(file="{}", movie={})'.format(file, movie))
-    if not file:
+    if not file:  
+      Log.Info('[!] file:       "{}"'.format(GetMediaDir(media, movie, True)))
       library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
-      mode                = 'a' if path in ('_unknown_folder', '_root_', '') else 'w'
+      mode                = 'a' if path in ('_unknown_folder', '_root_') else 'w'
       
       #Logs folder
       LOGS_PATH = os.path.join(CachePath, '_Logs', library)
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("[!] folder: '{}'created".format(LOGS_PATH))
       
       #Logs file
-      file = path.split(os.sep, 1)[0]+'.agent-search.log' if search else path.split(os.sep, 1)[0]+'.agent-update.log'
       Log.Info('[ ] library:    "{}"'.format(library))
       Log.Info('[ ] root:       "{}"'.format(root))
       Log.Info('[ ] path:       "{}"'.format(path))
       Log.Info('[ ] Plex root:  "{}"'.format(PlexRoot))
       Log.Info('[ ] Log folder: "{}"'.format(os.path.relpath(LOGS_PATH, PlexRoot)))
-      Log.Info('[ ] Log file:   "{}"'.format(file))
+      if path=='' and root:  path='_root_'
+      filename = path.split(os.sep, 1)[0]+'.agent-search.log' if search else path.split(os.sep, 1)[0]+'.agent-update.log'
+      file = os.path.join(LOGS_PATH, filename)
+      Log.Info('[ ] Log file:   "{}"'.format(filename))
       Log.Info('[ ] mode:       "{}"'.format(mode))
-      file = os.path.join(LOGS_PATH, file)
-    
     try:
       log = logging.getLogger(name)                                      # update root logging's handler
       for handler in log.handlers:  log.removeHandler(handler)      # remove all old handlers
@@ -314,9 +318,10 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # File checks and saving as cache
     if file:
-      if len(file)>64:                                  SaveFile(filename, file, relativeDirectory)
-      elif str(file).startswith("<Element error at "):  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, result: '%s'" % result); return None
-      elif Data.Exists(relativeFilename):               file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+      if len(file)>64:                                                                   SaveFile(filename, file, relativeDirectory)
+      else:
+        if str(file).startswith("<Element error at ") or file=='<error>Banned</error>':  Log.Error("common.LoadFile() - Not an XML file, AniDB banned possibly, file: {}, result: '{}'".format(file, result)); file=None
+        if Data.Exists(relativeFilename):                                                file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
 
   if isinstance(file, basestring):
     if file.startswith('<?xml '):
