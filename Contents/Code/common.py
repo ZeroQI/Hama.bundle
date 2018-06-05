@@ -589,6 +589,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [x] Xst/nd/th source had the field
   # [#] no source for that field
   # [!] Error assigning
+  
+  #Update engine
   Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value, ")
   count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
@@ -649,25 +651,24 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         count = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
         new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
+        languages = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
         for field in FieldListEpisodes:  # Get a field
           meta_old = getattr(metadata.seasons[season].episodes[episode], field)
-          if field=='title':  rank, found = len(languages)+1, False
           source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if field=='title':  #Manage title language for AniDB and TheTVDB by recording the rank
-                  language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
-                  title         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title')
-                  #Log.Info("[!] source: {}, rank: {}, language_rank: '{}', found: {}, title: {}".format(source, rank, language_rank, found, title))
-                  if title and (language_rank not in [None, ''] and language_rank<rank or not found):  found, rank = True, language_rank or len(languages)
-                  else:                                                                                continue  #Lower index (or same index at higher index metadata source) title exists
-                UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
-                count[field] = count[field] + 1 if field in count else 1
-                if not field in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne'] and (field !='title' or rank==0):  break
-            elif not source=="None": Log.Info("[!] '{}' source not in MetaSources but in: '{}'".format(source, source_list))
+                  title = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
+                  rank  = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                  if rank in (None, ''):  rank = len(languages)
+                else:  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
+                if field in count:  count[field] = count[field] + 1
+                if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
+            elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
           else:
-            if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
+            if field=='title':                                                     UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
+            elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
         # End Of for field
       # End Of for episode
     # End of for season
