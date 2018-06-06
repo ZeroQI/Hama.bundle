@@ -281,17 +281,18 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       2018-05-31 05:32:35,140 (2384) :  INFO (logkit:16) - LoadFile() - returning string
       2018-05-31 05:32:35,141 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
   '''
-  relativeFilename            = os.path.join(relativeDirectory, filename) 
-  fullpathFilename            = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
-  file_valid, converted, file = False, False, None
+  relativeFilename                   = os.path.join(relativeDirectory, filename) 
+  fullpathFilename                   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
+  file_valid, converted, Saved, file = False, False, False, None
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
   
   # Load from cache if recent
   if Data.Exists(relativeFilename):
     file_time  = os.stat(fullpathFilename).st_mtime
     file_valid = file_time+cache > time.time()
-    if file_valid:  file = Data.Load(relativeFilename);
-    Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
+    if file_valid:
+      file = Data.Load(relativeFilename);
+      Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
   
   if not file:
     netLock.acquire()
@@ -318,26 +319,27 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # File checks and saving as cache
     if file:
-      if len(file)>64:                                                                   SaveFile(filename, file, relativeDirectory)
+      if len(file)>64 or '{' in file:
+        Saved = True
+        SaveFile(filename, file, relativeDirectory)
       else:
         Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
-        file=None
-        #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
-        if Data.Exists(relativeFilename):                                                file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+        file=None  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
+        if Data.Exists(relativeFilename):  file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
 
   if isinstance(file, basestring):
     if file.startswith('<?xml '):
       try:     return XML.ElementFromString(file)
       except:  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
-        Log.Info("corrupted xml")
-        try:     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
+        try:   return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
         except:
           Log.Info("still corrupted xml after normalization")
-          Data.Remove(relativeFilename)  #DELETE CACHE AS CORRUPTED
-    else:
+          if Saved:  Data.Remove(relativeFilename); file=''  #DELETE CACHE AS CORRUPTED
+          if Data.Exists(relativeFilename):  return Data.Load(relativeFilename) 
+    else:  #Json
       try:     return JSON.ObjectFromString(file, encoding=None)
       except:  pass
-  Log.Info('LoadFile() - returning string')
+  Log.Info('LoadFile() - not xml nor json: {0:80}'.format(file))
   return file
       
 ### Download images and themes for Plex ###############################################################################################################################
@@ -509,10 +511,12 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   '''
   ### Prepare data for comparison ###
   try:
+    if field == 'rating': 
+      Log.Info('bazinga rating: {}, type: {}'.format(meta_new, type(meta_new)))
     if isinstance(meta_new, int):
       if field == 'rating':                                          meta_new = float(meta_new)
-    if isinstance(meta_new, basestring):
-      if field == 'rating':                                          meta_new = float(meta_new)
+    if isinstance(meta_new, basestring) or isinstance(meta_new, str):
+      if field == 'rating':                                          meta_new = float(meta_new); 
       if field == 'title_sort':                                      meta_new = SortTitle(meta_new)
       if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
       if field in ('year', 'absolute_number', 'duration'):           meta_new = int  (meta_new) if meta_new.isdigit() else None
@@ -657,6 +661,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
+              #if field=='rating':
+              #Log.Info('bazinga season: {} episode: {}, new_season: {} new_episode: {}, dict: {}'.format(season, episode, new_season, new_episode, Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode)))
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if field=='title':  #Manage title language for AniDB and TheTVDB by recording the rank
                   title = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
