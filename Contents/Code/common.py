@@ -307,7 +307,9 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # TheTVDB
     elif url.startswith('https://api.thetvdb.com'):
-      if 'Authorization' in HEADERS:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content  # Normal loading, already Authentified
+      if 'Authorization' in HEADERS:
+        try:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content  # Normal loading, already Authentified
+        except:  pass
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
@@ -489,7 +491,7 @@ def GetMetadata(media, movie, source, TVDBid, num=0):
 
 ### Update meta field ###
 def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source, movie, source_list):
-  if field not in meta_root:  Log.Info("meta field: '%s' not in meta_root" % field);  return
+  if field not in meta_root:  Log.Info('[!] field: "{}" not in meta_root, source: "{}"'.format(field, source));  return
   if type(metadata).__name__=="tuple":  
     ep_string      = ' new season: {:<2}, new_episode: {:<3}'.format(metadata[3], metadata[4])
     metadata       = metadata[0].seasons[metadata[1]].episodes[metadata[2]]
@@ -511,8 +513,6 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   '''
   ### Prepare data for comparison ###
   try:
-    if field == 'rating': 
-      Log.Info('bazinga rating: {}, type: {}'.format(meta_new, type(meta_new)))
     if isinstance(meta_new, int):
       if field == 'rating':                                          meta_new = float(meta_new)
     if isinstance(meta_new, basestring) or isinstance(meta_new, str):
@@ -657,23 +657,23 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
         languages = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
         for field in FieldListEpisodes:  # Get a field
-          meta_old = getattr(metadata.seasons[season].episodes[episode], field)
-          source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
+          meta_old     = getattr(metadata.seasons[season].episodes[episode], field)
+          source_list  = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
+          source_title = ''
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
-              #if field=='rating':
-              #Log.Info('bazinga season: {} episode: {}, new_season: {} new_episode: {}, dict: {}'.format(season, episode, new_season, new_episode, Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode)))
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if field=='title':  #Manage title language for AniDB and TheTVDB by recording the rank
-                  title = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
-                  rank  = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                  source_title = source
+                  title        = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
+                  rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                   if rank in (None, ''):  rank = len(languages)
                 else:  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
                 if field in count:  count[field] = count[field] + 1
                 if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
           else:
-            if field=='title':                                                     UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
+            if field=='title' and source_title:                                    UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source_title, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source_title, movie, source_list)
             elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
         # End Of for field
       # End Of for episode
