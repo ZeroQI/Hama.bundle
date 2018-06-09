@@ -99,6 +99,10 @@ if not os.path.isdir(PlexRoot):
                     'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
   PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
+#import pplexlog
+#mylog = plexlog.PlexLog(isAgent=True)  # use Log instead of logging
+#mylog.info('***** Initializing "SageTV BMT Agent (TV Shows)" *****')
+    
 class PlexLog(object):
   ''' Logging class to join scanner and agent logging per serie
       Usage Scanner: (not used currently in scanner as independant from Hama)
@@ -291,7 +295,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     file_time  = os.stat(fullpathFilename).st_mtime
     file_valid = file_time+cache > time.time()
     if file_valid:
-      file = Data.Load(relativeFilename);
+      try:     file = Data.Load(relativeFilename)
+      except:  file = None
       Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
   
   if not file:
@@ -629,15 +634,17 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #  if Dict(MetaSources, 'AniDB', 'summary'):  SaveDict(MetaSources['AniDB']['summary'], MetaSources, 'AniDB', 'seasons', Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason').isdigit() else '1', 'summary')
       
     ### Seasons ###
-    AniDB_numbered = not(metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys()))>=1)
-    cached_logs={}
+    languages      = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
+    #count          = {'posters':0, 'art':0}
+    count          = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
+    cached_logs    = {}
+    #AniDB_numbered = not(metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys()))>=1)
     #@parallelize
     #def addMeta():
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
-      count = {'posters':0, 'art':0}
       source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
-      new_season = season
+      new_season  = season
       for field in FieldListSeasons:
         meta_old = getattr(metadata.seasons[season], field)
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
@@ -653,22 +660,20 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       ### Episodes ###
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
-        count = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
         new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
-        languages = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
+        source_title, title, rank = '', '', len(languages)+1
         for field in FieldListEpisodes:  # Get a field
           meta_old     = getattr(metadata.seasons[season].episodes[episode], field)
           source_list  = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
-          source_title = ''
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
-                if field=='title':  #Manage title language for AniDB and TheTVDB by recording the rank
+                if not field=='title':  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
+                elif Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank') or len(languages) < rank:  #Manage title language for AniDB and TheTVDB by recording the rank
                   source_title = source
                   title        = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
-                  rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
-                  if rank in (None, ''):  rank = len(languages)
-                else:  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
+                  rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank') or len(languages) if rank in (None, '') else 0
+                  #Log.Info('[?] rank: {}, source_title: {}, title: "{}"'.format(rank, source_title, title))
                 if field in count:  count[field] = count[field] + 1
                 if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
@@ -679,8 +684,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       # End Of for episode
     # End of for season
     Log.Info("".ljust(157, '-'))
-  global downloaded
-  downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
+  global downloaded; downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   
 def LevenshteinDistance(first, second):
   """ Compute Levenshtein distance

@@ -110,32 +110,26 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
-    AniDB_array = [ AniDBid ] if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else [] 
+    AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else {}
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
-      #Log.Info("season: {}, AniDBid: {}, Dict(mappingList, 'TVDB', 's'+season): {}, Dict(mappingList, 'defaulttvdbseason'): {}".format(season, AniDBid, Dict(mappingList, 'TVDB', 's'+season), Dict(mappingList, 'defaulttvdbseason')))
-      
-      #Season check
-      if len(Dict(mappingList, 'TVDB', 's'+season))==1 or Dict(mappingList, 'defaulttvdbseason')=='a': #import anidbif if one instance of the defaulttvdbseason exist as it has files
-        if AniDBid and AniDBid not in AniDB_array:  AniDB_array.append(AniDBid);  continue
-      
-      #Episode check if more than 1 anidnid for this season
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
-        if len(AniDB_array)==len(full_array):  break  #if all anidbid needed stop looping
         new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
-        #Log.Info("anidbid: {}, season: {}, episode: {}, new_season: {}, new_episode: {}".format(anidbid, season, episode, new_season, new_episode))
-        if anidbid and anidbid not in AniDB_array:  AniDB_array.append(anidbid)
+        numbering                        = 's{}e{}'.format(season, episode)
+        if anidbid and not (new_season=='0' and new_episode=='0'):  SaveDict([numbering], AniDB_array, anidbid)
       else:  continue
-      break  #cascade break
   else: full_array, AniDB_array = [AniDBid], [AniDBid]
-  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids present on disk: {}, AniDBids list: {}".format(AniDBid, AniDB_array, full_array))
+  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}".format(AniDBid, full_array))
+  for anidbid in AniDB_array:
+    Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in AniDB_array:
+    Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
+    Log.Info('AniDBid: {}, url: {}'.format(AniDBid, ANIDB_HTTP_API_URL+AniDBid))
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
     if xml and not xml=='<error>aid Missing or Invalid</error>':
       if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-      Log.Info("AniDBid: {}, url: {}".format(AniDBid, ANIDB_HTTP_API_URL+AniDBid).ljust(157, '-'))
       Log.Info("'title': {}, original_title: {}".format(title, original_title))
       if AniDBid==original or len(AniDB_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
         SaveDict(title,          AniDB_dict, 'title'         )
@@ -212,10 +206,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           epNumType = epNum.get('type')
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           if epNumType=="3" and title.startswith("Ending") and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
-        #Log.Info('ending_offset: {}'.format(ending_offset))  
         
-        for ep_obj in xml.xpath('episodes/episode'):
-          
           ### Season, Episode number, Specials
           epNum     = ep_obj.xpath('epno')[0]
           epNumType = epNum.get('type')
@@ -226,16 +217,13 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           numbering = "s{}e{:>3}".format(season, episode)
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
-          #Log.Info('before numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source) ###Broken for tvdbseason='a'
-            if season=='0' and episode=='0':  continue
-            #Log.Info('after tvdb, numbering: {}, season: {}, episode: {}'.format(numbering, season, episode))
-          if season in media.seasons and episode in media.seasons[season].episodes:  pass  #Log.Info('numbering: {}, season: {}, episode: {} present'.format(numbering, season, episode))
-          else:                                                                      SaveDict([episode], missing, season); continue
+            if season=='0' and episode=='0':   continue
+          if not (season in media.seasons and episode in media.seasons[season].episodes):  SaveDict([episode], missing, season); continue
+          #Log.Info('[?] numbering: {} => s{:>1}e{:>3}, language_rank: "{}", title: "{}"'.format(numbering, season, episode, language_rank, title))
           
           ### Episodes
-          #Log.Info("s{:>1}e{:>3} language_rank: '{}', title: '{}'".format(season, episode, language_rank, title))
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
@@ -271,7 +259,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
          Log.Info('Season: {} Episodes: {} not on disk'.format(season, sorted(missing[season], key=common.natural_sort_key)))
             
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
-          Log.Info("AniDB.get_metadata() - Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
+          Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
         
         ### AniDB Missing Episodes ###
         if movie_ep_groups:
@@ -299,7 +287,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #if metadata.studio       and 'studio' in AniDB_dict and AniDB_dict ['studio'] and AniDB_dict ['studio'] != metadata.studio:  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
     
-      Log.Info("AniDB.get_metadata() - ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
+      Log.Info("ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   
   #Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid

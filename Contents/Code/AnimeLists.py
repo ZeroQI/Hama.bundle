@@ -54,6 +54,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
   Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
+  AniDB_id2, TVDB_id2 = '', ''
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
@@ -61,7 +62,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     found = True
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     if not tvdb_numbering and not TVDB_id:   TVDB_id  = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id = AniDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
@@ -82,8 +83,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       if TVDBid.isdigit():
         if anime.get('defaulttvdbseason'):
           if anime.get('defaulttvdbseason')in ['a', '1']:  
-            SaveDict('a', mappingList, 'defaulttvdbseason')
-            AniDB_id = AniDBid
+            SaveDict(anime.get('defaulttvdbseason'), mappingList, 'defaulttvdbseason')
+            AniDB_id2 = AniDBid
           SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
@@ -101,8 +102,9 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
     AniDBid, TVDBid = '', ''
   Log.Info('             -----          ------')
-  Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDBid, TVDB_id or TVDBid))
-    
+  Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDB_id2 or AniDBid, TVDB_id or TVDBid))
+  #Log.Info('[=] mappingList: {}'.format(mappingList))
+  
   ### Update collection 
   #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
   #  if element.get('AniDBid')==AniDB_id or TVDBid in mappingList['TVDB'] and element.get('AniDBid') in mappingList['TVDB']:
@@ -120,24 +122,63 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collection')
   
   #Log.Info("anidbTvdbMapping() - mappingList.keys(): {}, mappingList['tvdb']: {}, mappingList: {}".format(mappingList.keys(), (Dict(mappingList, 'TVDB') or {}).keys(), mappingList))
-  return AnimeLists_dict, AniDB_id or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", tmdbid, imdbid, mappingList
+  return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", tmdbid, imdbid, mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, source=''):
-  if season=='0' and int(episode)>100:            return '0', '0'  #op/ed/etc
-  if season!='0' and source.startswith('tvdb4'):  season='1'
-  
+  '''
+  <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
+    defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
+    episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
+                        Dict(mappingList, 's'+season+'e'+episode.split('-')[0]
+    <name>Cowboy Bebop</name>
+    <mapping-list>
+      <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping>
+      <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
+      <mapping anidbseason="1" tvdbseason="6" start="25" end="36" offset="-24"/>
+      <mapping anidbseason="1" tvdbseason="7" start="37" end="48" offset="-36"/>
+    </mapping-list> 
+    <before>;1-25;</before>
+    <supplemental-info replace="true"> 
+      <studio>Sunrise</studio>
+      <genre>Comedy</genre>
+      <genre>Music</genre>
+      <actor /> /not used
+      <director>Tetsuya Nomura</director>
+      <credits>Kazuhito Yamamoto</credits> =writer
+      <fanart>
+        <thumb dim="1280x720" colors="" preview="http://www.thetvdb.com/banners/_cache/fanart/original/191221-1.jpg">http://www.thetvdb.com/banners/fanart/original/191221-1.jpg</thumb>
+      </fanart>
+    </supplemental-info>
+</anime>
+  '''
+  debug             = False
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   key               = 's'+season+'e'+episode.split('-')[0]
-  #if season=='0' and episode=='1':  Log.Info('defaulttvdbseason: {}, episodeoffset: {},  Dict(mappingList, key): {}, []: {}'.format(defaulttvdbseason, episodeoffset, Dict(mappingList, key), str([x for x in Dict(mappingList, 'TVDB')])))
-  if key in mappingList:                                                                                                                                        mapping = mappingList [ key ] # Season Individual episode mapping + start-end offset
-  elif defaulttvdbseason not in (None, '0') and (not Dict(mappingList, 'TVDB') or not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]):  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
-  elif Dict(mappingList, 'TVDB', 'sa') and season !='0':                                                                                                        mapping = ('1', str(int(episode) + int(episodeoffset)))
-  else:                                                                                                                                                         mapping = ('0', '0')#(season or '0', episode)
+  
+  if debug:  Log.Info('[?] #1 season: {}, episode: {}, source: {}'.format(season, episode, source))
+    
+  # <mapping anidbseason="x" tvdbseason="x" start="13" end="24" offset="-12"> ;1-5;2-6; </mapping>
+  if key in mappingList:
+    mapping = mappingList [ key ]
+    if debug:  Log.Info('[?] key "{}" in mappingList "{}"'.format(key, mappingList)) 
+  
+  # if not mapped with mapping, specials are not mapped with tvdb
+  elif season=='0':
+    mapping = ('0', '0')
+    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 0'.format(key, mappingList)) 
+  
+  # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
+  elif season=='1':
+    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}'.format(key, mappingList, defaulttvdbseason        ))
+    if not Dict(mappingList, 'TVDB') or not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
+    if     Dict(mappingList, 'TVDB', 'sa'):                                                                          mapping = ('1', str(int(episode) + int(episodeoffset)))
+  else:
+    Log.Info('[!] error {}'.format(key))
+    mapping = ('0', '0')#(season or '0', episode)
+  
   return mapping
-#AnimeLists.GetMetadata() - AniDBid: 11680, TVDBid: 257516, defaulttvdbseason: 0, episodeoffset: 10, name: Accel World: Infinite Burst
-#anidbTvdbMapping() - mappingList: {'defaulttvdbseason': '0', 'name': 'Accel World: Infinite Burst', 'episodeoffset': '10'}
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):

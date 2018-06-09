@@ -54,6 +54,7 @@ def ValidatePrefs():
       for entry in PrefsFieldList:
         if entry not in Pref_list:
           Log.Info("Prefs[{key:<{width}}] does not exist".format(key=entry, width=max(map(len, PrefsFieldList))))
+  #Plex Media Server\Plug-in Support\Preferences\com.plexapp.agents.hama.xml
   Log.Info("".ljust(157, '='))
   return MessageContainer('Success', "DefaultPrefs.json valid")
 
