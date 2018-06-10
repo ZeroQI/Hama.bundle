@@ -634,7 +634,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #  if Dict(MetaSources, 'AniDB', 'summary'):  SaveDict(MetaSources['AniDB']['summary'], MetaSources, 'AniDB', 'seasons', Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason').isdigit() else '1', 'summary')
       
     ### Seasons ###
-    languages      = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
+    #languages      = Prefs['SerieLanguagePriority'].replace(' ', '').split(',')
     #count          = {'posters':0, 'art':0}
     count          = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
     cached_logs    = {}
@@ -658,6 +658,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
       
       ### Episodes ###
+      languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
@@ -669,11 +670,13 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if source in MetaSources:
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
                 if not field=='title':  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
-                elif Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank') or len(languages) < rank:  #Manage title language for AniDB and TheTVDB by recording the rank
-                  source_title = source
-                  title        = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
-                  rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank') or len(languages) if rank in (None, '') else 0
-                  #Log.Info('[?] rank: {}, source_title: {}, title: "{}"'.format(rank, source_title, title))
+                else:
+                  language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                  if language_rank not in ('', None) and language_rank < rank or len(languages)< rank:  #Manage title language for AniDB and TheTVDB by recording the rank
+                    source_title = source
+                    title        = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
+                    rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
+                    Log.Info('[?] rank: {:>1}, source_title: {:>7}, title: "{}"'.format(rank, source_title, title))
                 if field in count:  count[field] = count[field] + 1
                 if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))

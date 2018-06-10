@@ -117,7 +117,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         numbering                        = 's{}e{}'.format(season, episode)
         if anidbid and not (new_season=='0' and new_episode=='0'):  SaveDict([numbering], AniDB_array, anidbid)
       else:  continue
-  else: full_array, AniDB_array = [AniDBid], [AniDBid]
+  else: full_array, AniDB_array = [AniDBid], {AniDBid:[]}
   Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}".format(AniDBid, full_array))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
@@ -169,9 +169,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           if element.get('anidbid') == AniDBid or element.get('anidbid') in AniDBid_table:
             node              = element.getparent()
             title, main, language_rank = GetAniDBTitle(node.xpath('titles')[0])
-            #SaveDict(language_rank, AniDB_dict, 'language_rank')
+            #Log.Info("title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
             SaveDict([title], AniDB_dict, 'collections')
-            #Log.Info("language_rank: {}".format(language_rank))
             Log.Info("'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(AniDBid_table)))
             break
         else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
@@ -202,15 +201,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         ### Episodes (and specials) not always in right order ###
         ending_offset = 99
         for ep_obj in xml.xpath('episodes/episode'):
-          epNum     = ep_obj.xpath('epno')[0]
-          epNumType = epNum.get('type')
-          title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
-          if epNumType=="3" and title.startswith("Ending") and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
-        
+          
           ### Season, Episode number, Specials
           epNum     = ep_obj.xpath('epno')[0]
           epNumType = epNum.get('type')
           season    = "1" if epNumType == "1" else "0"
+          if epNumType=="3" and ep_obj.xpath('title')[0].text.startswith('Ending') and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
           if   epNumType=="3" and int(epNum.text[1:])>ending_offset:  episode = str(int(epNum.text[1:])+150-ending_offset)  #shifted to 150 for 1st ending.  
           elif epNumType=="1":                                        episode = epNum.text
           else:                                                       episode = str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
@@ -218,22 +214,24 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
-            season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, source) ###Broken for tvdbseason='a'
+            season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
+            Log.Info('season: {}, episode: {}'.format(season, episode))
             if season=='0' and episode=='0':   continue
           if not (season in media.seasons and episode in media.seasons[season].episodes):  SaveDict([episode], missing, season); continue
-          #Log.Info('[?] numbering: {} => s{:>1}e{:>3}, language_rank: "{}", title: "{}"'.format(numbering, season, episode, language_rank, title))
           
           ### Episodes
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
+          SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
+          SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
+          Log.Info('[?] numbering: {} => s{:>1}e{:>3}, language_rank: {}, title: "{}"'.format(numbering, season, episode, language_rank, title))
+          
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
             if season == "1":  numEpisodes, totalDuration = numEpisodes+1, totalDuration + int(GetXml(ep_obj, 'length'))
           
-          SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
           SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
           SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
-          SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
