@@ -600,7 +600,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [!] Error assigning
   
   #Update engine
-  Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value, ")
+  Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value")
   count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   for field in FieldListMovies if movie else FieldListSeries:
