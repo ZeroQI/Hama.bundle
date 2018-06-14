@@ -161,13 +161,13 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if Dict(episode_json, 'episodeName'):
           title = Dict(episode_json, 'episodeName')
           rank  = language_episodes.index(lang) if lang in language_episodes else len(language_episodes)
-          #Log.Info('[1] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang, title))
+          Log.Info('[1] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang, title))
 
         # Std ep info loaded for Library language ten details for 1st language, loading other languages if needed
-        if language_episodes and language_episodes[0] and Dict(episode_details_json, 'episodeName') and lang2 in language_episodes and language_episodes.index(lang2)<len(language_episodes) and  Dict(episode_json, 'language', 'episodeName')==lang2:
+        if language_episodes and Dict(episode_details_json, 'episodeName') and lang2 in language_episodes and language_episodes.index(lang2)<rank and Dict(episode_json, 'language', 'episodeName')==lang2:
           title = Dict(episode_details_json, 'episodeName')
-          rank  = language_episodes.index(lang2) if lang2 in language_episodes else len(language_episodes)
-          #Log.Info('[1] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang2, title))
+          rank  = language_episodes.index(lang2) if lang2 in language_episodes and Dict(episode_json, 'language', 'episodeName')==lang2 else len(language_episodes)
+          Log.Info('[2] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang2, title))
         
         #  
         for lang_rank, language in enumerate(language_episodes[1:rank-1] if len(language_episodes)>1 and rank>=2 else []):
@@ -176,7 +176,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if Dict(episode_details_json, 'episodeName') :  
             title = Dict(episode_details_json, 'episodeName')
             rank  = lang_rank
-            #Log.Info('[3] language_rank: {}, title: {}'.format(rank, title))
+            Log.Info('[3] language_rank: {}, title: {}'.format(rank, title))
             break
           else:  Log.Info('no ep title in language: {}'.format(language_episodes[lang_rank]))
         SaveDict( title, TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'        )
