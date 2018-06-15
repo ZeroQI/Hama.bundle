@@ -194,43 +194,45 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       #Log.Debug("Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
       
     ### Picture types JSON download ###
-    try:     bannerTypes = Dict(common.LoadFile(filename='images.json', relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_INFO_URL % TVDBid, cache=CACHE_1DAY*6*4, headers={'Content-type': 'application/json', 'Accept-Language':'en'}), 'data')
-    except:  Log("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
-    else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
-      metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
-      count_valid       = {key: 0 for key in metanames}
-      anidb_offset      = sorted((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys()).index(AniDBid) if AniDBid and AniDBid in Dict(mappingList, 'poster_id_array', TVDBid) else 0  
-      language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
-      #Log.Info("bannerTypes: {}, anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(bannerTypes, anidb_offset, AniDBid, str((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys())))
-      
-      #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
-      for bannerType in bannerTypes or []:
-        if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
+    language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+    for language in language_posters:
+      try:     bannerTypes = Dict(common.LoadFile(filename='images.json', relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_INFO_URL % TVDBid, cache=CACHE_1DAY*6*4, headers={'Content-type': 'application/json', 'Accept-Language': language}), 'data')
+      except:  Log("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
+      else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
+        metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
+        count_valid       = {key: 0 for key in metanames}
+        anidb_offset      = sorted((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys()).index(AniDBid) if AniDBid and AniDBid in Dict(mappingList, 'poster_id_array', TVDBid) else 0  
+        language_priority = [item.strip() for item in Prefs['EpisodeLanguagePriority'].split(',')]
+        #Log.Info("bannerTypes: {}, anidb_offset: {}, AniDBid: {}, anidb_array: {}".format(bannerTypes, anidb_offset, AniDBid, str((Dict(mappingList, 'poster_id_array', TVDBid) or {}).keys())))
         
-        try:     images = Dict( common.LoadFile(filename='images_{}.json'.format(bannerType), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY*6*4, headers={'Accept-Language':'en'}), 'data')
-        except:  Log("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
-        #if bannerType=='season':  Log.Info('json: {}'.format(images))
-        for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
+        #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
+        for bannerType in bannerTypes or []:
+          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           
-          #rank
-          rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], bannerTypes['poster'])[1] else count_valid[bannerType]+2
-          if AniDB_movie: rank = rank+bannerTypes['poster'] if rank+bannerTypes['poster']<99 else 99
-          #language = Dict(image, 'languageId')  #if Prefs['localart']:  rank += 10*language_priority.index(language) if language and language in language_priority else 50
+          try:     images = Dict( common.LoadFile(filename='images_{}.json'.format(bannerType), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY*6*4, headers={'Accept-Language':'en'}), 'data')
+          except:  Log("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
+          #if bannerType=='season':  Log.Info('json: {}'.format(images))
+          for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
+            
+            #rank
+            rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], bannerTypes['poster'])[1] else count_valid[bannerType]+2
+            rank = rank + language_posters.index(language)*20
+            if AniDB_movie: rank = rank+bannerTypes['poster'] if rank+bannerTypes['poster']<99 else 99
+            
+            ### Adding picture ###
+            thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
+            if bannerType == 'season':  
+              season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))
+              #Log.Info("season: {}, image['subKey']: {}, url: {}".format(season, image['subKey'], TVDB_IMG_ROOT + image['fileName']))
+              SaveDict((                          'TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', season, 'posters', TVDB_IMG_ROOT + image['fileName'])
+            else:                       SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType],        TVDB_IMG_ROOT + image['fileName'])
+            count_valid[bannerType] = count_valid[bannerType] + 1  #Otherwise with += SyntaxError: Line 142: Augmented assignment of object items and slices is not allowed
+            #if bannerType in ('poster', 'season'):  Log.Info("[!] bannerType: {}, subKey: {:>2}, rank: {:>3}, filename: {}, thumbnail: {}, resolution: {}, average: {}, count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
           
-          ### Adding picture ###
-          thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
-          if bannerType == 'season':  
-            season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))
-            #Log.Info("season: {}, image['subKey']: {}, url: {}".format(season, image['subKey'], TVDB_IMG_ROOT + image['fileName']))
-            SaveDict((                          'TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', season, 'posters', TVDB_IMG_ROOT + image['fileName'])
-          else:                       SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType],        TVDB_IMG_ROOT + image['fileName'])
-          count_valid[bannerType] = count_valid[bannerType] + 1  #Otherwise with += SyntaxError: Line 142: Augmented assignment of object items and slices is not allowed
-          #if bannerType in ('poster', 'season'):  Log.Info("[!] bannerType: {}, subKey: {:>2}, rank: {:>3}, filename: {}, thumbnail: {}, resolution: {}, average: {}, count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
-          
-      Log.Info("Posters : {}/{}, Season posters: {}/{}, Art: {}/{}".format(count_valid['poster'], Dict(bannerTypes, 'poster'), count_valid['season'], Dict(bannerTypes, 'season') or 0, count_valid['fanart'], Dict(bannerTypes, 'fanart')))
-      if not Dict(bannerTypes, 'poster'):  error_log['TVDB posters missing'       ].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
-      if not Dict(bannerTypes, 'season'):  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
-    
+        Log.Info("Posters : {}/{}, Season posters: {}/{}, Art: {}/{}".format(count_valid['poster'], Dict(bannerTypes, 'poster'), count_valid['season'], Dict(bannerTypes, 'season') or 0, count_valid['fanart'], Dict(bannerTypes, 'fanart')))
+        if not Dict(bannerTypes, 'poster'):  error_log['TVDB posters missing'       ].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
+        if not Dict(bannerTypes, 'season'):  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
+      
     Log.Info("url: '{}', IMDbid: {}, Present episodes: {}, Missing: {}".format(TVDB_SERIES_URL % TVDBid, IMDbid, ep_count, sorted(episode_missing, key=natural_sort_key)))
     
   #Log.Info('TheTVDB_dict: {}'.format(TheTVDB_dict))
