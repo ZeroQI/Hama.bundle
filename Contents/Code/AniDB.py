@@ -83,16 +83,17 @@ def Search (results, media, lang, manual, movie):
       if score>best_score_entry or score==best_score_entry and (not best_type_entry or type_order.index(Type)<type_order.index(best_type_entry)):
         best_score_entry, best_title_entry, best_type_entry, best_lang_entry, best_title_entry_cleansed = score, title, Type, Lang, title_cleansed
     if best_score_entry<25:  last_chance.append((best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid));  continue
-    Log.Info("[-] score: {:>3}, aid: {:>5}, title: {}, title_cleansed: {}".format(best_score_entry, aid, best_title_entry, best_title_entry_cleansed))
+    Log.Info('[-] score: {:>3}, aid: {:>5}, title: "{}"'.format(best_score_entry, aid, best_title_entry))
     #Log.Info("levenstein: {}".format(100 - 200 * Util.LevenshteinDistance(title_cleansed, orig_title_cleansed) / (len(title_cleansed) + len(orig_title_cleansed)) ))
     results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang})] [anidb-{aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
     if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
   if best_score <50:  # Add back lower than 25 if nothin above 50
     for best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid in last_chance:
-      Log.Info("[-] score: '{}', title: '{}', aid: '{}'".format(best_score_entry, best_title_entry, aid))
+      Log.Info('[-] score: {:>3}, aid: {:>5}, title: "{}"'.format(best_score_entry, best_title_entry, aid))
       results.Append(MetadataSearchResult(id="%s-%s" % ("anidb", aid), name="{title} [{Type}({Lang}): {aid}]".format(title=best_title_entry, aid=aid, Type=best_type_entry, Lang=best_lang_entry), year=media.year, lang=lang, score=best_score_entry))
     if best_score_entry > best_score:  best_score, best_title, best_type, best_lang, best_aid = best_score_entry, best_title_entry, best_type_entry, best_lang_entry, aid
-  Log.Info("[=] score: '{}', best_title: '{}', aid: '{}'".format(best_score, best_title, best_aid))
+  #Log.Info('           ---       -----         ---------------------------------------------------')
+  #Log.Info('[=] score: {:>3}, aid: {:>5}, title: "{}"'.format(best_score, best_aid, best_title))
   Log.Info("elapsed_time: {:.3f}".format(time.time() - start_time ))
   
   return best_score, n

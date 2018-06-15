@@ -136,10 +136,10 @@ class PlexLog(object):
       Log.Info('[ ] Log file:   "{}"'.format(filename))
       Log.Info('[ ] mode:       "{}"'.format(mode))
     try:
-      log = logging.getLogger(name)                                      # update root logging's handler
-      for handler in log.handlers:  log.removeHandler(handler)      # remove all old handlers
+      log = logging.getLogger(name)  # update root logging's handler
+      for handler in log.handlers:  log.removeHandler(handler)  # remove all old handlers
       handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
-      handler.setFormatter(logging.Formatter(log_format))            # Set log format
+      handler.setFormatter(logging.Formatter(log_format))  # Set log format
       #f = InjectingFilter(self)
       #handler.addFilter(f)
       log.addHandler(handler)
@@ -383,6 +383,7 @@ def cleanse_title(string):
   else:      
     if not string2.count('?'): string=string2
   while re.match(".*\([^\(\)]*?\).*", string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
+  while re.match(".*\[.*\].*", string):  string = re.sub(r'\[.*\]', ' ', string)  
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
   
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
