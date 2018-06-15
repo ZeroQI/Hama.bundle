@@ -145,7 +145,7 @@ class PlexLog(object):
       log.addHandler(handler)
       #log.propagate = 0
       #log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
-    except IOError, e:  self.error('updateLoggingConfig: failed to set logfile: %s', str(e))
+    except IOError, e:  self.isAgent = isAgent;  Log.Info('updateLoggingConfig: failed to set logfile: {}'.format(e))
     self.isAgent = isAgent
   def debug    (self, msg, *args, **kwargs):  (Log.Debug    if self.isAgent else logging.debug   ) (msg, *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
   def info     (self, msg, *args, **kwargs):  (Log.Info     if self.isAgent else logging.info    ) (msg, *args, **kwargs)
