@@ -383,7 +383,7 @@ def cleanse_title(string):
   else:      
     if not string2.count('?'): string=string2
   while re.match(".*\([^\(\)]*?\).*", string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
-  while re.match(".*\[.*\].*", string):  string = re.sub(r'\[.*\]', ' ', string)  
+  while re.match(".*\[.*\].*",        string):  string = re.sub(r'\[[^\[\]]*\]',  ' ', string)  # string = "qwerty [asdf] zxcv [vbnm] ghjk [tyui]" > 'qwerty   zxcv   ghjk  ', string = "qwerty [asdf zxcv [vbnm] ghjk tyui]"   > 'qwerty  '
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
   
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
