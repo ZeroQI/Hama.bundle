@@ -225,6 +225,9 @@ touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plu
 chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 service plexmediaserver restart
+
+For the agent data folders ensure access rights:
+- DataItems folder 777 permissions by doing chmod -R 777 DataItems/. 
     
 Updating:
 =========
@@ -271,9 +274,7 @@ Support thread for agent:
 
 Bugs Fixes
 ==========
-- [ ] Bug #179 mdcx    - TMDb search fix provided
-- [ ] Bug #152 KurtzPT - tvdb4 season posters not falling back to standard posters
-- [ ] defaulttvdb='a' mapping issues for anidb
+- [ ] ?
 
 Feature Requests:
 =================
