@@ -196,7 +196,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     ### Picture types JSON download ###
     language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
     for language in language_posters:
-      try:     bannerTypes = Dict(common.LoadFile(filename='images.json', relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_INFO_URL % TVDBid, cache=CACHE_1DAY*6*4, headers={'Content-type': 'application/json', 'Accept-Language': language}), 'data')
+      try:     bannerTypes = Dict(common.LoadFile(filename='images_{}.json'.format(language), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_INFO_URL % TVDBid, cache=CACHE_1DAY*6*4, headers={'Content-type': 'application/json', 'Accept-Language': language}), 'data')
       except:  Log("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
       else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
         metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}#
