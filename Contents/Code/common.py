@@ -320,7 +320,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
         except Exception as e:    Log.Info('Error: {}'.format(e))
         else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
     # File download
-    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find'
+    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
     except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     netLock.release()
     
