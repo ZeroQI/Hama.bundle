@@ -189,8 +189,7 @@ Plex main folder location:
     * '/raid0/data/module/Plex/sys/Plex Media Server/',                          # Thecus
     * '/raid0/data/PLEX_CONFIG/Plex Media Server/'                               # Thecus Plex community    
 
-MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and make sure the following folders are all created: (folders are included in Zip archive in release tab and nammed "Plug-in.Support.zip", i recently added "TVDB/episodes" and "FanartTV" folder for TVDB screenshots).
-
+MANDATORY: Hama needs some folders in the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and while they should now be auto-created, make sure they are: (folders are included in Zip archive in release tab and nammed "Plug-in.Support.zip"
 - "AniDB"
 - "Plex"
 - "OMDB"
@@ -208,7 +207,7 @@ MANDATORY: Go into the agent data folder ("Plug-In Support/Data/com.plexapp.agen
 - "TVDB/text"
 - "FanartTV"
 
-Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders unfortunately.
+Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders normally (worked  around now).
 Any folder missing will crash the agent when an attempt to write inside is done. That is a Framework issue, all attemps are in try/except structure, to no avail...
 
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
@@ -220,14 +219,14 @@ Specific instal procedures go in the wiki:
 Install issue under linux are generally permission issues...
 - OpenMediaVault (Debian): "sudo chmod 775 -R /var/lib/plexmediaserver"
 - Synology:"chown -R plex:users" + "chmod -R 700"
+- FREENAS: chmod -R 777 /var/db/plexdata/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/. 
 - if having: File "bundles-release/Framework.bundle-dist/Contents/Resources/Versions/2/Python/Framework/components/storage.py", line 81, in save IOError: [Errno 13] Permission denied: '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues'
+
 touch /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 service plexmediaserver restart
 
-For the agent data folders ensure access rights:
-- DataItems folder 777 permissions by doing chmod -R 777 DataItems/. 
     
 Updating:
 =========
@@ -245,17 +244,18 @@ After restarting Plex servers, the new agent will be loaded and you will find al
 
 Troubleshooting:
 ================
-If files and series are showing in Plex GUI the scanner did its job
+If you ask for something already answered in the readme, or post scanner issues on the agent page or vice-versa, please donate (will be refered to as the RTFM tax)
 
-If files that are showing correctly do not have all metadata updating, that is the Agent doing.
+If files and series are showing in Plex GUI with the right season, the scanner did its job
+If fyou miss metadata (serie title wrong, no posters, summary, wrong episode title or summaries, ep screenshot, etc...), that is the Agent doing.
 
-If posters are missing, check that all the data folders are created and the agent is where it should be (see folder list above)
+If posters are missing, check that all the data folders are created and logs show no right issue.
 If subtitles are not loaded, check Settings > Server > Agents > Shows > HamaTV and please tick the "Local Media Assets (TV)" as is not by default.
 
 To avoid already solved issues, and make sure you do include all relevant logs in one go, please do the following:
 - delete the library
 - stop plex
-- Update to the latest Absolute Series Scanner (master branch), Hama (Beta branch for now) and Plex
+- Update to the latest Absolute Series Scanner (master branch), Hama (Master branch) and Plex
 - deleting all Plex logs leaving folders intact
 - restart Plex
 - re-create the library
