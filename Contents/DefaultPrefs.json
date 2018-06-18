@@ -1,128 +1,45 @@
 [
-  {
-    "id"      : "GetTvdbFanart",
-    "label"   : "Fetch Fanart images from TVDB",
-    "type"    : "bool",
-    "default" : "true"
-  },
-  {
-    "id"      : "GetTvdbPosters",
-    "label"   : "Fetch Poster images from TVDB",
-    "type"    : "bool",
-    "default" : "true"
-  },
-  {
-    "id"      : "GetTvdbBanners",
-    "label"   : "Fetch series Banner images from TVDB",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetAnidbPoster",
-    "label"   : "Fetch AniDB's poster",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetTmdbFanart",
-    "label"   : "Fetch Fanart images from The Movie Database",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetTmdbPoster",
-    "label"   : "Fetch poster images from The Movie Database",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetOmdbPoster",
-    "label"   : "Fetch poster images from The Open Movie Database",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetFanartTVBackground",
-    "label"   : "Fetch background images from fanart.tv",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetFanartTVPoster",
-    "label"   : "Fetch poster images from fanart.tv",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetFanartTVBanner",
-    "label"   : "Fetch banner images from fanart.tv",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetASSPosters",
-    "label"   : "Fetch poster images from ASS tvdb4 urls",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "localart",
-    "label"   : "Prefer artwork based on section language",
-    "type"    : "bool",
-    "default" : "true"
-  },
-  {
-    "id"      : "adult",
-    "label"   : "Include adult content",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "GetPlexThemes",
-    "label"   : "Download Themes from PLEX",
-    "type"    : "bool",
-    "default" : "false"
-  },
-  {
-    "id"      : "MinimumWeight",
-    "label"   : "Map categories at or above the minimum weight selected",
-    "type"    : "enum",
-    "values"  : ["600","500","400","300","200","100","0"],
-    "default" : "400"
-  },
-  {
-    "id"      : "SerieLanguage1",
-    "label"   : "First Language preference for the Series title",
-    "type"    : "enum",
-    "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-    "default" : "main"
-  },
-  {
-    "id"      : "SerieLanguage2",
-    "label"   : "Second Language preference for the Series title",
-    "type"    : "enum",
-    "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-    "default" : "x-jat"
-  },
-  {
-    "id"      : "SerieLanguage3",
-    "label"   : "Third Language preference for the Series title",
-    "type"    : "enum",
-    "values"  : ["main","x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-    "default" : "en"
-  },
-  {
-    "id"      : "EpisodeLanguage1",
-    "label"   : "First Language preference for the Episode title",
-    "type"    : "enum",
-    "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-    "default" : "en"
-  },
-  {
-    "id"      : "EpisodeLanguage2",
-    "label"   : "Second Language preference for the Episode title",
-    "type"    : "enum",
-    "values"  : ["x-jat","ja","en","ar","bg","ca","cs","da","de","el","es","et","fa","fi","fr","he","hr","hu","it","ko","x-kot","lv","mn","pl","pt","ro","ru","sr","sk","sl","sv","th","tr","uk","zh","zh-Hans","zh-x-nan"],
-    "default" : "x-jat"
-  }
+  { "id":   "SerieLanguagePriority",  "label": "Serie Language Priority",         "type": "text",  "default": "x-jat, en, ja"                                                  },
+  { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",       "type": "text",  "default": "x-jat, en, ja"                                                  },
+  { "id":  "PosterLanguagePriority",  "label": "TheTVDB Poster Language Priority","type": "text",  "default": "en"                                                             },
+  { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "values"  : ["600","500","400","300","200","100","0"], "default": "400"     },
+  { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                          },
+  { "id": "GetSingleOne",             "label": "Fetch a single picture",          "type": "bool",  "default": "true"                                                           },
+  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                    },
+  
+  { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                                },
+  { "id": "title_sort",               "label": "T-EM 'title_sort'",               "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "content_rating",           "label": "T-EM 'content_rating'",           "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "content_rating_age",       "label": "--E- 'content_rating_age'",       "type": "text",  "default": "None"                                                           },
+  { "id": "original_title",           "label": "T-EM 'original_title'",           "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "studio",                   "label": "T--M 'studio'",                   "type": "text",  "default": "AnimeLists, AniDB, TheTVDB, TheMovieDb"                         },
+  { "id": "tagline",                  "label": "T--M 'tagline'",                  "type": "text",  "default": "TheMovieDb"                                                     },
+  { "id": "summary",                  "label": "TSEM 'summary'",                  "type": "text",  "default": "TheTVDB, AniDB"                                                 },
+  { "id": "directors",                "label": "--EM 'directors'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "producers",                "label": "--EM 'producers'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "countries",                "label": "T--M 'countries",                 "type": "text",  "default": "TheMovieDb"                                                     },
+  { "id": "genres",                   "label": "T--M 'genres'",                   "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"                  },
+  { "id": "tags",                     "label": "T--M 'tags'",                     "type": "text",  "default": "MyAnimeList"                                                    },
+  { "id": "writers",                  "label": "T-EM 'writers'",                  "type": "text",  "default": "AniDB,TheTVDB"                                                  },
+  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "Local, AniDB, TheMovieDb, TheTVDB"                              },
+  { "id": "duration",                 "label": "T--M 'duration'",                 "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"                  },
+  { "id": "roles",                    "label": "T--M 'roles'",                    "type": "text",  "default": "AniDB, TheTVDB"                                                 },
+  { "id": "year",                     "label": "---M 'year'",                     "type": "text",  "default": "AniDB"                                                          },
+  { "id": "trivia",                   "label": "---M 'trivia'",                   "type": "text",  "default": "None"                                                           },
+  { "id": "quotes",                   "label": "---M 'quotes'",                   "type": "text",  "default": "None"                                                           },
+  { "id": "themes",                   "label": "T--M 'themes'",                   "type": "text",  "default": "TVTunes, Plex"                                                  },
+  { "id": "rating",                   "label": "T-EM 'rating'",                   "type": "text",  "default": "AniDB, TheTVDB, MyAnimeList, TheMovieDb, OMDb | TheTVDB, AniDB" },
+  { "id": "rating_image",             "label": "T--M 'rating_image'",             "type": "text",  "default": "None"                                                           },
+  { "id": "audience_rating",          "label": "T--M 'audience_rating'",          "type": "text",  "default": "None"                                                           },
+  { "id": "audience_rating_image",    "label": "T--M 'audience_rating_image'",    "type": "text",  "default": "None"                                                           },
+  { "id": "guest_stars",              "label": "T--M 'guest_stars'",              "type": "text",  "default": "None"                                                           },
+  { "id": "posters",                  "label": "TS-M 'poster'",                   "type": "text",  "default": "tvdb4, TheTVDB, TheMovieDb, FanartTV, AniDB"                    },
+  { "id": "art",                      "label": "T--M 'art'",                      "type": "text",  "default": "TheTVDB, TheMovieDb, FanartTV"                                  },
+  { "id": "banners",                  "label": "T--M 'banners'",                  "type": "text",  "default": "TheTVDB"                                                        },
+  { "id": "thumbs",                   "label": "--E- 'thumbs'",                   "type": "text",  "default": "TheTVDB"                                                        },
+  { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                           },
+  { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                           },
+  { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                           },
+  { "id": "absolute_index",           "label": "--E- 'absolute_index'",           "type": "text",  "default": "TheTVDB"                                                        }
 ]
