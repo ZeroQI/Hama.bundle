@@ -225,9 +225,8 @@ To avoid already solved issues, and make sure you do include all relevant logs i
    - Screen capture to illustrate if needed. Above logs are still mandatory
 
 Support thread for agent:
+- https://github.com/ZeroQI/Hama.bundle/issues (proven or confident enough it's a bug. Include the library name, the symptoms, the logs mentionned above)
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
-- https://github.com/ZeroQI/Hama.bundle/issues (proven bug)
-Include the library name, the symptoms, the logs mentionned above.
 
 Bugs Fixes
 ==========
