@@ -247,7 +247,7 @@ Troubleshooting:
 If you ask for something already answered in the readme, or post scanner issues on the agent page or vice-versa, please donate (will be refered to as the RTFM tax)
 
 If files and series are showing in Plex GUI with the right season, the scanner did its job
-If fyou miss metadata (serie title wrong, no posters, summary, wrong episode title or summaries, ep screenshot, etc...), that is the Agent doing.
+If you miss metadata (serie title wrong, no posters, summary, wrong episode title or summaries, ep screenshot, etc...), that is the Agent doing.
 
 If posters are missing, check that all the data folders are created and logs show no right issue.
 If subtitles are not loaded, check Settings > Server > Agents > Shows > HamaTV and please tick the "Local Media Assets (TV)" as is not by default.
