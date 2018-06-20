@@ -152,6 +152,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
     </supplemental-info>
 </anime>
   '''
+  mapping = ('0', '0')#(season or '0', episode)
   debug             = False
   if debug:  Log.Info('[?] #1 season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
@@ -183,8 +184,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
     if     Dict(mappingList, 'TVDB', 'sa'):                                                                          mapping = ('1', str(int(episode) + int(episodeoffset)))
   else:
     Log.Info('[!] error {}'.format(key))
-    mapping = ('0', '0')#(season or '0', episode)
-  
+    
   return mapping
 
 ### Translate TVDB numbering into AniDB numbering ###

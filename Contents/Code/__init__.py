@@ -62,7 +62,8 @@ def ValidatePrefs():
 def Start():
   Log.Info("".ljust(157, '='))
   Log.Info("HTTP Anidb Metadata Agent by ZeroQI (Forked from Atomicstrawberry's v0.4, AnimeLists XMLs by SdudLee) - CPU: {}, OS: {}".format(Platform.CPU, Platform.OS))
-  HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
+  #HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
+  HTTP.CacheTime = CACHE_1MINUTE*30
   ValidatePrefs()
   
 ### Movie/Serie search ###################################################################################################################################################
