@@ -198,6 +198,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       
     ### Picture types JSON download ###
     language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+    priority_posters = [  source.strip() for source   in Prefs['posters'               ].split(',')]
     Log.Info('language_posters: {}'.format(language_posters))
     Log.Info('==========================')
     for language in language_posters:
@@ -223,6 +224,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               
               #rank
               rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], bannerTypes['poster'])[1] else count_valid[bannerType]+2
+              if language  in language_posters:  rank = (rank//30)*30*language_posters.index(language)+rank%30
+              if 'TheTVDB' in priority_posters:  rank = rank+ 6*priority_posters.index('TheTVDB')
               rank = rank + language_posters.index(language)*20
               if AniDB_movie: rank = rank+bannerTypes['poster'] if rank+bannerTypes['poster']<99 else 99
               

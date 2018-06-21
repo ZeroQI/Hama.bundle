@@ -164,7 +164,7 @@ class PlexLog(object):
 #    # return threading.currentThread().getName() in self.app.threads
 
 ### Code reduction one-liners that get imported specifically ###
-def GetMeta         (source="", field=""            ):  return (not Prefs['GetSingleOne'] or downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"  #not Prefs['GetSingleOne'] or downloaded[field    ]>0 fails randomly due to downloaded emptied  #Log.Info("test - downloaded[field]: {}, downloaded: {}".format(downloaded[field]<=1, downloaded))
+def GetMeta         (source="", field=""            ):  return (downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"  #not Prefs['GetSingleOne'] or downloaded[field    ]>0 fails randomly due to downloaded emptied  #Log.Info("test - downloaded[field]: {}, downloaded: {}".format(downloaded[field]<=1, downloaded))
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
 def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
 def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
@@ -313,7 +313,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # TheTVDB
     elif url.startswith('https://api.thetvdb.com'):
       if 'Authorization' in HEADERS:
-        try:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=None).content  # Normal loading, already Authentified
+        try:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  pass
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
@@ -620,7 +620,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if rank<language_rank:  MetaSources[source]['title_sort'], language_rank, language_source = SortTitle(title, IsIndex(languages, rank)), rank, source
           else:  UpdateMetaField(metadata, metadata, MetaSources[source], FieldListMovies if movie else FieldListSeries, field, source, movie, source_list)
           if field in count:  count[field] = count[field] + 1
-          if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
+          if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title']):  break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
       if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
@@ -653,7 +653,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
               UpdateMetaField(metadata, metadata.seasons[season], Dict(MetaSources, source, 'seasons', season), FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
-              if field not in ['posters', 'art'] or Prefs['GetSingleOne']:  break 
+              if field not in ['posters', 'art']:  break 
           elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(source))
         else:
           if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
@@ -679,7 +679,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
                     rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                     Log.Info('[?] rank: {:>1}, source_title: {:>7}, title: "{}"'.format(rank, source_title, title))
                 if field in count:  count[field] = count[field] + 1
-                if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title'] or Prefs['GetSingleOne']):  break
+                if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title']):  break
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
           else:
             if field=='title' and source_title:                                    UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source_title, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source_title, movie, source_list)

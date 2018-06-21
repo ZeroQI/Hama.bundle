@@ -59,9 +59,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
     if (not AniDBid or AniDBid != AniDB_id) and (not TVDBid or TVDBid !=TVDB_id):  continue  #if not (AniDB_id and AniDBid == AniDB_id) and not(TVDB_id and TVDB_id == TVDBid):  continue
+    
     found = True
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
-    if not tvdb_numbering and not TVDB_id:   TVDB_id  = TVDBid
+    if not tvdb_numbering and not TVDB_id:                                                                                                                         TVDB_id   = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
     
     ### Anidb numbered serie ###
@@ -76,7 +77,6 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       SaveDict(GetXml(anime, "supplemental-info/credits" ), AnimeLists_dict, 'writer'        )
       for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres')
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
-      if movie or max(map(int, media.seasons.keys()))<=1:  break  #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
       
     ### TheTVDB numbered series ###
     if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1:  #In case AniDB guid but multiple seasons
@@ -96,6 +96,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       elif TVDBid in ("", "unknown", None):
         error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))
         Log.Warn("'anime-list TVDBid missing.htm' log added as tvdb serie id missing in mapping file: '%s'" % TVDBid)
+    
+    #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
+    if AniDB_id and (movie or max(map(int, media.seasons.keys()))<=1):  break
+      
   else:
     if not found:
       Log.Error("source '{}', id: '{}' not found in file".format(source, id))

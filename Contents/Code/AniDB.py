@@ -36,8 +36,7 @@ def Search (results, media, lang, manual, movie):
   ### Full title search = 1.3s
   best_aid, best_score, best_title, n = "", 0, "", 0
   start_time = time.time()
-  #Log.Info( str(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower()) )
-  Log.Info('len: {}'.format(len(AniDBTitlesDB)))
+  Log.Info('len AniDBTitlesDB: {}'.format(len(AniDBTitlesDB)))
   for element in AniDBTitlesDB.xpath(u"/animetitles/anime/title[text()[contains(lower-case(.), '%s')]]" % orig_title.lower().replace("'", " ")):
     aid            = element.getparent().get('aid',  '')
     title          = element.text
@@ -107,6 +106,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   
+  language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+  priority_posters = [  source.strip() for source   in Prefs['posters'               ].split(',')]
+  Log.Info('language_posters:  {}'.format(language_posters))
+  
   ### Build the list of anidbids for files present ####
   Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
@@ -154,7 +157,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         
         ### Posters
         if GetXml(xml, 'picture'):
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), 99, ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0]))}
+          rank = 1
+          if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
+          if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0]))}
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
