@@ -4,7 +4,6 @@
   { "id":  "PosterLanguagePriority",  "label": "TheTVDB Poster Language Priority","type": "text",  "default": "en"                                                             },
   { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "values"  : ["600","500","400","300","200","100","0"], "default": "400"     },
   { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                          },
-  { "id": "GetSingleOne",             "label": "Fetch a single picture",          "type": "bool",  "default": "true"                                                           },
   { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                    },
   
   { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                                },

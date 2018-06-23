@@ -5,7 +5,7 @@
 import common
 import os
 import time
-from common     import GetMeta, GetXml, SaveDict, UpdateDict, Dict, natural_sort_key
+from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key
 from AnimeLists import tvdb_ep, anidb_ep
 #import re, unicodedata, hashlib, types
 #from collections import defaultdict
@@ -218,7 +218,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
         for bannerType in bannerTypes or []:
-          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or not GetMeta('TheTVDB', metanames[bannerType]) or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
+          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           
           Log.Info('------------------------------')
           try:     images = Dict( common.LoadFile(filename='images_{}_{}.json'.format(bannerType, language), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY, headers={'Accept-Language': language}), 'data', default={})

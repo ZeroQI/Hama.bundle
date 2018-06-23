@@ -2,9 +2,9 @@
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
-from common                  import GetMeta, GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath
-import os                         # path, listdir
-import re  #match, ignorecase
+from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath
+import os      # path, listdir
+import re      # match, ignorecase
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
       

@@ -4,7 +4,7 @@
 
 ### Imports ###
 import common
-from common import GetMeta, GetXml, SaveDict
+from common import GetXml, SaveDict
 import os
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
@@ -39,11 +39,11 @@ def GetMetadata(movie, MALid):
       SaveDict( GetXml(xml, 'engTitle'), MyAnimeList_dict, 'seasons', "1", 'episodes', episode, 'title'                  )
       SaveDict( GetXml(xml, 'aired'   ), MyAnimeList_dict, 'seasons', "1", 'episodes', episode, 'originally_available_at')
       
-    for item in xml.xpath('//anime/covers/cover'          ) if GetMeta('MyAnimeList', 'posters') else []:
+    for item in xml.xpath('//anime/covers/cover'          ):
       SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), 50, None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'posters', item.text)
-    for item in xml.xpath('//anime/backgrounds/background') if GetMeta('MyAnimeList', 'art'    ) else []:
+    for item in xml.xpath('//anime/backgrounds/background'):
       SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), 50, None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'art',     item.text)
-    for item in xml.xpath('//anime/banners/banner'        ) if GetMeta('MyAnimeList', 'banners') else []:
+    for item in xml.xpath('//anime/banners/banner'        ):
       SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), 50, None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'banners', item.text)
 
   return MyAnimeList_dict

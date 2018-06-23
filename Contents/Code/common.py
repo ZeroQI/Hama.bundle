@@ -164,7 +164,7 @@ class PlexLog(object):
 #    # return threading.currentThread().getName() in self.app.threads
 
 ### Code reduction one-liners that get imported specifically ###
-def GetMeta         (source="", field=""            ):  return (downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"  #not Prefs['GetSingleOne'] or downloaded[field    ]>0 fails randomly due to downloaded emptied  #Log.Info("test - downloaded[field]: {}, downloaded: {}".format(downloaded[field]<=1, downloaded))
+#def GetMeta         (source="", field=""            ):  return (downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
 def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
 def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
@@ -351,16 +351,15 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
-  if   metatype==metadata.posters:             string, test = "posters", GetMeta('', 'posters')
-  elif metatype==metadata.art:                 string, test = "art",     GetMeta('', 'art')
-  elif metatype==metadata.banners:             string, test = "banners", GetMeta('', 'banners')
-  elif metatype==metadata.themes:              string, test = "themes",  Prefs['themes']
-  elif filename.startswith("TVDB/episodes/"):  string, test = "thumbs",  Prefs['thumbs']
-  else:                                        string, test = "seasons", True  #GetMeta('', 'posters') #Only one left, no need to get season number then for testing: metadata.seasons[season].posters
+  if   metatype==metadata.posters:             string = "posters"
+  elif metatype==metadata.art:                 string = "art"
+  elif metatype==metadata.banners:             string = "banners"
+  elif metatype==metadata.themes:              string = "themes"
+  elif filename.startswith("TVDB/episodes/"):  string = "thumbs"
+  else:                                        string = "seasons"
   
   global downloaded
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
-  elif not test:       Log.Info("url: '%s', num: '%d', filename: '%s' Not in Plex but threshold exceded or thumbs/themes agent setting not selected" % (url, num, filename))
   else:
     file, status = None, ""
     try:
@@ -597,8 +596,9 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   
   #Update engine
   Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value")
-  count    = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
+  count     = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
+  #posters=[]
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
