@@ -510,13 +510,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   MetaFieldList  = ('directors', 'writers', 'producers', 'guest_stars', 'collections', 'genres', 'tags', 'countries')
   MetaRoleList   = ('directors', 'writers', 'producers', 'guest_stars', 'roles')
   MetaIntList    = ('year', 'absolute_number', 'duration')
-  '''  #Manage title language for AniDB and TheTVDB by recording the rank
-                if field=='title':
-                  title, language_rank = Dict(meta_root, 'title'), Dict(meta_root, 'language_rank')
-                  #Log.Info("[!] language source: {}, rank: {}, found: {}, language_rank: '{}'".format(source, rank, found, language_rank))
-                  if title and language_rank and (language_rank<rank or not found and language_rank==rank) or not found and rank==len(languages)):  found, rank = True, language_rank
-                  else:                                                                                                                             continue  #Lower index (or same index at higher index metadata source) title exists
-  '''
+  
   ### Prepare data for comparison ###
   try:
     if isinstance(meta_new, int):
@@ -546,6 +540,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     else:                        sources = '|'.join([Prefs[field].split('|')[is_episode], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
   else:  sources = Prefs[field].replace(source, '('+source+')')
   
+  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}, meta_old: {}'.format(meta_new, meta_old.keys()))
   if meta_new == meta_old_value or field not in MetaRoleList and (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
     Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
   else: 
@@ -625,7 +620,10 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     else:
       if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
       elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
+    
+    #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())
         
+    
   if not movie:
     import AnimeLists
               
@@ -684,6 +682,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           else:
             if field=='title' and source_title:                                    UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source_title, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source_title, movie, source_list)
             elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
+        if field=='thumbs':    metadata.seasons[season].episodes[episode].thumbs.validate_keys(meta_new.keys())
         # End Of for field
       # End Of for episode
     # End of for season
