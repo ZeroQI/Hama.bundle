@@ -32,7 +32,7 @@ netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
 ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
-DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "MinimumWeight", "localart", "adult", "GetSingleOne", 'OMDbApiKey') #"Simkl", 
+DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
 FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration','rating',  'reviews', 'collections', 'genres', 'tags' , 'summary', 'extras', 'countries', 'rating_count',
