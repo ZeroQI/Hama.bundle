@@ -196,8 +196,10 @@ def anidb_ep(mappingList, season, episode):
   ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
   if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
   anidbid_list = Dict(mappingList, 'TVDB', 's'+season)                          #anidbid_list: '{'10747': '0', '12291': '8'}'
+  #Log.Info('anidbid_list: {}'.format(anidbid_list))
   for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True) if anidbid_list else[]:  #reverse value&index and sort per offset
-    if int(episode.split('-')[0])> int(offset):  return Dict(mappingList, 'defaulttvdbseason'), str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
+    #Log.Info("- offset: {}, anidbid: {}, int(episode.split('-')[0]): {}".format(offset, anidbid, int(episode.split('-')[0])))
+    if int(episode.split('-')[0])> int(offset):  return '1', str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   if defaulttvdbseason and season==defaulttvdbseason:  return Dict(mappingList, 'defaulttvdbseason'), str(int(episode)-int(episodeoffset)), ''

@@ -132,12 +132,14 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if int(time.strftime("%Y%m%d")) <= air_date+1:  pass  #Log.Warn("TheTVDB.GetMetadata() - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
         elif season=='0':                               tvdb_special_missing.append(episode);  Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
         else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering);  Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
+        Log.Info('[!] missing episode - anidb_numbering: {} numbering: {:>7} season: {:>2} episode: {:>3}'.format(anidb_numbering, numbering, season, episode))
         
-      # File present on disk
+      ### File present on disk
       else:
         Log.Info('[?] episode_json: {}'.format(episode_json))
         Log.Info('[?] numbering: {} => s{:>1}e{:>3} abs_number: {}, title: {}'.format(numbering, season, episode, abs_number, Dict(episode_json, 'episodeName')))
-        SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
+        if not anidb_numbering:  
+          SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(serie_json  , 'rating'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
         SaveDict( Dict(serie_json  , 'runtime'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
         SaveDict( Dict(episode_json, 'overview'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'                );  Log.Info('[ ] summary: {}'.format(Dict(episode_json, 'overview')))
