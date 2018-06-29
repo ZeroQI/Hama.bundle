@@ -221,6 +221,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
         for bannerType in bannerTypes or []:
           if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
+          if anidb_numbering and Dict(mappingList, 'defaulttvdbseason') not in ('a', '1') and bannerType=='poster':  continue  #skip if anidb numbered serie mapping to season 0 or 2+
           
           Log.Info('------------------------------')
           try:     images = Dict( common.LoadFile(filename='images_{}_{}.json'.format(bannerType, language), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY, headers={'Accept-Language': language}), 'data', default={})
@@ -238,9 +239,14 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               ### Adding picture ###
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
               if bannerType == 'season':  
-                season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))
-                SaveDict((                          'TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', season, 'posters', TVDB_IMG_ROOT + image['fileName'])
-              else:                       SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType],        TVDB_IMG_ROOT + image['fileName'])
+                if anidb_numbering and ('1' if Dict(mappingList, 'defaulttvdbseason')=='a' else Dict(mappingList, 'defaulttvdbseason'))==str(image['subKey']):
+                  SaveDict(('TheTVDB/'+image['fileName'], rank,                                     thumbnail), TheTVDB_dict, metanames['poster'],       TVDB_IMG_ROOT + image['fileName'])
+                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==2 else 2 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '1', 'posters', TVDB_IMG_ROOT + image['fileName'])
+                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==3 else 3 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '0', 'posters', TVDB_IMG_ROOT + image['fileName'])
+                else:  
+                  season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))
+                  SaveDict(   ('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', season, 'posters', TVDB_IMG_ROOT + image['fileName'])
+              else:  SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType],        TVDB_IMG_ROOT + image['fileName'])
               count_valid[bannerType] = count_valid[bannerType] + 1  #Otherwise with += SyntaxError: Line 142: Augmented assignment of object items and slices is not allowed
               Log.Info("[!] bannerType: {} subKey: {:>2} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
           
