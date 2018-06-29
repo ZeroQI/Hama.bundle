@@ -52,7 +52,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
     SaveDict( Dict(serie_json, 'zap2it_id' ), TheTVDB_dict, 'zap2itId'               )
     SaveDict( Dict(serie_json, 'rating'    ), TheTVDB_dict, 'content_rating'         )
-    SaveDict( Dict(serie_json, 'overview'  ), TheTVDB_dict, 'summary'                )
+    if not anidb_prefered:  SaveDict( Dict(serie_json, 'overview'  ), TheTVDB_dict, 'summary'                )
     SaveDict( Dict(serie_json, 'firstAired'), TheTVDB_dict, 'originally_available_at')
     SaveDict( Dict(serie_json, 'genre'     ), TheTVDB_dict, 'genres'                 )
     SaveDict( Dict(serie_json, 'network'   ), TheTVDB_dict, 'studio'                 )
