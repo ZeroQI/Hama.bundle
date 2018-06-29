@@ -605,6 +605,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     language_rank, language_source = len(languages)+1, None
     for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
       if source in MetaSources:
+        #For AniDB assigned series will favor AniDB summary even if TheTVDB is before in the source order for summary fields IF the anidb series is not mapped to TheTVDB season 1.
         if Dict(MetaSources, source, field):
           if field=='genres'and ('|' in MetaSources[source]['genres'] or ',' in MetaSources[source]['genres']):
             MetaSources[source]['genres'] = MetaSources[source]['genres'].split('|' if '|' in MetaSources[source]['genres'] else ',')

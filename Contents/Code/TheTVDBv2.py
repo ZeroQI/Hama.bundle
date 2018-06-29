@@ -35,6 +35,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   Log.Info("".ljust(157, '-'))
   if not TVDBid.isdigit(): Log.Info('TheTVDB.GetMetadata() - TVDBid empty');  return {}, IMDbid
   TheTVDB_dict      = {}
+  anidb_numbering   = metadata_source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
+  anidb_prefered    = anidb_numbering and Dict(mappingList, 'defaulttvdbseason') not in ('a', '1')
   language_series   = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['SerieLanguagePriority'  ].split(',') ]
   language_episodes = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['EpisodeLanguagePriority'].split(',') ]
   Log.Info("TheTVDB.GetMetadata() - TVDBid: '{}', IMDbid: '{}', language_series : {}, language_episodes: {}".format(TVDBid, IMDbid, language_series , language_episodes))
@@ -44,8 +46,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   if serie_json:
     #serie_json { "id","seriesId", "airsDayOfWeek", "imdbId", "zap2itId", "added", "addedBy", "lastUpdated", "seriesName", "aliases", "banner", "status", 
     #             "firstAired", "network", "networkId", "runtime", "genre, "overview", "airsTime", "rating" , "siteRating", "siteRatingCount" }
-    SaveDict( language_series.index(lang) if lang in language_series else len(language_series), TheTVDB_dict, 'language_rank')
+    SaveDict( language_series.index(lang) if lang in language_series and not anidb_prefered else len(language_series), TheTVDB_dict, 'language_rank')
     SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'title'                  )
+    SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'original_title'         )
     SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
     SaveDict( Dict(serie_json, 'zap2it_id' ), TheTVDB_dict, 'zap2itId'               )
     SaveDict( Dict(serie_json, 'rating'    ), TheTVDB_dict, 'content_rating'         )
@@ -90,7 +93,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
            else:       list_abs_eps[e]=s 
       Log.Info('Present abs eps: {}'.format(list_abs_eps))
     
-    anidb_numbering   = metadata_source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
     absolute_numering = metadata_source in ('tvdb3', 'tvdb4', 'tvdb5')
     
     ### episode loop ###
