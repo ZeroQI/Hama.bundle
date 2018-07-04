@@ -193,17 +193,29 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
-  ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
-  if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
-  anidbid_list = Dict(mappingList, 'TVDB', 's'+season)                          #anidbid_list: '{'10747': '0', '12291': '8'}'
+  
+  # <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping> + <mapping-list> <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
+  anidbid_array = Dict(mappingList, 'TVDB', 's'+season, default={'', 0})
+  #Log.Info('anidbid_array: "{}"'.format(anidbid_array))
+  anidbid = anidbid_array.keys()[0] if len(anidbid_array)==1 else 'not_coded_yet'
+  #Log.Info('anidbid: "{}"'.format(anidbid))
+  ep_mapping  = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
+  ep_mappings = [key for key in Dict(mappingList, 'TVDB') if 'e' in key and anidbid == Dict(mappingList, 'TVDB', key)[2]]  
+  if ep_mapping:     return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
+  elif ep_mappings:  return '0', '0', anidbid  #Log.Info('ep_mappings: "{}" so dropping non listed ep mappings'.format(ep_mappings));  
+  
+  # <mapping-list> <mapping anidbseason="1" tvdbseason="5" offset="-12"/>
+  anidbid_list = Dict(mappingList, 'TVDB', 's'+season)
   #Log.Info('anidbid_list: {}'.format(anidbid_list))
   for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True) if anidbid_list else[]:  #reverse value&index and sort per offset
     #Log.Info("- offset: {}, anidbid: {}, int(episode.split('-')[0]): {}".format(offset, anidbid, int(episode.split('-')[0])))
     if int(episode.split('-')[0])> int(offset):  return '1', str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
+  
+  # <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   if defaulttvdbseason and season==defaulttvdbseason:  return Dict(mappingList, 'defaulttvdbseason'), str(int(episode)-int(episodeoffset)), ''
-  else:                                                return '0', '0', ''
+  else:                                                return '0', '0', anidbid
 
 ### Variables ###
 AniDBTVDBMap = GetAniDBTVDBMap()

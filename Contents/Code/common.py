@@ -644,6 +644,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #AniDB_numbered = not(metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys()))>=1)
     #@parallelize
     #def addMeta():
+    season_posters_list = []
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
       source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
@@ -653,6 +654,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
+              if field=='posters':  season_posters_list.extend(Dict(MetaSources, source, 'seasons', season, 'posters').keys())
               UpdateMetaField(metadata, metadata.seasons[season], Dict(MetaSources, source, 'seasons', season), FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
               if field not in ['posters', 'art']:  break 
@@ -689,6 +691,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         if field=='thumbs':    metadata.seasons[season].episodes[episode].thumbs.validate_keys(meta_new.keys())
         # End Of for field
       # End Of for episode
+    else:  metadata.seasons[season].posters.validate_keys(season_posters_list)
     # End of for season
     Log.Info("".ljust(157, '-'))
   global downloaded; downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
