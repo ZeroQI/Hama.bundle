@@ -140,10 +140,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         SaveDict(original_title, AniDB_dict, 'original_title')
         SaveDict(language_rank,  AniDB_dict, 'language_rank' )
         if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("[ ] 'originally_available_at': '{}'".format(AniDB_dict['originally_available_at']))
-        if SaveDict( re.sub(r'http://anidb\.net/[a-z]{1,2}[0-9]+ \[(.+?)\]', r'\1', GetXml(xml, 'description')).replace("`", "'"), AniDB_dict, 'summary'):
-          Log.Info("[ ] 'summary' empty: '{}'".format(not GetXml(xml, 'description')))
-          if not movie and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
-            SaveDict(AniDB_dict['summary'], AniDB_dict, 'seasons', mappingList['defaulttvdbseason'], 'summary') 
+        if SaveDict(summary_sanitizer(GetXml(xml, 'description')), AniDB_dict, 'summary') and not movie and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
+          SaveDict(AniDB_dict['summary'], AniDB_dict, 'seasons', mappingList['defaulttvdbseason'], 'summary') 
             
         #roles  ### NEW, NOT IN Plex FrameWork Documentation 2.1.1 ###
         for role in xml.xpath('characters/character[(@type="secondary cast in") or (@type="main character in")]'):
@@ -327,6 +325,12 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
   #Log.Info("GetAniDBTitle - lang index: '{}', langTitles: '{}', langLevel: '{}'".format(languages.index(lang) if lang in languages else '', str(langTitles), str(langLevel)))
   return langTitles[index], langTitles[languages.index('main') if 'main' in languages else 1 if 1 in langTitles else 0], index
 
+def summary_sanitizer(summary):
+  summary = summary.replace("`", "'")                                                      # Replace backquote with single quote
+  summary = re.sub(r'http://anidb\.net/[a-z]{1,2}[0-9]+ \[(.+?)\]',       r'\1', summary)  # Replace links
+  summary = re.sub(r'^\* B.*\n+|\nSource:\w*[\w\W]*|\nNote:\w*[\w\W]*()', "",    summary)  # Remove Source and M=Notes
+  return summary
+  
 def WordsScore(words, title_cleansed):
   ''' Score word compared to string in percents
   '''
