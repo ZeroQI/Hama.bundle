@@ -32,13 +32,14 @@ netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
 ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
+TVDB4_POSTERS_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
 FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration','rating',  'reviews', 'collections', 'genres', 'tags' , 'summary', 'extras', 'countries', 'rating_count',
                      'content_rating', 'studio', 'countries', 'posters', 'banners', 'art', 'themes', 'roles', 'original_title', 
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
-FieldListSeasons  = ('summary', 'posters', 'art')
+FieldListSeasons  = ('summary','posters', 'art')  #'summary', 
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
@@ -305,16 +306,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
   if not file:
     netLock.acquire()
     
-    # AniDB
-    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
-      global AniDB_WaitUntil
-      while AniDB_WaitUntil > datetime.datetime.now():
-        Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
-        time.sleep(4)
-      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-    
     # TheTVDB
-    elif url.startswith('https://api.thetvdb.com'):
+    if url.startswith('https://api.thetvdb.com'):
       if 'Authorization' in HEADERS:
         try:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  pass
@@ -322,9 +315,18 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
         else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
+    
+    # AniDB
+    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
+      global AniDB_WaitUntil
+      while AniDB_WaitUntil > datetime.datetime.now():
+        Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
+        time.sleep(4)
+      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
+       
     # File download
-    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '%s', filename: '%s', Exception: '%s'" % (url, filename, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     netLock.release()
     
     # File checks and saving as cache
@@ -467,7 +469,6 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
 def GetMetadata(media, movie, source, TVDBid, num=0):
   """ [tvdb4.posters.xml] Attempt to get the ASS's image data
   """
-  TVDB4_POSTERS_URL = 'http://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
   TVDB4_xml         = None
   if movie or not source == "tvdb4": return {}
   Log.Info("".ljust(157, '-'))
@@ -641,7 +642,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #count          = {'posters':0, 'art':0}
     count          = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}  #@task  #def UpdateEpisodes(metadata=metadata, MetaSources=MetaSources, count=count, season=season, episode=episode, cached_logs=cached_logs):
     cached_logs    = {}
-    #AniDB_numbered = not(metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys()))>=1)
     #@parallelize
     #def addMeta():
     season_posters_list = []
@@ -654,7 +654,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
-              if field=='posters':  season_posters_list.extend(Dict(MetaSources, source, 'seasons', season, 'posters').keys())
+              if field=='posters':  season_posters_list.extend(Dict(MetaSources, source, 'seasons', season, 'posters', default={}).keys())
               UpdateMetaField(metadata, metadata.seasons[season], Dict(MetaSources, source, 'seasons', season), FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
               if field not in ['posters', 'art']:  break 
