@@ -200,7 +200,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
       
         ### Translate into season/episode mapping
-        numEpisodes, totalDuration, mapped_eps, missing_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], [], {}, 0 
+        numEpisodes, totalDuration, mapped_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], {}, 0 
         specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
         movie_ep_groups = {}
         missing={'0': [], '1':[]}
@@ -243,7 +243,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:  # AniDB mode
+          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
             ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
             key =''
             if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
@@ -257,27 +257,21 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
               elif epNumType == '2':  missing_specials.append(numbering)
               elif epNumType == '1':
                 if key:  SaveDict([numbering], movie_ep_groups, key)
-                else:    missing_eps.append(numbering)
+                #else:    missing_eps.append(numbering)
         ### End of for ep_obj...
         
-        for season in sorted(missing):
-         Log.Info('Season: {} Episodes: {} not on disk'.format(season, sorted(missing[season], key=common.natural_sort_key)))
-            
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
-        
-        ### AniDB Missing Episodes ###
+
+        ### AniDB numbering Missing Episodes ###
         if movie_ep_groups:
           Log.Info("Movie/OVA Ep Groups: %s" % movie_ep_groups)  #movie_ep_groups: {'1': ['s1e1'], '3': ['s1e4', 's1e5', 's1e6'], '2': ['s1e3'], '-1': []}
-          missing_eps.extend([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)])
-        if missing_eps:
-          #missing_eps = sorted(missing_eps, key=lambda x: int("%d%04d" % (int(x.split('e')[0][1:]), int(x.split('e')[1]))))  # .sort(key=natural_sort_key #sorted(list, key=natural_sort_key)
-          missing_eps = sorted(missing_eps, key=natural_sort_key)  # .sort(key=natural_sort_key #sorted(list, key=natural_sort_key)
-          error_log['Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
-          Log.Info("Missing eps: "+ str(missing_eps))
-        if missing_specials:
-          missing_specials = sorted(missing_specials, key=natural_sort_key)
-          error_log['Missing Specials'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_specials)))
+          SaveDict([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)], missing, '1')
+        for season in sorted(missing):
+          missing_eps = sorted(missing[season], key=common.natural_sort_key)
+          Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
+          error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
+          
       ### End of if not movie ###
     
       # External IDs
