@@ -229,9 +229,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           try:     images = Dict( common.LoadFile(filename='images_{}_{}.json'.format(bannerType, language), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY, headers={'Accept-Language': language}), 'data', default={})
           except:  images = {};  Log("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
           else:
+            images = sorted(images, key = lambda x: Dict(x, "ratingsInfo", "average", default=0), reverse=True)
             for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
               
               #rank
+              #Log.Info('rating: {}'.format(Dict(image, "ratingsInfo", "average", default=0)))
               rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], bannerTypes['poster'])[1] else count_valid[bannerType]+2
               if language  in language_posters:  rank = (rank//30)*30*language_posters.index(language)+rank%30
               if 'TheTVDB' in priority_posters:  rank = rank+ 6*priority_posters.index('TheTVDB')
