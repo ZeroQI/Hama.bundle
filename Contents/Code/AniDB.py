@@ -200,12 +200,13 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
       
         ### Translate into season/episode mapping
-        numEpisodes, totalDuration, mapped_eps, missing_specials, ending_table, op_nb = 0, 0, [], [], {}, 0 
+        numEpisodes, totalDuration, mapped_eps, ending_table, op_nb = 0, 0, [], {}, 0 
         specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
         movie_ep_groups = {}
         missing={'0': [], '1':[]}
                 
         ### Episodes (and specials) not always in right order ###
+        Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
         ending_offset = 99
         for ep_obj in xml.xpath('episodes/episode'):
           
@@ -213,7 +214,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           epNum     = ep_obj.xpath('epno')[0]
           epNumType = epNum.get('type')
           season    = "1" if epNumType == "1" else "0"
-          if epNumType=="3" and ep_obj.xpath('title')[0].text.startswith('Ending') and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
+          if   epNumType=="3" and ep_obj.xpath('title')[0].text.startswith('Ending') and int(epNum.text[1:])-1<ending_offset:  ending_offset = int(epNum.text[1:])-1
           if   epNumType=="3" and int(epNum.text[1:])>ending_offset:  episode = str(int(epNum.text[1:])+150-ending_offset)  #shifted to 150 for 1st ending.  
           elif epNumType=="1":                                        episode = epNum.text
           else:                                                       episode = str( specials[ epNum.text[0] ][0] + int(epNum.text[1:]))
@@ -222,15 +223,34 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
-            Log.Info('season: {}, episode: {}'.format(season, episode))
+            Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType))
             if season=='0' and episode=='0':   continue
-          if not (season in media.seasons and episode in media.seasons[season].episodes):  SaveDict([episode], missing, season); continue
           
+          ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
+          else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
+                     
+            ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
+            key =''
+            if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
+              key = '1' if title in ('Complete Movie', 'OVA') else title[-1] if title.startswith('Part ') and title[-1].isdigit() else '' #'-1'
+              if not key in movie_ep_groups:  movie_ep_groups[key] = []
+            
+            #Episode missing from disk
+            if not season in media.seasons or not episode in media.seasons[season].episodes:
+              current_air_date = GetXml(ep_obj, 'airdate').replace('-','')
+              current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
+              if int(time.strftime("%Y%m%d")) <= current_air_date+1:  Log.Warn("[!] Episode: {:>3} not in Plex but air date is {} ({})".format(episode, 'missing' if current_air_date==99999999 else 'not aired yet', current_air_date))  #; continue
+              else:
+                if   epNumType == '1' and key:  SaveDict([numbering], movie_ep_groups, key)
+                elif epNumType in ['1', '2']:   SaveDict([episode], missing, season); 
+                Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType))
+                continue
+                    
           ### Episodes
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
           SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
-          Log.Info('[?] numbering: {} => s{:>1}e{:>3}, language_rank: {}, title: "{}"'.format(numbering, season, episode, language_rank, title))
+          Log.Info('[X] {} => s{:>1}e{:>3}, language_rank: {}, title: "{}"'.format(numbering, season, episode, language_rank, title))
           
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
@@ -242,22 +262,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
-          ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-          if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
-            ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-            key =''
-            if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
-              key = '1' if title in ('Complete Movie', 'OVA') else title[-1] if title.startswith('Part ') and title[-1].isdigit() else '' #'-1'
-              if not key in movie_ep_groups:  movie_ep_groups[key] = []
-            
-            if not season in media.seasons or not episode in media.seasons[season].episodes:  #Episode missing
-              current_air_date = GetXml(ep_obj, 'airdate').replace('-','')
-              current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
-              if int(time.strftime("%Y%m%d")) <= current_air_date+1:  Log.Warn("[!] Episode: {:>3} not in Plex but air date is {} ({})".format(episode, 'missing' if current_air_date==99999999 else 'not aired yet', current_air_date))  #; continue
-              elif epNumType == '2':  missing_specials.append(numbering)
-              elif epNumType == '1':
-                if key:  SaveDict([numbering], movie_ep_groups, key)
-                #else:    missing_eps.append(numbering)
         ### End of for ep_obj...
         
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
@@ -270,7 +274,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         for season in sorted(missing):
           missing_eps = sorted(missing[season], key=common.natural_sort_key)
           Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
-          error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
+          if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
           
       ### End of if not movie ###
     
