@@ -104,9 +104,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       episode_json = sorted_episodes_json[index]  #Log.Info('s{:02d}e{:03d} abs: {:03d} ep: {}'.format(Dict(episode_json, 'airedSeason') or 0, Dict(episode_json, 'airedEpisodeNumber') or 0, Dict(episode_json, 'absoluteNumber') or 0, episode_json))
       season       = str(Dict(episode_json, 'airedSeason'       ))
       episode      = str(Dict(episode_json, 'airedEpisodeNumber'))
-      if season!='0':
+      if season!='0':  
         abs_number = abs_number + 1
-        if   not Dict(episode_json, 'absoluteNumber'):                                   missing_abs_nb = True
+        if not Dict(episode_json, 'absoluteNumber'):  missing_abs_nb = True
         elif missing_abs_nb or Dict(episode_json, 'absoluteNumber')!=abs_number:  
           Log.Error("(s{}e{}) Abs number {:>3} different from readings ({}), possibly tv special".format(season, episode, abs_number, Dict(episode_json, 'absoluteNumber')))
           abs_manual_placement_info.append("s{}e{} = json abs ep {} / abs_number {}".format(season, episode, Dict(episode_json, 'absoluteNumber'), abs_number))
@@ -134,12 +134,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if int(time.strftime("%Y%m%d")) <= air_date+1:  pass  #Log.Warn("TheTVDB.GetMetadata() - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
         elif season=='0':                               tvdb_special_missing.append(episode);  Log.Info("TVDB l176 - type of episode_missing: " + type(episode_missing).__name__)
         else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering);  Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__)
-        Log.Info('[!] missing episode - anidb_numbering: {} numbering: {:>7} season: {:>2} episode: {:>3}'.format(anidb_numbering, numbering, season, episode))
+        Log.Info('[ ] numbering: {:>7} s{:0>2}e{:0>3}'.format(numbering, season, episode))
         
       ### File present on disk
       else:
-        Log.Info('[?] episode_json: {}'.format(episode_json))
-        Log.Info('[?] numbering: {} => s{:>1}e{:>3} abs_number: {}, title: {}'.format(numbering, season, episode, abs_number, Dict(episode_json, 'episodeName')))
+        #Log.Info('[?] episode_json: {}'.format(episode_json))
+        Log.Info('[X] numbering: {:>7} s{:0>2}e{:0>3} abs_number: {}, title: {}'.format(numbering, season, episode, abs_number, Dict(episode_json, 'episodeName')))
         if not anidb_numbering:  
           SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(serie_json  , 'rating'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
@@ -244,9 +244,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
               if bannerType == 'season':  
                 if anidb_numbering and ('1' if Dict(mappingList, 'defaulttvdbseason')=='a' else Dict(mappingList, 'defaulttvdbseason'))==str(image['subKey']):
-                  SaveDict(('TheTVDB/'+image['fileName'], rank,                                     thumbnail), TheTVDB_dict, metanames['poster'],       TVDB_IMG_ROOT + image['fileName'])
-                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==2 else 2 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '1', 'posters', TVDB_IMG_ROOT + image['fileName'])
-                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==3 else 3 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '0', 'posters', TVDB_IMG_ROOT + image['fileName'])
+                  #SaveDict(('TheTVDB/'+image['fileName'], rank,                                     thumbnail), TheTVDB_dict, metanames['poster'],       TVDB_IMG_ROOT + image['fileName'])
+                  #SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==2 else 2 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '1', 'posters', TVDB_IMG_ROOT + image['fileName'])
+                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==3 else 3 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '0' if str(image['subKey'])=='0' else '1', 'posters', TVDB_IMG_ROOT + image['fileName'])
                   Log.Info("[!] bannerType: {} subKey: {:>2} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
                 elif not anidb_numbering:  
                   season = str(int(image['subKey'])+(0 if Dict(mappingList, 'defaulttvdbseason')=="0" or not Dict(mappingList, 'defaulttvdbseason').isdigit() else int(Dict(mappingList, 'defaulttvdbseason'))-1))

@@ -658,7 +658,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
               UpdateMetaField(metadata, metadata.seasons[season], Dict(MetaSources, source, 'seasons', season), FieldListSeasons, field, source, movie, source_list)
               if field in count:  count[field] = count[field] + 1
               if field not in ['posters', 'art']:  break 
-          elif not source=="None": Log.Info("[!] '{}' source not in MetaSources".format(source))
+          elif not source=="None": Log.Info("[!] {} Sources: '{}' not in MetaSources".format(field, source))
         else:
           if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
       

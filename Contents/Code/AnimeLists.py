@@ -101,10 +101,11 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if AniDB_id and (movie or max(map(int, media.seasons.keys()))<=1):  break
       
   else:
+    Log.Info('#2 - TVDB_id: {}, TVDBid: {}'.format(TVDB_id, TVDBid))
     if not found:
       Log.Error("source '{}', id: '{}' not found in file".format(source, id))
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
-    AniDBid, TVDBid = '', ''
+      AniDBid, TVDBid = '', ''
   Log.Info('             -----          ------')
   Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDB_id2 or AniDBid, TVDB_id or TVDBid))
   #Log.Info('[=] mappingList: {}'.format(mappingList))
