@@ -107,7 +107,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   original                 = AniDBid
   
   language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
-  priority_posters = [  source.strip() for source   in Prefs['posters'               ].split(',')]
+  priority_posters = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   Log.Info('language_posters:  {}'.format(language_posters))
   
   ### Build the list of anidbids for files present ####
@@ -122,7 +122,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         if anidbid and not (new_season=='0' and new_episode=='0'):  SaveDict([numbering], AniDB_array, anidbid)
       else:  continue
   else: full_array, AniDB_array = [AniDBid], {AniDBid:[]}
-  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}".format(AniDBid, full_array))
+  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}, source: {}".format(AniDBid, full_array, source))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   
@@ -223,9 +223,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
-            Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType))
-            if season=='0' and episode=='0':   continue
-          
+            if season=='0' and episode=='0' or not season in media.seasons or not episode in media.seasons[season].episodes:   Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType));  continue
+            
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
                      
@@ -239,11 +238,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if not season in media.seasons or not episode in media.seasons[season].episodes:
               current_air_date = GetXml(ep_obj, 'airdate').replace('-','')
               current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
-              if int(time.strftime("%Y%m%d")) <= current_air_date+1:  Log.Warn("[!] Episode: {:>3} not in Plex but air date is {} ({})".format(episode, 'missing' if current_air_date==99999999 else 'not aired yet', current_air_date))  #; continue
+              if int(time.strftime("%Y%m%d")) <= current_air_date+1:  Log.Info("[!] Episode: {:>3} not in Plex but air date is {} ({})".format(episode, 'missing' if current_air_date==99999999 else 'not aired yet', current_air_date))  #; continue
               else:
                 if   epNumType == '1' and key:  SaveDict([numbering], movie_ep_groups, key)
                 elif epNumType in ['1', '2']:   SaveDict([episode], missing, season); 
-                Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType))
+                Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {} AniDB numbering'.format(numbering, season, episode, epNumType))
                 continue
                     
           ### Episodes
