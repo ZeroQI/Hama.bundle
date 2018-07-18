@@ -236,20 +236,19 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             
             #Episode missing from disk
             if not season in media.seasons or not episode in media.seasons[season].episodes:
+              Log.Info('[ ] {} => s{:>1}e{:>3} air_date: {}'.format(numbering, season, episode, GetXml(ep_obj, 'airdate')))
               current_air_date = GetXml(ep_obj, 'airdate').replace('-','')
               current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
-              if int(time.strftime("%Y%m%d")) <= current_air_date+1:  Log.Info("[!] Episode: {:>3} not in Plex but air date is {} ({})".format(episode, 'missing' if current_air_date==99999999 else 'not aired yet', current_air_date))  #; continue
-              else:
+              if int(time.strftime("%Y%m%d")) > current_air_date+1:
                 if   epNumType == '1' and key:  SaveDict([numbering], movie_ep_groups, key)
                 elif epNumType in ['1', '2']:   SaveDict([episode], missing, season); 
-                Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {} AniDB numbering'.format(numbering, season, episode, epNumType))
-                continue
+              continue
                     
           ### Episodes
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
           SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
-          Log.Info('[X] {} => s{:>1}e{:>3}, language_rank: {}, title: "{}"'.format(numbering, season, episode, language_rank, title))
+          Log.Info('[X] {} => s{:>1}e{:>3} air_date: {} language_rank: {}, title: "{}"'.format(numbering, season, episode, GetXml(ep_obj, 'airdate'), language_rank, title))
           
           if GetXml(ep_obj, 'length').isdigit():
             SaveDict(int(GetXml(ep_obj, 'length'))*1000*60, AniDB_dict, 'seasons', season, 'episodes', episode, 'duration')  # AniDB stores it in minutes, Plex save duration in millisecs
