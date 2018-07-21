@@ -1,20 +1,56 @@
-#Root
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/README.md"                    -OutFile "README.md"
+#If error running, oper powershell as admin
+#Get-ExecutionPolicy -Scope CurrentUser
+#Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
-#Contents
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Info.plist"          -OutFile "Contents/Info.plist"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/DefaultPrefs.json"   -OutFile "Contents/DefaultPrefs.json"
+$githuber   = "ZeroQI"
+$repository = "Hama.bundle"
+$branch     = "master"
+$download   = "https://github.com/$githuber/$repository/archive/$branch.zip"
+$zip        = $repository + ".zip"
+$folder     = $repository + "-$branch"
+$script     = "PowerShell Update Agent.ps1"
+#$file      = "CodeFormatter.zip"
+#$release   = "https://api.github.com/repos/$githuber/$repository/releases/$file"
 
-#Contents/Code
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/__init__.py"    -OutFile "Contents/Code/__init__.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/common.py"      -OutFile "Contents/Code/common.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/AnimeLists.py"  -OutFile "Contents/Code/AnimeLists.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/AniDB.py"       -OutFile "Contents/Code/AniDB.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TheTVDB.py"     -OutFile "Contents/Code/TheTVDB.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/FanartTV.py"    -OutFile "Contents/Code/FanartTV.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TheMovieDb.py"  -OutFile "Contents/Code/TheMovieDb.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/MyAnimeList.py" -OutFile "Contents/Code/MyAnimeList.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/TVTunes.py"     -OutFile "Contents/Code/TVTunes.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/OMDb.py"        -OutFile "Contents/Code/OMDb.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/Plex.py"        -OutFile "Contents/Code/Plex.py"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ZeroQI/Hama.bundle/master/Contents/Code/Local.py"       -OutFile "Contents/Code/Local.py"
+Write-Host
+Write-Host "$githuber/$repository Github repository $branch branch - $script"
+Write-Host [ ] Path: $PSScriptRoot
+  
+if (Test-Path README.md)
+{ Write-Host [*] copying "$script" to parent folder "..\$repository.ps1"
+  Copy-Item -Path "$script" -Destination "..\$repository.ps1"
+  Write-Host [*] Changing running parent folder to ..
+  Set-Location -Path ..
+  Write-Host [*] Running ".\$repository.ps1"
+  & ".\$repository.ps1"
+  exit
+}
+else
+{
+  Write-Host [*] Dowloading latest release from "$download" to "$zip"
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  Invoke-WebRequest -Uri $download -Out $zip
+
+  Write-Host [*] Extracting $zip to $folder
+  Expand-Archive -Path $zip -DestinationPath .\ -Force
+
+  Write-Host [*] Deleting $zip
+  Remove-Item $zip -Force
+  
+  if (Test-Path $repository-old)
+  { Write-Host [*] Deleting $repository-old as it was present 
+    Remove-Item $repository-old -Recurse -Force
+  }
+  
+  Write-Host [*] Moving  "$repository" to $repository-old
+  Move-Item $repository -Destination $repository-old -Force
+
+  Write-Host [*] Moving "$folder" to "$repository"
+  Move-Item $folder -Destination $repository -Force
+
+  Write-Host [*] Deleting "$repository.ps1"
+  Remove-Item  .\$repository.ps1 -Force 
+  
+  Write-Host
+  exit
+}
