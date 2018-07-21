@@ -236,23 +236,21 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
             for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
               
               #rank
-              #Log.Info('rating: {}'.format(Dict(image, "ratingsInfo", "average", default=0)))
-              rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], bannerTypes['poster'])[1] else count_valid[bannerType]+2
+              rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], Dict(bannerTypes, 'poster', default=0))[1] else count_valid[bannerType]+2
               if language  in language_posters:  rank = (rank//30)*30*language_posters.index(language)+rank%30
               if 'TheTVDB' in priority_posters:  rank = rank+ 6*priority_posters.index('TheTVDB')
               rank = rank + language_posters.index(language)*20
-              if AniDB_movie: rank = rank+bannerTypes['poster'] if rank+bannerTypes['poster']<99 else 99
+              if AniDB_movie: rank = rank+Dict(bannerTypes, 'poster', default=0) if rank+Dict(bannerTypes, 'poster', default=0)<99 else 99
               
               ### Adding picture ###
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
               Log.Info("[!] bannerType: {:>7} subKey: {:>9} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
               if bannerType=='season':  #tvdb season posters or anidb specials and defaulttvdb season  ## season 0 et empty+ season ==defaulttvdbseason(a=1)
-                if anidb_numbering:
-                  if str(image['subKey'] or 0) in ('1' if Dict(mappingList, 'defaulttvdbseason')=='a' else (mappingList, 'defaulttvdbseason'), '0'):
-                    SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==3 else 3 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '0' if str(image['subKey'])=='0' else '1' if anidb_numbering else str(image['subKey']), 'posters', TVDB_IMG_ROOT + image['fileName'])
-                    SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'posters', TVDB_IMG_ROOT + image['fileName'])
-                else:  SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', str(image['subKey']), 'posters', TVDB_IMG_ROOT + image['fileName'])
-              elif bannerType=='fanart' or not anidb_numbering or Dict(mappingList, 'defaulttvdbseason') in ('a', '1') or str(image['subKey'] or '1')==Dict(mappingList, 'defaulttvdbseason') or Dict(bannerTypes, 'season')==0 and bannerType=='poster':
+                if not anidb_numbering:  SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', str(image['subKey']), 'posters', TVDB_IMG_ROOT + image['fileName'])
+                elif str(image['subKey'] or 0) in ('1' if Dict(mappingList, 'defaulttvdbseason')=='a' else (mappingList, 'defaulttvdbseason'), '0'):
+                  SaveDict(('TheTVDB/'+image['fileName'], 1 if rank==3 else 3 if rank==1 else rank, thumbnail), TheTVDB_dict, 'seasons', '0' if str(image['subKey'])=='0' else '1' if anidb_numbering else str(image['subKey']), 'posters', TVDB_IMG_ROOT + image['fileName'])
+                  SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'posters', TVDB_IMG_ROOT + image['fileName'])
+              elif bannerType=='fanart' or not anidb_numbering or Dict(mappingList, 'defaulttvdbseason') in ('a', '1') or str(image['subKey'] or '1')==Dict(mappingList, 'defaulttvdbseason') or not Dict(bannerTypes, 'season') and bannerType=='poster':
                 SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, metanames[bannerType], TVDB_IMG_ROOT + image['fileName'])   #use art + posters tvdb
               #if bannerType == 'season':  
               #  if anidb_numbering and ('1' if Dict(mappingList, 'defaulttvdbseason')=='a' else Dict(mappingList, 'defaulttvdbseason'))==str(image['subKey']):
