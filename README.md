@@ -287,4 +287,4 @@ Feature Requests: ([X] to be included in next version)
 Note:
 - [X] to be included in next version
 - items removed from list once resolved in current code
-- Donation link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=S8CUKCX4CWBBG&lc=IE&item_name=ZeroQI&item_number=Absolute%20Series%20Scanner%20%2b%20Http%20AniDB%20Metadata%20Agent&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
+- [Donation link](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=S8CUKCX4CWBBG&lc=IE&item_name=ZeroQI&item_number=Absolute%20Series%20Scanner%20%2b%20Http%20AniDB%20Metadata%20Agent&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
