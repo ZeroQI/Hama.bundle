@@ -15,6 +15,7 @@
   { "id": "studio",                   "label": "T--M 'studio'",                   "type": "text",  "default": "AnimeLists, AniDB, TheTVDB, TheMovieDb"                         },
   { "id": "tagline",                  "label": "T--M 'tagline'",                  "type": "text",  "default": "TheMovieDb"                                                     },
   { "id": "summary",                  "label": "TSEM 'summary'",                  "type": "text",  "default": "TheTVDB, AniDB"                                                 },
+  { "id": "similar",                  "label": "---- 'similar'",                  "type": "text",  "default": "None"                                                 },
   { "id": "directors",                "label": "--EM 'directors'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
   { "id": "producers",                "label": "--EM 'producers'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
   { "id": "countries",                "label": "T--M 'countries",                 "type": "text",  "default": "TheMovieDb"                                                     },

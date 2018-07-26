@@ -603,6 +603,10 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   count     = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   #posters=[]
+  
+  #fields = metadata.attrs.keys()
+  #if 'seasons' in fields:  fields.remove('seasons')
+  
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
@@ -624,7 +628,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
       if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
-      elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources=Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
+      elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources='' if field==season else Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
     
     #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())
         
@@ -649,7 +653,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
       source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
       new_season  = season
-      for field in FieldListSeasons:
+      for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
         for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
           if source in MetaSources:
@@ -660,7 +664,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
               if field not in ['posters', 'art']:  break 
           elif not source=="None": Log.Info("[!] {} Sources: '{}' not in MetaSources".format(field, source))
         else:
-          if not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
+          if not Dict(count, field) and Dict(Prefs, field)!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources='' if field=='seasons' else Prefs[field], source_list=source_list))
       
       ### Episodes ###
       languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
@@ -668,7 +672,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
         new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
         source_title, title, rank = '', '', len(languages)+1
-        for field in FieldListEpisodes:  # Get a field
+        for field in FieldListEpisodes:  # metadata.seasons[season].episodes[episode].attrs.keys()
           meta_old     = getattr(metadata.seasons[season].episodes[episode], field)
           source_list  = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', new_season, 'episodes', new_episode, field) ]
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
@@ -687,7 +691,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
           else:
             if field=='title' and source_title:                                    UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source_title, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source_title, movie, source_list)
-            elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources=Prefs[field], source_list=source_list))
+            elif not Dict(count, field) and field!='seasons' and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}".format(field=field, sources='' if field=='seasons' else Prefs[field], source_list=source_list))
         if field=='thumbs':    metadata.seasons[season].episodes[episode].thumbs.validate_keys(meta_new.keys())
         # End Of for field
       # End Of for episode
