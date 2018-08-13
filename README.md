@@ -20,6 +20,7 @@ Here are HAMA agent features:
     * Collection mapping from ScudLee's movie collection ammended with AniDB RelatedAnime field
     * Unique posters by using the anidbid rank in the mapping to rotate the posters
     * when a serie is not found in AniDB, search TVDB and TMDB automatically
+    * Trakt scrobbling supports Hama guids
 
 Local Media Assets
 ==================
