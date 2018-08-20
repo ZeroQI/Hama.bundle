@@ -33,8 +33,7 @@ def ValidatePrefs():
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
   filename       = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
   if os.path.isfile(filename):
-    try:  ### Load 'DefaultPrefs.json' to have access to default settings ###
-      with open(filename, 'r') as file:  json = JSON.ObjectFromString(file.read(), encoding=None)
+    try:   json = JSON.ObjectFromString(Core.storage.load(filename), encoding=None)  ### Load 'DefaultPrefs.json' to have access to default settings ###
     except Exception as e:  json = None; Log.Info("Error :"+str(e)+", filename: "+filename)
     if json:
       Log.Info ("Loaded: "+filename)

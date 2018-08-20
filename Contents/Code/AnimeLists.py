@@ -89,9 +89,18 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
           Log.Info("    - season: [{:>2}],           [{:>2}], range:      [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, (season.text or '').strip(';')))
-          for ep in range(int(start), int(end)+1)        if start       else []:  SaveDict((anidbseason, ep,               AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
-          for ep in filter(None, season.text.split(';')) if season.text else []:  SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
-      
+          for ep in range(int(start), int(end)+1)        if start       else []:
+            #Log.Info("[?] start: {}, end: {}, ep: {}".format(start, end, ep))
+            if not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset))):
+              SaveDict((anidbseason, ep,               AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
+            #else: Log.Info("already present")
+          for ep in filter(None, season.text.split(';')) if season.text else []:
+            if not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
+              SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
+            #elif '-' not in (mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
+            #  SaveDict((anidbseason, Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])[1]+'-'+ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])
+            #  Log.Info("already present so converting to range but range not supported")
+          
       elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
       elif TVDBid in ("", "unknown", None):
         error_log['anime-list TVDBid missing'].append("AniDBid: %s | Title: '%s' | Has no matching TVDBid ('%s') in mapping file | " % (AniDB_id, "title", TVDBid) + common.WEB_LINK % (MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags( XML.StringFromElement(anime, encoding='utf8')) ), "Submit bug report"))

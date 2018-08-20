@@ -12,7 +12,7 @@
 
   <!-- This one does nothing with a value of Always On, but using a value of "daemon" keeps the plugin alive in the background -->	
   <key>PlexPluginMode</key>
-  <string>daemon</string>
+  <string>Agent</string>
 
   <!-- List any client platforms supported in the plugin. -->	
   <!-- Possible values are * for all platforms, MacOSX, Windows, Linux, Roku, Android, iOS, Safari, Firefox, Chrome, LGTV, Samsung, PlexConnect and Plex Home Theater -->

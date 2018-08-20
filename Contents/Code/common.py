@@ -47,21 +47,16 @@ HEADERS           = {'User-agent': 'Plex/Nine', 'Content-type': 'application/jso
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-Log.Info("Library: "+PlexRoot)  #Log.Info(file)
-if os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
-  Log.Info("'X-Plex-Token.id' file present")
-  token_file=Data.Load(os.path.join(PlexRoot, "X-Plex-Token.id"))
-  if token_file:
-    PLEX_LIBRARY_URL += "?X-Plex-Token=" + token_file.strip()
-    #Log.Info(PLEX_LIBRARY_URL) ##security risk if posting logs with token displayed
 try:
-  library_xml = etree.fromstring(urllib2.urlopen(PLEX_LIBRARY_URL).read())
-  for library in library_xml.iterchildren('Directory'):
-    for path in library.iterchildren('Location'):
-      PLEX_LIBRARY[path.get("path")] = library.get("title")
-      Log.Info( path.get("path") + " = " + library.get("title") )
-except Exception as e:  Log.Info("Exception: '{}' - Place correct Plex token in X-Plex-Token.id file in logs folder or in PLEX_LIBRARY_URL variable to have a log per library - https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token".format(e))
- 
+  library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, timeout=float(30))
+  Log.Info('Libraries: ')
+  for directory in library_xml.iterchildren('Directory'):
+    for location in directory:
+      Log.Info('[{}] id: {:>2}, type: {:>6}, library: {:<24}, path: {}'.format(' ', directory.get("key"), directory.get('type'), directory.get('title'), location.get("path")))
+      PLEX_LIBRARY[location.get("path")] = directory.get("title")
+      #library_key, library_path, library_name = directory.get("key"), location.get("path"), directory.get('title')
+except Exception as e:  Log.Info("PLEX_LIBRARY_URL - Exception: '{}'".format(e));  library_key, library_path, library_name = '', '', ''
+
 ### Get media directory ###
 def GetMediaDir (media, movie, file=False):
   if movie:  return os.path.dirname(media.items[0].parts[0].file)
