@@ -275,7 +275,7 @@ Support thread for agent:
 
 Bugs Fixes
 ==========
-- [ ] ?
+- [ ] To add drop down menu for single season default metadata source selection for specials: anidb or tvdb 
 
 Feature Requests: ([X] to be included in next version)
 =================
