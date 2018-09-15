@@ -275,7 +275,7 @@ Support thread for agent:
 
 Bugs Fixes
 ==========
-- [ ] ?
+- [ ] https://github.com/ZeroQI/Hama.bundle/issues/245 Anidb poster priority to fix
 
 Feature Requests: ([X] to be included in next version)
 =================
