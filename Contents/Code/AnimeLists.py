@@ -56,14 +56,13 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
   AniDB_id2, TVDB_id2 = '', ''
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
+    if (anime.get("anidbid", "")=='' or anime.get("anidbid", "") != AniDB_id) and (anime.get('tvdbid' , "")=='' or anime.get('tvdbid' , "") !=TVDB_id):  continue  
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
-    if (not AniDBid or AniDBid != AniDB_id) and (not TVDBid or TVDBid !=TVDB_id):  continue  #if not (AniDB_id and AniDBid == AniDB_id) and not(TVDB_id and TVDB_id == TVDBid):  continue
-    
-    found = True
-    Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
+    found   = True
     if not tvdb_numbering and not TVDB_id:                                                                                                                         TVDB_id   = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
+    Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
@@ -79,7 +78,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
       
     ### TheTVDB numbered series ###
-    if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1:  #In case AniDB guid but multiple seasons
+    if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1 and AniDB_id=='':  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         if anime.get('defaulttvdbseason'):
           if anime.get('defaulttvdbseason')in ['a', '1']:  
@@ -110,7 +109,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if AniDB_id and (movie or max(map(int, media.seasons.keys()))<=1):  break
       
   else:
-    Log.Info('#2 - TVDB_id: {}, TVDBid: {}'.format(TVDB_id, TVDBid))
+    #Log.Info('#2 - TVDB_id: {}, TVDBid: {}'.format(TVDB_id, TVDBid))
     if not found:
       Log.Error("source '{}', id: '{}' not found in file".format(source, id))
       error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))

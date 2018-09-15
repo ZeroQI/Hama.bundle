@@ -195,8 +195,9 @@ def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not i
   try:     return var[index]
   except:  return '' 
   
-def Dict(var, *arg, **kwarg):  #Avoid TypeError: argument of type 'NoneType' is not iterable
+def Dict(var, *arg, **kwarg):
   """ Return the value of an (imbricated) dictionnary, if all fields exist else return "" unless "default=new_value" specified as end argument
+      Avoid TypeError: argument of type 'NoneType' is not iterable
       Ex: Dict(variable_dict, 'field1', 'field2', default = 0)
   """
   for key in arg:
@@ -435,7 +436,7 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
   """ Add genre tags: Status, Extension, Dubbed/Subbed
   """
   tags = []
-  if movie:  file = media.items[0].parts[0]    
+  if movie:  file = media.items[0].parts[0].file  
   else:
     s = media.seasons.keys()[0] if media.seasons.keys()[0]!='0' else media.seasons.keys()[1] if len(media.seasons.keys()) >1 else None
     if s:

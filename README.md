@@ -168,9 +168,9 @@ Folders to copy in Plex main folder:
     			 https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
     * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
     * "Plug-ins support" https://github.com/ZeroQI/Hama.bundle/releases/tag/v1.0 > Plug-Ins.support.folders.7z Agent data folders (Plug-ins support/Data/com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
-    * "Logs"             "X-Plex-Token.id"      Put the url token inside from a video item "view xml" to have a log per library (optional but do not include it when sendings logs) [https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token]
-    Some PMS verions (Windows) do not need require authentication to give access to the library XML file (Windows ?)
 
+    token id file is no longer required as XML.ElementFromURL() is always authenticated
+    
 Here is how to find the plug-in folder location:
 https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-
 
@@ -275,14 +275,12 @@ Support thread for agent:
 
 Bugs Fixes
 ==========
-- [ ] To add drop down menu for single season default metadata source selection for specials: anidb or tvdb 
+- [ ] ?
 
 Feature Requests: ([X] to be included in next version)
 =================
 - [ ] Package of Studio Logos. Wiki link https://github.com/ZeroQI/Hama.bundle/wiki/Plex-Studio-Icons.
 - [ ] Package of 30s long Theme Songs, local loading works, name convention: Data/com.plexapp.agents.hama/DataItems/Plex/anidbid.mp3
-- [ ] Add RSS links to AniDB missing episodes summary
-- [ ] sync the watch state in Plex with the watch state on aniDB?
 - [ ] Any ideas ?
 
 Note:
