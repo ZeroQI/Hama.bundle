@@ -9,8 +9,6 @@ $download   = "https://github.com/$githuber/$repository/archive/$branch.zip"
 $zip        = $repository + ".zip"
 $folder     = $repository + "-$branch"
 $script     = "PowerShell Update Agent.ps1"
-#$file      = "CodeFormatter.zip"
-#$release   = "https://api.github.com/repos/$githuber/$repository/releases/$file"
 
 Write-Host
 Write-Host "$githuber/$repository Github repository $branch branch - $script"
@@ -27,6 +25,16 @@ if (Test-Path README.md)
 }
 else
 {
+  if (Test-Path $repository-old)
+  { Write-Host [*] Deleting $repository-old as it was present 
+    Remove-Item $repository-old -Recurse -Force
+  }
+  
+  if (Test-Path $repository)
+  { Write-Host [*] Moving  "$repository" to $repository-old
+    Move-Item $repository -Destination $repository-old -Force
+  }
+  
   Write-Host [*] Dowloading latest release from "$download" to "$zip"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   Invoke-WebRequest -Uri $download -Out $zip
@@ -34,23 +42,17 @@ else
   Write-Host [*] Extracting $zip to $folder
   Expand-Archive -Path $zip -DestinationPath .\ -Force
 
-  Write-Host [*] Deleting $zip
-  Remove-Item $zip -Force
-  
-  if (Test-Path $repository-old)
-  { Write-Host [*] Deleting $repository-old as it was present 
-    Remove-Item $repository-old -Recurse -Force
-  }
-  
-  Write-Host [*] Moving  "$repository" to $repository-old
-  Move-Item $repository -Destination $repository-old -Force
-
   Write-Host [*] Moving "$folder" to "$repository"
   Move-Item $folder -Destination $repository -Force
 
-  Write-Host [*] Deleting "$repository.ps1"
-  Remove-Item  .\$repository.ps1 -Force 
+  Write-Host [*] Deleting $zip
+  Remove-Item $zip -Force
   
+  if (Test-Path .\$repository.ps1)
+  { Write-Host [*] Deleting "$repository.ps1"
+    Remove-Item  .\$repository.ps1 -Force
+  }
+    
   Write-Host
   exit
 }
