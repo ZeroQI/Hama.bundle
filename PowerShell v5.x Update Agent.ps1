@@ -8,7 +8,7 @@ $branch     = "master"
 $download   = "https://github.com/$githuber/$repository/archive/$branch.zip"
 $zip        = $repository + ".zip"
 $folder     = $repository + "-$branch"
-$script     = "PowerShell Update Agent.ps1"
+$script     = "PowerShell v5.x Update Agent.ps1"
 
 Write-Host
 Write-Host "$githuber/$repository Github repository $branch branch - $script"
