@@ -23,6 +23,9 @@ def GetMetadata(media, movie):
   
     Log.Info('Local.GetMetadata() - dir: {}, library:{}, root:{}, path:{}'.format(dir, library, root, path))
     series_root_folder  = os.path.join(root, path.split(os.sep, 1)[0])
+    if not os.path.exists(series_root_folder):
+      Log.Info('Local.GetMetadata() - files are currently inaccessible')
+      return Local_dict
     subfolder_count     = len([file for file in os.listdir(series_root_folder) if os.path.isdir(os.path.join(series_root_folder, file))])
     Log.Info('Local.GetMetadata() - series_root_folder: {}, subfolder_count: {}'.format(series_root_folder, subfolder_count))
     
