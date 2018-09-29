@@ -736,6 +736,7 @@ def AdjustMapping(source, mappingList):
     return False
 
   Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+  is_modified   = False
   TVDB          = Dict(mappingList, 'TVDB',          default={})
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
@@ -771,6 +772,7 @@ def AdjustMapping(source, mappingList):
         new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to the TVDB season 1 AniDB prequel 
 
     if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
+      is_modified = True
       for key in TVDB.keys():
         if not key.startswith("s"):  continue  # As there are anidb id keys
         if source=="tvdb6" and key.startswith('s'+str(new_season)) and id in TVDB[key]:
@@ -789,4 +791,4 @@ def AdjustMapping(source, mappingList):
       Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
-  return True
+  return is_modified
