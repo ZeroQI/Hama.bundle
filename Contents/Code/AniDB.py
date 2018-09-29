@@ -106,12 +106,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   
+  Log.Info("".ljust(157, '-'))
   language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
   priority_posters = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   Log.Info('language_posters:  {}'.format(language_posters))
   
   ### Build the list of anidbids for files present ####
-  Log.Info("".ljust(157, '-'))
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else {}
@@ -127,7 +127,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
-  for AniDBid in AniDB_array:
+  for AniDBid in full_array:
     Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
     Log.Info('AniDBid: {}, url: {}'.format(AniDBid, ANIDB_HTTP_API_URL+AniDBid))
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
@@ -135,7 +135,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
-      if AniDBid==original or len(AniDB_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
+      if AniDBid==original or len(full_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
         SaveDict(title,          AniDB_dict, 'title'         )
         SaveDict(original_title, AniDB_dict, 'original_title')
         SaveDict(language_rank,  AniDB_dict, 'language_rank' )
@@ -276,6 +276,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
       ### End of if not movie ###
     
+      # Generate relations_map for anidb3/4(tvdb1/6) modes
+      for relatedAnime in xml.xpath('/anime/relatedanime/anime'):
+        if relatedAnime.get('id') not in Dict(mappingList, 'relations_map', AniDBid, relatedAnime.get('type'), default=[]): SaveDict([relatedAnime.get('id')], mappingList, 'relations_map', AniDBid, relatedAnime.get('type'))
+
       # External IDs
       ANNid = GetXml(xml, "/anime/resources/resource[@type='1']/externalentity/identifier")
       MALid = GetXml(xml, "/anime/resources/resource[@type='2']/externalentity/identifier")
@@ -290,6 +294,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     
       Log.Info("ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   
+  Log.Info("relations_map: {}".format(Dict(mappingList, 'relations_map')))
+
   #Log.Info(str(AniDB_dict))
   return AniDB_dict, ANNid, MALid
 
