@@ -116,6 +116,8 @@ def Update(metadata, media, lang, force, movie):
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid) if Prefs['OMDbApiKey'] not in ('None', '', 'N/A') else {}  #TVDBid=='hentai'
   dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid ) if MALid                                          else {} #
   dict_Local                                                    =       Local.GetMetadata(media, movie)
+  if common.AdjustMapping(source, mappingList):
+    dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
   common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
