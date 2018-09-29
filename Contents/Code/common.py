@@ -720,3 +720,73 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+def AdjustMapping(source, mappingList):
+  # EX:
+  # TVDB: {'s0e5': ('1', '4', '9453'), 's3e9': ('1', '10', '9183'), 's0e3': ('1', '2', '9453'), 's4': {'11350': '0'}, 's3e20': ('1', '23', '9183'), 's3e21': ('1', '24', '9183'), 's3e22': ('1', '25', '9183'), 's3e23': ('1', '26', '9183'), 's3e5': ('1', '5', '9183'), 's3e4': ('1', '4', '9183'), 's3e7': ('1', '8', '9183'), 's3e6': ('1', '7', '9183'), 's3e1': ('1', '1', '9183'), 's3e3': ('1', '3', '9183'), 's3e2': ('1', '2', '9183'), 's3': {'9183': '0'}, 's2': {'8658': '0'}, 's1': {'6327': '0'}, 's0': {'10891': '0', '10046': '0', '9453': '0', '8357': '0', '11827': '20', '13033': '32'}, 's0e2': ('1', '1', '8357'), 's3e8': ('1', '9', '9183'), 's0e0': ('1', '1', '9453'), 's0e1': ('0', '4', '6327'), 's0e15': ('1', '1', '10891'), 's1e15': ('0', '3', '6327'), 's1e14': ('0', '2', '6327'), 's1e13': ('0', '1', '6327'), 's0e13': ('1', '5', '10046'), 's0e20': ('1', '3', '8357'), 's3e15': ('1', '18', '9183'), 's3e14': ('1', '17', '9183'), 's3e17': ('1', '20', '9183'), 's3e16': ('1', '19', '9183'), 's3e11': ('1', '13', '9183'), 's3e10': ('1', '12', '9183'), 's3e13': ('1', '15', '9183'), 's3e12': ('1', '14', '9183'), 's3e19': ('1', '22', '9183'), 's3e18': ('1', '21', '9183'), 's0e8': ('1', '11', '9183'), 's0e9': ('1', '16', '9183'), 's0e4': ('1', '3', '9453'), 's0e14': ('1', '6', '10046'), 's0e6': ('1', '5', '9453'), 's0e16': ('1', '3', '10891'), 's0e17': ('1', '4', '10891'), 's0e10': ('1', '1', '10046'), 's0e11': ('1', '3', '10046'), 's0e12': ('1', '4', '10046'), 's0e7': ('1', '6', '9183'), 's0e18': ('1', '5', '10891'), 's0e19': ('1', '2', '8357')}
+  #   's0': {'10891': '0', '10046': '0', '9453': '0', '8357': '0', '11827': '20', '13033': '32'}
+  #   's0e5': ('1', '4', '9453')
+  #   's4': {'11350': '0'}
+  # relations_map: {'11827': {'Parent Story': ['6327', '8658', '9183', '10891']}, '11350': {'Sequel': ['13033'], 'Parent Story': ['9183']}, '9453': {'Sequel': ['6327'], 'Prequel': ['8357']}, '6327': {'Side Story': ['11827'], 'Sequel': ['8658'], 'Prequel': ['9453']}, '8658': {'Side Story': ['11827'], 'Sequel': ['9183'], 'Prequel': ['6327']}, '9183': {'Side Story': ['11350', '11827'], 'Sequel': ['10891'], 'Prequel': ['8658']}, '13033': {'Other': ['13691'], 'Prequel': ['11350']}, '8357': {'Sequel': ['9453']}}
+  # season_map: {'max_season': 5, '10891': {'max': 0, 'min': 0}, '11350': {'max': 4, 'min': 4}, '10046': {'max': 0, 'min': 0}, '9453': {'max': 0, 'min': 0}, '6327': {'max': 1, 'min': 1}, '8658': {'max': 2, 'min': 2}, '9183': {'max': 3, 'min': 3}, '13033': {'max': 0, 'min': 0}, '11827': {'max': 0, 'min': 0}, '8357': {'max': 0, 'min': 0}}
+
+  Log.Info("".ljust(157, '-')) 
+  if source not in ['tvdb', 'tvdb6']:
+    Log.Info("common.AdjustMapping() - source is neither 'tvdb' nor 'tvdb6'") 
+    return False
+
+  Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+  TVDB          = Dict(mappingList, 'TVDB',          default={})
+  season_map    = Dict(mappingList, 'season_map',    default={})
+  relations_map = Dict(mappingList, 'relations_map', default={})
+  
+  Log.Info("season_map: {}".format(season_map))
+  Log.Info("relations_map: {}".format(relations_map))
+  Log.Info("TVDB Before: {}".format(TVDB))
+
+  for id in season_map:
+    new_season, new_episode = '', ''
+    if id == 'max_season':  continue
+    Log.Info("Checking AniDBid: %s" % id)
+    def get_prequel_info(prequel_id):
+      Log.Info("-- get_prequel_info(prequel_id): %s, season min: %s, season max: %s" % (prequel_id, season_map[prequel_id]['min'], season_map[prequel_id]['max']))
+      if source=="tvdb":
+        if season_map[prequel_id]['min'] == 0 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
+          a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
+          return (a, b+100) if a < season_map['max_season'] else (a+1, 0)  # If the prequel is < max season, add 100 to the episode number offset: Else, add it into the next new season at episode 0
+        if season_map[prequel_id]['min'] == 0:                          return ('', '')                              # Root prequel is a special so leave mapping alone as special
+        elif season_map[prequel_id]['max'] < season_map['max_season']:  return (season_map[prequel_id]['max'], 100)  # Root prequel season is < max season so add to the end of the Prequel season
+        else:                                                           return (season_map['max_season']+1, 0)       # Root prequel season is >= max season so add to the season after max
+      if source=="tvdb6":
+        if season_map[prequel_id]['min'] != 1 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
+          a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
+          #Log.Info("%s+%s+%s-%s" % (a,1,season_map[prequel_id]['max'],season_map[prequel_id]['min']))
+          return (a+1+season_map[prequel_id]['max']-season_map[prequel_id]['min'], 0) if str(a).isdigit() else ('', '') # Add 1 to the season number and start at episode 0
+        return (2, 0) if season_map[prequel_id]['min'] == 1 else ('', '')              # Root prequel is season 1 so start counting up. Else was a sequel of specials only so leave mapping alone
+    if source=="tvdb":
+      if season_map[id]['min'] == 0 and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to a TVDB season non-0 AniDB prequel 
+    if source=="tvdb6":
+      if 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to the TVDB season 1 AniDB prequel 
+
+    if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
+      for key in TVDB.keys():
+        if not key.startswith("s"):  continue  # As there are anidb id keys
+        if source=="tvdb6" and key.startswith('s'+str(new_season)) and id in TVDB[key]:
+          Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
+          del TVDB[key][id]; continue  # Delete what is in its' new inserted season location
+        if isinstance(TVDB[key], dict)  and id in TVDB[key]:
+          Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
+          del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
+        if isinstance(TVDB[key], tuple) and TVDB[key][0] == 1 and TVDB[key][2] == id:
+          Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
+          del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
+      #SaveDict({id: str(new_episode)}, TVDB, 's'+str(new_season))
+      newDict     = Dict(TVDB, 's'+str(new_season), default={})
+      newDict[id] = str(new_episode)
+      SaveDict(newDict, TVDB, 's'+str(new_season))
+      Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
+
+  Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
+  return True
