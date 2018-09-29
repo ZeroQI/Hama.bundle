@@ -172,7 +172,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   debug             = False
   if debug:  Log.Info('[?] #1 season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
-  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
+  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason') if not Dict(mappingList, 'TVDB', 'sa') else "1"
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   for item in Dict(mappingList, 'TVDB') or {}:
     # mappingList: {'TVDB': {'s3': {'13485': '0'}, 's2': {'12233': '0'}, 's1': {'11739': '0'}, 's0': {'12344': '0'}}, 'defaulttvdbseason': '1'}
@@ -195,9 +195,8 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   
   # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
   elif season=='1':
-    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}'.format(key, mappingList, defaulttvdbseason        ))
-    if not Dict(mappingList, 'TVDB') or not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
-    if     Dict(mappingList, 'TVDB', 'sa'):                                                                          mapping = ('1', str(int(episode) + int(episodeoffset)))
+    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(key, mappingList, defaulttvdbseason, episodeoffset))
+    mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
   else:
     Log.Info('[!] error {}'.format(key))
     
