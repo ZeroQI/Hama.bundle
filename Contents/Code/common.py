@@ -792,7 +792,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
       Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
 
       # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
-      if source=="tvdb6":
+      if source=="tvdb6" and new_season != season_map[id]['min']:
         Log.Info("-- dict_TheTVDB Seasons Before : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
         dict_TheTVDB_top_season = max(map(int, Dict(dict_TheTVDB, 'seasons').keys()))
         while dict_TheTVDB_top_season >= new_season:
