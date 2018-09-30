@@ -35,6 +35,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   Log.Info("".ljust(157, '-'))
   if not TVDBid.isdigit(): Log.Info('TheTVDB.GetMetadata() - TVDBid empty');  return {}, IMDbid
   TheTVDB_dict      = {}
+  max_season        = 0
   anidb_numbering   = metadata_source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
   anidb_prefered    = anidb_numbering and Dict(mappingList, 'defaulttvdbseason') not in ('a', '1')
   language_series   = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['SerieLanguagePriority'  ].split(',') ]
@@ -113,6 +114,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           missing_abs_nb = False
           abs_number     = Dict(episode_json, 'absoluteNumber')
           
+      # Get the max season number from TVDB API
+      if int(season) > max_season:  max_season = int(season)
+
       ### Missing summaries logs ###
       numbering = "s{}e{}".format(season, episode)
       if Dict(episode_json, 'overview'):  summary_present.append(numbering)
@@ -197,6 +201,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         #Log.Info('[?] numbering: {} => s{:>1}e{:>3} language_rank: {:>1}, title: "{}"'.format(numbering, season, episode, rank, title))
         Log.Info('-------------')
             
+    # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
+    for entry in mappingList['season_map']:
+      mappingList['season_map'][entry] = {'min': 1, 'max': max_season} if mappingList['season_map'][entry]['min'] == 'a' else {'min': int(mappingList['season_map'][entry]['min']), 'max': int(mappingList['season_map'][entry]['max'])}
+    SaveDict(max_season, mappingList, 'season_map', 'max_season')
+    Log.Info("season_map: {}".format(Dict(mappingList, 'season_map')))
+
     ### Collection ###  # get all anidbids sharing the same tvdbids
     if not movie:
       ### Logging ###

@@ -168,7 +168,7 @@ def GetXml          (xml,      field                ):  return xml.xpath(field)[
 def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
 def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
 def LevenshteinRatio(first, second                  ):  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
-def natural_sort_key(s                              ):  return [int(text) if text.isdigit() else text for text in re.split(re.compile('([0-9]+)'), str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
+def natural_sort_key(s                              ):  return [int(text) if text.isdigit() else text for text in re.split(r'([0-9]+)', str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
 def replaceList     (string, a, b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
@@ -382,8 +382,8 @@ def cleanse_title(string):
   except:    pass
   else:      
     if not string2.count('?'): string=string2
-  while re.match(".*\([^\(\)]*?\).*", string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
-  while re.match(".*\[.*\].*",        string):  string = re.sub(r'\[[^\[\]]*\]',  ' ', string)  # string = "qwerty [asdf] zxcv [vbnm] ghjk [tyui]" > 'qwerty   zxcv   ghjk  ', string = "qwerty [asdf zxcv [vbnm] ghjk tyui]"   > 'qwerty  '
+  while re.search(r'\([^\(\)]*?\)', string):  string = re.sub(r'\([^\(\)]*?\)', ' ', string)  
+  while re.search(r'\[[^\[\]]*?\]', string):  string = re.sub(r'\[[^\[\]]*?\]', ' ', string)  # string = "qwerty [asdf] zxcv [vbnm] ghjk [tyui]" > 'qwerty   zxcv   ghjk  ', string = "qwerty [asdf zxcv [vbnm] ghjk tyui]"   > 'qwerty  '
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
   
 def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
@@ -427,7 +427,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
-    try:     Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub("<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
+    try:     Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub(r"<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
     except Exception as e:  Log.Error("Exception: '%s'" % e)
     
     netLocked[log] = (False, 0)
@@ -720,3 +720,87 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+def AdjustMapping(source, mappingList, dict_TheTVDB):
+  # EX:
+  # season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
+  # relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
+  # TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
+  #   's0e5': ('1', '4', '9453')
+  #   's1': {'12560': '0'}
+  #   '13950': (0, '')
+
+  Log.Info("".ljust(157, '-')) 
+  if source not in ['tvdb', 'tvdb6']:
+    Log.Info("common.AdjustMapping() - source is neither 'tvdb' nor 'tvdb6'") 
+    return False
+
+  Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+  is_modified   = False
+  TVDB          = Dict(mappingList, 'TVDB',          default={})
+  season_map    = Dict(mappingList, 'season_map',    default={})
+  relations_map = Dict(mappingList, 'relations_map', default={})
+  
+  #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
+  Log.Info("season_map: {}".format(season_map))
+  Log.Info("relations_map: {}".format(relations_map))
+  Log.Info("TVDB Before: {}".format(TVDB))
+
+  for id in season_map:
+    new_season, new_episode = '', ''
+    if id == 'max_season':  continue
+    Log.Info("Checking AniDBid: %s" % id)
+    def get_prequel_info(prequel_id):
+      Log.Info("-- get_prequel_info(prequel_id): %s, season min: %s, season max: %s" % (prequel_id, season_map[prequel_id]['min'], season_map[prequel_id]['max']))
+      if source=="tvdb":
+        if season_map[prequel_id]['min'] == 0 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
+          a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
+          return (a, b+100) if a < season_map['max_season'] else (a+1, 0)  # If the prequel is < max season, add 100 to the episode number offset: Else, add it into the next new season at episode 0
+        if season_map[prequel_id]['min'] == 0:                          return ('', '')                              # Root prequel is a special so leave mapping alone as special
+        elif season_map[prequel_id]['max'] < season_map['max_season']:  return (season_map[prequel_id]['max'], 100)  # Root prequel season is < max season so add to the end of the Prequel season
+        else:                                                           return (season_map['max_season']+1, 0)       # Root prequel season is >= max season so add to the season after max
+      if source=="tvdb6":
+        if season_map[prequel_id]['min'] != 1 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
+          a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
+          #Log.Info("%s+%s+%s-%s" % (a,1,season_map[prequel_id]['max'],season_map[prequel_id]['min']))
+          return (a+1+season_map[prequel_id]['max']-season_map[prequel_id]['min'], 0) if str(a).isdigit() else ('', '') # Add 1 to the season number and start at episode 0
+        return (2, 0) if season_map[prequel_id]['min'] == 1 else ('', '')              # Root prequel is season 1 so start counting up. Else was a sequel of specials only so leave mapping alone
+    if source=="tvdb":
+      if season_map[id]['min'] == 0 and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to a TVDB season non-0 AniDB prequel 
+    if source=="tvdb6":
+      if 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to the TVDB season 1 AniDB prequel 
+
+    if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
+      is_modified = True
+      for key in TVDB.keys():
+        if not key.startswith("s"):  continue  # As there are anidb id keys
+        if source=="tvdb6" and key.startswith('s'+str(new_season)) and id in TVDB[key]:
+          Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
+          del TVDB[key][id]; continue  # Delete what is in its' new inserted season location
+        if isinstance(TVDB[key], dict)  and id in TVDB[key]:
+          Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
+          del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
+        if isinstance(TVDB[key], tuple) and TVDB[key][0] == 1 and TVDB[key][2] == id:
+          Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
+          del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
+      #SaveDict({id: str(new_episode)}, TVDB, 's'+str(new_season))
+      newDict     = Dict(TVDB, 's'+str(new_season), default={})
+      newDict[id] = str(new_episode)
+      SaveDict(newDict, TVDB, 's'+str(new_season))
+      Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
+
+      # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
+      if source=="tvdb6" and new_season != season_map[id]['min']:
+        Log.Info("-- dict_TheTVDB Seasons Before : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+        dict_TheTVDB_top_season = max(map(int, Dict(dict_TheTVDB, 'seasons').keys()))
+        while dict_TheTVDB_top_season >= new_season:
+          if str(dict_TheTVDB_top_season) in dict_TheTVDB['seasons']:
+            Log.Info("---- Adjusting season '{}' -> '{}'".format(dict_TheTVDB_top_season, dict_TheTVDB_top_season+1))
+            dict_TheTVDB['seasons'][str(dict_TheTVDB_top_season+1)] = dict_TheTVDB['seasons'].pop(str(dict_TheTVDB_top_season))
+          dict_TheTVDB_top_season = dict_TheTVDB_top_season - 1
+        Log.Info("-- dict_TheTVDB Seasons AFter  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+
+  Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
+  return is_modified

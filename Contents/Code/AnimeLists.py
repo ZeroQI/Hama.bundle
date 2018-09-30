@@ -60,8 +60,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
     found   = True
-    if not tvdb_numbering and not TVDB_id:                                                                                                                         TVDB_id   = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit()and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
+    if not tvdb_numbering and not TVDB_id:                                                                                                                          TVDB_id   = TVDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
     ### Anidb numbered serie ###
@@ -81,10 +81,11 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1 and AniDB_id=='':  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         if anime.get('defaulttvdbseason'):
-          if anime.get('defaulttvdbseason')in ['a', '1']:  
+          if anime.get('defaulttvdbseason') in ['a', '1']:  
             SaveDict(anime.get('defaulttvdbseason'), mappingList, 'defaulttvdbseason')
             AniDB_id2 = AniDBid
           SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
+          SaveDict({'min': anime.get('defaulttvdbseason'), 'max': anime.get('defaulttvdbseason')}, mappingList, 'season_map', AniDBid)
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
           Log.Info("    - season: [{:>2}],           [{:>2}], range:      [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, (season.text or '').strip(';')))
@@ -99,6 +100,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
             #elif '-' not in (mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
             #  SaveDict((anidbseason, Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])[1]+'-'+ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])
             #  Log.Info("already present so converting to range but range not supported")
+          if Dict(mappingList, 'season_map', AniDBid, 'max').isdigit() and int(Dict(mappingList, 'season_map', AniDBid, 'max')) < int(season.get("tvdbseason")):
+            SaveDict(season.get("tvdbseason"), mappingList, 'season_map', AniDBid, 'max')  # Update the max season to the largest 'tvdbseason' season seen in 'mapping-list'
           
       elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
       elif TVDBid in ("", "unknown", None):
@@ -169,7 +172,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   debug             = False
   if debug:  Log.Info('[?] #1 season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
-  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
+  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason') if not Dict(mappingList, 'TVDB', 'sa') else "1"
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   for item in Dict(mappingList, 'TVDB') or {}:
     # mappingList: {'TVDB': {'s3': {'13485': '0'}, 's2': {'12233': '0'}, 's1': {'11739': '0'}, 's0': {'12344': '0'}}, 'defaulttvdbseason': '1'}
@@ -192,9 +195,8 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   
   # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
   elif season=='1':
-    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}'.format(key, mappingList, defaulttvdbseason        ))
-    if not Dict(mappingList, 'TVDB') or not [x for x in Dict(mappingList, 'TVDB') if x.startswith('s'+season+'e')]:  mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
-    if     Dict(mappingList, 'TVDB', 'sa'):                                                                          mapping = ('1', str(int(episode) + int(episodeoffset)))
+    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(key, mappingList, defaulttvdbseason, episodeoffset))
+    mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
   else:
     Log.Info('[!] error {}'.format(key))
     
