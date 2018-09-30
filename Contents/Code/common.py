@@ -721,7 +721,7 @@ def SortTitle(title, language="en"):
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
 
-def AdjustMapping(source, mappingList):
+def AdjustMapping(source, mappingList, dict_TheTVDB):
   # EX:
   # season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
   # relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
@@ -741,6 +741,7 @@ def AdjustMapping(source, mappingList):
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
   
+  #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
   Log.Info("season_map: {}".format(season_map))
   Log.Info("relations_map: {}".format(relations_map))
   Log.Info("TVDB Before: {}".format(TVDB))
@@ -789,6 +790,16 @@ def AdjustMapping(source, mappingList):
       newDict[id] = str(new_episode)
       SaveDict(newDict, TVDB, 's'+str(new_season))
       Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
+
+      # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
+      if source=="tvdb6":
+        Log.Info("-- dict_TheTVDB Season Before : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+        dict_TheTVDB_top_season = max(map(int, Dict(dict_TheTVDB, 'seasons').keys()))
+        while dict_TheTVDB_top_season >= new_season:
+          Log.Info("---- Adjusting season '{}' -> '{}'".format(dict_TheTVDB_top_season, dict_TheTVDB_top_season+1))
+          dict_TheTVDB['seasons'][str(dict_TheTVDB_top_season+1)] = dict_TheTVDB['seasons'].pop(str(dict_TheTVDB_top_season))
+          dict_TheTVDB_top_season = dict_TheTVDB_top_season - 1
+        Log.Info("-- dict_TheTVDB Season After  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
   return is_modified
