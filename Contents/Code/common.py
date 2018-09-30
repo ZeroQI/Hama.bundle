@@ -737,6 +737,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
 
   Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
   is_modified   = False
+  tvdb6_seasons = {1: 1}
   TVDB          = Dict(mappingList, 'TVDB',          default={})
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
@@ -776,9 +777,6 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
       is_modified = True
       for key in TVDB.keys():
         if not key.startswith("s"):  continue  # As there are anidb id keys
-        if source=="tvdb6" and key.startswith('s'+str(new_season)) and id in TVDB[key]:
-          Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
-          del TVDB[key][id]; continue  # Delete what is in its' new inserted season location
         if isinstance(TVDB[key], dict)  and id in TVDB[key]:
           Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
           del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
@@ -791,16 +789,24 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
       SaveDict(newDict, TVDB, 's'+str(new_season))
       Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
 
-      # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
-      if source=="tvdb6" and new_season != season_map[id]['min']:
-        Log.Info("-- dict_TheTVDB Seasons Before : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
-        dict_TheTVDB_top_season = max(map(int, Dict(dict_TheTVDB, 'seasons').keys()))
-        while dict_TheTVDB_top_season >= new_season:
-          if str(dict_TheTVDB_top_season) in dict_TheTVDB['seasons']:
-            Log.Info("---- Adjusting season '{}' -> '{}'".format(dict_TheTVDB_top_season, dict_TheTVDB_top_season+1))
-            dict_TheTVDB['seasons'][str(dict_TheTVDB_top_season+1)] = dict_TheTVDB['seasons'].pop(str(dict_TheTVDB_top_season))
-          dict_TheTVDB_top_season = dict_TheTVDB_top_season - 1
-        Log.Info("-- dict_TheTVDB Seasons AFter  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+    if source=="tvdb6" and str(new_season).isdigit():  tvdb6_seasons[new_season] = season_map[id]['min']  # tvdb6_seasons[New season] = [Old season]
+
+  # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
+  if source=="tvdb6":
+    top_season, season, adjustment, new_seasons = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}
+    Log.Info("dict_TheTVDB Seasons Before : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
+    Log.Info("tvdb6_seasons : {}".format(tvdb6_seasons))
+    new_seasons["0"] = dict_TheTVDB['seasons'].pop("0")
+    while season <= top_season:
+      if Dict(tvdb6_seasons, season + adjustment) == 0:
+        Log.Info("-- New TVDB season  '{}'".format(season + adjustment))
+        adjustment += 1
+      else:
+        Log.Info("-- Adjusting season '{}' -> '{}'".format(season, season + adjustment))
+        new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
+        season += 1
+    SaveDict(new_seasons, dict_TheTVDB, 'seasons')
+    Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
   return is_modified
