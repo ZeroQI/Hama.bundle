@@ -140,8 +140,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         air_date = Dict(episode_json, 'firstAired')
         air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
         if int(time.strftime("%Y%m%d")) <= air_date+1:  pass #Log.Info("TVDB - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
-        elif season=='0':                               Log.Info("TVDB - type of episode_missing: "      +      type(episode_missing).__name__);  tvdb_special_missing.append(episode)
-        else:                                           Log.Info("TVDB - type of tvdb_special_missing: " + type(tvdb_special_missing).__name__);  episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
+        elif season=='0':                               tvdb_special_missing.append(episode)
+        else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
         
       ### File present on disk
       else:
