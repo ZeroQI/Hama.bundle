@@ -94,33 +94,22 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
             if not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset))):
               SaveDict((anidbseason, ep,               AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
             #else: Log.Info("already present")
-          Log.Info('xxx #7')
           for ep in filter(None, season.text.split(';')) if season.text else []:
-            Log.Info('xxx #8 - ep: {}'.format(ep))
-            if '-' in ep and not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
-              SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
-            else:
+            if not '-' in ep:
               Log.Info('[!] MAPPING ERROR, season.text: "{}", ep mapping missing hyphen: "{}"'.format(season.text, ep))
-            
+            elif not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
+              SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
             #elif '-' not in (mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1]):
             #  SaveDict((anidbseason, Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])[1]+'-'+ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+ep.split('-')[1])
             #  Log.Info("already present so converting to range but range not supported")
-          Log.Info('xxx #9')
           if Dict(mappingList, 'season_map', AniDBid, 'max').isdigit() and int(Dict(mappingList, 'season_map', AniDBid, 'max')) < int(season.get("tvdbseason")):
-            Log.Info('xxx #10')
             SaveDict(season.get("tvdbseason"), mappingList, 'season_map', AniDBid, 'max')  # Update the max season to the largest 'tvdbseason' season seen in 'mapping-list'
           
       elif TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
       elif TVDBid in ("", "unknown", None):
-        Log.Info('xxx')
-        Log.Info('xxx')
-        Log.Info('xxx')
-        Log.Info('xxx')
         link = MAPPING_FEEDBACK % ("aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), String.StripTags(XML.StringFromElement(anime, encoding='utf8')))
-        Log.Info('yyy')
-        #error_log['anime-list TVDBid missing'].append('AniDBid: "{}" | Title: "{}" | Has no matching TVDBid "{}" in mapping file | <a href="{}" target="_blank">Submit bug report</a>'.format(AniDB_id, "title", TVDBid, link))
-        Log.Info('zzz')
-        #Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format(TVDBid))
+        error_log['anime-list TVDBid missing'].append('AniDBid: "{}" | Title: "{}" | Has no matching TVDBid "{}" in mapping file | <a href="{}" target="_blank">Submit bug report</a>'.format(AniDB_id, "title", TVDBid, link))
+        Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format(TVDBid))
         
     #AniDB guid need 1 AniDB xml only, not an TheTVDB numbered serie with anidb guid (not anidb2 since seen as TheTVDB)
     if AniDB_id and (movie or max(map(int, media.seasons.keys()))<=1):  break
