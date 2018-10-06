@@ -202,7 +202,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         Log.Info('-------------')
             
     # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
-    for entry in mappingList['season_map']:
+    for entry in Dict(mappingList, 'season_map', default=[]):
       mappingList['season_map'][entry] = {'min': 1, 'max': max_season} if mappingList['season_map'][entry]['min'] == 'a' else {'min': int(mappingList['season_map'][entry]['min']), 'max': int(mappingList['season_map'][entry]['max'])}
     SaveDict(max_season, mappingList, 'season_map', 'max_season')
     Log.Info("season_map: {}".format(Dict(mappingList, 'season_map')))

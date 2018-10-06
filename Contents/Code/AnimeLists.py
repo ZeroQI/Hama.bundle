@@ -50,7 +50,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   AniDB_id                       = id if source.startswith('anidb') else ""
   TVDB_id                        = id if source.startswith( 'tvdb') else ""
   tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
-  
+  AniDBid                        = ""
+  TVDBid                         = ""
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
   Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
