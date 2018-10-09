@@ -781,7 +781,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
         if isinstance(TVDB[key], dict)  and id in TVDB[key]:
           Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
           del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
-        if isinstance(TVDB[key], tuple) and TVDB[key][0] == 1 and TVDB[key][2] == id:
+        if isinstance(TVDB[key], tuple) and TVDB[key][0] == '1' and TVDB[key][2] == id:
           Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
           del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
       #SaveDict({id: str(new_episode)}, TVDB, 's'+str(new_season))
