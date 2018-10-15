@@ -82,7 +82,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1 and AniDB_id=='':  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         if anime.get('defaulttvdbseason'):
-          if anime.get('defaulttvdbseason') in ['a', '1']:  
+          if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0']:
             SaveDict(anime.get('defaulttvdbseason'), mappingList, 'defaulttvdbseason')
             AniDB_id2 = AniDBid
           SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
