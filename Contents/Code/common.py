@@ -409,8 +409,9 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     Log.Info("{log:<{width}}: {content}".format(log=log, width=max(map(len, error_log)), content=str(error_log[log])))
     error_log_array    = {}
     log_line_separator = "<br />\r\n"
-    if Data.Exists(os.path.join('_Logs', log+'.htm')):
-      for line in Data.Load(os.path.join('_Logs', log+'.htm')).split(log_line_separator):
+    error_log_file     = os.path.join('_Logs', log+'.htm')
+    if Data.Exists(error_log_file):
+      for line in Data.Load(error_log_file).split(log_line_separator):
         if "|" in line:  error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
     
     ### Remove this serie entry ###
@@ -427,7 +428,7 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
-    try:     Data.Save(os.path.join('_Logs', log+'.htm'), log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub(r"<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
+    try:     Data.Save(error_log_file, log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub(r"<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
     except Exception as e:  Log.Error("Exception: '%s'" % e)
     
     netLocked[log] = (False, 0)
