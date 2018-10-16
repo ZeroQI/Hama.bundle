@@ -105,14 +105,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       episode_json = sorted_episodes_json[index]  #Log.Info('s{:02d}e{:03d} abs: {:03d} ep: {}'.format(Dict(episode_json, 'airedSeason') or 0, Dict(episode_json, 'airedEpisodeNumber') or 0, Dict(episode_json, 'absoluteNumber') or 0, episode_json))
       season       = str(Dict(episode_json, 'airedSeason'       ))
       episode      = str(Dict(episode_json, 'airedEpisodeNumber'))
-      if season!='0':  
-        abs_number = abs_number + 1
-        if not Dict(episode_json, 'absoluteNumber'):  missing_abs_nb = True
-        elif missing_abs_nb or Dict(episode_json, 'absoluteNumber')!=abs_number:  
-          Log.Error("(s{}e{}) Abs number {:>3} different from readings ({}), possibly tv special".format(season, episode, abs_number, Dict(episode_json, 'absoluteNumber')))
-          abs_manual_placement_info.append("s{}e{} = json abs ep {} / abs_number {}".format(season, episode, Dict(episode_json, 'absoluteNumber'), abs_number))
-          missing_abs_nb = False
-          abs_number     = Dict(episode_json, 'absoluteNumber')
+      if season!='0':  abs_number = abs_number + 1
           
       # Get the max season number from TVDB API
       if int(season) > max_season:  max_season = int(season)
