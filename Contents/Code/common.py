@@ -386,11 +386,13 @@ def cleanse_title(string):
   while re.search(r'\[[^\[\]]*?\]', string):  string = re.sub(r'\[[^\[\]]*?\]', ' ', string)  # string = "qwerty [asdf] zxcv [vbnm] ghjk [tyui]" > 'qwerty   zxcv   ghjk  ', string = "qwerty [asdf zxcv [vbnm] ghjk tyui]"   > 'qwerty  '
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
   
-def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
+def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
   """
   Log.Info("".ljust(157, '-'))
   Log.Info("common.write_logs()")
+  if  source == 'anidb':  source = 'AniDBid'
+  elif source == 'tvdb':  source = 'TVDBid'
   
   ### File lock ###
   global netLocked
@@ -413,16 +415,18 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if Data.Exists(error_log_file):
       for line in Data.Load(error_log_file).split(log_line_separator):
         if "|" in line:  error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
-    
+
     ### Remove this serie entry ###
-    keys    = ["AniDBid: "+AniDBid, "AniDBid: "+WEB_LINK % (ANIDB_SERIE_URL + AniDBid, AniDBid), "TVDBid: "+ TVDBid, "TVDBid: "+WEB_LINK % (TVDB_SERIE_URL + TVDBid, TVDBid)]
+    if not log in ["Missing Episodes", "Missing Specials"]:                              keys = ["AniDBid: "+AniDBid, "AniDBid: "+WEB_LINK % (ANIDB_SERIE_URL + AniDBid, AniDBid), "TVDBid: "+ TVDBid, "TVDBid: "+WEB_LINK % (TVDB_SERIE_URL + TVDBid, TVDBid)]
+    elif not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):  keys = ["TVDBid: %s"  % (WEB_LINK % (TVDB_SERIE_URL + TVDBid,  TVDBid) )]
+    else:                                                                                keys = ["%s: %s" % (source, WEB_LINK % (ANIDB_SERIE_URL + AniDBid if source == "AniDBid" else TVDB_SERIE_URL + TVDBid, AniDBid if source == "AniDBid" else TVDBid) )]
     deleted = []
     for key in keys:
       if key in error_log_array:
         deleted.append(error_log_array[key]) 
         del(error_log_array[key]) # remove entry, needs updating or removal...
     if not deleted and not error_log[log]:  netLocked[log] = (False, 0);  continue  # didn't delete anything, no entry to add, the only case when we skip
-    
+
     ### Generate prefix, append to error_log_array and Save error_log_array ###
     log_prefix = ''
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
