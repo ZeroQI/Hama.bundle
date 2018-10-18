@@ -98,7 +98,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     
     ### episode loop ###
     tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, abs_manual_placement_info = [], [], [], [], [], []
-    abs_number, missing_abs_nb, ep_count = 0, False, 0
+    abs_number, ep_count = 0, 0
     for index in sorted_episodes_index_list:
       
       # Episode and Absolute number calculation engine, episode translation
