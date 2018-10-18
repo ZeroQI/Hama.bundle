@@ -120,7 +120,7 @@ def Update(metadata, media, lang, force, movie):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
-  common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
+  common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'TheTVDB': dict_TheTVDB, 'AniDB': dict_AniDB, 'Plex': dict_Plex, 'MyAnimeList': dict_MyAnimeList, 
     'TheMovieDb': dict_TheMovieDb, 'TVTunes': dict_TVTunes, 'tvdb4': dict_tvdb4, 'OMDb': dict_OMDb, 'FanartTV': dict_FanartTV}, mappingList)
   log.stop()
