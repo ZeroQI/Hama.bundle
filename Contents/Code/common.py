@@ -778,7 +778,6 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
     if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
       is_modified = True
       for key in TVDB.keys():
-        if not key.startswith("s"):  continue  # As there are anidb id keys
         if isinstance(TVDB[key], dict)  and id in TVDB[key]:
           Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
           del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
@@ -808,7 +807,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
         new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
         season += 1
     SaveDict(new_seasons, dict_TheTVDB, 'seasons')
-    Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+    Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
   return is_modified
