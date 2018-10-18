@@ -263,13 +263,14 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
 
         ### AniDB numbering Missing Episodes ###
-        if movie_ep_groups:
-          Log.Info("Movie/OVA Ep Groups: %s" % movie_ep_groups)  #movie_ep_groups: {'1': ['s1e1'], '3': ['s1e4', 's1e5', 's1e6'], '2': ['s1e3'], '-1': []}
-          SaveDict([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)], missing, '1')
-        for season in sorted(missing):
-          missing_eps = sorted(missing[season], key=common.natural_sort_key)
-          Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
-          if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
+        if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
+          if movie_ep_groups:
+            Log.Info("Movie/OVA Ep Groups: %s" % movie_ep_groups)  #movie_ep_groups: {'1': ['s1e1'], '3': ['s1e4', 's1e5', 's1e6'], '2': ['s1e3'], '-1': []}
+            SaveDict([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)], missing, '1')
+          for season in sorted(missing):
+            missing_eps = sorted(missing[season], key=common.natural_sort_key)
+            Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
+            if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
           
       ### End of if not movie ###
     
