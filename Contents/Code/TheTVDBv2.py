@@ -101,29 +101,27 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     abs_number, missing_abs_nb, ep_count = 0, False, 0
     for index in sorted_episodes_index_list:
       
+      
       # Episode and Absolute number calculation engine, episode translation
       episode_json = sorted_episodes_json[index]  #Log.Info('s{:02d}e{:03d} abs: {:03d} ep: {}'.format(Dict(episode_json, 'airedSeason') or 0, Dict(episode_json, 'airedEpisodeNumber') or 0, Dict(episode_json, 'absoluteNumber') or 0, episode_json))
-      season       = str(Dict(episode_json, 'airedSeason'       ))
       episode      = str(Dict(episode_json, 'airedEpisodeNumber'))
-      if season!='0':  abs_number = abs_number + 1
-          
+      season       = str(Dict(episode_json, 'airedSeason'       ))
+      numbering    = "s{}e{}".format(season, episode)
+      
       # Get the max season number from TVDB API
       if int(season) > max_season:  max_season = int(season)
 
+      ### ep translation
+      anidbid=""
+      if anidb_numbering:                                                      season, episode, anidbid    = anidb_ep(mappingList, season, episode)
+      elif metadata_source=='tvdb5' and Dict(episode_json, 'absoluteNumber'):  season, episode, abs_number = '1', str(Dict(episode_json, 'absoluteNumber')), str(Dict(episode_json, 'absoluteNumber'))
+      elif season!='0' and metadata_source in ('tvdb3', "tvdb4", "tvdb5"):     season, episode             = '1', str(Dict(episode_json, 'absoluteNumber') or abs_number) if metadata_source=='tvdb5' else str(abs_number)
+      elif season!='0':                                                        abs_number = abs_number + 1
+      
       ### Missing summaries logs ###
-      numbering = "s{}e{}".format(season, episode)
       if Dict(episode_json, 'overview'):  summary_present.append(numbering)
       elif season!='0':                   summary_missing.append(numbering)
       else:                       summary_missing_special.append(numbering)
-      
-      ### ep translation
-      anidbid=""
-      #if anidb_numbering: 
-      #  if Dict(mappingList, 'defaulttvdbseason')!="a" or season=='0':      season, episodex, anidbid = anidb_ep(mappingList, season, episode)
-      #  else:                                                               season, episode = '1', str(abs_number)
-      #elif metadata_source in ('tvdb3', "tvdb4", "tvdb5") and season!='0':  season, episode = '1', str(abs_number)
-      if anidb_numbering: season, episode, anidbid = anidb_ep(mappingList, season, episode)
-      elif metadata_source in ('tvdb3', "tvdb4", "tvdb5") and season!='0':  season, episode = '1', str(abs_number)
       
       ### Check for Missing Episodes ###
       if not(season =='0' and episode in list_sp_eps) and \
