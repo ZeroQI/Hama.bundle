@@ -6,7 +6,7 @@
 
 ### Imports ###
 import common
-from   common import SaveDict, Dict
+from   common import SaveDict, Dict, Log
 import os
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
   
@@ -21,7 +21,7 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
   TSDbid = ""
   
   Log.Info("".ljust(157, '-'))
-  Log("TheMovieDb.GetMetadata() - TVDBid: {}, TMDbid: {}, IMDbid: {}".format(TVDBid, TMDbid, IMDbid))
+  Log.Info("TheMovieDb.GetMetadata() - TVDBid: {}, TMDbid: {}, IMDbid: {}".format(TVDBid, TMDbid, IMDbid))
   if   TMDbid:                      url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % TMDbid, "TMDB-"+TMDbid+".json"
   elif IMDbid and TVDBid=='movie':  url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % IMDbid, "IMDb-"+IMDbid+".json"
   elif TVDBid.isdigit():            url, filename = TMDB_SERIE_SEARCH_BY_TVDBID % TVDBid, "TVDB-"+TVDBid+".json"

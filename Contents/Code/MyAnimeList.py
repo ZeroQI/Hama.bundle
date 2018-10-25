@@ -4,7 +4,7 @@
 
 ### Imports ###
 import common
-from common import GetXml, SaveDict
+from common import GetXml, SaveDict, Log
 import os
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'

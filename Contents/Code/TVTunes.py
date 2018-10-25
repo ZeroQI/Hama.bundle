@@ -3,7 +3,7 @@
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
-from common import Dict
+from common import Dict, Log
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 

@@ -3,7 +3,7 @@
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import os          # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
 import common      # CachePath, common.WEB_LINK , common.LoadFile
-from   common import GetXml, SaveDict, Dict
+from   common import GetXml, SaveDict, Dict, Log
 
 ### Functions ###
 

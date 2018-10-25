@@ -11,8 +11,8 @@ import string    # Functions:
 import datetime  # Functions: 
 import time      # Functions: 
 import AnimeLists
-from common import GetXml, Dict, SaveDict, natural_sort_key
-from lxml import etree
+from common import GetXml, Dict, SaveDict, natural_sort_key, Log
+from lxml   import etree
 ns = etree.FunctionNamespace(None)
 ns['lower-case' ] = lambda context, s: s[0].lower()
 ns['clean-title'] = lambda context, s: common.cleanse_title(s)

@@ -5,7 +5,7 @@
 import common
 import os
 import time
-from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key
+from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key, Log
 from AnimeLists import tvdb_ep, anidb_ep
 #import re, unicodedata, hashlib, types
 #from collections import defaultdict
