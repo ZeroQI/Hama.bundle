@@ -113,10 +113,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
 
       ### ep translation
       anidbid=""
+      if season!='0':  abs_number = abs_number + 1
       if anidb_numbering:                                                      season, episode, anidbid    = anidb_ep(mappingList, season, episode)
       elif metadata_source=='tvdb5' and Dict(episode_json, 'absoluteNumber'):  season, episode, abs_number = '1', str(Dict(episode_json, 'absoluteNumber')), str(Dict(episode_json, 'absoluteNumber'))
       elif season!='0' and metadata_source in ('tvdb3', "tvdb4", "tvdb5"):     season, episode             = '1', str(Dict(episode_json, 'absoluteNumber') or abs_number) if metadata_source=='tvdb5' else str(abs_number)
-      elif season!='0':                                                        abs_number = abs_number + 1
       
       ### Missing summaries logs ###
       if Dict(episode_json, 'overview'):  summary_present.append(numbering)
