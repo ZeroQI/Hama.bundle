@@ -173,7 +173,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
 </anime>
   '''
   mapping = ('0', '0')#(season or '0', episode)
-  debug             = False
+  debug   = False
   if debug:  Log.Info('[?] #1 season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason') if not Dict(mappingList, 'TVDB', 'sa') else "1"
@@ -187,19 +187,21 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   else:  Log.Info('[!] anidbid {} not found in mappingList: {}'.format(anidbid, mappingList))  
     
   # <mapping anidbseason="x" tvdbseason="x" start="13" end="24" offset="-12"> ;1-5;2-6; </mapping>
-  key = 's'+season+'e'+episode.split('-')[0]
-  if key in mappingList:
-    mapping = mappingList [ key ]
-    if debug:  Log.Info('[?] key "{}" in mappingList "{}"'.format(key, mappingList)) 
+  #key = 's'+season+'e'+episode.split('-')[0]
+  value    = (season, episode, anidbid)
+  tvdbList = Dict(mappingList, 'TVDB', default={})
+  if value in tvdbList.values():
+    mapping = list(tvdbList.keys())[list(tvdbList.values()).index(value)][1:].split('e')
+    if debug:  Log.Info('[?] value "{}" in mappingList "{}"'.format(value, mappingList)) 
   
   # if not mapped with mapping, specials are not mapped with tvdb
   elif season=='0':
     mapping = ('0', '0')
-    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 0'.format(key, mappingList)) 
+    if debug:  Log.Info('[?] value "{}" not in mappingList "{}" and season 0'.format(key, mappingList)) 
   
   # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
   elif season=='1':
-    if debug:  Log.Info('[?] key "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(key, mappingList, defaulttvdbseason, episodeoffset))
+    if debug:  Log.Info('[?] value "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(key, mappingList, defaulttvdbseason, episodeoffset))
     mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
   else:
     Log.Info('[!] error {}'.format(key))
