@@ -93,7 +93,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
           for ep in range(int(start), int(end)+1)        if start       else []:
             #Log.Info("[?] start: {}, end: {}, ep: {}".format(start, end, ep))
             if not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset))):
-              SaveDict((anidbseason, ep,               AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
+              SaveDict((anidbseason, str(ep),          AniDBid), mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
             #else: Log.Info("already present")
           for ep in filter(None, season.text.split(';')) if season.text else []:
             if not '-' in ep:
