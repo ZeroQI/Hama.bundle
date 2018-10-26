@@ -5,6 +5,7 @@
 import common
 import os
 import time
+import re
 from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key, Log
 from AnimeLists import tvdb_ep, anidb_ep
 #import re, unicodedata, hashlib, types
@@ -97,10 +98,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     absolute_numering = metadata_source in ('tvdb3', 'tvdb4', 'tvdb5')
     
     ### episode loop ###
-    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, abs_manual_placement_info = [], [], [], [], [], []
+    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, episode_missing_season, episode_missing_season_all, abs_manual_placement_info = [], [], [], [], [], [], True, []
     abs_number, ep_count = 0, 0
     for index in sorted_episodes_index_list:
-      
       
       # Episode and Absolute number calculation engine, episode translation
       episode_json = sorted_episodes_json[index]  #Log.Info('s{:02d}e{:03d} abs: {:03d} ep: {}'.format(Dict(episode_json, 'airedSeason') or 0, Dict(episode_json, 'airedEpisodeNumber') or 0, Dict(episode_json, 'absoluteNumber') or 0, episode_json))
@@ -108,6 +108,16 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       season       = str(Dict(episode_json, 'airedSeason'       ))
       numbering    = "s{}e{}".format(season, episode)
       
+      # Replace all the individual episodes reported as missing with a single season 'sX' entry
+      if episode=="1":
+        if not episode_missing_season_all:  episode_missing.extend(episode_missing_season)
+        elif episode_missing_season:
+          first_entry, last_entry = episode_missing_season[0], episode_missing_season[-1]
+          fm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', first_entry).groupdict()
+          lm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', last_entry ).groupdict()
+          episode_missing.append("s{}e{}-{}".format(fm['s'], fm['e'], lm['e']) if fm['abs'] is None else "{}-{} (s{}e{}-{})".format(fm['abs'], lm['abs'], fm['s'], fm['e'], lm['e']))
+        episode_missing_season, episode_missing_season_all = [], True
+
       # Get the max season number from TVDB API
       if int(season) > max_season:  max_season = int(season)
 
@@ -132,10 +142,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
         if int(time.strftime("%Y%m%d")) <= air_date+1:  pass #Log.Info("TVDB - Episode '{}' missing but not aired/missing '{}'".format(numbering, air_date))
         elif season=='0':                               tvdb_special_missing.append(episode)
-        else:                                           episode_missing.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
+        else:                                           episode_missing_season.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
         
       ### File present on disk
       else:
+        episode_missing_season_all = False
         #Log.Info('[?] episode_json: {}'.format(episode_json))
         Log.Info('[X] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {} abs_number: {}, title: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired'), abs_number, Dict(episode_json, 'episodeName')))
         if not anidb_numbering:  
@@ -191,7 +202,15 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         SaveDict( rank , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'language_rank')      
         #Log.Info('[?] numbering: {} => s{:>1}e{:>3} language_rank: {:>1}, title: "{}"'.format(numbering, season, episode, rank, title))
         Log.Info('-------------')
-            
+
+    # (last season) Replace all the individual episodes reported as missing with a single season 'sX' entry
+    if not episode_missing_season_all:  episode_missing.extend(episode_missing_season)
+    elif episode_missing_season:
+      first_entry, last_entry = episode_missing_season[0], episode_missing_season[-1]
+      fm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', first_entry).groupdict()
+      lm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', last_entry ).groupdict()
+      episode_missing.append("s{}e{}-{}".format(fm['s'], fm['e'], lm['e']) if fm['abs'] is None else "{}-{} (s{}e{}-{})".format(fm['abs'], lm['abs'], fm['s'], fm['e'], lm['e']))
+
     # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
     for entry in Dict(mappingList, 'season_map', default=[]):
       mappingList['season_map'][entry] = {'min': 1, 'max': max_season} if mappingList['season_map'][entry]['min'] == 'a' else {'min': int(mappingList['season_map'][entry]['min']), 'max': int(mappingList['season_map'][entry]['max'])}
