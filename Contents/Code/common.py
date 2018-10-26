@@ -98,10 +98,6 @@ if not os.path.isdir(PlexRoot):
                     'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
   PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
-#import pplexlog
-#mylog = plexlog.PlexLog(isAgent=True)  # use Log instead of logging
-#mylog.info('***** Initializing "SageTV BMT Agent (TV Shows)" *****')
-    
 class PlexLog(object):
   ''' Logging class to join scanner and agent logging per serie
       Usage Scanner: (not used currently in scanner as independant from Hama)
@@ -111,56 +107,60 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def __init__ (self, media=None, name='', movie=False, search=False, isAgent = True, log_format='%(message)s', file="", mode='a', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
-    Log.Info("".ljust(157, '-'))
-    Log.Info('common.PlexLog(file="{}", movie={})'.format(file, movie))
+  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
+  def Info     (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).info    (msg,           *args, **kwargs)
+  def Warning  (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).warning (msg,           *args, **kwargs)
+  def Error    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).error   ("ERROR: "+msg, *args, **kwargs)
+  def Critical (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).critical(msg,           *args, **kwargs)
+  def Open     (self, media=None, movie=False, search=False, isAgent=True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
     if not file:  
-      Log.Info('[!] file:       "{}"'.format(GetMediaDir(media, movie, True)))
       library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
       mode                = 'a' if path in ('_unknown_folder', '_root_') else 'w'
       
       #Logs folder
       LOGS_PATH = os.path.join(CachePath, '_Logs', library)
-      if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  Log.Debug("[!] folder: '{}'created".format(LOGS_PATH))
+      if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  self.Debug("[!] folder: '{}'created".format(LOGS_PATH))
       
-      #Logs file
-      Log.Info('[ ] library:    "{}"'.format(library))
-      Log.Info('[ ] root:       "{}"'.format(root))
-      Log.Info('[ ] path:       "{}"'.format(path))
-      Log.Info('[ ] Plex root:  "{}"'.format(PlexRoot))
-      Log.Info('[ ] Log folder: "{}"'.format(os.path.relpath(LOGS_PATH, PlexRoot)))
       if path=='' and root:  path='_root_'
       filename = path.split(os.sep, 1)[0]+'.agent-search.log' if search else path.split(os.sep, 1)[0]+'.agent-update.log'
       file = os.path.join(LOGS_PATH, filename)
-      Log.Info('[ ] Log file:   "{}"'.format(filename))
-      Log.Info('[ ] mode:       "{}"'.format(mode))
     try:
-      log = logging.getLogger(name)  # update root logging's handler
+      log = logging.getLogger(hex(threading.currentThread().ident))  # update thread's logging handler
       for handler in log.handlers:  log.removeHandler(handler)  # remove all old handlers
-      handler = logging.handlers.RotatingFileHandler(file, mode=mode or 'w', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
-      handler.setFormatter(logging.Formatter(log_format))  # Set log format
-      #f = InjectingFilter(self)
-      #handler.addFilter(f)
-      log.addHandler(handler)
-      #log.propagate = 0
-      #log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
-    except IOError, e:  self.isAgent = isAgent;  Log.Info('updateLoggingConfig: failed to set logfile: {}'.format(e))
+      handler_new = logging.FileHandler(file, mode=mode or 'w', encoding=encoding, delay=delay)
+      handler_new.setFormatter(logging.Formatter(log_format))  # Set log format
+      log.addHandler(handler_new)
+      log.setLevel(logging.DEBUG if enable_debug else logging.INFO)  # update level
+
+      log = logging.getLogger('com.plexapp.agents.hama')  # update hama root's logging handler
+      library_log = os.path.join(LOGS_PATH, '_root_.agent.log')
+      if library_log not in [handler.baseFilename for handler in log.handlers if hasattr(handler, 'baseFilename')]:
+        for handler in log.handlers:
+          if hasattr(handler, 'baseFilename') and os.path.join(CachePath, '_Logs') in handler.baseFilename:  log.removeHandler(handler)
+        handler_new = logging.handlers.RotatingFileHandler(library_log, mode='a', maxBytes=1*1024*1024, backupCount=1, encoding=encoding, delay=delay)
+        #handler_new = logging.FileHandler(library_log, mode='w', encoding=encoding, delay=delay)
+        handler_new.setFormatter(logging.Formatter(log_format))  # Set log format
+        log.addHandler(handler_new)
+      log.info('==== common.PlexLog(time={}, file="{}")'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f"), file))
+
+    except IOError as e:  self.isAgent = isAgent;  logging.getLogger('com.plexapp.agents.hama').info('updateLoggingConfig: failed to set logfile: {}'.format(e))
+    self.Info("".ljust(157, '='))
+    self.Info('common.PlexLog(file="{}", movie={})'.format(file, movie))
+    self.Info('[!] file:       "{}"'.format(GetMediaDir(media, movie, True)))
+    self.Info('[ ] library:    "{}"'.format(library))
+    self.Info('[ ] root:       "{}"'.format(root))
+    self.Info('[ ] path:       "{}"'.format(path))
+    self.Info('[ ] Plex root:  "{}"'.format(PlexRoot))
+    self.Info('[ ] Log folder: "{}"'.format(os.path.relpath(LOGS_PATH, PlexRoot)))
+    self.Info('[ ] Log file:   "{}"'.format(filename))
+    self.Info('[ ] Logger:     "{}"'.format(hex(threading.currentThread().ident)))
+    self.Info('[ ] mode:       "{}"'.format(mode))
     self.isAgent = isAgent
-  def debug    (self, msg, *args, **kwargs):  (Log.Debug    if self.isAgent else logging.debug   ) (msg, *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
-  def info     (self, msg, *args, **kwargs):  (Log.Info     if self.isAgent else logging.info    ) (msg, *args, **kwargs)
-  def warning  (self, msg, *args, **kwargs):  (Log.Warning  if self.isAgent else logging.warning ) (msg, *args, **kwargs)
-  def error    (self, msg, *args, **kwargs):  (Log.Error    if self.isAgent else logging.error   ) (msg, *args, **kwargs)
-  def critical (self, msg, *args, **kwargs):  (Log.Critical if self.isAgent else logging.critical) (msg, *args, **kwargs)
-  def stop     (self                      ):  
-    log = logging.getLogger()  # update root logging's handler
+  def Close    (self                      ):  
+    log = logging.getLogger(hex(threading.currentThread().ident))  # update root logging's handler
     for handler in log.handlers:   log.removeHandler(handler)
     
-#class InjectingFilter(logging.Filter):      # Injects data into the LogRecord as well as acting as a filter.
-#  def __init__(self, app):  self.app = app  # 
-#  def filter(self, record):
-#     record.appName = tlocal.appName         # keep a reference to the app in the filter, and this also allows the injection of the appName attribute into the LogRecord
-#    return  tlocal.appName == self.app.name  # check if the current thread belongs to its app's set
-#    # return threading.currentThread().getName() in self.app.threads
+Log = PlexLog()
 
 ### Code reduction one-liners that get imported specifically ###
 #def GetMeta         (source="", field=""            ):  return (downloaded[field]<=1) and (not source or source in Prefs['posters' if field=='seasons' else field]) and not Prefs['posters' if field=='seasons' else field]=="None"
@@ -305,8 +305,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # TheTVDB
     if url.startswith('https://api.thetvdb.com'):
       if 'Authorization' in HEADERS:
-        try:  file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
-        except:  pass
+        try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
+        except:  file = None
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
@@ -321,8 +321,9 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
        
     # File download
-    try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-    except Exception as e:  file = None;  Log.Warn("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    if not file:
+      try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
     netLock.release()
     
     # File checks and saving as cache
@@ -386,11 +387,13 @@ def cleanse_title(string):
   while re.search(r'\[[^\[\]]*?\]', string):  string = re.sub(r'\[[^\[\]]*?\]', ' ', string)  # string = "qwerty [asdf] zxcv [vbnm] ghjk [tyui]" > 'qwerty   zxcv   ghjk  ', string = "qwerty [asdf zxcv [vbnm] ghjk tyui]"   > 'qwerty  '
   return " ".join(str(unicodedata.normalize('NFC', unicode(string.lower()))).translate(ReplaceChars, DeleteChars).split())  # str needed for translate
   
-def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_number, AniDBid, TVDBid):
+def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
   """
   Log.Info("".ljust(157, '-'))
   Log.Info("common.write_logs()")
+  if  source == 'anidb':  source = 'AniDBid'
+  elif source == 'tvdb':  source = 'TVDBid'
   
   ### File lock ###
   global netLocked
@@ -413,16 +416,18 @@ def write_logs(media, movie, error_log, metadata_id_source_core, metadata_id_num
     if Data.Exists(error_log_file):
       for line in Data.Load(error_log_file).split(log_line_separator):
         if "|" in line:  error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
-    
+
     ### Remove this serie entry ###
-    keys    = ["AniDBid: "+AniDBid, "AniDBid: "+WEB_LINK % (ANIDB_SERIE_URL + AniDBid, AniDBid), "TVDBid: "+ TVDBid, "TVDBid: "+WEB_LINK % (TVDB_SERIE_URL + TVDBid, TVDBid)]
+    if not log in ["Missing Episodes", "Missing Specials"]:                              keys = ["AniDBid: "+AniDBid, "AniDBid: "+WEB_LINK % (ANIDB_SERIE_URL + AniDBid, AniDBid), "TVDBid: "+ TVDBid, "TVDBid: "+WEB_LINK % (TVDB_SERIE_URL + TVDBid, TVDBid)]
+    elif not movie and (len(media.seasons)>2 or max(map(int, media.seasons.keys()))>1):  keys = ["TVDBid: %s"  % (WEB_LINK % (TVDB_SERIE_URL + TVDBid,  TVDBid) )]
+    else:                                                                                keys = ["%s: %s" % (source, WEB_LINK % (ANIDB_SERIE_URL + AniDBid if source == "AniDBid" else TVDB_SERIE_URL + TVDBid, AniDBid if source == "AniDBid" else TVDBid) )]
     deleted = []
     for key in keys:
       if key in error_log_array:
         deleted.append(error_log_array[key]) 
         del(error_log_array[key]) # remove entry, needs updating or removal...
     if not deleted and not error_log[log]:  netLocked[log] = (False, 0);  continue  # didn't delete anything, no entry to add, the only case when we skip
-    
+
     ### Generate prefix, append to error_log_array and Save error_log_array ###
     log_prefix = ''
     if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
@@ -545,7 +550,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
   else: 
     Log.Info("[x] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
-    if isinstance(meta_new, dict)and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
+    if isinstance(meta_new, dict) and field in ['posters', 'banners', 'art', 'themes', 'thumbs']:
       for url in meta_new:
         if not url in meta_old and isinstance(meta_new[url], tuple):  metadata_download(metadata_root, meta_old, url, meta_new[url][0], meta_new[url][1], meta_new[url][2])
     
@@ -778,7 +783,6 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
     if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
       is_modified = True
       for key in TVDB.keys():
-        if not key.startswith("s"):  continue  # As there are anidb id keys
         if isinstance(TVDB[key], dict)  and id in TVDB[key]:
           Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
           del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
@@ -808,7 +812,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
         new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
         season += 1
     SaveDict(new_seasons, dict_TheTVDB, 'seasons')
-    Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(Dict(dict_TheTVDB, 'seasons').keys(), key=int)))
+    Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
   return is_modified

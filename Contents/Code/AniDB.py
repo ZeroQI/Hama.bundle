@@ -11,8 +11,8 @@ import string    # Functions:
 import datetime  # Functions: 
 import time      # Functions: 
 import AnimeLists
-from common import GetXml, Dict, SaveDict, natural_sort_key
-from lxml import etree
+from common import GetXml, Dict, SaveDict, natural_sort_key, Log
+from lxml   import etree
 ns = etree.FunctionNamespace(None)
 ns['lower-case' ] = lambda context, s: s[0].lower()
 ns['clean-title'] = lambda context, s: common.cleanse_title(s)
@@ -113,7 +113,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and season.startswith('s') and 'e' not in season and anidbid.isdigit() ]
+    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else {}
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
@@ -168,19 +168,16 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if GetXml(tag, 'name').lower() in RESTRICTED_GENRE:  AniDB_dict['content_rating'] = RESTRICTED_GENRE[ GetXml(tag, 'name').lower() ]
         SaveDict( "Continuing" if GetXml(xml, 'Anime/enddate')=="1970-01-01" else "Ended", AniDB_dict, 'status')
         Log.Info("[ ] 'genre' ({}/{} above {} weight): {}".format(len(Dict(AniDB_dict, 'genres')), len(xml.xpath('tags/tag')), int(Prefs['MinimumWeight'] or 200), Dict(AniDB_dict, 'genres')))
-        AniDBid_table = Dict(mappingList, 'TVDB') or {}
-        for relatedAnime in xml.xpath('/anime/relatedanime/anime'):
-          if relatedAnime.get('id') not in AniDBid_table:  AniDBid_table[relatedAnime.get('id')] = (0, "")
         for element in AniDBMovieSets.xpath("/anime-set-list/set/anime"):
           if element.get('anidbid').startswith('377'):  Log.Info(element.get('anidbid'))
-          if element.get('anidbid') == AniDBid or element.get('anidbid') in AniDBid_table:
+          if element.get('anidbid') == AniDBid or element.get('anidbid') in full_array:
             node              = element.getparent()
             title, main, language_rank = GetAniDBTitle(node.xpath('titles')[0])
             Log.Info("[ ] title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
             SaveDict([title], AniDB_dict, 'collections')
-            Log.Info("[ ] 'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(AniDBid_table)))
+            Log.Info("[ ] 'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
             break
-        #else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(AniDBid_table)) 
+        #else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(full_array)) 
       
       if  movie:
         if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("[ ] 'year': '{}'".format(AniDB_dict['year']))
@@ -266,13 +263,14 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
 
         ### AniDB numbering Missing Episodes ###
-        if movie_ep_groups:
-          Log.Info("Movie/OVA Ep Groups: %s" % movie_ep_groups)  #movie_ep_groups: {'1': ['s1e1'], '3': ['s1e4', 's1e5', 's1e6'], '2': ['s1e3'], '-1': []}
-          SaveDict([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)], missing, '1')
-        for season in sorted(missing):
-          missing_eps = sorted(missing[season], key=common.natural_sort_key)
-          Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
-          if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
+        if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
+          if movie_ep_groups:
+            Log.Info("Movie/OVA Ep Groups: %s" % movie_ep_groups)  #movie_ep_groups: {'1': ['s1e1'], '3': ['s1e4', 's1e5', 's1e6'], '2': ['s1e3'], '-1': []}
+            SaveDict([value for key in movie_ep_groups for value in movie_ep_groups[key] if 0 < len(movie_ep_groups[key]) < int(key)], missing, '1')
+          for season in sorted(missing):
+            missing_eps = sorted(missing[season], key=common.natural_sort_key)
+            Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
+            if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
           
       ### End of if not movie ###
     

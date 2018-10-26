@@ -2,7 +2,7 @@
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
-from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath
+from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath, Log
 import os      # path, listdir
 import re      # match, ignorecase
 

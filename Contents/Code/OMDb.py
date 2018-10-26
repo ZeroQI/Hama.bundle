@@ -5,7 +5,7 @@
 
 ### Imports ###
 import common
-from common import SaveDict, Dict
+from common import SaveDict, Dict, Log
 import os
 
 ### Variables ###

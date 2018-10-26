@@ -21,6 +21,7 @@ import Local             # Functions: GetMetadata                               
 
 import re
 import os
+import datetime
 from io import open
       
 ### Variables ###
@@ -67,10 +68,12 @@ def Start():
   
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
+  from common import Log  #Import here for startup logging to go to the plex pms log
   orig_title = media.title if movie else media.show
-  log = common.PlexLog(media=media, movie=movie, search=True)
+  Log.Open(media=media, movie=movie, search=True)
   Log.Info('=== Search ============================================================================================================')
-  Log.Info("Title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
+  Log.Info("title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
+  Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Info("".ljust(157, '='))
   if not orig_title:  return
   
@@ -93,17 +96,20 @@ def Search(results, media, lang, manual, movie):
     if maxi<50 and movie:                                maxi    =    TheMovieDb.Search(results, media, lang, manual, movie)
     if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDBv2.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
-  log.stop()
+  Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
+  Log.Close()
         
 ### Update Movie/Serie from metadata.id assigned #########################################################################################################################
 def Update(metadata, media, lang, force, movie):
-  log = common.PlexLog(media=media, movie=movie, search=False)
+  from common import Log  #Import here for startup logging to go to the plex pms log
+  Log.Open(media=media, movie=movie, search=False)
   source    = metadata.id.split('-', 1)[0]
   error_log = { 'AniDB summaries missing'   :[], 'AniDB posters missing'      :[], 'anime-list AniDBid missing':[], 'anime-list studio logos'  :[],  
                 'TVDB posters missing'      :[], 'TVDB season posters missing':[], 'anime-list TVDBid missing' :[], 'Plex themes missing'      :[],
                 'Missing Episodes'          :[], 'Missing Specials'           :[], 'Missing Episode Summaries' :[], 'Missing Special Summaries':[]}
   Log.Info('=== Update ==='.ljust(157, '='))
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
+  Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id,                   AniDBMovieSets) #, AniDBTVDBMap
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
@@ -120,10 +126,11 @@ def Update(metadata, media, lang, force, movie):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AniDBMovieSets, mappingList)
   Log.Info("".ljust(157, '-')) 
   Log.Info("Update() - AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
-  common.write_logs(media, movie, error_log, source, id, AniDBid, TVDBid)
+  common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'TheTVDB': dict_TheTVDB, 'AniDB': dict_AniDB, 'Plex': dict_Plex, 'MyAnimeList': dict_MyAnimeList, 
     'TheMovieDb': dict_TheMovieDb, 'TVTunes': dict_TVTunes, 'tvdb4': dict_tvdb4, 'OMDb': dict_OMDb, 'FanartTV': dict_FanartTV}, mappingList)
-  log.stop()
+  Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
+  Log.Close()
 
 ### Agent declaration ##################################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows):  # 'com.plexapp.agents.none', 'com.plexapp.agents.opensubtitles'
