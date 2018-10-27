@@ -222,6 +222,13 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
             if season=='0' and episode=='0' or not season in media.seasons or not episode in media.seasons[season].episodes:   Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType));  continue
             
+            ### Series poster as season poster
+            if GetXml(xml, 'picture') and not Dict(AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture')):
+              rank = 1
+              if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
+              if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
+              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0])), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
+
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
                      
