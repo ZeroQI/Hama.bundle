@@ -802,7 +802,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
     top_season, season, adjustment, new_seasons = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}
     Log.Info("dict_TheTVDB Seasons Before : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
     Log.Info("tvdb6_seasons : {}".format(tvdb6_seasons))
-    new_seasons["0"] = dict_TheTVDB['seasons'].pop("0")
+    if "0" in dict_TheTVDB['seasons']:  new_seasons["0"] = dict_TheTVDB['seasons'].pop("0")
     while season <= top_season:
       if Dict(tvdb6_seasons, season + adjustment) == 0:
         Log.Info("-- New TVDB season  '{}'".format(season + adjustment))
