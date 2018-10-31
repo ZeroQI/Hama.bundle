@@ -492,8 +492,8 @@ def GetMetadata(media, movie, source, TVDBid, num=0):
   if TVDB4_xml:
     seasonposternum = 0
     entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in xml file" % TVDBid) 
-    for line in filter(None, entry.strip().replace("\r","\n").split("\n")):
+    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in posters file" % TVDBid) 
+    for line in filter(None, entry.strip().splitlines()):
       season, url       = line.strip().split("|",1)
       season            = season.lstrip("0") if season.lstrip("0") else "0"
       seasonposternum  += 1
