@@ -128,6 +128,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       elif metadata_source=='tvdb5' and Dict(episode_json, 'absoluteNumber'):  season, episode, abs_number = '1', str(Dict(episode_json, 'absoluteNumber')), str(Dict(episode_json, 'absoluteNumber'))
       elif season!='0' and metadata_source in ('tvdb3', "tvdb4", "tvdb5"):     season, episode             = '1', str(Dict(episode_json, 'absoluteNumber') or abs_number) if metadata_source=='tvdb5' else str(abs_number)
       
+      # Record absolute number mapping for AniDB metadata pull
+      if metadata_source=='tvdb3':  SaveDict((str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber'))), mappingList, 'absolute_map', str(abs_number))
+
       ### Missing summaries logs ###
       if Dict(episode_json, 'overview'):  summary_present.append(numbering)
       elif season!='0':                   summary_missing.append(numbering)
@@ -210,6 +213,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       fm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', first_entry).groupdict()
       lm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', last_entry ).groupdict()
       episode_missing.append("s{}e{}-{}".format(fm['s'], fm['e'], lm['e']) if fm['abs'] is None else "{}-{} (s{}e{}-{})".format(fm['abs'], lm['abs'], fm['s'], fm['e'], lm['e']))
+
+    # Print abs_mapping populated in episode loop
+    Log.Info("absolute_map: {}".format(Dict(mappingList, 'absolute_map')))
 
     # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
     for entry in Dict(mappingList, 'season_map', default=[]):
