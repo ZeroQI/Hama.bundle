@@ -32,6 +32,7 @@ netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
 ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
+TVDB4_MAPPING_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'
 TVDB4_POSTERS_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
@@ -468,13 +469,37 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
         
   return tags
   
-def GetMetadata(media, movie, source, TVDBid, num=0):
+def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   """ [tvdb4.posters.xml] Attempt to get the ASS's image data
   """
-  TVDB4_xml         = None
+  TVDB4_mapping, TVDB4_xml = None, None
   if movie or not source == "tvdb4": return {}
   Log.Info("".ljust(157, '-'))
   Log.Info("common.GetMetadata() - tvdb4 mode")
+  try:
+    s      = media.seasons.keys()[0]
+    e      = media.seasons[s].episodes.keys()[0]
+    folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
+    while folder and not folder.endswith("/") and not folder.endswith("\\"):
+      filename = os.path.join(folder, os.path.basename(TVDB4_MAPPING_URL))
+      if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
+      folder = os.path.dirname(folder)
+    else: Log.Info("common.GetMetadata() - No 'tvdb4.mapping.xml' file detected locally")
+  except Exception as e:  Log.Error("common.GetMetadata() - Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+  
+  if TVDB4_mapping: Log.Debug("common.GetMetadata() - 'tvdb4.mapping.xml' file detected locally")
+  else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  entry = ""
+  if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
+  else:
+    entry = GetXml(TVDB4_mapping, "/tvdb4entries/anime[@tvdbid='%s']" % TVDBid)
+    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in mapping file" % TVDBid)
+  if entry:
+    for line in filter(None, entry.strip().splitlines()):
+      season = line.strip().split("|")
+      for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
+  Log.Info("absolute_map: {}".format(Dict(mappingList, 'absolute_map')))
+
   try:
     s      = media.seasons.keys()[0]
     e      = media.seasons[s].episodes.keys()[0]
