@@ -205,7 +205,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         ### Episodes (and specials) not always in right order ###
         Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
         ending_offset = 99
-        for ep_obj in xml.xpath('episodes/episode'):
+        for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
           ### Season, Episode number, Specials
           epNum     = ep_obj.xpath('epno')[0]
