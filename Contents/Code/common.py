@@ -814,10 +814,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
         if isinstance(TVDB[key], tuple) and TVDB[key][0] == '1' and TVDB[key][2] == id:
           Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
           del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
-      #SaveDict({id: str(new_episode)}, TVDB, 's'+str(new_season))
-      newDict     = Dict(TVDB, 's'+str(new_season), default={})
-      newDict[id] = str(new_episode)
-      SaveDict(newDict, TVDB, 's'+str(new_season))
+      SaveDict(str(new_episode), TVDB, 's'+str(new_season), id)
       Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
 
     if source=="tvdb6" and str(new_season).isdigit():  tvdb6_seasons[new_season] = season_map[id]['min']  # tvdb6_seasons[New season] = [Old season]
