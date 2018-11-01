@@ -205,7 +205,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         ### Episodes (and specials) not always in right order ###
         Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
         ending_offset = 99
-        for ep_obj in xml.xpath('episodes/episode'):
+        for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
           ### Season, Episode number, Specials
           epNum     = ep_obj.xpath('epno')[0]
@@ -220,6 +220,14 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
+
+            # Get season from absolute number OR convert episode number to absolute number
+            if source in ('tvdb3', 'tvdb4') and season not in ('-1', '0'):
+              if season=='a' or source=='tvdb4':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
+              elif episode!='0':
+                try:  episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
+                except Exception as e:  Log.Error("Exception: {}".format(e))
+
             if season=='0' and episode=='0' or not season in media.seasons or not episode in media.seasons[season].episodes:   Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType));  continue
             
             ### Series poster as season poster
