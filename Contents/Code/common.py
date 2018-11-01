@@ -831,7 +831,7 @@ def AdjustMapping(source, mappingList, dict_TheTVDB):
         adjustment += 1
       else:
         Log.Info("-- Adjusting season '{}' -> '{}'".format(season, season + adjustment))
-        new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
+        if str(season) in dict_TheTVDB['seasons']:  new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
         season += 1
     SaveDict(new_seasons, dict_TheTVDB, 'seasons')
     Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
