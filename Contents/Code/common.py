@@ -654,7 +654,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title']):  break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
-      if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
+      if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source] if language_source is not None else {}, FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
       elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources='' if field==season else Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
     
     #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())
