@@ -140,7 +140,7 @@ class PlexLog(object):
           if hasattr(handler, 'baseFilename') and os.path.join(CachePath, '_Logs') in handler.baseFilename:  log.removeHandler(handler)
         handler_new = logging.handlers.RotatingFileHandler(library_log, mode='a', maxBytes=1*1024*1024, backupCount=1, encoding=encoding, delay=delay)
         #handler_new = logging.FileHandler(library_log, mode='w', encoding=encoding, delay=delay)
-        handler_new.setFormatter(logging.Formatter(log_format))  # Set log format
+        handler_new.setFormatter(logging.Formatter('%(asctime)-15s - %(thread)x - %(message)s'))  # Set log format
         log.addHandler(handler_new)
       log.info('==== common.PlexLog(time={}, file="{}")'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f"), file))
 
