@@ -319,7 +319,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       while AniDB_WaitUntil > datetime.datetime.now():
         Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
         time.sleep(6)
-      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
+      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=6)
        
     # File download
     if not file:
