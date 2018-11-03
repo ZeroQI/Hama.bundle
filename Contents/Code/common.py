@@ -143,7 +143,7 @@ class PlexLog(object):
         #handler_new = logging.FileHandler(library_log, mode='w', encoding=encoding, delay=delay)
         handler_new.setFormatter(logging.Formatter('%(asctime)-15s - %(thread)x - %(message)s'))  # Set log format
         log.addHandler(handler_new)
-      log.info('==== common.PlexLog(time={}, file="{}")'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f"), file))
+      log.info('==== common.PlexLog(file="{}")'.format(file))
 
     except IOError as e:  self.isAgent = isAgent;  logging.getLogger('com.plexapp.agents.hama').info('updateLoggingConfig: failed to set logfile: {}'.format(e))
     self.Info("".ljust(157, '='))
@@ -309,7 +309,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if 'Authorization' in HEADERS:
         try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  file = None
-        Log.Root("Completed  '{}'".format(url))
+        Log.Root("Completed '{}'".format(url))
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
@@ -327,7 +327,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     if not file:
       try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-      Log.Root("Completed  '{}'".format(url))
+      Log.Root("Completed '{}'".format(url))
     netLock.release()
     
     # File checks and saving as cache
