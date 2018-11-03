@@ -108,7 +108,8 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
+  def Root     (self, msg, *args, **kwargs):  logging.getLogger('com.plexapp.agents.hama'           ).debug   (msg,           *args, **kwargs)
+  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)
   def Info     (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).info    (msg,           *args, **kwargs)
   def Warning  (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).warning (msg,           *args, **kwargs)
   def Error    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).error   ("ERROR: "+msg, *args, **kwargs)
@@ -308,6 +309,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if 'Authorization' in HEADERS:
         try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  file = None
+        Log.Root("Completed  '{}'".format(url))
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
@@ -325,6 +327,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     if not file:
       try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      Log.Root("Completed  '{}'".format(url))
     netLock.release()
     
     # File checks and saving as cache
