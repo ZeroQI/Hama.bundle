@@ -207,7 +207,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         ending_offset = 99
         for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
-          ### Season, Episode number, Specials
+          ### Title, Season, Episode number, Specials
+          title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
           epNum     = ep_obj.xpath('epno')[0]
           epNumType = epNum.get('type')
           season    = "1" if epNumType == "1" else "0"
@@ -241,10 +242,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
                      
             ### Movie episode group, create key and create key in dict with empty list if doesn't exist ###
-            key =''
+            key = ''
             if epNumType=='1' and GetXml(xml, '/anime/episodecount')=='1' and GetXml(xml, '/anime/type') in ('Movie', 'OVA'):
               key = '1' if title in ('Complete Movie', 'OVA') else title[-1] if title.startswith('Part ') and title[-1].isdigit() else '' #'-1'
-              if not key in movie_ep_groups:  movie_ep_groups[key] = []
+              if key:  SaveDict([], movie_ep_groups, key)
             
             #Episode missing from disk
             if not season in media.seasons or not episode in media.seasons[season].episodes:
@@ -252,14 +253,13 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
               current_air_date = GetXml(ep_obj, 'airdate').replace('-','')
               current_air_date = int(current_air_date) if current_air_date.isdigit() and int(current_air_date) > 10000000 else 99999999
               if int(time.strftime("%Y%m%d")) > current_air_date+1:
-                if   epNumType == '1' and key:  SaveDict([numbering], movie_ep_groups, key)
-                elif epNumType in ['1', '2']:   SaveDict([episode], missing, season); 
+                if   epNumType == '1' and key:  SaveDict([numbering], movie_ep_groups, key   )
+                elif epNumType in ['1', '2']:   SaveDict([episode],   missing,         season)
               continue
                     
           ### Episodes
-          title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
-          SaveDict(language_rank,             AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank'          )
-          SaveDict(title,                     AniDB_dict, 'seasons', season, 'episodes', episode, 'title'                  )
+          SaveDict(language_rank, AniDB_dict, 'seasons', season, 'episodes', episode, 'language_rank')
+          SaveDict(title,         AniDB_dict, 'seasons', season, 'episodes', episode, 'title'        )
           Log.Info('[X] {} => s{:>1}e{:>3} air_date: {} language_rank: {}, title: "{}"'.format(numbering, season, episode, GetXml(ep_obj, 'airdate'), language_rank, title))
           
           if GetXml(ep_obj, 'length').isdigit():
