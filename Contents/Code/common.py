@@ -26,7 +26,6 @@ strptime          = datetime.datetime.strptime #avoid init crash on first use in
 PlexRoot          = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", ".."))
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
-AniDB_WaitUntil   = datetime.datetime.now() 
 netLock           = Thread.Lock()
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
@@ -316,18 +315,24 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
         else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
     
     # AniDB
-    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
-      global AniDB_WaitUntil
-      while AniDB_WaitUntil > datetime.datetime.now():
-        Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
-        time.sleep(6)
-      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=6)
-       
+    if url.startswith('http://api.anidb.net:9001'):
+      while 'anidb' in netLocked and netLocked['anidb'][0]:  Log.Root("Waiting for lock: 'anidb'"); time.sleep(1)
+      netLocked['anidb'] = (True, int(time.time()))
+      Log.Root("Lock acquired: 'anidb'")
+
     # File download
     if not file:
       try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
       Log.Root("Completed '{}'".format(url))
+    
+    # AniDB
+    if url.startswith('http://api.anidb.net:9001'):
+      time.sleep(6)  #Sleeping after call completion to prevent ban
+      if file and '>banned<' in file:  Log.Root("Banned from 'anidb': {}".format(file))
+      netLocked['anidb'] = (False, 0)
+      Log.Root("Lock released: 'anidb'")
+
     netLock.release()
     
     # File checks and saving as cache
