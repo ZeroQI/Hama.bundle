@@ -129,7 +129,7 @@ def Update(metadata, media, lang, force, movie):
   common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
-                                             'OMDb':       dict_OMDb,       'MyAnimeList': dict_MyAnimeList, 'Locals':  dict_Local}, mappingList)
+                                             'OMDb':       dict_OMDb,       'MyAnimeList': dict_MyAnimeList, 'Local':   dict_Local}, mappingList)
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
