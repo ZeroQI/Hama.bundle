@@ -131,7 +131,16 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
     Log.Info('AniDBid: {}, url: {}'.format(AniDBid, ANIDB_HTTP_API_URL+AniDBid))
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
-    if xml and not xml=='<error>aid Missing or Invalid</error>':
+
+    if not xml:
+      title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
+      Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
+      if AniDBid==original or len(full_array)==1:
+        SaveDict(title,          AniDB_dict, 'title'         )
+        SaveDict(original_title, AniDB_dict, 'original_title')
+        SaveDict(language_rank,  AniDB_dict, 'language_rank' )
+
+    elif xml and not xml=='<error>aid Missing or Invalid</error>':
       if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
