@@ -344,6 +344,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
         Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
         file=None  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
         if Data.Exists(relativeFilename):  file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+        else:                              Log.Root("No preexisting file '{}' to load".format(relativeFilename))
 
   if isinstance(file, basestring):
     if file.startswith('<?xml '):
