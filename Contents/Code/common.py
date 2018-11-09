@@ -119,6 +119,8 @@ class PlexLog(object):
       mode                = 'a' if path in ('_unknown_folder', '_root_') else 'w'
       
       #Logs folder
+      for char in list("\\/:*?<>|~;"):                             # remove leftover parenthesis (work with code a bit above)
+        if char in library:  library = library.replace(char, '-')  # translate anidb apostrophes into normal ones
       LOGS_PATH = os.path.join(CachePath, '_Logs', library)
       if not os.path.exists(LOGS_PATH):  os.makedirs(LOGS_PATH);  self.Debug("[!] folder: '{}'created".format(LOGS_PATH))
       
