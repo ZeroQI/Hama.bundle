@@ -26,7 +26,6 @@ strptime          = datetime.datetime.strptime #avoid init crash on first use in
 PlexRoot          = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", ".."))
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
-AniDB_WaitUntil   = datetime.datetime.now() 
 netLock           = Thread.Lock()
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
@@ -108,7 +107,8 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)  #def debug    (self, msg, *args, **kwargs):  LOG[DEBUG   ][self.isAgent](msg, *args, **kwargs)
+  def Root     (self, msg, *args, **kwargs):  logging.getLogger('com.plexapp.agents.hama'           ).debug   (msg,           *args, **kwargs)
+  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)
   def Info     (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).info    (msg,           *args, **kwargs)
   def Warning  (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).warning (msg,           *args, **kwargs)
   def Error    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).error   ("ERROR: "+msg, *args, **kwargs)
@@ -140,11 +140,11 @@ class PlexLog(object):
       if library_log not in [handler.baseFilename for handler in log.handlers if hasattr(handler, 'baseFilename')]:
         for handler in log.handlers:
           if hasattr(handler, 'baseFilename') and os.path.join(CachePath, '_Logs') in handler.baseFilename:  log.removeHandler(handler)
-        handler_new = logging.handlers.RotatingFileHandler(library_log, mode='a', maxBytes=1*1024*1024, backupCount=1, encoding=encoding, delay=delay)
+        handler_new = logging.handlers.RotatingFileHandler(library_log, mode='a', maxBytes=4*1024*1024, backupCount=1, encoding=encoding, delay=delay)
         #handler_new = logging.FileHandler(library_log, mode='w', encoding=encoding, delay=delay)
         handler_new.setFormatter(logging.Formatter('%(asctime)-15s - %(thread)x - %(message)s'))  # Set log format
         log.addHandler(handler_new)
-      log.info('==== common.PlexLog(time={}, file="{}")'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f"), file))
+      log.info('==== common.PlexLog(file="{}")'.format(file))
 
     except IOError as e:  self.isAgent = isAgent;  logging.getLogger('com.plexapp.agents.hama').info('updateLoggingConfig: failed to set logfile: {}'.format(e))
     self.Info("".ljust(157, '='))
@@ -310,23 +310,31 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if 'Authorization' in HEADERS:
         try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  file = None
+        Log.Root("Completed '{}'".format(url))
       if not file:
         try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:    Log.Info('Error: {}'.format(e))
         else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
     
     # AniDB
-    if url.startswith('http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='):
-      global AniDB_WaitUntil
-      while AniDB_WaitUntil > datetime.datetime.now():
-        Log.Info("common.LoadFile() - AniDB AntiBan Delay, next download window: '%s'" % AniDB_WaitUntil)    
-        time.sleep(6)
-      AniDB_WaitUntil = datetime.datetime.now() + datetime.timedelta(seconds=4)
-       
+    if url.startswith('http://api.anidb.net:9001'):
+      while 'anidb' in netLocked and netLocked['anidb'][0]:  Log.Root("Waiting for lock: 'anidb'"); time.sleep(1)
+      netLocked['anidb'] = (True, int(time.time()))
+      Log.Root("Lock acquired: 'anidb'")
+
     # File download
     if not file:
       try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      Log.Root("Completed '{}'".format(url))
+    
+    # AniDB
+    if url.startswith('http://api.anidb.net:9001'):
+      time.sleep(6)  #Sleeping after call completion to prevent ban
+      if file and '>banned<' in file:  Log.Root("Banned from 'anidb': {}".format(file))
+      netLocked['anidb'] = (False, 0)
+      Log.Root("Lock released: 'anidb'")
+
     netLock.release()
     
     # File checks and saving as cache
@@ -338,6 +346,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
         Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
         file=None  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
         if Data.Exists(relativeFilename):  file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
+        else:                              Log.Root("No preexisting file '{}' to load".format(relativeFilename))
 
   if isinstance(file, basestring):
     if file.startswith('<?xml '):
@@ -656,7 +665,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title']):  break
       elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
     else:
-      if field=='title':                                                     UpdateMetaField(metadata, metadata, MetaSources[language_source], FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
+      if field=='title':                                                     UpdateMetaField(metadata, metadata, Dict(MetaSources, language_source, default={}), FieldListMovies if movie else FieldListSeries, 'title', language_source, movie, source_list)  #titles have multiple assignments, adding only once otherwise duplicated field outputs in logs
       elif not Dict(count, field) and Prefs[field]!="None" and source_list:  Log.Info("[#] {field:<29}  Sources: {sources:<60}  Inside: {source_list}  Values: {values}".format(field=field, sources='' if field==season else Prefs[field], source_list=source_list, values=Dict(MetaSources, source, field)))
     
     #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())

@@ -20,7 +20,7 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100)
   if "," in tmdbid:  (GetMetadata(metadata, movie, "", tmdbid_unique, "", season, num) for tmdbid_unique in tmdbid.split(","));             return  #recusive call for each tmdbid to reduce complexity
   if not movie and TVDBid.isdigit():  id, relativeDirectory, url = TVDBid,           "FanartTV/tv/"   +TVDBid,               API_TV_URL.format(id=TVDBid,           api_key=API_KEY)
   elif movie and (imdbid or tmdbid):  id, relativeDirectory, url = imdbid or tmdbid, "FanartTV/movie/"+imdbid or tmdbid, API_MOVIES_URL.format(id=imdbid or tmdbid, api_key=API_KEY)
-  else:                               return
+  else:                               return FanartTV_dict
   if TVDBid or tmdbid or imdbid:
     json = common.LoadFile(filename=id+".json", relativeDirectory=relativeDirectory, url=url, cache=CACHE_1WEEK)
     
