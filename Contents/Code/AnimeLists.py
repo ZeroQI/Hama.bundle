@@ -61,8 +61,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     AniDBid = anime.get("anidbid", "")
     TVDBid  = anime.get('tvdbid',  "")
     found   = True
-    if not tvdb_numbering and not TVDB_id:                                                                                                                          TVDB_id   = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and not AniDB_id:  AniDB_id2 = AniDBid
+    if not tvdb_numbering and not TVDB_id:                                                                                                                                                                                              TVDB_id   = TVDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
     ### Anidb numbered serie ###
@@ -82,7 +82,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1 and AniDB_id=='':  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         if anime.get('defaulttvdbseason'):
-          if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0']:
+          if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0:
             SaveDict(anime.get('defaulttvdbseason'), mappingList, 'defaulttvdbseason')
             AniDB_id2 = AniDBid
           SaveDict(anime.get('episodeoffset') or '0', mappingList, 'TVDB', 's-1' if anime.get('defaulttvdbseason') == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) >= 1 else 's'+anime.get('defaulttvdbseason'), AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
