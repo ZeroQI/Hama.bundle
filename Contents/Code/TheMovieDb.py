@@ -21,11 +21,11 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
   TSDbid = ""
   
   Log.Info("".ljust(157, '-'))
-  Log.Info("TheMovieDb.GetMetadata() - TVDBid: {}, TMDbid: {}, IMDbid: {}".format(TVDBid, TMDbid, IMDbid))
-  if   TMDbid:                      url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % TMDbid, "TMDB-"+TMDbid+".json"
-  elif IMDbid and TVDBid=='movie':  url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % IMDbid, "IMDb-"+IMDbid+".json"
-  elif TVDBid.isdigit():            url, filename = TMDB_SERIE_SEARCH_BY_TVDBID % TVDBid, "TVDB-"+TVDBid+".json"
-  else:                             return dict_TheMovieDb, TSDbid, TMDbid, IMDbid
+  Log.Info("TheMovieDb.GetMetadata() - TVDBid: '{}', TMDbid: '{}', IMDbid: '{}'".format(TVDBid, TMDbid, IMDbid))
+  if   TMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % TMDbid, "TMDB-"+TMDbid+".json"
+  elif IMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % IMDbid, "IMDb-"+IMDbid+".json"
+  elif TVDBid.isdigit():  url, filename = TMDB_SERIE_SEARCH_BY_TVDBID % TVDBid, "TVDB-"+TVDBid+".json"
+  else:                   return dict_TheMovieDb, TSDbid, TMDbid, IMDbid
   
   json        = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url,             cache=CACHE_1WEEK)
   config_dict = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache= CACHE_1DAY *30 )
