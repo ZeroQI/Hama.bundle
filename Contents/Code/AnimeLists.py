@@ -135,8 +135,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   #    Log.Info("AnimeLists.GetMetadata() - AniDBid '%s' is part of movie collection: '%s'" % (AniDBid, title))
   #    break
   #else
-  TVDB_collection, title=[], ''
-  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
+  TVDB_collection, title = [], ''
+  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_id.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_id:
       TVDB_collection.append(anime.get("anidbid", ""))
       if anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset')=='':  title = GetXml(anime, 'name')
