@@ -45,7 +45,7 @@ def GetAniDBMovieSets():
 def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   MAPPING_FEEDBACK               = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'  # ScudLee mapping file git feedback url
   mappingList, AnimeLists_dict   = {}, {}  #mappingList['poster_id_array'] = {}
-  tmdbid, imdbid, found          = '', '', False
+  found                          = False
   source, id                     = id.split('-', 1) if '-' in id else ("",id)
   AniDB_id                       = id if source.startswith('anidb') else ""
   TVDB_id                        = id if source.startswith( 'tvdb') else ""
@@ -143,7 +143,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collections')
   
   Log.Info("mappingList: {}".format(mappingList))
-  return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", tmdbid, imdbid, mappingList
+  return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, anidbid=''):
