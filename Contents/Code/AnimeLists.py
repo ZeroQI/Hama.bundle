@@ -62,7 +62,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     TVDBid  = anime.get('tvdbid',  "")
     found   = True
     if not tvdb_numbering and not TVDB_id:                                                                                                                                                                                              TVDB_id   = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset') in ('', None, '0') and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
     
     ### Anidb numbered serie ###
@@ -139,7 +139,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_id.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_id:
       TVDB_collection.append(anime.get("anidbid", ""))
-      if anime.get('defaulttvdbseason')=='1' and anime.get('episodeoffset')=='':  title = GetXml(anime, 'name')
+      if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0:  title = GetXml(anime, 'name')
   if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collections')
   
   Log.Info("mappingList: {}".format(mappingList))
