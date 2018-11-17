@@ -3,6 +3,7 @@
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import os          # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
 import common      # CachePath, common.WEB_LINK , common.LoadFile
+import AniDB
 from   common import GetXml, SaveDict, Dict, Log
 
 ### Functions ###
@@ -139,7 +140,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_id.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_id:
       TVDB_collection.append(anime.get("anidbid", ""))
-      if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0:  title = GetXml(anime, 'name')
+      if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0:
+        title, main, language_rank = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))
   if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collections')
   
   Log.Info("mappingList: {}".format(mappingList))
