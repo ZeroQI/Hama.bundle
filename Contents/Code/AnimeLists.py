@@ -142,7 +142,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       TVDB_collection.append(anime.get("anidbid", ""))
       if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0:
         title, main, language_rank = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))
-  if len(TVDB_collection)>1 and title:  SaveDict(title + ' Collection', AnimeLists_dict, 'collections')
+  if len(TVDB_collection)>1 and title:  SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')
   
   Log.Info("mappingList: {}".format(mappingList))
   return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList

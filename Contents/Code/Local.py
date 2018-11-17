@@ -46,7 +46,7 @@ def GetMetadata(media, movie):
    
     if len(reverse_path)>1 and not season_folder_first and subfolder_count>1:  ### grouping folders only ###
       Log.Info("Grouping folder found, root: {}, path: {}, Grouping folder: {}, subdirs: {}, reverse_path: {}".format(root, path, os.path.basename(series_root_folder), subfolder_count, reverse_path))
-      SaveDict( reverse_path[-1], Local_dict, 'collections')
+      SaveDict([reverse_path[-1]], Local_dict, 'collections')
     else:  Log.Info("Grouping folder not found, root: {}, path: {}, Grouping folder: {}, subdirs: {}, reverse_path: {}".format(root, path, os.path.basename(series_root_folder), subfolder_count, reverse_path))
        
   return Local_dict
