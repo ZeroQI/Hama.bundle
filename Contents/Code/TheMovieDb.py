@@ -42,7 +42,7 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
     SaveDict( Dict(json, 'runtime'),                                                    dict_TheMovieDb, 'duration')
     SaveDict( Dict(json, 'origin_country'),                                             dict_TheMovieDb, 'countries')
     SaveDict( Dict(json, 'first_air_date'),                                             dict_TheMovieDb, 'originally_available_at')
-    if Dict(json, 'belongs_to_collection', 'name'):  SaveDict( [ Dict(json, 'belongs_to_collection', 'name').replace(' Collection','')], dict_TheMovieDb, 'collections')
+    if Dict(json, 'belongs_to_collection', 'name'):  SaveDict( [ Dict(json, 'belongs_to_collection', 'name')], dict_TheMovieDb, 'collections')
     if Dict(json, 'genres'                       ):  SaveDict( [ Dict(genre, 'name') for genre in Dict(json, 'genres') or [] ],          dict_TheMovieDb, 'genres')
     if Dict(json, 'poster_path'                  ):  dict_TheMovieDb['posters'] = { config_dict['images']['base_url']+'original'+json['poster_path'  ]: (os.path.join('TheMovieDb', 'poster',  json['poster_path'  ].lstrip('/')), 90, None)}
     if Dict(json, 'backdrop_path'                ):  dict_TheMovieDb['art'    ] = { config_dict['images']['base_url']+'original'+json['backdrop_path']: (os.path.join('TheMovieDb', 'artwork', json['backdrop_path'].lstrip('/')), 90, config_dict['images']['base_url']+'w300'+json['backdrop_path']) }
