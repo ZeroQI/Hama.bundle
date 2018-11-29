@@ -107,12 +107,15 @@ class PlexLog(object):
        - log = common.PlexLog(file='mytest.log', isAgent=True )
        - log.debug('some debug message: %s', 'test123')
   '''
-  def Root     (self, msg, *args, **kwargs):  logging.getLogger('com.plexapp.agents.hama'           ).debug   (msg,           *args, **kwargs)
-  def Debug    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).debug   (msg,           *args, **kwargs)
-  def Info     (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).info    (msg,           *args, **kwargs)
-  def Warning  (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).warning (msg,           *args, **kwargs)
-  def Error    (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).error   ("ERROR: "+msg, *args, **kwargs)
-  def Critical (self, msg, *args, **kwargs):  logging.getLogger(hex(threading.currentThread().ident)).critical(msg,           *args, **kwargs)
+  def Logger   (self):
+    logger = logging.getLogger(hex(threading.currentThread().ident))
+    return logger if logger.handlers else logging.getLogger('com.plexapp.agents.hama')
+  def Root     (self, msg, *args, **kwargs):  logging.getLogger('com.plexapp.agents.hama').debug(msg, *args, **kwargs)
+  def Debug    (self, msg, *args, **kwargs):  self.Logger().debug   (msg,                     *args, **kwargs)
+  def Info     (self, msg, *args, **kwargs):  self.Logger().info    (msg,                     *args, **kwargs)
+  def Warning  (self, msg, *args, **kwargs):  self.Logger().warning (msg,                     *args, **kwargs)
+  def Error    (self, msg, *args, **kwargs):  self.Logger().error   ("ERROR: {}".format(msg), *args, **kwargs)
+  def Critical (self, msg, *args, **kwargs):  self.Logger().critical(msg,                     *args, **kwargs)
   def Open     (self, media=None, movie=False, search=False, isAgent=True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
     if not file:  
       library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
@@ -159,9 +162,9 @@ class PlexLog(object):
     self.Info('[ ] Logger:     "{}"'.format(hex(threading.currentThread().ident)))
     self.Info('[ ] mode:       "{}"'.format(mode))
     self.isAgent = isAgent
-  def Close    (self                      ):  
+  def Close    (self):  
     log = logging.getLogger(hex(threading.currentThread().ident))  # update root logging's handler
-    for handler in log.handlers:   log.removeHandler(handler)
+    for handler in log.handlers:  log.removeHandler(handler)
     
 Log = PlexLog()
 
