@@ -178,15 +178,14 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         SaveDict( "Continuing" if GetXml(xml, 'Anime/enddate')=="1970-01-01" else "Ended", AniDB_dict, 'status')
         Log.Info("[ ] 'genre' ({}/{} above {} weight): {}".format(len(Dict(AniDB_dict, 'genres')), len(xml.xpath('tags/tag')), int(Prefs['MinimumWeight'] or 200), Dict(AniDB_dict, 'genres')))
         for element in AniDBMovieSets.xpath("/anime-set-list/set/anime"):
-          if element.get('anidbid').startswith('377'):  Log.Info(element.get('anidbid'))
           if element.get('anidbid') == AniDBid or element.get('anidbid') in full_array:
             node              = element.getparent()
             title, main, language_rank = GetAniDBTitle(node.xpath('titles')[0])
-            Log.Info("[ ] title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
-            SaveDict([title], AniDB_dict, 'collections')
-            Log.Info("[ ] 'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
-            break
-        #else:  Log.Info("'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(full_array)) 
+            if title not in Dict(AniDB_dict, 'collections', default=[]):
+              Log.Info("[ ] title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
+              SaveDict([title], AniDB_dict, 'collections')
+              Log.Info("[ ] 'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
+        if not Dict(AniDB_dict, 'collections'):  Log.Info("[ ] 'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(full_array)) 
       
       if  movie:
         if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("[ ] 'year': '{}'".format(AniDB_dict['year']))
