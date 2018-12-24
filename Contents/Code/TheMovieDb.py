@@ -49,8 +49,8 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
     try:     SaveDict( int(Dict(json, 'duration')) * 60 * 1000,  dict_TheMovieDb, 'duration')
     except:  pass
     #Log.Info(str(dict_TheMovieDb))
-    if mode=='tv':   TSDbid = Dict(json, 'id')
-    elif not TMDbid: TMDbid = Dict(json, 'id')
+    if mode=='tv':   TSDbid = str(Dict(json, 'id'))
+    elif not TMDbid: TMDbid = str(Dict(json, 'id'))
     if not IMDbid:   IMDbid = Dict(json, 'imdb_id')
     
     #SaveDict( studio['name'].strip(), dict_TheMovieDb, 'studio')
