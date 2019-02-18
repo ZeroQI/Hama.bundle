@@ -133,6 +133,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
 
     if not xml:
+      SaveDict(True, AniDB_dict, 'Banned')
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
       Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
       if AniDBid==original or len(full_array)==1:
