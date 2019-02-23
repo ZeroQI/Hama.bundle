@@ -121,7 +121,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         numbering                        = 's{}e{}'.format(season, episode)
         if anidbid and not (new_season=='0' and new_episode=='0'):  SaveDict([numbering], AniDB_array, anidbid)
       else:  continue
-  else: full_array, AniDB_array = [AniDBid], {AniDBid:[]}
+  elif source.startswith('anidb') and AniDBid != "":  full_array, AniDB_array = [AniDBid], {AniDBid:[]}
+  else:                                               full_array, AniDB_array = [], {}
   Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}, source: {}".format(AniDBid, full_array, source))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))

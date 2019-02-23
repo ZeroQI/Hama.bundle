@@ -50,18 +50,37 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   source, id                     = id.split('-', 1) if '-' in id else ("",id)
   AniDB_id                       = id if source.startswith('anidb') else ""
   TVDB_id                        = id if source.startswith( 'tvdb') else ""
-  tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
+  TMDB_id                        = id if source.startswith('tmdb') else ""
   AniDBid                        = ""
   TVDBid                         = ""
+  TMDBid                         = ""
+  IMDBid                         = ""
+  tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
+
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
   Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
-  AniDB_id2, TVDB_id2 = '', ''
+  AniDB_id2, TVDB_id2 = "",""
+
+  forcedID={'anidbid':AniDB_id,'tvdbid':TVDB_id,'tmdbid':TMDB_id, "imdbid": ""}
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
-    if (anime.get("anidbid", "")=='' or anime.get("anidbid", "") != AniDB_id) and (anime.get('tvdbid' , "")=='' or anime.get('tvdbid' , "") !=TVDB_id):  continue  
-    AniDBid = anime.get("anidbid", "")
-    TVDBid  = anime.get('tvdbid',  "")
+    # gather any manually specified source ids
+    foundID,wantedID = {},{}
+    for check in forcedID.keys():
+      foundID[check]=anime.get(check,"")
+      wantedID[check]=True if foundID[check] == forcedID[check] and forcedID[check] != '' else False
+
+    # if this row matches our specified source-id
+    if True in wantedID.values():
+      # save the found values for later use in other GetMetadata that dont depend on AniDB etc.
+      IMDBid,TMDBid,TVDBid,AniDBid = foundID['imdbid'], foundID['tmdbid'],foundID['tvdbid'],foundID['anidbid']
+      # use the old check to decide whether to proceed
+      if TVDBid == '' and AniDBid == '': continue
+    # nothing found, skip
+    else: continue;
+
     found   = True
+
     if not tvdb_numbering and not TVDB_id:                                                                                                                                                                                              TVDB_id   = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit() and anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, anime.get('defaulttvdbseason'), anime.get('episodeoffset') or '0', GetXml(anime, 'name')))
@@ -118,11 +137,26 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
     if AniDB_id and (movie or max(map(int, media.seasons.keys()))<=1):  break
       
   else:
-    #Log.Info('#2 - TVDB_id: {}, TVDBid: {}'.format(TVDB_id, TVDBid))
-    if not found:
-      Log.Error("source '{}', id: '{}' not found in file".format(source, id))
-      error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid))
-      AniDBid, TVDBid = '', ''
+
+    # case [tmdb-123]:
+    # <anime anidbid="456" tvdbid="" defaulttvdbseason="" episodeoffset="" tmdbid="123" imdbid="">
+    # fails the above tvdbid + anidb check, but useful info was still obtained (anidbid=456)
+    # <anime tmdbid="123">
+    # fails the above tvdbid + anidbid check, so this used to return a blank tmdbid to be later used in
+    # TheMovieDB.GetMetadata(), and '' as AniDBid to be used in AniDB.GetMetadata()
+    # so, not resetting the AniDBid/TVDBid, and saving found info
+    if ( (TMDB_id or TMDBid) or IMDBid ):
+      SaveDict(TMDB_id or TMDBid or '', mappingList, 'tmdbid')
+      SaveDict(IMDBid or '', mappingList, 'imdbid')
+      Log.Info("Saved possible tmdb/imdb values for later '%s'/'%s' for later, since not in AnimeList." % (Dict(mappingList,'tmdbid'), Dict(mappingList,'imdbid')))
+    elif not found:
+      Log.Info("ERROR: Could not find %s: %s" % (source, id) )
+      # this error only makes sense if it's AniDB_id, right? otherwise AniDB_id is always == ""
+      # since it cant be not found and also have been set
+      if AniDB_id != "": error_log['anime-list AniDBid missing'].append("AniDBid: " + common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDB_id, AniDB_id))
+      # keeping this reset since im not clear on it's purpose.
+      AniDBid,TVDBid = '',''
+  
   Log.Info('             -----          ------')
   Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDB_id2 or AniDBid, TVDB_id or TVDBid))
   #Log.Info('[=] mappingList: {}'.format(mappingList))
