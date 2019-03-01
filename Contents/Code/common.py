@@ -410,7 +410,6 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   elif source == 'tvdb':  source = 'TVDBid'
   
   ### File lock ###
-  global netLocked
   sleep_time_max = 10
   for log in error_log:
     sleep_time = 0

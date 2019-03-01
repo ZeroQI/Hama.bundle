@@ -110,7 +110,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     absolute_numering = metadata_source in ('tvdb3', 'tvdb4', 'tvdb5')
     
     ### episode loop ###
-    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, episode_missing_season, episode_missing_season_all, abs_manual_placement_info = [], [], [], [], [], [], True, []
+    tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, episode_missing_season, episode_missing_season_all = [], [], [], [], [], [], True
     abs_number, ep_count = 0, 0
     for index in sorted_episodes_index_list:
       
@@ -242,7 +242,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     if metadata_source.startswith("tvdb") or metadata_source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
       if episode_missing:          error_log['Missing Episodes'         ].append("TVDBid: %s | Title: '%s' | Missing Episodes: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(episode_missing        )))
       if tvdb_special_missing:     error_log['Missing Specials'         ].append("TVDBid: %s | Title: '%s' | Missing Specials: %s"          % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title'), str(tvdb_special_missing   )))
-      #Log.Info("abs_manual_placement_info: " + str(abs_manual_placement_info))
       #Log.Debug("Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
       
     ### Picture types JSON download ###
