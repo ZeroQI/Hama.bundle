@@ -83,10 +83,9 @@ def Search (results, media, lang, manual, movie):
   except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %( TMDB_MOVIE_SEARCH % orig_title, e)) # json   = common.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
   else:
     if isinstance(json, dict) and 'results' in json:
-      for i, movie in enumerate(json['results']):
+      for movie in json['results']:
         a, b  = orig_title, movie['title'].encode('utf-8')
         score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
-        id    = movie['id']
         Log.Info("TMDB  - score: '%3d', id: '%6s', title: '%s'" % (score, movie['id'],  movie['title']) )
         results.Append(MetadataSearchResult(id="tmdb-"+str(movie['id']), name="{} [{}-{}]".format(movie['title'], "tmdb", movie['id']), year=None, lang=lang, score=score) )
         if '' in movie and movie['adult']!="null":  Log.Info("adult: '{}'".format(movie['adult']))
