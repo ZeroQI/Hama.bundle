@@ -613,7 +613,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   Log.Info("".ljust(157, '-'))
   Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
-    if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields =' | '.join('{:<23} ({:>3})'.format(field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for field in MetaSources[source])))
+    if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '', field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for i, field in enumerate(MetaSources[source]))))
     if type(MetaSources[source]).__name__ == 'NoneType':  Log.Info("[!] source: '%s', type: '%s', bad return in function, should return an empty dict" % (source, type(MetaSources[source]).__name__))
     if 'seasons' in (MetaSources[source] if MetaSources[source] else {}) :
       season_fields, episode_fields, ep_nb, ep_invalid = {}, {}, 0, 0
@@ -626,8 +626,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if field in FieldListEpisodes:      episode_fields[field] = episode_fields[field] + 1 if field in episode_fields else 1
             elif field is not 'language_rank':  Log.Info("                     {:<23} Season {:>3}, Episode: {:>3} is not a valid metadata field, value: '{!s}'".format(field, season, episode, MetaSources[source]['seasons'][season]['episodes'][episode][field])); ep_invalid+=1
           ep_nb+=1
-      if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields =' | '.join('{:<23} ({:>3})'.format(field,  season_fields[field]) for field in  season_fields)))
-      if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields =' | '.join('{:<23} ({:>3})'.format(field, episode_fields[field]) for field in episode_fields)))
+      if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '',field,  season_fields[field]) for i, field in  enumerate(season_fields))))
+      if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '',field, episode_fields[field]) for i, field in enumerate(episode_fields))))
   Log.Info("".ljust(157, '-'))
   #if AniDB_dict['originally_available_at']:  AniDB_dict['year'] = AniDB_dict['originally_available_at'].year
 
