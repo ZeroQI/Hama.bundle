@@ -107,8 +107,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
            else:       list_abs_eps[e]=s 
       Log.Info('Present abs eps: {}'.format(list_abs_eps))
     
-    absolute_numering = metadata_source in ('tvdb3', 'tvdb4', 'tvdb5')
-    
     ### episode loop ###
     tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, episode_missing_season, episode_missing_season_all = [], [], [], [], [], [], True
     abs_number, ep_count = 0, 0
