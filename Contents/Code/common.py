@@ -278,7 +278,7 @@ def SaveFile(filename="", file="", relativeDirectory=""):
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
    
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
-  ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
       Usage (TheTVDBv2): 
       2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
       2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - TheTVDB.GetMetadata() - TVDBid: '280330', IMDbid: '', language_series : ['en'], language_episodes: ['en']
