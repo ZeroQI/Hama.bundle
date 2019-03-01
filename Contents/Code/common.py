@@ -87,7 +87,7 @@ def GetLibraryRootPath(dir):
           path = os.path.relpath(dir, root).rstrip('.')
           break
         Log.Info('[!] root not found: "{}"'.format(root))
-      else: path, root = '_unknown_folder', '';  
+      else: path, root = '_unknown_folder', ''
     else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
   return library, root, path
 
@@ -560,7 +560,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     if isinstance(meta_new, int):
       if field == 'rating':                                          meta_new = float(meta_new)
     if isinstance(meta_new, basestring) or isinstance(meta_new, str):
-      if field == 'rating':                                          meta_new = float(meta_new); 
+      if field == 'rating':                                          meta_new = float(meta_new)
       if field == 'title_sort':                                      meta_new = SortTitle(meta_new)
       if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
       if field in MetaIntList:                                       meta_new = int(meta_new) if meta_new.isdigit() else None
