@@ -855,7 +855,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     else:          Log.Error("Unexpected exception hit")
     Log.Info('Exception: "{}"'.format(e))
     Log.Info("Removing AniDB & TVDB data from memory to prevent incorrect data from being loaded")
-    dict_AniDB, dict_TheTVDB = {}, {}
+    dict_AniDB.clear(); dict_TheTVDB.clear()
     return False
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
