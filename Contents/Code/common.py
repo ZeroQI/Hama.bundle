@@ -375,7 +375,6 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
   elif filename.startswith("TVDB/episodes/"):  string = "thumbs"
   else:                                        string = "seasons"
   
-  global downloaded
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
   else:
     file, status = None, ""
