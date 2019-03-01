@@ -64,9 +64,9 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
     TMDB_MOVIE_IMAGES_URL = 'https://api.tmdb.org/3/{mode}/{id}/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
     json                  = common.LoadFile(filename="TMDB-"+(IMDbid or TMDbid)+".json", relativeDirectory="TMDB", url=TMDB_MOVIE_IMAGES_URL.format(id=id, mode=mode), cache=CACHE_1WEEK)
     for index, poster in enumerate(Dict(json, 'posters') or []):
-      if Dict(json, 'posters', index, 'file_path'):  SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), 40, None), dict_TheMovieDb, 'posters', config_dict['images']['base_url'] + 'original' + json['posters'][index]['file_path'])
-    for index, poster in enumerate(Dict(json, 'backdrops') or []):
-      if Dict(json, 'backdrops', index, 'file_path'):  SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), 40, config_dict['images']['base_url'] + 'w300'+ json['backdrops'][index]['file_path']), dict_TheMovieDb, 'art', config_dict['images']['base_url']+'original'+ json['backdrops'][index]['file_path'])
+      if Dict(poster, 'file_path'):  SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), 40, None), dict_TheMovieDb, 'posters', config_dict['images']['base_url'] + 'original' + poster['file_path'])
+    for index, backdrop in enumerate(Dict(json, 'backdrops') or []):
+      if Dict(backdrop, 'file_path'):  SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), 40, config_dict['images']['base_url'] + 'w300'+ backdrop['file_path']), dict_TheMovieDb, 'art', config_dict['images']['base_url']+'original'+ backdrop['file_path'])
   
   return dict_TheMovieDb, TSDbid, TMDbid, IMDbid
 
