@@ -278,7 +278,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
-          SaveDict(GetXml(ep_obj, 'summary'), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
+          SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
@@ -353,7 +353,9 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
 def summary_sanitizer(summary):
   summary = summary.replace("`", "'")                                                                # Replace backquote with single quote
   summary = re.sub(r'https?://anidb\.net/[a-z]{1,2}[0-9]+ \[(?P<text>.+?)\]', r'\g<text>', summary)  # Replace links
-  summary = re.sub(r'^\* B.*\n+|\nSource:\w*[\w\W]*|\nNote:\w*[\w\W]*()',     "",          summary)  # Remove Source and M=Notes
+  summary = re.sub(r'^\* .*',                     "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with '* '
+  summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
+  summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
   return summary
   
 def WordsScore(words, title_cleansed):

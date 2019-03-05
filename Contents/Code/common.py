@@ -87,7 +87,7 @@ def GetLibraryRootPath(dir):
           path = os.path.relpath(dir, root).rstrip('.')
           break
         Log.Info('[!] root not found: "{}"'.format(root))
-      else: path, root = '_unknown_folder', '';  
+      else: path, root = '_unknown_folder', ''
     else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
   return library, root, path
 
@@ -278,7 +278,7 @@ def SaveFile(filename="", file="", relativeDirectory=""):
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
    
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
-  ''' Load file in Plex Media Server\Plug-in Support\Data\com.plexapp.agents.hama\DataItems if cache time not passed
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
       Usage (TheTVDBv2): 
       2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
       2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - TheTVDB.GetMetadata() - TVDBid: '280330', IMDbid: '', language_series : ['en'], language_episodes: ['en']
@@ -375,7 +375,6 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
   elif filename.startswith("TVDB/episodes/"):  string = "thumbs"
   else:                                        string = "seasons"
   
-  global downloaded
   if url in metatype:  Log.Info("url: '%s', num: '%d', filename: '%s'*" % (url, num, filename))
   else:
     file, status = None, ""
@@ -411,7 +410,6 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   elif source == 'tvdb':  source = 'TVDBid'
   
   ### File lock ###
-  global netLocked
   sleep_time_max = 10
   for log in error_log:
     sleep_time = 0
@@ -560,7 +558,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     if isinstance(meta_new, int):
       if field == 'rating':                                          meta_new = float(meta_new)
     if isinstance(meta_new, basestring) or isinstance(meta_new, str):
-      if field == 'rating':                                          meta_new = float(meta_new); 
+      if field == 'rating':                                          meta_new = float(meta_new)
       if field == 'title_sort':                                      meta_new = SortTitle(meta_new)
       if field == 'originally_available_at':                         meta_new = Datetime.ParseDate(meta_new).date()
       if field in MetaIntList:                                       meta_new = int(meta_new) if meta_new.isdigit() else None
@@ -615,7 +613,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   Log.Info("".ljust(157, '-'))
   Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
-    if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields =' | '.join('{:<23} ({:>3})'.format(field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for field in MetaSources[source])))
+    if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '', field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for i, field in enumerate(MetaSources[source]))))
     if type(MetaSources[source]).__name__ == 'NoneType':  Log.Info("[!] source: '%s', type: '%s', bad return in function, should return an empty dict" % (source, type(MetaSources[source]).__name__))
     if 'seasons' in (MetaSources[source] if MetaSources[source] else {}) :
       season_fields, episode_fields, ep_nb, ep_invalid = {}, {}, 0, 0
@@ -628,8 +626,8 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
             if field in FieldListEpisodes:      episode_fields[field] = episode_fields[field] + 1 if field in episode_fields else 1
             elif field is not 'language_rank':  Log.Info("                     {:<23} Season {:>3}, Episode: {:>3} is not a valid metadata field, value: '{!s}'".format(field, season, episode, MetaSources[source]['seasons'][season]['episodes'][episode][field])); ep_invalid+=1
           ep_nb+=1
-      if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields =' | '.join('{:<23} ({:>3})'.format(field,  season_fields[field]) for field in  season_fields)))
-      if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields =' | '.join('{:<23} ({:>3})'.format(field, episode_fields[field]) for field in episode_fields)))
+      if len(season_fields ):  Log.Info("  - Seasons   ({nb:>3}): {fields}".format(nb=len(MetaSources[source]['seasons']), fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '',field,  season_fields[field]) for i, field in  enumerate(season_fields))))
+      if len(episode_fields):  Log.Info("  - Episodes  ({nb:>3}): {fields}".format(nb=ep_nb-ep_invalid                   , fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '',field, episode_fields[field]) for i, field in enumerate(episode_fields))))
   Log.Info("".ljust(157, '-'))
   #if AniDB_dict['originally_available_at']:  AniDB_dict['year'] = AniDB_dict['originally_available_at'].year
 
@@ -857,7 +855,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     else:          Log.Error("Unexpected exception hit")
     Log.Info('Exception: "{}"'.format(e))
     Log.Info("Removing AniDB & TVDB data from memory to prevent incorrect data from being loaded")
-    dict_AniDB, dict_TheTVDB = {}, {}
+    dict_AniDB.clear(); dict_TheTVDB.clear()
     return False
 
   Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))

@@ -17,6 +17,6 @@ def GetMetadata(metadata, title1, title2):
     for url in set([THEME_URL.format(String.Quote(title1)), THEME_URL.format(String.Quote(title2))]):
       result = '*' if url in metadata.themes or Data.Exists(url.split('/')[-1]) else common.GetStatusCode(url)
       Log.Info("TVTunes.GetMetadata() - Return code: '{}', url: '{}'".format(result, url))
-      if result in (200, "*"):  return {'themes': {url: ("TelevisionTunes/"+url.split('/')[-1], 1, None)}}
-  return {}
+      if result in (200, "*"):  TVTunes_dict = {'themes': {url: ("TelevisionTunes/"+url.split('/')[-1], 1, None)}}
+  return TVTunes_dict
   
