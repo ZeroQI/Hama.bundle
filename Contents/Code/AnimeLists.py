@@ -56,6 +56,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   TMDBid                         = ""
   IMDBid                         = ""
   tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
+  tvdbcounts                     = {}
 
   ### Search for match ###
   Log.Info("".ljust(157, '-'))
@@ -78,6 +79,9 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       if TVDBid == '' and AniDBid == '': continue
     # nothing found, skip
     else: continue
+
+    # record the number of entries using the same tvdb id
+    SaveDict(Dict(tvdbcounts, TVDBid, default=0)+1, tvdbcounts, TVDBid)
 
     found   = True
 
@@ -159,7 +163,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   
   Log.Info('             -----          ------')
   Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDB_id2 or AniDBid, TVDB_id or TVDBid))
-  #Log.Info('[=] mappingList: {}'.format(mappingList))
+  SaveDict(Dict(tvdbcounts, TVDB_id or TVDBid), mappingList, 'tvdbcount')
   
   ### Update collection 
   #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
@@ -249,10 +253,8 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
 def anidb_ep(mappingList, season, episode):
   
   # <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping> + <mapping-list> <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
-  anidbid_array = Dict(mappingList, 'TVDB', 's'+season, default={'', 0})
-  anidbid       = anidbid_array.keys()[0] if len(anidbid_array)==1 else 'xxxxxxx'
-  ep_mapping    = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
-  if ep_mapping:   return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
+  ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
+  if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
   
   ### bug here
   #ep_mappings   = [key for key in Dict(mappingList, 'TVDB') if 'e' in key and anidbid == Dict(mappingList, 'TVDB', key)[2]]  
@@ -269,8 +271,14 @@ def anidb_ep(mappingList, season, episode):
   # <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
-  if defaulttvdbseason and season==defaulttvdbseason:  return Dict(mappingList, 'defaulttvdbseason'), str(int(episode)-int(episodeoffset)), ''
-  else:                                                return '0', '0', anidbid
+  if season==defaulttvdbseason:  return defaulttvdbseason, str(int(episode)-int(episodeoffset)), ''
+
+  if Dict(mappingList, 'tvdbcount', default=0)==1 and Dict(mappingList, 'TVDB', 's1'): # Confirm only one entry and its 's1'
+    for item in Dict(mappingList, 'TVDB'): # Also that there are no s0 mappings
+      if item.startswith("s0"):  break
+    else:  return season, episode, Dict(mappingList, 'TVDB', 's1').keys()[0]
+  
+  return '0', '0', 'xxxxxxx'
 
 ### Variables ###
 AniDBTVDBMap = GetAniDBTVDBMap()
