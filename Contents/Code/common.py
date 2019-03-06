@@ -250,6 +250,17 @@ def DisplayDict(items={}, fields=[]):
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
 def DictString(input_value, max_depth, depth=0):
+  """ Expand a dict down to 'max_depth' and sort the keys.
+      To print it on a single line with this function use (max_depth=0).
+      If a dict is at max depth and has only one key, it will keep it on the same line.
+      EX: (max_depth=1)
+        mappingList: {
+          'season_map': {'13493': {'max': '3', 'min': '3'}}}
+      Instead of:
+        mappingList: {
+          'season_map': {
+            '9306': {'max': '2', 'min': '1'}, '11665': {'max': '3', 'min': '3'}}}
+  """
   output = "{" if depth == 0 else ""
   if depth >= max_depth or not isinstance(input_value, dict):
     if   isinstance(input_value, str):   output += ('"%s"' if "'" in input_value else "'%s'") % input_value
@@ -258,8 +269,7 @@ def DictString(input_value, max_depth, depth=0):
   else:
     for i, key in enumerate(sorted(input_value.keys())):
       output += (
-        "\n" + 
-        "  " * (depth+1) + 
+        "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
         ("{%s%s%s}" if isinstance(input_value[key], dict) else "%s%s%s") % (
           "\n" if depth+1==max_depth and isinstance(input_value[key], dict) and len(input_value[key])>1 else "",
