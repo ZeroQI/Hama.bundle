@@ -4,7 +4,7 @@
 
 ### Imports ###
 import common
-from common import Dict, SaveDict, Dict, Log
+from common import Dict, SaveDict, Dict, Log, DictString
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 
@@ -35,5 +35,7 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100)
       for item in Dict(json, 'showbackground' ) or []:  SaveDict((relativeDirectory+"{id}/showbackground/{filename}.jpg".format( id=id, filename=item['id']), num, None), FanartTV_dict, 'art',     item['url'])
       for item in Dict(json, 'tvbanner'       ) or []:  SaveDict((relativeDirectory+"{id}/tvbanner/{filename}.jpg".format(       id=id, filename=item['id']), num, None), FanartTV_dict, 'banners', item['url'])
       for item in Dict(json, 'seasonposter'   ) or []:  SaveDict((relativeDirectory+"{id}/seasonposter/{filename}.jpg".format(   id=id, filename=item['id']), num, None), FanartTV_dict, 'seasons', item['season'], 'posters', item['url'])
+
+  Log.Info("FanartTV_dict: {}".format(DictString(FanartTV_dict, 4)))
   return FanartTV_dict
  

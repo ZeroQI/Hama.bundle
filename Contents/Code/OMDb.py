@@ -5,7 +5,7 @@
 
 ### Imports ###
 import common
-from common import SaveDict, Dict, Log
+from common import SaveDict, Dict, Log, DictString
 import os
 
 ### Variables ###
@@ -35,4 +35,6 @@ def GetMetadata(movie, imdbid, num=98):  # return 200 but not downloaded correct
       if Dict(json,'Poster'):  SaveDict((os.path.join('OMDb', 'poster', imdbid_single+'.jpg'), num, None), OMDb_dict, 'posters', json['Poster'])
       try:     SaveDict( int(Dict(json,'Runtime').replace(' min','')) * 60 * 1000, OMDb_dict, 'duration')  # Plex save duration in millisecs
       except:  pass
+
+  Log.Info("OMDb_dict: {}".format(DictString(OMDb_dict, 4)))
   return OMDb_dict

@@ -11,7 +11,7 @@ import string    # Functions:
 import datetime  # Functions: 
 import time      # Functions: 
 import AnimeLists
-from common import GetXml, Dict, SaveDict, natural_sort_key, Log
+from common import GetXml, Dict, SaveDict, natural_sort_key, Log, DictString
 from lxml   import etree
 ns = etree.FunctionNamespace(None)
 ns['lower-case' ] = lambda context, s: s[0].lower()
@@ -318,9 +318,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     
       Log.Info("ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   
-  Log.Info("relations_map: {}".format(Dict(mappingList, 'relations_map')))
-
-  #Log.Info(str(AniDB_dict))
+  Log.Info("AniDB_dict: {}".format(DictString(AniDB_dict, 4)))
+  Log.Info("relations_map: {}".format(DictString(Dict(mappingList, 'relations_map', default={}), 1)))
   return AniDB_dict, ANNid, MALid
 
 def GetAniDBTitlesDB():

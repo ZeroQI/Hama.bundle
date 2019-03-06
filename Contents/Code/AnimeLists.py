@@ -4,7 +4,7 @@
 import os          # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
 import common      # CachePath, common.WEB_LINK , common.LoadFile
 import AniDB
-from   common import GetXml, SaveDict, Dict, Log
+from   common import GetXml, SaveDict, Dict, Log, DictString
 
 ### Functions ###
 
@@ -77,7 +77,7 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
       # use the old check to decide whether to proceed
       if TVDBid == '' and AniDBid == '': continue
     # nothing found, skip
-    else: continue;
+    else: continue
 
     found   = True
 
@@ -178,7 +178,8 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
   if len(TVDB_collection)>1 and title:  SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')
   
-  Log.Info("mappingList: {}".format(mappingList))
+  Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
+  Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
   return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###

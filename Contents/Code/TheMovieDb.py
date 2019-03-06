@@ -6,7 +6,7 @@
 
 ### Imports ###
 import common
-from   common import SaveDict, Dict, Log
+from   common import SaveDict, Dict, Log, DictString
 import os
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
   
@@ -68,6 +68,7 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
     for index, backdrop in enumerate(Dict(json, 'backdrops') or []):
       if Dict(backdrop, 'file_path'):  SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), 40, config_dict['images']['base_url'] + 'w300'+ backdrop['file_path']), TheMovieDb_dict, 'art', config_dict['images']['base_url']+'original'+ backdrop['file_path'])
   
+  Log.Info("TheMovieDb_dict: {}".format(DictString(TheMovieDb_dict, 4)))
   return TheMovieDb_dict, TSDbid, TMDbid, IMDbid
 
 ### TMDB movie search ###

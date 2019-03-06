@@ -249,6 +249,28 @@ def DisplayDict(items={}, fields=[]):
   len_fields = DisplayDictLen(items, fields)
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
+def DictString(input_value, max_depth, depth=0):
+  output = "{" if depth == 0 else ""
+  if depth >= max_depth or not isinstance(input_value, dict):
+    if   isinstance(input_value, str):   output += ('"%s"' if "'" in input_value else "'%s'") % input_value
+    elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
+    else:                                output += "{}".format(input_value)
+  else:
+    for i, key in enumerate(sorted(input_value.keys())):
+      output += (
+        "\n" + 
+        "  " * (depth+1) + 
+        "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
+        ("{%s%s%s}" if isinstance(input_value[key], dict) else "%s%s%s") % (
+          "\n" if depth+1==max_depth and isinstance(input_value[key], dict) and len(input_value[key])>1 else "",
+          "  " * (depth+2) if isinstance(input_value[key], dict) and len(input_value[key])>1 else "", 
+          DictString(input_value[key], max_depth, depth+1)) + 
+        ("," if i!=len(input_value)-1 else ""))  # remove last ','
+  return output + ("}" if depth == 0 else "")
+  # Other options passed on as can't define expansion depth
+  #import pprint; pprint.pprint(input_value)
+  #import json; return json.dumps(input_value, indent=2, sort_keys=True)
+
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data only from the host.
         This means that it only requests the headers. If the host cannot be reached or something else goes wrong, it returns None instead.

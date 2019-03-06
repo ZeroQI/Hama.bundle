@@ -6,7 +6,7 @@ import common
 import os
 import time
 import re
-from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key, Log
+from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key, Log, DictString
 from AnimeLists import tvdb_ep, anidb_ep
 #import re, unicodedata, hashlib, types
 #from collections import defaultdict
@@ -225,13 +225,13 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       episode_missing.append("s{}e{}-{}".format(fm['s'], fm['e'], lm['e']) if fm['abs'] is None else "{}-{} (s{}e{}-{})".format(fm['abs'], lm['abs'], fm['s'], fm['e'], lm['e']))
 
     # Print abs_mapping populated in episode loop
-    Log.Info("absolute_map: {}".format(Dict(mappingList, 'absolute_map')))
+    Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
 
     # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
     for entry in Dict(mappingList, 'season_map', default=[]):
       mappingList['season_map'][entry] = {'min': 1, 'max': max_season} if mappingList['season_map'][entry]['min'] == 'a' else {'min': int(mappingList['season_map'][entry]['min']), 'max': int(mappingList['season_map'][entry]['max'])}
     SaveDict(max_season, mappingList, 'season_map', 'max_season')
-    Log.Info("season_map: {}".format(Dict(mappingList, 'season_map')))
+    Log.Info("season_map: {}".format(DictString(Dict(mappingList, 'season_map', default={}), 0)))
 
     ### Logging ###
     if not movie:
@@ -306,7 +306,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
 
     Log.Info("url: '{}', IMDbid: {}, Present episodes: {}, Missing: {}".format(TVDB_SERIES_URL % TVDBid, IMDbid, ep_count, sorted(episode_missing, key=natural_sort_key)))
     
-  Log.Info('TheTVDB_dict: {}'.format(TheTVDB_dict))
+  Log.Info("TheTVDB_dict: {}".format(DictString(TheTVDB_dict, 4)))
   return TheTVDB_dict, IMDbid
   
 def Search(results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Search_TVDB(results, media, lang, manual, movie)

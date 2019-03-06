@@ -4,7 +4,7 @@
 
 ### Imports ###
 import common
-from common import GetXml, SaveDict, Log
+from common import GetXml, SaveDict, Log, DictString
 import os
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
@@ -43,4 +43,5 @@ def GetMetadata(movie, MALid):
     for item in xml.xpath('//anime/banners/banner'        ):
       SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), 50, None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'banners', item.text)
 
+  Log.Info("MyAnimeList_dict: {}".format(DictString(MyAnimeList_dict, 4)))
   return MyAnimeList_dict

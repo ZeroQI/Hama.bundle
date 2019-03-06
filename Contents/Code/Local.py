@@ -2,7 +2,7 @@
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
-from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath, Log
+from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath, Log, DictString
 import os      # path, listdir
 import re      # match, ignorecase
 
@@ -20,7 +20,7 @@ SEASON_RX = [                                                                   
 def GetMetadata(media, movie):
   Log.Info("".ljust(157, '-'))
   Log.Info("Local.GetMetadata()")
-  if movie: return
+  if movie: return {}
   
   Local_dict          = {}
   dir                 = GetMediaDir(media, movie)
@@ -49,4 +49,5 @@ def GetMetadata(media, movie):
       SaveDict([reverse_path[-1]], Local_dict, 'collections')
     else:  Log.Info("Grouping folder not found, root: {}, path: {}, Grouping folder: {}, subdirs: {}, reverse_path: {}".format(root, path, os.path.basename(series_root_folder), subfolder_count, reverse_path))
        
+  Log.Info("Local_dict: {}".format(DictString(Local_dict, 1)))
   return Local_dict
