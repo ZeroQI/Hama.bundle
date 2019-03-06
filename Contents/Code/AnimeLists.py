@@ -273,10 +273,10 @@ def anidb_ep(mappingList, season, episode):
   episodeoffset     = Dict(mappingList, 'episodeoffset', default="0")
   if season==defaulttvdbseason:  return defaulttvdbseason, str(int(episode)-int(episodeoffset)), ''
 
-  if Dict(mappingList, 'tvdbcount', default=0)==1 and Dict(mappingList, 'TVDB', 's1'): # Confirm only one entry and its 's1'
+  if Dict(mappingList, 'tvdbcount', default=0)==1 and (Dict(mappingList, 'TVDB', 's1') or Dict(mappingList, 'TVDB', 'sa')): # Confirm only one entry and its 's1'
     for item in Dict(mappingList, 'TVDB'): # Also that there are no s0 mappings
       if item.startswith("s0"):  break
-    else:  return season, episode, Dict(mappingList, 'TVDB', 's1').keys()[0]
+    else:  return season, episode, (Dict(mappingList, 'TVDB', 's1') or Dict(mappingList, 'TVDB', 'sa')).keys()[0]
   
   return '0', '0', 'xxxxxxx'
 
