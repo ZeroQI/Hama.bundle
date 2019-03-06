@@ -249,6 +249,13 @@ def DisplayDict(items={}, fields=[]):
   len_fields = DisplayDictLen(items, fields)
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
+def AllInts(value):
+  # 'all' funciton was not found so couldn't simply run this in 'DictString':
+  #   all([x.isdigit() for x in input_value])
+  for x in value:
+    if not x.isdigit():  return False
+  return True
+
 def DictString(input_value, max_depth, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
@@ -267,7 +274,7 @@ def DictString(input_value, max_depth, depth=0):
     elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
     else:                                output += "{}".format(input_value)
   else:
-    for i, key in enumerate(sorted(input_value.keys())):
+    for i, key in enumerate(sorted(input_value, key=int if AllInts(input_value) else None)):
       output += (
         "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
