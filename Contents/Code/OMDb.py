@@ -25,7 +25,7 @@ def GetMetadata(movie, imdbid, num=98):  # return 200 but not downloaded correct
       SaveDict( Dict(json,'Released')  , OMDb_dict, 'originally_available_at')
       SaveDict( Dict(json,'Country')   , OMDb_dict, 'countries'              )
       SaveDict( Dict(json,'Director')  , OMDb_dict, 'directors'              )
-      SaveDict( Dict(json,'Genre')     , OMDb_dict, 'genres'                 )
+      SaveDict( sorted([x.strip() for x in Dict(json,'Genre').split(',')]), OMDb_dict, 'genres')
       SaveDict( Dict(json,'Writer')    , OMDb_dict, 'writers'                )
       SaveDict( Dict(json,'imdbRating'), OMDb_dict, 'rating'                 )
       if Dict(json,'Metascore').isdigit() and not Dict(OMDb_dict,'rating'):

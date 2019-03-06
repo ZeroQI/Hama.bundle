@@ -27,12 +27,9 @@ def GetMetadata(movie, MALid):
     SaveDict( GetXml(xml, 'firstAired'    ), MyAnimeList_dict, 'originally_available_at')
       
     #for item in xml.xpath('//anime/genres/genre' or []):  SaveDict([item.text], MyAnimeList_dict, 'genres')
-    if GetXml(xml, '//anime/genres/genre'):          SaveDict( [item.text for item in xml.xpath('//anime/genres/genre')], MyAnimeList_dict, 'genres') 
-    if GetXml(xml, 'status') == 'Currently Airing':  SaveDict( "Continuing", MyAnimeList_dict, 'genres')
-    if GetXml(xml, 'status') == 'Finished Airing':   SaveDict( "Ended"     , MyAnimeList_dict, 'genres')
-    if GetXml(xml, 'type'  ) == 'TV':                SaveDict( "Serie"     , MyAnimeList_dict, 'genres')
-    if GetXml(xml, 'type'  ) == 'Movie':             SaveDict( "Movie"     , MyAnimeList_dict, 'genres')
-    if GetXml(xml, 'type'  ) == 'Special':           SaveDict( "Special"   , MyAnimeList_dict, 'genres')
+    if GetXml(xml, '//anime/genres/genre'):          SaveDict( sorted([item.text for item in xml.xpath('//anime/genres/genre')]), MyAnimeList_dict, 'genres') 
+    if GetXml(xml, 'status') == 'Currently Airing':  SaveDict( "Continuing", MyAnimeList_dict, 'status')
+    if GetXml(xml, 'status') == 'Finished Airing':   SaveDict( "Ended"     , MyAnimeList_dict, 'status')
 
     for item in xml.xpath('//anime/episodes/episode') or []:
       episode = GetXml(item, 'episodeNumber')

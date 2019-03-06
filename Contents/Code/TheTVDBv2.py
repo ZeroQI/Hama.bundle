@@ -64,7 +64,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       Log.Info("[ ] summary: {}".format(Dict(serie_json, 'overview')))
     SaveDict( Dict(serie_json, 'firstAired'), TheTVDB_dict, 'originally_available_at')
     Log.Info("[ ] originally_available_at: {}".format(Dict(serie_json, 'firstAired')))
-    SaveDict( Dict(serie_json, 'genre'     ), TheTVDB_dict, 'genres'                 )
+    SaveDict( sorted(Dict(serie_json, 'genre')), TheTVDB_dict, 'genres'              )
     Log.Info("[ ] genres: {}".format(Dict(serie_json, 'genre')))
     SaveDict( Dict(serie_json, 'network'   ), TheTVDB_dict, 'studio'                 )
     Log.Info("[ ] studio: {}".format(Dict(serie_json, 'network')))

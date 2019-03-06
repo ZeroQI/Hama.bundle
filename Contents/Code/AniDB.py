@@ -177,6 +177,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           if GetXml(tag, 'name') and tag.get('weight', '').isdigit() and int(tag.get('weight', '') or '200') >= int(Prefs['MinimumWeight'] or '200'):
             SaveDict( [string.capwords(GetXml(tag, 'name'), '-')], AniDB_dict, 'genres')
             if GetXml(tag, 'name').lower() in RESTRICTED_GENRE:  AniDB_dict['content_rating'] = RESTRICTED_GENRE[ GetXml(tag, 'name').lower() ]
+        if Dict(AniDB_dict, 'genres'): AniDB_dict['genres'].sort()
         SaveDict( "Continuing" if GetXml(xml, 'Anime/enddate')=="1970-01-01" else "Ended", AniDB_dict, 'status')
         Log.Info("[ ] 'genre' ({}/{} above {} weight): {}".format(len(Dict(AniDB_dict, 'genres')), len(xml.xpath('tags/tag')), int(Prefs['MinimumWeight'] or 200), Dict(AniDB_dict, 'genres')))
         for element in AniDBMovieSets.xpath("/anime-set-list/set/anime"):
