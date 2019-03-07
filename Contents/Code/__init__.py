@@ -71,7 +71,7 @@ def Search(results, media, lang, manual, movie):
   from common import Log  #Import here for startup logging to go to the plex pms log
   orig_title = media.title if movie else media.show
   Log.Open(media=media, movie=movie, search=True)
-  Log.Info('=== Search ============================================================================================================')
+  Log.Info('=== Search() ==='.ljust(157, '='))
   Log.Info("title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
   Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Info("".ljust(157, '='))
@@ -107,7 +107,7 @@ def Update(metadata, media, lang, force, movie):
   error_log = { 'AniDB summaries missing'   :[], 'AniDB posters missing'      :[], 'anime-list AniDBid missing':[], 'anime-list studio logos'  :[],  
                 'TVDB posters missing'      :[], 'TVDB season posters missing':[], 'anime-list TVDBid missing' :[], 'Plex themes missing'      :[],
                 'Missing Episodes'          :[], 'Missing Specials'           :[], 'Missing Episode Summaries' :[], 'Missing Special Summaries':[]}
-  Log.Info('=== Update ==='.ljust(157, '='))
+  Log.Info('=== Update() ==='.ljust(157, '='))
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
   Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   
@@ -130,6 +130,7 @@ def Update(metadata, media, lang, force, movie):
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
                                              'OMDb':       dict_OMDb,       'MyAnimeList': dict_MyAnimeList, 'Local':   dict_Local}, mappingList)
+  Log.Info("".ljust(157, '='))
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
