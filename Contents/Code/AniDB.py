@@ -356,7 +356,7 @@ def summary_sanitizer(summary):
   summary = re.sub(r'^\* .*',                     "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with '* '
   summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
   summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
-  return summary
+  return summary.strip(" \n")
   
 def WordsScore(words, title_cleansed):
   ''' Score word compared to string in percents
