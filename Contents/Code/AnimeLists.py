@@ -39,11 +39,12 @@ def GetAniDBTVDBMap():
 def GetAniDBMovieSets():  
   ANIME_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
   AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK*4)
-  if not AniDBMovieSets:  Log.Error ("Failed to load core file '%s'" % os.path.basename(ANIME_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   return AniDBMovieSets
+  if not AniDBMovieSets:  Log.Error ("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(ANIME_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   
 ### Get the tvdbId from the AnimeId or the other way around ###
 def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
+  Log.Info("=== AnimeLists.GetMetadata() ===".ljust(157, '='))
   MAPPING_FEEDBACK               = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'  # ScudLee mapping file git feedback url
   mappingList, AnimeLists_dict   = {}, {}  #mappingList['poster_id_array'] = {}
   found                          = False
@@ -59,10 +60,10 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   tvdbcounts                     = {}
 
   ### Search for match ###
-  Log.Info("".ljust(157, '-'))
-  Log.Info("AnimeLists.GetMetadata() - tvdb_numbering: {}".format(tvdb_numbering))
+  Log.Info("tvdb_numbering: {}".format(tvdb_numbering))
   AniDB_id2, TVDB_id2 = "",""
 
+  Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
   forcedID={'anidbid':AniDB_id,'tvdbid':TVDB_id,'tmdbid':TMDB_id, "imdbid": ""}
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
     # gather any manually specified source ids
@@ -166,22 +167,19 @@ def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
   SaveDict(Dict(tvdbcounts, TVDB_id or TVDBid), mappingList, 'tvdbcount')
   
   ### Update collection 
-  #for element in AniDBMovieSets.iter("anime") if AniDBMovieSets else []:
-  #  if element.get('AniDBid')==AniDB_id or TVDBid in mappingList['TVDB'] and element.get('AniDBid') in mappingList['TVDB']:
-  #    node        = element.getparent()
-  #    title, main = GetAniDBTitle(node.xpath('titles')[0])
-  #    SaveDict(title, AnimeLists_dict, 'collection')
-  #    Log.Info("AnimeLists.GetMetadata() - AniDBid '%s' is part of movie collection: '%s'" % (AniDBid, title))
-  #    break
-  #else
   TVDB_collection, title = [], ''
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_id.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_id:
       TVDB_collection.append(anime.get("anidbid", ""))
       if anime.get('defaulttvdbseason') in ['a', '1'] and anime.get('episodeoffset') in ['', '0'] and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0:
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
-  if len(TVDB_collection)>1 and title:  SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')
+  if len(TVDB_collection)>1 and title:
+    SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')
+    Log.Info("[ ] collection: TVDBid '%s' is part of collection: '%s'" % (TVDB_id, title))
+  else:  Log.Info("[ ] collection: TVDBid '%s' is not part of any collection" % (TVDB_id))
   
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("AniDB_id: '{}', AniDB_id2: '{}', AniDBid: '{}', TVDB_id: '{}', TVDBid: '{}'".format(AniDB_id, AniDB_id2, AniDBid, TVDB_id, TVDBid))
   Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
   Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
   return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
