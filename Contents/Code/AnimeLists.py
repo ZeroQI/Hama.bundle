@@ -6,6 +6,10 @@ import common      # CachePath, common.WEB_LINK , common.LoadFile
 import AniDB
 from   common import GetXml, SaveDict, Dict, Log, DictString
 
+### Variables ###
+AniDBTVDBMap = None
+AniDBMovieSets = None
+
 ### Functions ###
 
 ### Merge Source ScudLee anidb to tvdb mapping list witl Online and local fix ones ###
@@ -21,6 +25,7 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
   
 ### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from MAPPING url with MAPPING_FIX corrections ###
 def GetAniDBTVDBMap():  
+  global AniDBTVDBMap
   MAPPING       = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
   MAPPING_FIX   = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'                  # ScudLee mapping file url online override
   MAPPING_LOCAL = os.path.join(common.CachePath, 'AnimeLists', 'anime-list-custom.xml')                                            # Custom mapping list(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems", 'AnimeLists', 'anime-list-corrections.xml')
@@ -33,17 +38,16 @@ def GetAniDBTVDBMap():
     try:                    MergeMaps(AniDBTVDBMap, XML.ElementFromString(Core.storage.load(MAPPING_LOCAL)))
     except Exception as e:  Log.Info("GetAniDBTVDBMap() - Failed open scudlee_filename_custom, error: '%s'" % e)
   else:                     Log.Info("GetAniDBTVDBMap() - Local custom mapping file not present: {}".format(MAPPING_LOCAL))
-  return AniDBTVDBMap
   
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
+  global AniDBMovieSets
   ANIME_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
   AniDBMovieSets = common.LoadFile(filename=os.path.basename(ANIME_MOVIESET), relativeDirectory="AnimeLists", url=ANIME_MOVIESET, cache= CACHE_1WEEK*4)
-  return AniDBMovieSets
   if not AniDBMovieSets:  Log.Error ("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(ANIME_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   
 ### Get the tvdbId from the AnimeId or the other way around ###
-def GetMetadata(media, movie, error_log, id, AniDBMovieSets):
+def GetMetadata(media, movie, error_log, id):
   Log.Info("=== AnimeLists.GetMetadata() ===".ljust(157, '='))
   MAPPING_FEEDBACK               = 'http://github.com/ScudLee/anime-lists/issues/new?title=%s&body=%s'  # ScudLee mapping file git feedback url
   mappingList, AnimeLists_dict   = {}, {}  #mappingList['poster_id_array'] = {}
@@ -277,6 +281,3 @@ def anidb_ep(mappingList, season, episode):
     else:  return season, episode, (Dict(mappingList, 'TVDB', 's1') or Dict(mappingList, 'TVDB', 'sa')).keys()[0]
   
   return '0', '0', 'xxxxxxx'
-
-### Variables ###
-AniDBTVDBMap = GetAniDBTVDBMap()
