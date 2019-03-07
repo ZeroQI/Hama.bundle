@@ -516,10 +516,13 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
 def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   """ [tvdb4.posters.xml] Attempt to get the ASS's image data
   """
-  TVDB4_mapping, TVDB4_xml = None, None
-  if movie or not source == "tvdb4": return {}
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.GetMetadata() - tvdb4 mode")
+  Log.Info('=== common.GetMetadata() ==='.ljust(157, '='))
+  TVDB4_dict, TVDB4_mapping, TVDB4_xml = {}, None, None
+
+  if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict
+  Log.Info("tvdb4 mode")
+
+  Log.Info("--- tvdb4.mapping.xml ---".ljust(157, '-'))
   try:
     s      = media.seasons.keys()[0]
     e      = media.seasons[s].episodes.keys()[0]
@@ -528,22 +531,22 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       filename = os.path.join(folder, os.path.basename(TVDB4_MAPPING_URL))
       if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
       folder = os.path.dirname(folder)
-    else: Log.Info("common.GetMetadata() - No 'tvdb4.mapping.xml' file detected locally")
-  except Exception as e:  Log.Error("common.GetMetadata() - Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    else: Log.Info("No 'tvdb4.mapping.xml' file detected locally")
+  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
   
-  if TVDB4_mapping: Log.Debug("common.GetMetadata() - 'tvdb4.mapping.xml' file detected locally")
+  if TVDB4_mapping: Log.Debug("'tvdb4.mapping.xml' file detected locally")
   else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
   else:
     entry = GetXml(TVDB4_mapping, "/tvdb4entries/anime[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in mapping file" % TVDBid)
+    if not entry:  Log.Error("TVDBid '%s' is not found in mapping file" % TVDBid)
   if entry:
     for line in filter(None, entry.strip().splitlines()):
       season = line.strip().split("|")
       for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
-  Log.Info("absolute_map: {}".format(Dict(mappingList, 'absolute_map')))
 
+  Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
   try:
     s      = media.seasons.keys()[0]
     e      = media.seasons[s].episodes.keys()[0]
@@ -552,21 +555,24 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       filename = os.path.join(folder, os.path.basename(TVDB4_POSTERS_URL))
       if os.path.exists(filename):  TVDB4_xml = XML.ElementFromString( Core.storage.load(os.path.realpath(filename)) );  break
       folder = os.path.dirname(folder)
-    else: Log.Info("common.GetMetadata() - No 'tvdb4.posters.xml' file detected locally")
-  except Exception as e:  Log.Error("common.GetMetadata() - Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    else: Log.Info("No 'tvdb4.posters.xml' file detected locally")
+  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
   
-  TVDB4_dict = {}
-  if TVDB4_xml: Log.Debug("common.GetMetadata() - 'tvdb4.posters.xml' file detected locally")
+  if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
   else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if TVDB4_xml:
     seasonposternum = 0
     entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in posters file" % TVDBid) 
+    if not entry:  Log.Error("TVDBid '%s' is not found in posters file" % TVDBid) 
     for line in filter(None, entry.strip().splitlines()):
       season, url       = line.strip().split("|",1)
       season            = season.lstrip("0") if season.lstrip("0") else "0"
       seasonposternum  += 1
       SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
+
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
+  Log.Info("TVDB4_dict: {}".format(DictString(TVDB4_dict, 4)))
   return TVDB4_dict
 
 ### Update meta field ###
