@@ -100,16 +100,14 @@ def Search (results, media, lang, manual, movie):
 def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets, mappingList):
   ''' Download metadata to dict_AniDB, ANNid, MALid
   '''
+  Log.Info("=== AniDB.GetMetadata() ===".ljust(157, '='))
   ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
   ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
-  
-  Log.Info("".ljust(157, '-'))
-  language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
-  priority_posters = [provider.strip() for provider in Prefs['posters'               ].split(',')]
-  Log.Info('language_posters:  {}'.format(language_posters))
+  language_posters         = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+  priority_posters         = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
@@ -123,50 +121,38 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       else:  continue
   elif source.startswith('anidb') and AniDBid != "":  full_array, AniDB_array = [AniDBid], {AniDBid:[]}
   else:                                               full_array, AniDB_array = [], {}
-  Log.Info("AniDB.GetMetadata() - AniDBid: {}, AniDBids list: {}, source: {}".format(AniDBid, full_array, source))
+  Log.Info("AniDBid: {}, AniDBids list: {}, source: {}".format(AniDBid, full_array, source))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
+  Log.Info('language_posters: {}'.format(language_posters))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in full_array:
-    Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
+    Log.Info(("--- AniDBid.%s ---" % AniDBid).ljust(157, '-'))
     Log.Info('AniDBid: {}, url: {}'.format(AniDBid, ANIDB_HTTP_API_URL+AniDBid))
+    Log.Info(("--- AniDBid.%s.series ---" % AniDBid).ljust(157, '-'))
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
 
     if not xml:
       SaveDict(True, AniDB_dict, 'Banned')
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
       if AniDBid==original or len(full_array)==1:
-        SaveDict(title,          AniDB_dict, 'title'         )
-        SaveDict(original_title, AniDB_dict, 'original_title')
-        SaveDict(language_rank,  AniDB_dict, 'language_rank' )
-        Log.Info("[ ] title: {}".format(title))
-        Log.Info("[ ] original_title: {}".format(original_title))
-        Log.Info("[ ] language_rank: {}".format(language_rank))
+        Log.Info("[ ] title: {}"         .format(SaveDict(title,          AniDB_dict, 'title'         )))
+        Log.Info("[ ] original_title: {}".format(SaveDict(original_title, AniDB_dict, 'original_title')))
+        Log.Info("[ ] language_rank: {}" .format(SaveDict(language_rank,  AniDB_dict, 'language_rank' )))
 
     elif xml and not xml=='<error>aid Missing or Invalid</error>':
       if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
       if AniDBid==original or len(full_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
-        SaveDict(title,          AniDB_dict, 'title'         )
-        SaveDict(original_title, AniDB_dict, 'original_title')
-        SaveDict(language_rank,  AniDB_dict, 'language_rank' )
-        Log.Info("[ ] title: {}".format(title))
-        Log.Info("[ ] original_title: {}".format(original_title))
-        Log.Info("[ ] language_rank: {}".format(language_rank))
+        Log.Info("[ ] title: {}"         .format(SaveDict(title,          AniDB_dict, 'title'         )))
+        Log.Info("[ ] original_title: {}".format(SaveDict(original_title, AniDB_dict, 'original_title')))
+        Log.Info("[ ] language_rank: {}" .format(SaveDict(language_rank,  AniDB_dict, 'language_rank' )))
         if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("[ ] originally_available_at: '{}'".format(AniDB_dict['originally_available_at']))
         if SaveDict(summary_sanitizer(GetXml(xml, 'description')), AniDB_dict, 'summary') and not movie and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
           SaveDict(AniDB_dict['summary'], AniDB_dict, 'seasons', mappingList['defaulttvdbseason'], 'summary') 
             
-        #roles  ### NEW, NOT IN Plex FrameWork Documentation 2.1.1 ###
-        for role in xml.xpath('characters/character[(@type="secondary cast in") or (@type="main character in")]'):
-          try:
-            if GetXml(role, 'seiyuu') and GetXml(role, 'name'):  
-              Log.Info('[ ] role: {:<20}, name: {:<20}, photo: {}'.format(GetXml(role, 'name'), GetXml(role, 'seiyuu'), role.get('seiyuu').get('picture') if role.get('seiyuu') else GetXml(role, 'picture') ))
-              SaveDict([{'role': role.find('name').text, 'name': role.find('seiyuu').text, 'photo': ANIDB_PIC_BASE_URL + role.find('seiyuu').get('picture')}], AniDB_dict, 'roles')
-          except Exception as e:  Log.Info("Seyiuu error: {}".format(e))
-        
-        if SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating'):  Log.Info("[ ] rating: '{}'".format(AniDB_dict['rating']))
+        Log.Info("[ ] rating: '{}'".format(SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating')))
         
         ### Posters
         if GetXml(xml, 'picture'):
@@ -191,11 +177,22 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if title not in Dict(AniDB_dict, 'collections', default=[]):
               Log.Info("[ ] title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
               SaveDict([title], AniDB_dict, 'collections')
-              Log.Info("[ ] collection: AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
-        if not Dict(AniDB_dict, 'collections'):  Log.Info("[ ] 'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(full_array)) 
+              Log.Info("[ ] collection: AniDBid '%s' is part of movie collection: '%s', related_anime_list: %s" % (AniDBid, title, str(full_array)))
+        if not Dict(AniDB_dict, 'collections'):  Log.Info("[ ] collection: AniDBid '%s' is not part of any collection, related_anime_list: %s" % (AniDBid, str(full_array))) 
       
+        #roles  ### NEW, NOT IN Plex FrameWork Documentation 2.1.1 ###
+        Log.Info(("--- AniDBid.%s.actors ---" % AniDBid).ljust(157, '-'))
+        for role in xml.xpath('characters/character[(@type="secondary cast in") or (@type="main character in")]'):
+          try:
+            if GetXml(role, 'seiyuu') and GetXml(role, 'name'):  
+              role_dict = {'role': role.find('name').text, 'name': role.find('seiyuu').text, 'photo': ANIDB_PIC_BASE_URL + role.find('seiyuu').get('picture')}
+              SaveDict([role_dict], AniDB_dict, 'roles')
+              Log.Info('[ ] role: {:<20}, name: {:<20}, photo: {}'.format(role_dict['role'], role_dict['name'], role_dict['photo']))
+          except Exception as e:  Log.Info("Seyiuu error: {}".format(e))
+        
       if  movie:
-        if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("[ ] year: '{}'".format(AniDB_dict['year']))
+        Log.Info("[ ] year: '{}'".format(SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year')))
+        Log.Info(("--- AniDBid.%s.summary info ---" % AniDBid).ljust(157, '-'))
           
       ### Series ###
       else:
@@ -208,7 +205,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if not role in creator.get('type'):  continue
             if roles[role]=="studio":  SaveDict(creator.text, AniDB_dict, 'studio')
             else:                      SaveDict([creator.text], ep_roles, roles[role])
-        Log.Info("[ ] Roles (creators tag): " +str(ep_roles))
+        Log.Info("[ ] roles (creators tag): " +str(ep_roles))
         if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
       
         ### Translate into season/episode mapping
@@ -218,7 +215,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         missing={'0': [], '1':[]}
                 
         ### Episodes (and specials) not always in right order ###
-        Log.Info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
+        Log.Info(("--- AniDBid.%s.episodes ---" % AniDBid).ljust(157, '-'))
         ending_offset = 99
         for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
@@ -283,12 +280,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
-          SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'                )
+          if SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  Log.Info(" - [ ] summary: {}".format(Dict(AniDB_dict, 'seasons', season, 'episodes', episode, 'summary')))
           #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
         ### End of for ep_obj...
-        
+        Log.Info(("--- AniDBid.%s.summary info ---" % AniDBid).ljust(157, '-'))
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
 
@@ -322,8 +319,9 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     
       Log.Info("ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
   
-  Log.Info("AniDB_dict: {}".format(DictString(AniDB_dict, 4)))
+  Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("relations_map: {}".format(DictString(Dict(mappingList, 'relations_map', default={}), 1)))
+  Log.Info("AniDB_dict: {}".format(DictString(AniDB_dict, 4)))
   return AniDB_dict, ANNid, MALid
 
 def GetAniDBTitlesDB():
