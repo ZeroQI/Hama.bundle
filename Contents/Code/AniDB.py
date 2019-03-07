@@ -136,21 +136,25 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     if not xml:
       SaveDict(True, AniDB_dict, 'Banned')
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
-      Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
       if AniDBid==original or len(full_array)==1:
         SaveDict(title,          AniDB_dict, 'title'         )
         SaveDict(original_title, AniDB_dict, 'original_title')
         SaveDict(language_rank,  AniDB_dict, 'language_rank' )
+        Log.Info("[ ] title: {}".format(title))
+        Log.Info("[ ] original_title: {}".format(original_title))
+        Log.Info("[ ] language_rank: {}".format(language_rank))
 
     elif xml and not xml=='<error>aid Missing or Invalid</error>':
       if type(xml).__name__=="str":  Log.Info('Going to crash due to AniDB error - str: "{}"'.format(xml))
       title, original_title, language_rank = GetAniDBTitle(xml.xpath('/anime/titles/title'))
-      Log.Info("[ ] 'title': {}, original_title: {}, language_rank: {}".format(title, original_title, language_rank))
       if AniDBid==original or len(full_array)==1: #Dict(mappingList, 'poster_id_array', TVDBid, AniDBid)[0]in ('1', 'a'):  ### for each main anime AniDBid ###
         SaveDict(title,          AniDB_dict, 'title'         )
         SaveDict(original_title, AniDB_dict, 'original_title')
         SaveDict(language_rank,  AniDB_dict, 'language_rank' )
-        if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("[ ] 'originally_available_at': '{}'".format(AniDB_dict['originally_available_at']))
+        Log.Info("[ ] title: {}".format(title))
+        Log.Info("[ ] original_title: {}".format(original_title))
+        Log.Info("[ ] language_rank: {}".format(language_rank))
+        if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("[ ] originally_available_at: '{}'".format(AniDB_dict['originally_available_at']))
         if SaveDict(summary_sanitizer(GetXml(xml, 'description')), AniDB_dict, 'summary') and not movie and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
           SaveDict(AniDB_dict['summary'], AniDB_dict, 'seasons', mappingList['defaulttvdbseason'], 'summary') 
             
@@ -162,7 +166,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
               SaveDict([{'role': role.find('name').text, 'name': role.find('seiyuu').text, 'photo': ANIDB_PIC_BASE_URL + role.find('seiyuu').get('picture')}], AniDB_dict, 'roles')
           except Exception as e:  Log.Info("Seyiuu error: {}".format(e))
         
-        if SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating'):  Log.Info("[ ] 'rating': '{}'".format(AniDB_dict['rating']))
+        if SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating'):  Log.Info("[ ] rating: '{}'".format(AniDB_dict['rating']))
         
         ### Posters
         if GetXml(xml, 'picture'):
@@ -179,7 +183,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if GetXml(tag, 'name').lower() in RESTRICTED_GENRE:  AniDB_dict['content_rating'] = RESTRICTED_GENRE[ GetXml(tag, 'name').lower() ]
         if Dict(AniDB_dict, 'genres'): AniDB_dict['genres'].sort()
         SaveDict( "Continuing" if GetXml(xml, 'Anime/enddate')=="1970-01-01" else "Ended", AniDB_dict, 'status')
-        Log.Info("[ ] 'genre' ({}/{} above {} weight): {}".format(len(Dict(AniDB_dict, 'genres')), len(xml.xpath('tags/tag')), int(Prefs['MinimumWeight'] or 200), Dict(AniDB_dict, 'genres')))
+        Log.Info("[ ] genres ({}/{} above {} weight): {}".format(len(Dict(AniDB_dict, 'genres')), len(xml.xpath('tags/tag')), int(Prefs['MinimumWeight'] or 200), Dict(AniDB_dict, 'genres')))
         for element in AniDBMovieSets.xpath("/anime-set-list/set/anime"):
           if element.get('anidbid') == AniDBid or element.get('anidbid') in full_array:
             node              = element.getparent()
@@ -187,11 +191,11 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if title not in Dict(AniDB_dict, 'collections', default=[]):
               Log.Info("[ ] title: {}, main: {}, language_rank: {}".format(title, main, language_rank))
               SaveDict([title], AniDB_dict, 'collections')
-              Log.Info("[ ] 'collection' AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
+              Log.Info("[ ] collection: AniDBid '%s' is part of movie collection: %s', related_anime_list: '%s', " % (AniDBid, title, str(full_array)))
         if not Dict(AniDB_dict, 'collections'):  Log.Info("[ ] 'collection' AniDBid is not part of any collection, related_anime_list: '%s'" % str(full_array)) 
       
       if  movie:
-        if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("[ ] 'year': '{}'".format(AniDB_dict['year']))
+        if SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year'):  Log.Info("[ ] year: '{}'".format(AniDB_dict['year']))
           
       ### Series ###
       else:
@@ -356,7 +360,7 @@ def summary_sanitizer(summary):
   summary = re.sub(r'^\* .*',                     "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with '* '
   summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
   summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
-  return summary
+  return summary.strip(" \n")
   
 def WordsScore(words, title_cleansed):
   ''' Score word compared to string in percents
