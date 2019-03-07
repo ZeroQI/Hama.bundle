@@ -801,20 +801,15 @@ def SortTitle(title, language="en"):
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
 
 def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
-  # EX:
-  # season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
-  # relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
-  # TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
-  #   's0e5': ('1', '4', '9453')
-  #   's1': {'12560': '0'}
-  #   '13950': (0, '')
-
-  Log.Info("".ljust(157, '-')) 
-  if source not in ['tvdb', 'tvdb6']:
-    Log.Info("common.AdjustMapping() - source is neither 'tvdb' nor 'tvdb6'") 
-    return False
-
-  Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+  """ EX:
+  season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
+  relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
+  TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
+    's0e5': ('1', '4', '9453')
+    's1': {'12560': '0'}
+    '13950': (0, '')
+  """
+  Log.Info("=== common.AdjustMapping() ===".ljust(157, '=')) 
   is_modified   = False
   tvdb6_seasons = {1: 1}
   is_banned     = Dict(dict_AniDB,  'Banned',        default=False)
@@ -822,10 +817,13 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
   
+  if source not in ['tvdb', 'tvdb6']:  Log.Info("source is neither 'tvdb' nor 'tvdb6'");  return is_modified
+  Log.Info("adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+
   #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
-  Log.Info("season_map: {}".format(season_map))
-  Log.Info("relations_map: {}".format(relations_map))
-  Log.Info("TVDB Before: {}".format(TVDB))
+  Log.Info("season_map: {}".format(DictString(season_map, 0)))
+  Log.Info("relations_map: {}".format(DictString(relations_map, 1)))
+  Log.Info("TVDB Before: {}".format(DictString(TVDB, 0)))
 
   try:
     for id in season_map:
@@ -892,7 +890,9 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     Log.Info('Exception: "{}"'.format(e))
     Log.Info("Removing AniDB & TVDB data from memory to prevent incorrect data from being loaded")
     dict_AniDB.clear(); dict_TheTVDB.clear()
-    return False
+    is_modified = False
 
-  Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
+  Log.Info("TVDB After : {}".format(DictString(Dict(mappingList, 'TVDB'), 0)))
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("is_modified: {}".format(is_modified))
   return is_modified
