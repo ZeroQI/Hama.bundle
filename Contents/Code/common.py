@@ -710,8 +710,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())
     
   if not movie:
-    import AnimeLists
-              
     ### AniDB poster as season poster backup ###
     #if (metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys())) >1) and Dict(mappingList, 'defaulttvdbseason'): # defaulttvdb season isdigit and assigned to 1 tvdb season (even if it is season 0)
     #  if Dict(MetaSources, 'AniDB', 'posters'):  SaveDict(MetaSources['AniDB']['posters'], MetaSources, 'AniDB', 'seasons', Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason').isdigit() else '1', 'posters')
