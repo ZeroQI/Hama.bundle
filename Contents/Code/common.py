@@ -436,8 +436,7 @@ def cleanse_title(string):
 def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
   """
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.write_logs()")
+  Log.Info("=== common.write_logs() ===".ljust(157, '='))
   if  source == 'anidb':  source = 'AniDBid'
   elif source == 'tvdb':  source = 'TVDBid'
   
@@ -646,10 +645,9 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
 def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   """ Update all metadata from a list of Dict according to set priorities 
   """
-  
+  Log.Info("=== common.UpdateMeta() ===".ljust(157, '='))
   # Display source field table
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
+  Log.Info("Fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
     if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '', field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for i, field in enumerate(MetaSources[source]))))
     if type(MetaSources[source]).__name__ == 'NoneType':  Log.Info("[!] source: '%s', type: '%s', bad return in function, should return an empty dict" % (source, type(MetaSources[source]).__name__))
@@ -676,7 +674,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [!] Error assigning
   
   #Update engine
-  Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value")
+  Log.Info("Metadata Fields (items #), type, source provider, value")
   count     = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   #posters=[]
