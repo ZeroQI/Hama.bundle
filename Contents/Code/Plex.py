@@ -18,14 +18,14 @@ def GetMetadata(metadata, error_log, TVDBid, title):
   url       = 'http://tvthemes.plexapp.com/{}.mp3'.format(TVDBid)
   Plex_dict = {}
 
-  Log.Info("TVDBid: '{TVDBid}'".format(TVDBid=TVDBid))
-  Log.Info("--- theme ---".ljust(157, '-'))
+  Log.Info("Prefs['themes']: '{}', TVDBid: '{}'".format(Prefs['themes'], TVDBid))
+  Log.Info("--- themes ---".ljust(157, '-'))
   if 'Plex' in Prefs['themes'] and TVDBid.isdigit():
     title  = title or TVDBid
     result = '*' if url in metadata.themes else common.GetStatusCode(url)
-    Log.Info("result code: '{plex}', url: '{url}'".format(plex=result in (200, '*'), url=url))
-    if result in(200, "*"):  Log.Info("[ ] theme: {}".format(SaveDict(("Plex/%s.mp3" % TVDBid, 2, None), Plex_dict, 'themes', url)))
-    else:                    error_log['Plex themes missing'].append("TVDBid: '{}' | Title: '{}' | {}".format(common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, title), title, common.WEB_LINK % ("mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;" % (title, TVDBid), 'Upload')))
+    Log.Info("result code: '{plex}', url: '{url}'".format(plex=result, url=url))
+    if result in (200, "*"):  Log.Info("[ ] theme: {}".format(SaveDict(("Plex/%s.mp3" % TVDBid, 2, None), Plex_dict, 'themes', url)))
+    else:                     error_log['Plex themes missing'].append("TVDBid: '{}' | Title: '{}' | {}".format(common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, title), title, common.WEB_LINK % ("mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;" % (title, TVDBid), 'Upload')))
   else:  Log.Info("Not pulling meta - 'Plex' in Prefs['themes']: '{}', TVDBid: '{}'".format('Plex' in Prefs['themes'], TVDBid))
 
   Log.Info("--- return ---".ljust(157, '-'))
