@@ -23,9 +23,10 @@ AniDBTitlesDB = None
 
 ### Functions ###
 
-def Search (results, media, lang, manual, movie):
+def Search(results, media, lang, manual, movie):
   ''' AniDB Search assign an anidbid to a series or movie
   '''
+  Log.Info("=== AniDB.Search() ===".ljust(157, '='))
   FILTER_SEARCH_WORDS  = [ ### These are words which cause extra noise due to being uninteresting for doing searches on, Lowercase only ####################################
   'to', 'wa', 'ga', 'no', 'age', 'da', 'chou', 'super', 'yo', 'de', 'chan', 'hime', 'ni', 'sekai',                                             # Jp
   'a',  'of', 'an', 'the', 'motion', 'picture', 'special', 'oav', 'ova', 'tv', 'special', 'eternal', 'final', 'last', 'one', 'movie', 'me',  'princess', 'theater', 'and', # En Continued
@@ -34,10 +35,10 @@ def Search (results, media, lang, manual, movie):
   SPLIT_CHARS          = [';', ':', '*', '?', ',', '.', '~', '-', '\\', '/' ] #Space is implied, characters forbidden by os filename limitations
   orig_title           = media.title if movie else media.show
   orig_title_cleansed  = common.cleanse_title(orig_title)
-  Log.Info("".ljust(157, '-'))
-  Log.Info("AniDB.Search() - orig_title: '{}', orig_title_cleansed: '{}'".format(orig_title, orig_title_cleansed))
+  Log.Info("orig_title: '{}', orig_title_cleansed: '{}'".format(orig_title, orig_title_cleansed))
   
   ### Full title search = 1.3s
+  Log.Info("--- full title ---".ljust(157, '-'))
   best_aid, best_score, best_title, n = "", 0, "", 0
   start_time = time.time()
   Log.Info('len AniDBTitlesDB: {}'.format(len(AniDBTitlesDB)))
@@ -61,12 +62,12 @@ def Search (results, media, lang, manual, movie):
   if best_score>=90:  return best_score, n
   
   ### Keyword match using Xpath
+  Log.Info("--- keyword ---".ljust(157, '-'))
   words, words_skipped  = [], []
   for i in SPLIT_CHARS:  orig_title_cleansed = orig_title_cleansed.replace(i, " ")
   orig_title_cleansed = orig_title_cleansed.replace("'", '')
   for word in orig_title_cleansed.split():  (words_skipped if word in FILTER_SEARCH_WORDS or len(word) <= 3 else words).append(word)
   if not words:  words, words_skipped = orig_title_cleansed.split(), []  #Prevent CRITICAL Exception in the search function of agent named 'HamaTV', called with keyword arguments {'show': 'No 6', 'id': '20145', 'year': None} (most recent call last):
-  Log.Info("".ljust(157, '-'))
   Log.Info("Keyword Search - Words: {}, skipped: {}".format(str(words), str(words_skipped)))
   type_order=('main', 'official', 'syn', 'short', '')
   best_score, best_title, best_aid, best_type, best_lang = 0, "", "", "", ""
@@ -132,9 +133,9 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in full_array:
-    Log.Info(("--- AniDBid.%s ---" % AniDBid).ljust(157, '-'))
+    Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))
     Log.Info('AniDBid: {}, url: {}'.format(AniDBid, ANIDB_HTTP_API_URL+AniDBid))
-    Log.Info(("--- AniDBid.%s.series ---" % AniDBid).ljust(157, '-'))
+    Log.Info(("--- %s.series ---" % AniDBid).ljust(157, '-'))
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
 
     if not xml:
@@ -185,7 +186,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         if not Dict(AniDB_dict, 'collections'):  Log.Info("[ ] collection: AniDBid '%s' is not part of any collection, related_anime_list: %s" % (AniDBid, str(full_array))) 
       
         #roles  ### NEW, NOT IN Plex FrameWork Documentation 2.1.1 ###
-        Log.Info(("--- AniDBid.%s.actors ---" % AniDBid).ljust(157, '-'))
+        Log.Info(("--- %s.actors ---" % AniDBid).ljust(157, '-'))
         for role in xml.xpath('characters/character[(@type="secondary cast in") or (@type="main character in")]'):
           try:
             if GetXml(role, 'seiyuu') and GetXml(role, 'name'):  
@@ -196,7 +197,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         
       if  movie:
         Log.Info("[ ] year: '{}'".format(SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year')))
-        Log.Info(("--- AniDBid.%s.summary info ---" % AniDBid).ljust(157, '-'))
+        Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
           
       ### Series ###
       else:
@@ -219,7 +220,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         missing={'0': [], '1':[]}
                 
         ### Episodes (and specials) not always in right order ###
-        Log.Info(("--- AniDBid.%s.episodes ---" % AniDBid).ljust(157, '-'))
+        Log.Info(("--- %s.episodes ---" % AniDBid).ljust(157, '-'))
         ending_offset = 99
         for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
@@ -289,7 +290,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
                   
         ### End of for ep_obj...
-        Log.Info(("--- AniDBid.%s.summary info ---" % AniDBid).ljust(157, '-'))
+        Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
         if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
 
