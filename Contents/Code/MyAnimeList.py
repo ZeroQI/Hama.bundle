@@ -21,7 +21,9 @@ def GetMetadata(movie, MALid):
 
   Log.Info("--- series ---".ljust(157, '-'))
   xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid, cache=CACHE_1DAY * 7)
-  if xml:
+  if isinstance(xml, str):
+    Log.Error('Invalid str returned: "{}"'.format(xml))
+  elif xml:
     Log.Info("[ ] title: {}"                  .format(SaveDict( GetXml(xml, 'title'         ), MyAnimeList_dict, 'title'                  )))
     Log.Info("[ ] summary: {}"                .format(SaveDict( GetXml(xml, 'synopsis'      ), MyAnimeList_dict, 'summary'                )))
     Log.Info("[ ] score: {}"                  .format(SaveDict( GetXml(xml, 'rating'        ), MyAnimeList_dict, 'score'                  )))
