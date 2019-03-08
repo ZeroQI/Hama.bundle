@@ -620,7 +620,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     else:                        sources = '|'.join([Prefs[field].split('|')[is_episode], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
   else:  sources = Prefs[field].replace(source, '('+source+')')
   
-  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}, meta_old: {}'.format(meta_new, meta_old.keys()))
+  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}\n    meta_old: {}'.format(DictString(meta_new, 1), sorted(meta_old.keys()))) # Can't print meta_old values as plex custom class without a string print call
   if meta_new == meta_old_value or field not in MetaRoleList and (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
     Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
   else: 
