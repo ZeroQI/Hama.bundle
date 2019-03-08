@@ -33,61 +33,57 @@ HEADERS                    = {'User-agent': 'Plex/Nine'}
 def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
   ''' TVDB - Load serie JSON
   '''
-  Log.Info("".ljust(157, '-'))
-  if not TVDBid.isdigit(): Log.Info('TheTVDB.GetMetadata() - TVDBid empty');  return {}, IMDbid
+  Log.Info("=== TheTVDB.GetMetadata() ===".ljust(157, '='))
   TheTVDB_dict      = {}
   max_season        = 0
   anidb_numbering   = metadata_source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
   anidb_prefered    = anidb_numbering and Dict(mappingList, 'defaulttvdbseason') not in ('a', '1')
   language_series   = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['SerieLanguagePriority'  ].split(',') ]
   language_episodes = [language.strip() if language.strip() not in ('x-jat', 'zh-Hans', 'zh-Hant', 'zh-x-yue', 'zh-x-cmn', 'zh-x-nan') else '' for language in Prefs['EpisodeLanguagePriority'].split(',') ]
-  Log.Info("TheTVDB.GetMetadata() - TVDBid: '{}', IMDbid: '{}', language_series : {}, language_episodes: {}".format(TVDBid, IMDbid, language_series , language_episodes))
+  Log.Info("TVDBid: '{}', IMDbid: '{}', language_series : {}, language_episodes: {}".format(TVDBid, IMDbid, language_series , language_episodes))
   
+  if not TVDBid.isdigit(): Log.Info('TVDBid non-digit');  return TheTVDB_dict, IMDbid
+
   ### TVDB Series JSON ###
+  Log.Info("--- series ---".ljust(157, '-'))
   serie_json = Dict(common.LoadFile(filename='series_{}.json'.format(lang), relativeDirectory="TheTVDB/json/"+TVDBid, url=(TVDB_SERIES_URL % TVDBid)+'?'+lang, cache=CACHE_1DAY, headers={'Content-type': 'application/json', 'Accept-Language': lang}), 'data')
   if serie_json:
     #serie_json { "id","seriesId", "airsDayOfWeek", "imdbId", "zap2itId", "added", "addedBy", "lastUpdated", "seriesName", "aliases", "banner", "status", 
     #             "firstAired", "network", "networkId", "runtime", "genre, "overview", "airsTime", "rating" , "siteRating", "siteRatingCount" }
     SaveDict( language_series.index(lang) if lang in language_series and not anidb_prefered else len(language_series), TheTVDB_dict, 'language_rank')
-    SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'title'                  )
-    Log.Info("[ ] title: {}".format(Dict(serie_json, 'seriesName')))
-    SaveDict( Dict(serie_json, 'seriesName'), TheTVDB_dict, 'original_title'         )
-    Log.Info("[ ] original_title: {}".format(Dict(serie_json, 'seriesName')))
-    SaveDict( Dict(serie_json, 'imdbId' or IMDbid), TheTVDB_dict, 'IMDbid'           )
-    Log.Info("[ ] IMDbid: {}".format(Dict(serie_json, 'imdbId')))
-    SaveDict( Dict(serie_json, 'zap2it_id' ), TheTVDB_dict, 'zap2itId'               )
-    Log.Info("[ ] zap2itId: {}".format(Dict(serie_json, 'zap2it_id')))
-    SaveDict( Dict(serie_json, 'rating'    ), TheTVDB_dict, 'content_rating'         )
-    Log.Info("[ ] content_rating: {}".format(Dict(serie_json, 'rating')))
-    if not anidb_prefered:  
-      SaveDict( Dict(serie_json, 'overview'  ), TheTVDB_dict, 'summary'                )
-      Log.Info("[ ] summary: {}".format(Dict(serie_json, 'overview')))
-    SaveDict( Dict(serie_json, 'firstAired'), TheTVDB_dict, 'originally_available_at')
-    Log.Info("[ ] originally_available_at: {}".format(Dict(serie_json, 'firstAired')))
-    SaveDict( sorted(Dict(serie_json, 'genre')), TheTVDB_dict, 'genres'              )
-    Log.Info("[ ] genres: {}".format(Dict(serie_json, 'genre')))
-    SaveDict( Dict(serie_json, 'network'   ), TheTVDB_dict, 'studio'                 )
-    Log.Info("[ ] studio: {}".format(Dict(serie_json, 'network')))
-    SaveDict( Dict(serie_json, 'siteRating'), TheTVDB_dict, 'rating'                 )
-    Log.Info("[ ] rating: {}".format(Dict(serie_json, 'siteRating')))
-    SaveDict( Dict(serie_json, 'status'    ), TheTVDB_dict, 'status'                 )
-    Log.Info("[ ] status: {}".format(Dict(serie_json, 'status')))
+    Log.Info("[ ] language_rank: {}"          .format(Dict(TheTVDB_dict, 'language_rank')))
+    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(serie_json, 'seriesName'),                TheTVDB_dict, 'title'                  )))
+    Log.Info("[ ] original_title: {}"         .format(SaveDict( Dict(serie_json, 'seriesName'),                TheTVDB_dict, 'original_title'         )))
+    Log.Info("[ ] IMDbid: {}"                 .format(SaveDict( Dict(serie_json, 'imdbId' or IMDbid),          TheTVDB_dict, 'IMDbid'                 )))
+    Log.Info("[ ] zap2itId: {}"               .format(SaveDict( Dict(serie_json, 'zap2it_id' ),                TheTVDB_dict, 'zap2itId'               )))
+    Log.Info("[ ] content_rating: {}"         .format(SaveDict( Dict(serie_json, 'rating'    ),                TheTVDB_dict, 'content_rating'         )))
+    if not anidb_prefered:
+      Log.Info("[ ] summary: {}"              .format(SaveDict( Dict(serie_json, 'overview'  ).strip(" \n\r"), TheTVDB_dict, 'summary'                )))
+    Log.Info("[ ] originally_available_at: {}".format(SaveDict( Dict(serie_json, 'firstAired'),                TheTVDB_dict, 'originally_available_at')))
+    Log.Info("[ ] genres: {}"                 .format(SaveDict( sorted(Dict(serie_json, 'genre')),             TheTVDB_dict, 'genres'                 )))
+    Log.Info("[ ] studio: {}"                 .format(SaveDict( Dict(serie_json, 'network'   ),                TheTVDB_dict, 'studio'                 )))
+    Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(serie_json, 'siteRating'),                TheTVDB_dict, 'rating'                 )))
+    Log.Info("[ ] status: {}"                 .format(SaveDict( Dict(serie_json, 'status'    ),                TheTVDB_dict, 'status'                 )))
     if Dict(serie_json, 'runtime') and Dict(serie_json, 'runtime').isdigit():
-      Log.Info('[ ] duration: {}'.format(Dict(serie_json, 'runtime')))
-      SaveDict(int(Dict(serie_json, 'runtime'))*60*1000, TheTVDB_dict, 'duration')  #in ms in plex
-    if Dict(serie_json, 'banner'):                                             
-      Log.Info('[ ] banner: {}'.format(TVDB_IMG_ROOT+Dict(serie_json, 'banner')))
+      Log.Info('[ ] duration: {}'             .format(SaveDict(int(Dict(serie_json, 'runtime'))*60*1000, TheTVDB_dict, 'duration'               )))  #in ms in plex
+    if Dict(serie_json, 'banner'):
       SaveDict((os.path.join('TheTVDB', 'banner', Dict(serie_json, 'banner')), 1, None), TheTVDB_dict, 'banners', TVDB_IMG_ROOT+Dict(serie_json, 'banner'))
+      Log.Info('[ ] banner: {}'               .format(Dict(TheTVDB_dict, 'banners')))
     
     ### TVDB Series Actors JSON ###
+    Log.Info("--- actors ---".ljust(157, '-'))
     actor_json = Dict(common.LoadFile(filename='actors_{}.json'.format(lang), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_ACTORS_URL % TVDBid, cache=CACHE_1DAY, headers={'Content-type': 'application/json', 'Accept-Language': lang}), 'data')
     if actor_json:               #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
       for role in actor_json or []:
-        try:                    SaveDict([{'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}], TheTVDB_dict, 'roles')
-        except Exception as e:  Log.Info("'roles' - error: '{}', role: '{}'".format(str(e), str(role)))
+        try:
+          role_dict = {'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}
+          SaveDict([role_dict], TheTVDB_dict, 'roles')
+          Log.Info("[ ] role: {:<50}, name: {:<20}, photo: {}".format(role_dict['role'], role_dict['name'], role_dict['photo']))
+        except Exception as e:  Log.Info(" role: {}, error: '{}'".format(str(role), str(e)))
       #common.DisplayDict(actor_json, ['role', 'name', 'image'])
       
     ### Load pages of episodes ###
+    Log.Info("--- episodes ---".ljust(157, '-'))
     episodes_json, page = [], 1
     while page not in (None, '', 'null'):
       episodes_json_page = common.LoadFile(filename='episodes_page{}_{}.json'.format(page, lang), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_EPISODES_URL % (TVDBid, page), cache=CACHE_1DAY, headers={'Content-type': 'application/json', 'Accept-Language': lang})
@@ -163,18 +159,18 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         #Log.Info('[?] episode_json: {}'.format(episode_json))
         Log.Info('[X] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {} abs_number: {}, title: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired'), abs_number, Dict(episode_json, 'episodeName')))
         if not anidb_numbering:  
-          SaveDict( abs_number                       , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
-        SaveDict( Dict(serie_json  , 'rating'     ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
-        SaveDict( Dict(serie_json  , 'runtime'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
-        SaveDict( Dict(episode_json, 'overview'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary'                );  Log.Info('[ ] summary: {}'.format(Dict(episode_json, 'overview')))
-        SaveDict( Dict(episode_json, 'firstAired' ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at') 
+          SaveDict( abs_number                    , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
+        SaveDict( Dict(serie_json  , 'rating'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
+        SaveDict( Dict(serie_json  , 'runtime'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
+        Log.Info(' - [ ] summary: {}'.format(SaveDict( Dict(episode_json, 'overview').strip(" \n\r"), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary')))
+        SaveDict( Dict(episode_json, 'firstAired'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
         
         # Title from serie page
         if Dict(episode_json, 'episodeName'):
           rank  = language_episodes.index(lang) if lang in language_episodes else len(language_episodes)
           title = Dict(episode_json, 'episodeName')
         else:                                  rank, title = len(language_episodes)+1, ''
-        Log.Info("[1] rank: {:>1}, language: {:>4}, title: {}".format(rank, Dict(episode_json, 'language', 'episodeName'), title))
+        Log.Info(" - [1] rank: {:>1}, language: {:>4}, title: {}".format(rank, Dict(episode_json, 'language', 'episodeName'), title))
         
         ### Ep advance information ###
         ep_count += 1
@@ -188,7 +184,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if lang2 in language_episodes and language_episodes.index(lang2)<rank and Dict(episode_details_json, 'language', 'episodeName')==lang2:
             rank  = language_episodes.index(lang2) 
             title = Dict(episode_details_json, 'episodeName')
-            Log.Info('[2] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang2, title))
+            Log.Info(' - [2] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang2, title))
           
           SaveDict( Dict(episode_details_json, 'writers'            ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'writers'    )
           SaveDict( Dict(episode_details_json, 'directors'          ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'directors'  )
@@ -199,7 +195,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if Dict(episode_details_json, 'filename'):  SaveDict((str("TheTVDB/episodes/"+ os.path.basename(Dict(episode_details_json, 'filename'))), 1, None), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'thumbs', str(TVDB_IMG_ROOT+Dict(episode_details_json, 'filename')))
           else:                                       Log.Info('[!] episode_details_json: {}'.format(episode_details_json))
         
-          Log.Info('[ ] thumb: {}'.format(TVDB_IMG_ROOT+Dict(episode_details_json, 'filename') if Dict(episode_details_json, 'filename') else ''))
+          Log.Info(' - [ ] thumb: {}'.format(TVDB_IMG_ROOT+Dict(episode_details_json, 'filename') if Dict(episode_details_json, 'filename') else ''))
         
         #  
         for lang_rank, language in enumerate(language_episodes[1:rank-1] if len(language_episodes)>1 and rank>=2 else []):
@@ -208,13 +204,12 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if Dict(episode_details_json, 'episodeName') :  
             title = Dict(episode_details_json, 'episodeName')
             rank  = lang_rank
-            Log.Info('[3] language_rank: {}, title: {}'.format(rank, title))
+            Log.Info(' - [3] language_rank: {}, title: {}'.format(rank, title))
             break
           else:  Log.Info('no ep title in language: {}'.format(language_episodes[lang_rank]))
         SaveDict( title, TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'        )
         SaveDict( rank , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'language_rank')      
         #Log.Info('[?] numbering: {} => s{:>1}e{:>3} language_rank: {:>1}, title: "{}"'.format(numbering, season, episode, rank, title))
-        Log.Info('-------------')
 
     # (last season) Replace all the individual episodes reported as missing with a single season 'sX' entry
     if not episode_missing_season_all:  episode_missing.extend(episode_missing_season)
@@ -224,14 +219,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       lm = re.match(r'((?P<abs>\d+) \()?s(?P<s>\d+)e(?P<e>\d+)\)?', last_entry ).groupdict()
       episode_missing.append("s{}e{}-{}".format(fm['s'], fm['e'], lm['e']) if fm['abs'] is None else "{}-{} (s{}e{}-{})".format(fm['abs'], lm['abs'], fm['s'], fm['e'], lm['e']))
 
-    # Print abs_mapping populated in episode loop
-    Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
-
     # Set the min/max season for a series with 'defaulttvdbseason' == 'a' or convert to ints
     for entry in Dict(mappingList, 'season_map', default=[]):
       mappingList['season_map'][entry] = {'min': 1, 'max': max_season} if mappingList['season_map'][entry]['min'] == 'a' else {'min': int(mappingList['season_map'][entry]['min']), 'max': int(mappingList['season_map'][entry]['max'])}
     SaveDict(max_season, mappingList, 'season_map', 'max_season')
-    Log.Info("season_map: {}".format(DictString(Dict(mappingList, 'season_map', default={}), 0)))
 
     ### Logging ###
     if not movie:
@@ -243,10 +234,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       #Log.Debug("Episodes without Summary: " + str(sorted(summary_missing, key=natural_sort_key)))
       
     ### Picture types JSON download ###
+    Log.Info("--- images ---".ljust(157, '-'))
     language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
     priority_posters = [  source.strip() for source   in Prefs['posters'               ].split(',')]
     Log.Info('language_posters: {}'.format(language_posters))
-    Log.Info('==========================')
     for language in language_posters:
       try:     bannerTypes = Dict(common.LoadFile(filename='images_{}.json'.format(language), relativeDirectory="TheTVDB/json/"+TVDBid, url=(TVDB_SERIES_IMG_INFO_URL % TVDBid), cache=0, headers={'Content-type': 'application/json', 'Accept-Language': language}), 'data', default={})
       except:  Log.Info("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
@@ -262,7 +253,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           #if anidb_numbering and Dict(mappingList, 'defaulttvdbseason') not in ('a', '1') and bannerType=='poster':  continue  #skip if anidb numbered serie mapping to season 0 or 2+
           
-          Log.Info('------------------------------')
+          Log.Info(("--- images.%s ---" % bannerType).ljust(157, '-'))
           try:     images = Dict( common.LoadFile(filename='images_{}_{}.json'.format(bannerType, language), relativeDirectory="TheTVDB/json/"+TVDBid, url=TVDB_SERIES_IMG_QUERY_URL.format(TVDBid, bannerType), cache=CACHE_1DAY, headers={'Accept-Language': language}), 'data', default={})
           except:  images = {};  Log.Info("Bad image type query data for TVDB id: %s (bannerType: %s)" % (TVDBid, bannerType)) 
           else:
@@ -302,16 +293,20 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         #Log.Info("Posters : {}/{}, Season posters: {}/{}, Art: {}/{}".format(count_valid['poster'], Dict(bannerTypes, 'poster'), count_valid['season'], Dict(bannerTypes, 'season') or 0, count_valid['fanart'], Dict(bannerTypes, 'fanart')))
         if not Dict(bannerTypes, 'poster'):  error_log['TVDB posters missing'       ].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
         if not Dict(bannerTypes, 'season'):  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
-      Log.Info('==========================')
 
+    Log.Info("--- final summary info ---".ljust(157, '-'))
     Log.Info("url: '{}', IMDbid: {}, Present episodes: {}, Missing: {}".format(TVDB_SERIES_URL % TVDBid, IMDbid, ep_count, sorted(episode_missing, key=natural_sort_key)))
     
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
+  Log.Info("season_map: {}".format(DictString(Dict(mappingList, 'season_map', default={}), 0)))
   Log.Info("TheTVDB_dict: {}".format(DictString(TheTVDB_dict, 4)))
   return TheTVDB_dict, IMDbid
   
 def Search(results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Search_TVDB(results, media, lang, manual, movie)
   '''search for TVDB id series
   '''
+  Log.Info("=== TheTVDB.Search() ===".ljust(157, '='))
   #series_data = JSON.ObjectFromString(GetResultFromNetwork(TVDB_SEARCH_URL % mediaShowYear, additionalHeaders={'Accept-Language': lang}))['data'][0]
   TVDB_SERIE_SEARCH = 'http://thetvdb.com/api/GetSeries.php?seriesname='
   orig_title = ( media.title if movie else media.show )

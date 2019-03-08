@@ -18,22 +18,28 @@ SEASON_RX = [                                                                   
   
 ### Local ###
 def GetMetadata(media, movie):
-  Log.Info("".ljust(157, '-'))
-  Log.Info("Local.GetMetadata()")
-  if movie: return {}
-  
+  Log.Info("=== Local.GetMetadata() ===".ljust(157, '='))
   Local_dict          = {}
   dir                 = GetMediaDir(media, movie)
   library, root, path = GetLibraryRootPath(dir)
+
+  if movie: return Local_dict
+
+  Log.Info("dir:     {}".format(dir))
+  Log.Info("library: {}".format(library))
+  Log.Info("root:    {}".format(root))
+  Log.Info("path:    {}".format(path))
+
   if not path in ('_unknown_folder', '.'):
   
-    Log.Info('Local.GetMetadata() - dir: {}, library:{}, root:{}, path:{}'.format(dir, library, root, path))
-    series_root_folder  = os.path.join(root, path.split(os.sep, 1)[0])
+    series_root_folder = os.path.join(root, path.split(os.sep, 1)[0])
+    Log.Info("series_root_folder:  {}".format(series_root_folder))
+    Log.Info("Grouping folder:     {}".format(os.path.basename(series_root_folder)))
     if not os.path.exists(series_root_folder):
-      Log.Info('Local.GetMetadata() - files are currently inaccessible')
+      Log.Info('files are currently inaccessible')
       return Local_dict
-    subfolder_count     = len([file for file in os.listdir(series_root_folder) if os.path.isdir(os.path.join(series_root_folder, file))])
-    Log.Info('Local.GetMetadata() - series_root_folder: {}, subfolder_count: {}'.format(series_root_folder, subfolder_count))
+    subfolder_count    = len([file for file in os.listdir(series_root_folder) if os.path.isdir(os.path.join(series_root_folder, file))])
+    Log.Info("subfolder_count:     {}".format(subfolder_count))
     
     ### Extract season and transparent folder to reduce complexity and use folder as serie name ###
     reverse_path, season_folder_first = list(reversed(path.split(os.sep))), False
@@ -44,10 +50,12 @@ def GetMetadata(media, movie):
           if rx!=SEASON_RX[-1] and len(reverse_path)>=2 and folder==reverse_path[-2]:  season_folder_first = True
           break
    
+    Log.Info("reverse_path:        {}".format(reverse_path))
+    Log.Info("season_folder_first: {}".format(season_folder_first))
     if len(reverse_path)>1 and not season_folder_first and subfolder_count>1:  ### grouping folders only ###
-      Log.Info("Grouping folder found, root: {}, path: {}, Grouping folder: {}, subdirs: {}, reverse_path: {}".format(root, path, os.path.basename(series_root_folder), subfolder_count, reverse_path))
-      SaveDict([reverse_path[-1]], Local_dict, 'collections')
-    else:  Log.Info("Grouping folder not found, root: {}, path: {}, Grouping folder: {}, subdirs: {}, reverse_path: {}".format(root, path, os.path.basename(series_root_folder), subfolder_count, reverse_path))
+      Log.Info("[ ] collection (Grouping folder): {}".format(SaveDict([reverse_path[-1]], Local_dict, 'collections')))
+    else:  Log.Info("Grouping folder not found")
        
+  Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("Local_dict: {}".format(DictString(Local_dict, 1)))
   return Local_dict

@@ -249,13 +249,6 @@ def DisplayDict(items={}, fields=[]):
   len_fields = DisplayDictLen(items, fields)
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
-def AllInts(value):
-  # 'all' funciton was not found so couldn't simply run this in 'DictString':
-  #   all([x.isdigit() for x in input_value])
-  for x in value:
-    if not x.isdigit():  return False
-  return True
-
 def DictString(input_value, max_depth, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
@@ -274,7 +267,7 @@ def DictString(input_value, max_depth, depth=0):
     elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
     else:                                output += "{}".format(input_value)
   else:
-    for i, key in enumerate(sorted(input_value, key=int if AllInts(input_value) else None)):
+    for i, key in enumerate(sorted(input_value, key=None if False in [x.isdigit() for x in input_value] else int)):
       output += (
         "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
@@ -443,8 +436,7 @@ def cleanse_title(string):
 def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
   """
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.write_logs()")
+  Log.Info("=== common.write_logs() ===".ljust(157, '='))
   if  source == 'anidb':  source = 'AniDBid'
   elif source == 'tvdb':  source = 'TVDBid'
   
@@ -523,10 +515,13 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
 def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   """ [tvdb4.posters.xml] Attempt to get the ASS's image data
   """
-  TVDB4_mapping, TVDB4_xml = None, None
-  if movie or not source == "tvdb4": return {}
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.GetMetadata() - tvdb4 mode")
+  Log.Info('=== common.GetMetadata() ==='.ljust(157, '='))
+  TVDB4_dict, TVDB4_mapping, TVDB4_xml = {}, None, None
+
+  if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict
+  Log.Info("tvdb4 mode")
+
+  Log.Info("--- tvdb4.mapping.xml ---".ljust(157, '-'))
   try:
     s      = media.seasons.keys()[0]
     e      = media.seasons[s].episodes.keys()[0]
@@ -535,22 +530,22 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       filename = os.path.join(folder, os.path.basename(TVDB4_MAPPING_URL))
       if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
       folder = os.path.dirname(folder)
-    else: Log.Info("common.GetMetadata() - No 'tvdb4.mapping.xml' file detected locally")
-  except Exception as e:  Log.Error("common.GetMetadata() - Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    else: Log.Info("No 'tvdb4.mapping.xml' file detected locally")
+  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
   
-  if TVDB4_mapping: Log.Debug("common.GetMetadata() - 'tvdb4.mapping.xml' file detected locally")
+  if TVDB4_mapping: Log.Debug("'tvdb4.mapping.xml' file detected locally")
   else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
   else:
     entry = GetXml(TVDB4_mapping, "/tvdb4entries/anime[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in mapping file" % TVDBid)
+    if not entry:  Log.Error("TVDBid '%s' is not found in mapping file" % TVDBid)
   if entry:
     for line in filter(None, entry.strip().splitlines()):
       season = line.strip().split("|")
       for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
-  Log.Info("absolute_map: {}".format(Dict(mappingList, 'absolute_map')))
 
+  Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
   try:
     s      = media.seasons.keys()[0]
     e      = media.seasons[s].episodes.keys()[0]
@@ -559,21 +554,24 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       filename = os.path.join(folder, os.path.basename(TVDB4_POSTERS_URL))
       if os.path.exists(filename):  TVDB4_xml = XML.ElementFromString( Core.storage.load(os.path.realpath(filename)) );  break
       folder = os.path.dirname(folder)
-    else: Log.Info("common.GetMetadata() - No 'tvdb4.posters.xml' file detected locally")
-  except Exception as e:  Log.Error("common.GetMetadata() - Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    else: Log.Info("No 'tvdb4.posters.xml' file detected locally")
+  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
   
-  TVDB4_dict = {}
-  if TVDB4_xml: Log.Debug("common.GetMetadata() - 'tvdb4.posters.xml' file detected locally")
+  if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
   else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if TVDB4_xml:
     seasonposternum = 0
     entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("common.GetMetadata() - TVDBid '%s' is not found in posters file" % TVDBid) 
+    if not entry:  Log.Error("TVDBid '%s' is not found in posters file" % TVDBid) 
     for line in filter(None, entry.strip().splitlines()):
       season, url       = line.strip().split("|",1)
       season            = season.lstrip("0") if season.lstrip("0") else "0"
       seasonposternum  += 1
       SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
+
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
+  Log.Info("TVDB4_dict: {}".format(DictString(TVDB4_dict, 4)))
   return TVDB4_dict
 
 ### Update meta field ###
@@ -621,7 +619,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     else:                        sources = '|'.join([Prefs[field].split('|')[is_episode], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
   else:  sources = Prefs[field].replace(source, '('+source+')')
   
-  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}, meta_old: {}'.format(meta_new, meta_old.keys()))
+  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}\n    meta_old: {}'.format(DictString(meta_new, 1), sorted(meta_old.keys()))) # Can't print meta_old values as plex custom class without a string print call
   if meta_new == meta_old_value or field not in MetaRoleList and (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
     Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
   else: 
@@ -647,10 +645,9 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
 def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   """ Update all metadata from a list of Dict according to set priorities 
   """
-  
+  Log.Info("=== common.UpdateMeta() ===".ljust(157, '='))
   # Display source field table
-  Log.Info("".ljust(157, '-'))
-  Log.Info("common.UpdateMeta() - fields in Metadata Sources per movie/serie, season, episodes")
+  Log.Info("Fields in Metadata Sources per movie/serie, season, episodes")
   for source in MetaSources:
     if MetaSources[source]:                               Log.Info("- {source:<11}      : {fields}".format(source=source, fields=' | '.join('{}{:<23} ({:>3})'.format('\n                     ' if i%5==0 and i>0 else '', field, len(MetaSources[source][field]) if isinstance(MetaSources[source][field], (list, dict)) else 1) for i, field in enumerate(MetaSources[source]))))
     if type(MetaSources[source]).__name__ == 'NoneType':  Log.Info("[!] source: '%s', type: '%s', bad return in function, should return an empty dict" % (source, type(MetaSources[source]).__name__))
@@ -677,7 +674,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   # [!] Error assigning
   
   #Update engine
-  Log.Info("common.UpdateMeta() - Metadata Fields (items #), type, source provider, value")
+  Log.Info("Metadata Fields (items #), type, source provider, value")
   count     = {'posters':0, 'art':0, 'thumbs':0, 'banners':0, 'themes':0}
   languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
   #posters=[]
@@ -711,8 +708,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #if field=='posters':  metadata.thumbs.validate_keys(meta_new.keys())
     
   if not movie:
-    import AnimeLists
-              
     ### AniDB poster as season poster backup ###
     #if (metadata.id.startswith("tvdb") or max(map(int, media.seasons.keys())) >1) and Dict(mappingList, 'defaulttvdbseason'): # defaulttvdb season isdigit and assigned to 1 tvdb season (even if it is season 0)
     #  if Dict(MetaSources, 'AniDB', 'posters'):  SaveDict(MetaSources['AniDB']['posters'], MetaSources, 'AniDB', 'seasons', Dict(mappingList, 'defaulttvdbseason') if Dict(mappingList, 'defaulttvdbseason').isdigit() else '1', 'posters')
@@ -804,20 +799,15 @@ def SortTitle(title, language="en"):
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
 
 def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
-  # EX:
-  # season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
-  # relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
-  # TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
-  #   's0e5': ('1', '4', '9453')
-  #   's1': {'12560': '0'}
-  #   '13950': (0, '')
-
-  Log.Info("".ljust(157, '-')) 
-  if source not in ['tvdb', 'tvdb6']:
-    Log.Info("common.AdjustMapping() - source is neither 'tvdb' nor 'tvdb6'") 
-    return False
-
-  Log.Info("common.AdjustMapping() - adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+  """ EX:
+  season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
+  relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
+  TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
+    's0e5': ('1', '4', '9453')
+    's1': {'12560': '0'}
+    '13950': (0, '')
+  """
+  Log.Info("=== common.AdjustMapping() ===".ljust(157, '=')) 
   is_modified   = False
   tvdb6_seasons = {1: 1}
   is_banned     = Dict(dict_AniDB,  'Banned',        default=False)
@@ -825,10 +815,13 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
   
+  if source not in ['tvdb', 'tvdb6']:  Log.Info("source is neither 'tvdb' nor 'tvdb6'");  return is_modified
+  Log.Info("adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
+
   #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
-  Log.Info("season_map: {}".format(season_map))
-  Log.Info("relations_map: {}".format(relations_map))
-  Log.Info("TVDB Before: {}".format(TVDB))
+  Log.Info("season_map: {}".format(DictString(season_map, 0)))
+  Log.Info("relations_map: {}".format(DictString(relations_map, 1)))
+  Log.Info("TVDB Before: {}".format(DictString(TVDB, 0)))
 
   try:
     for id in season_map:
@@ -895,7 +888,9 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     Log.Info('Exception: "{}"'.format(e))
     Log.Info("Removing AniDB & TVDB data from memory to prevent incorrect data from being loaded")
     dict_AniDB.clear(); dict_TheTVDB.clear()
-    return False
+    is_modified = False
 
-  Log.Info("TVDB After : {}".format(Dict(mappingList, 'TVDB')))
+  Log.Info("TVDB After : {}".format(DictString(Dict(mappingList, 'TVDB'), 0)))
+  Log.Info("--- return ---".ljust(157, '-'))
+  Log.Info("is_modified: {}".format(is_modified))
   return is_modified
