@@ -8,22 +8,26 @@
 '''
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import common
-from common import Dict, Log, DictString
+from common import SaveDict, Dict, Log, DictString
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 
 ### Functions ###
 def GetMetadata(metadata, error_log, TVDBid, title):
+  Log.Info("=== Plex.GetMetadata() ===".ljust(157, '='))
   url       = 'http://tvthemes.plexapp.com/{}.mp3'.format(TVDBid)
   Plex_dict = {}
-  Log.Info("".ljust(157, '-'))
+
+  Log.Info("TVDBid: '{TVDBid}'".format(TVDBid=TVDBid))
+  Log.Info("--- theme ---".ljust(157, '-'))
   if 'Plex' in Prefs['themes'] and TVDBid.isdigit():
     title  = title or TVDBid
     result = '*' if url in metadata.themes else common.GetStatusCode(url)
-    Log.Info("Plex.GetMetadata() - Prefs['themes']: '{setting}, TVDBid: '{TVDBid}', result code: '{plex}', url: '{url}'".format(setting = Prefs['themes'], TVDBid=TVDBid, plex=result in(200, '*'), url=url))
-    if result in(200, "*"):  Plex_dict = {'themes': {url: ("Plex/%s.mp3" % TVDBid, 2, None)}}
+    Log.Info("result code: '{plex}', url: '{url}'".format(plex=result in (200, '*'), url=url))
+    if result in(200, "*"):  Log.Info("[ ] theme: {}".format(SaveDict(("Plex/%s.mp3" % TVDBid, 2, None), Plex_dict, 'themes', url)))
     else:                    error_log['Plex themes missing'].append("TVDBid: '{}' | Title: '{}' | {}".format(common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, title), title, common.WEB_LINK % ("mailto:themes@plexapp.com?cc=&subject=Missing%%20theme%%20song%%20-%%20&#39;%s%%20-%%20%s.mp3&#39;" % (title, TVDBid), 'Upload')))
-  else:  Log.Info("Plex.GetMetadata() - Not pulling meta - 'Plex' in Prefs['themes']: '{}', TVDBid: '{}'".format('Plex' in Prefs['themes'], TVDBid))
+  else:  Log.Info("Not pulling meta - 'Plex' in Prefs['themes']: '{}', TVDBid: '{}'".format('Plex' in Prefs['themes'], TVDBid))
 
+  Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("Plex_dict: {}".format(DictString(Plex_dict, 1)))
   return Plex_dict
