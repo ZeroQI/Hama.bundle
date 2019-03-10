@@ -170,7 +170,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           rank  = language_episodes.index(lang) if lang in language_episodes else len(language_episodes)
           title = Dict(episode_json, 'episodeName')
         else:                                  rank, title = len(language_episodes)+1, ''
-        Log.Info(" - [1] rank: {:>1}, language: {:>4}, title: {}".format(rank, Dict(episode_json, 'language', 'episodeName'), title))
+        Log.Info(" - [1] language_rank: {:>1}, language: {:>4}, title: {}".format(rank, Dict(episode_json, 'language', 'episodeName'), title))
         
         ### Ep advance information ###
         ep_count += 1
