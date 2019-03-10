@@ -198,33 +198,40 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
               Log.Info('[ ] role: {:<20}, name: {:<20}, photo: {}'.format(role_dict['role'], role_dict['name'], role_dict['photo']))
           except Exception as e:  Log.Info("Seyiuu error: {}".format(e))
         
+      ### Creators ###
+      creator_tags = { "Animation Work":"studio", "Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
+      studios      = {}
+      creators     = {}
+      for creator in xml.xpath('creators/name'):
+        for tag in creator_tags:
+          if tag != creator.get('type'):  continue
+          if creator_tags[tag]=="studio":  studios[tag] = creator.text
+          else:                            SaveDict([creator.text], creators, creator_tags[tag])
+      if is_primary_entry:
+        Log.Info("[ ] studio: {}".format(SaveDict(Dict(studios, "Animation Work", default=Dict(studios, "Work")), AniDB_dict, 'studio')))
+
+      Log.Info("[ ] movie: {}".format(SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie')))
+      ### Movie ###
       if  movie:
         Log.Info("[ ] year: '{}'".format(SaveDict(GetXml(xml, 'startdate')[0:4], AniDB_dict, 'year')))
+
+        if is_primary_entry:
+          for creator in creators:  Log.Info("[ ] {}: {}".format(creator, SaveDict(creators[creator], AniDB_dict, creator)))
+
         Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
           
       ### Series ###
       else:
-        
-        ### not listed for serie but is for eps
-        roles    = { "Animation Work":"studio", "Direction":"directors", "Series Composition":"producers", "Original Work":"writers", "Script":"writers", "Screenplay":"writers" }
-        ep_roles = {}
-        for creator in xml.xpath('creators/name'):
-          for role in roles: 
-            if not role in creator.get('type'):  continue
-            if roles[role]=="studio":  SaveDict(creator.text, AniDB_dict, 'studio')
-            else:                      SaveDict([creator.text], ep_roles, roles[role])
-        Log.Info("[ ] roles (creators tag): " +str(ep_roles))
-        if SaveDict(GetXml(xml, 'type')=='Movie', AniDB_dict, 'movie'):  Log.Info("'movie': '{}'".format(AniDB_dict['movie']))
-      
         ### Translate into season/episode mapping
         numEpisodes, totalDuration, mapped_eps, ending_table, op_nb = 0, 0, [], {}, 0 
-        specials = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
+        specials        = {'S': [0, 'Special'], 'C': [100, 'Opening/Ending'], 'T': [200, 'Trailer'], 'P': [300, 'Parody'], 'O': [400, 'Other']}
         movie_ep_groups = {}
-        missing={'0': [], '1':[]}
+        ending_offset   = 99
+        missing         = {'0': [], '1':[]}
                 
         ### Episodes (and specials) not always in right order ###
         Log.Info(("--- %s.episodes ---" % AniDBid).ljust(157, '-'))
-        ending_offset = 99
+        Log.Info("[ ] ep creators (creators tag): " +str(creators))
         for ep_obj in sorted(xml.xpath('episodes/episode'), key=lambda x: [int(x.xpath('epno')[0].get('type')), int(x.xpath('epno')[0].text if x.xpath('epno')[0].text.isdigit() else x.xpath('epno')[0].text[1:])]):
           
           ### Title, Season, Episode number, Specials
@@ -289,8 +296,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
           if SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  Log.Info(" - [ ] summary: {}".format(Dict(AniDB_dict, 'seasons', season, 'episodes', episode, 'summary')))
-          #for role in ep_roles: SaveDict(",".join(ep_roles[role]), AniDB_dict, 'seasons', season, 'episodes', episode, role)
-            #Log.Info("role: '%s', value: %s " % (role, str(ep_roles[role])))
+          for creator in creators:  SaveDict(",".join(creators[creator]), AniDB_dict, 'seasons', season, 'episodes', episode, creator)
                   
         ### End of for ep_obj...
         Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
