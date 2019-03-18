@@ -116,7 +116,8 @@ def Update(metadata, media, lang, force, movie):
   Log.Info("id: {}, title: {}, lang: {}, force: {}, movie: {}".format(metadata.id, metadata.title, lang, force, movie))
   Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   
-  # Hard required orders:
+  # Major meta source hard required orders (ignoring id info):
+  #   mappingList:   AnimeLists->all
   #   season_map:    AnimeLists->TheTVDBv2->AdjustMapping
   #   relations_map: AniDB->AdjustMapping
   #   absolute_map:  TheTVDBv2/common->AniDB
