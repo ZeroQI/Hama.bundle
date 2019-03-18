@@ -827,6 +827,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     for id in season_map:
       new_season, new_episode = '', ''
       if id == 'max_season':  continue
+      #### Note: Below must match scanner (variable names are different but logic matches) ####
       Log.Info("Checking AniDBid: %s" % id)
       def get_prequel_info(prequel_id):
         Log.Info("-- get_prequel_info(prequel_id): %s, season min: %s, season max: %s" % (prequel_id, season_map[prequel_id]['min'], season_map[prequel_id]['max']))
