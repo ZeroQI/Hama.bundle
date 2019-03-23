@@ -251,8 +251,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
 
             # Get season from absolute number OR convert episode number to absolute number
             if source in ('tvdb3', 'tvdb4') and season not in ('-1', '0'):
-              season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
-              if episode!='0':
+              if season=='1' or source=='tvdb4':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
+              elif episode!='0':
                 try:  episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
                 except Exception as e:  Log.Error("Exception: {}".format(e))
 
