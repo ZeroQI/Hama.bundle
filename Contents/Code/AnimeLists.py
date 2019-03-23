@@ -92,6 +92,7 @@ def GetMetadata(media, movie, error_log, id):
 
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
+    if anime.get('defaulttvdbseason') != defaulttvdbseason:  Log.Info("Overriding 'defaulttvdbseason': '{}'->'{}'".format(anime.get('defaulttvdbseason'), defaulttvdbseason))
 
     if not tvdb_numbering and not TVDB_id:                                                                                                                                                                           TVDB_id   = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit() and defaulttvdbseason == '1' and episodeoffset == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
@@ -160,7 +161,7 @@ def GetMetadata(media, movie, error_log, id):
     if ( (TMDB_id or TMDBid) or IMDBid ):
       SaveDict(TMDB_id or TMDBid or '', mappingList, 'tmdbid')
       SaveDict(IMDBid or '', mappingList, 'imdbid')
-      Log.Info("Saved possible tmdb/imdb values for later '%s'/'%s' for later, since not in AnimeList." % (Dict(mappingList,'tmdbid'), Dict(mappingList,'imdbid')))
+      Log.Info("Saved possible tmdb/imdb values for later ('%s'/'%s'), since not in AnimeList." % (Dict(mappingList,'tmdbid'), Dict(mappingList,'imdbid')))
     elif not found:
       Log.Info("ERROR: Could not find %s: %s" % (source, id) )
       # this error only makes sense if it's AniDB_id, right? otherwise AniDB_id is always == ""
