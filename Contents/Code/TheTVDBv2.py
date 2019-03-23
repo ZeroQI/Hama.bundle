@@ -161,7 +161,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if not anidb_numbering:  
           SaveDict( abs_number                    , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(serie_json  , 'rating'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
-        SaveDict( Dict(serie_json  , 'runtime'   ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
+        SaveDict( Dict(TheTVDB_dict, 'duration'  ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'duration'               )
         Log.Info(' - [ ] summary: {}'.format(SaveDict( Dict(episode_json, 'overview').strip(" \n\r"), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'summary')))
         SaveDict( Dict(episode_json, 'firstAired'), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
         
