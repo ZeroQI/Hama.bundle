@@ -156,7 +156,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         elif metadata_source!='tvdb6':                  episode_missing_season.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
         
       ### File present on disk
-      if not is_missing or metadata_source.startswith("tvdb"):
+      if not is_missing or metadata_source in ["tvdb", "tvdb6"]:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage
         episode_missing_season_all = False
         #Log.Info('[?] episode_json: {}'.format(episode_json))
         if not is_missing:
