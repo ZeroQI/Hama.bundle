@@ -104,7 +104,7 @@ def GetMetadata(media, movie, error_log, id):
       SaveDict(defaulttvdbseason,                           mappingList, 'defaulttvdbseason')
       SaveDict(episodeoffset,                               mappingList, 'episodeoffset'    )
       SaveDict(GetXml(anime, 'name'         ),              mappingList, 'name'             )
-      SaveDict(GetXml(anime, 'studio'                    ), AnimeLists_dict, 'studio'        )
+      SaveDict(GetXml(anime, "supplemental-info/studio"  ), AnimeLists_dict, 'studio'        )
       SaveDict(GetXml(anime, "supplemental-info/director"), AnimeLists_dict, 'director'      )
       SaveDict(GetXml(anime, "supplemental-info/credits" ), AnimeLists_dict, 'writer'        )
       for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres')
@@ -184,7 +184,7 @@ def GetMetadata(media, movie, error_log, id):
       TVDB_collection.append(anime.get("anidbid", ""))
       if defaulttvdbseason == '1' and episodeoffset == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0:
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
-        studio = GetXml(anime, 'studio')  #anime.xpath("supplemental-info/studio")
+        studio = GetXml(anime, "supplemental-info/studio")  #anime.xpath("supplemental-info/studio")
   if len(TVDB_collection)>1 and title:  # Require that there be at least 2 anidb mappings for a collection
     Log.Info("[ ] collection: TVDBid '%s' is part of collection: '%s'" % (TVDB_winner, SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')))
   else:  Log.Info("[ ] collection: TVDBid '%s' is not part of any collection" % TVDB_winner)
