@@ -169,14 +169,18 @@ def GetMetadata(media, movie, error_log, id):
       # keeping this reset since im not clear on it's purpose.
       AniDBid,TVDBid = '',''
   
+  AniDB_winner = AniDB_id or AniDB_id2 or AniDBid
+  TVDB_winner  = TVDB_id or TVDBid
+  
   Log.Info('             -----          ------')
-  Log.Info('             {:>5}          {:>6}'.format(AniDB_id or AniDB_id2 or AniDBid, TVDB_id or TVDBid))
-  SaveDict(Dict(tvdbcounts, TVDB_id or TVDBid), mappingList, 'tvdbcount')
+  Log.Info('             {:>5}          {:>6}'.format(AniDB_winner, TVDB_winner))
+  
+  SaveDict(Dict(tvdbcounts, TVDB_winner), mappingList, 'tvdbcount')
   
   ### Update collection 
   TVDB_collection, title = [], ''
-  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_id.isdigit() else []:
-    if anime.get('tvdbid',  "") == TVDB_id:
+  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_winner.isdigit() else []:
+    if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
       if defaulttvdbseason == '1' and episodeoffset == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0:
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
@@ -189,7 +193,7 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info("AniDB_id: '{}', AniDB_id2: '{}', AniDBid: '{}', TVDB_id: '{}', TVDBid: '{}'".format(AniDB_id, AniDB_id2, AniDBid, TVDB_id, TVDBid))
   Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
   Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
-  return AnimeLists_dict, AniDB_id or AniDB_id2 or AniDBid, (TVDB_id or TVDBid) if (TVDB_id or TVDBid).isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
+  return AnimeLists_dict, AniDB_winner, TVDB_winner if TVDB_winner.isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, anidbid=''):
