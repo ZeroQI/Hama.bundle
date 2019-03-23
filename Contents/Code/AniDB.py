@@ -132,7 +132,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   Log.Info('language_posters: {}'.format(language_posters))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
-  for AniDBid in (full_array if source in ["tvdb", "tvdb6"] else AniDB_array):  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage
+  for AniDBid in full_array if source in ["tvdb", "tvdb6"] else AniDB_array:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage
     is_primary_entry = AniDBid==original or len(full_array if source in ["tvdb", "tvdb6"] else AniDB_array)==1
 
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))

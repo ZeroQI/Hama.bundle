@@ -686,7 +686,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
     language_rank, language_source = len(languages)+1, None
-    for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
+    for source in [source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]]:
       if source in MetaSources:
         #For AniDB assigned series will favor AniDB summary even if TheTVDB is before in the source order for summary fields IF the anidb series is not mapped to TheTVDB season 1.
         if Dict(MetaSources, source, field):
@@ -727,7 +727,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
-        for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
+        for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
               if field=='posters':  season_posters_list.extend(Dict(MetaSources, source, 'seasons', season, 'posters', default={}).keys())
