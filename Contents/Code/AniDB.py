@@ -117,7 +117,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
-    AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' or Dict(mappingList, 'TVDB', 'sa') else {}
+    AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' else {}
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
         new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
@@ -247,12 +247,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
-            season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid) ###Broken for tvdbseason='a'
+            season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid)
 
             # Get season from absolute number OR convert episode number to absolute number
             if source in ('tvdb3', 'tvdb4') and season not in ('-1', '0'):
-              if season=='a' or source=='tvdb4':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
-              elif episode!='0':
+              season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
+              if episode!='0':
                 try:  episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
                 except Exception as e:  Log.Error("Exception: {}".format(e))
 
