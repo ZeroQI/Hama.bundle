@@ -182,11 +182,13 @@ def GetMetadata(media, movie, error_log, id):
   for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_winner.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
+      defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
+      episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
       if defaulttvdbseason == '1' and episodeoffset == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0:
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
-        studio = GetXml(anime, "supplemental-info/studio")  #anime.xpath("supplemental-info/studio")
+        studio = GetXml(anime, "supplemental-info/studio")
   if len(TVDB_collection)>1 and title:  # Require that there be at least 2 anidb mappings for a collection
-    Log.Info("[ ] collection: TVDBid '%s' is part of collection: '%s'" % (TVDB_winner, SaveDict([title + ' Collection'], AnimeLists_dict, 'collections')))
+    Log.Info("[ ] collection: TVDBid '%s' is part of collection: '%s', related_anime_list: %s" % (TVDB_winner, SaveDict([title + ' Collection'], AnimeLists_dict, 'collections'), TVDB_collection))
   else:  Log.Info("[ ] collection: TVDBid '%s' is not part of any collection" % TVDB_winner)
   Log.Info("[ ] studio: {}".format(SaveDict(studio, AnimeLists_dict, 'studio')))
   
