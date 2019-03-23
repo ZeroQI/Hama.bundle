@@ -300,7 +300,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
                   
         ### End of for ep_obj...
         Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
-        if SaveDict(int(totalDuration)/int(numEpisodes) if int(numEpisodes) else 0, AniDB_dict, 'duration'):
+        if SaveDict((int(totalDuration)/int(numEpisodes))*60*1000 if int(numEpisodes) else 0, AniDB_dict, 'duration'):
           Log.Info("Duration: {}, numEpisodes: {}, average duration: {}".format(str(totalDuration), str(numEpisodes), AniDB_dict['duration']))
 
         ### AniDB numbering Missing Episodes ###
