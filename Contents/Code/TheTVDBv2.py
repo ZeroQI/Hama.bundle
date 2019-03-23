@@ -143,9 +143,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       else:                       summary_missing_special.append(numbering)
       
       ### Check for Missing Episodes ###
+      is_missing = False
       if not(season =='0' and episode in list_sp_eps) and \
          not(metadata_source in ('tvdb3', 'tvdb4') and str(abs_number) in list_abs_eps) and \
          not(not movie and season in media.seasons and episode in media.seasons[season].episodes):
+        is_missing = True
         Log.Info('[ ] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired')))
         air_date = Dict(episode_json, 'firstAired')
         air_date = int(air_date.replace('-','')) if air_date.replace('-','').isdigit() and int(air_date.replace('-','')) > 10000000 else 99999999
@@ -154,10 +156,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         elif metadata_source!='tvdb6':                  episode_missing_season.append( str(abs_number)+" ("+numbering+")" if metadata_source in ('tvdb3', 'tvdb4') else numbering)
         
       ### File present on disk
-      else:
+      if not is_missing or metadata_source.startswith("tvdb"):
         episode_missing_season_all = False
         #Log.Info('[?] episode_json: {}'.format(episode_json))
-        Log.Info('[X] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {} abs_number: {}, title: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired'), abs_number, Dict(episode_json, 'episodeName')))
+        if not is_missing:
+          Log.Info('[X] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {} abs_number: {}, title: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired'), abs_number, Dict(episode_json, 'episodeName')))
         if not anidb_numbering:  
           SaveDict( abs_number                    , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'absolute_index'         )
         SaveDict( Dict(serie_json  , 'rating'    ), TheTVDB_dict, 'seasons', season, 'episodes', episode, 'content_rating'         )
