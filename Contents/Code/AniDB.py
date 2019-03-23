@@ -295,7 +295,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           SaveDict(GetXml(ep_obj, 'rating' ), AniDB_dict, 'seasons', season, 'episodes', episode, 'rating'                 )
           SaveDict(GetXml(ep_obj, 'airdate'), AniDB_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
-          if SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary'):  Log.Info(" - [ ] summary: {}".format(Dict(AniDB_dict, 'seasons', season, 'episodes', episode, 'summary')))
+          ep_summary = SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary')
+          Log.Info(' - [ ] summary: {}'.format((ep_summary[:200]).replace("\n", " ")+'..' if len(ep_summary)> 200 else ep_summary))
           for creator in creators:  SaveDict(",".join(creators[creator]), AniDB_dict, 'seasons', season, 'episodes', episode, creator)
                   
         ### End of for ep_obj...
