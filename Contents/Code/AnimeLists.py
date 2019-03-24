@@ -92,11 +92,11 @@ def GetMetadata(media, movie, error_log, id):
 
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
-    if anime.get('defaulttvdbseason') != defaulttvdbseason:  Log.Info("Overriding 'defaulttvdbseason': '{}'->'{}'".format(anime.get('defaulttvdbseason'), defaulttvdbseason))
 
     if not tvdb_numbering and not TVDB_id:                                                                                                                                                                           TVDB_id   = TVDBid
     if tvdb_numbering and AniDBid and TVDBid.isdigit() and defaulttvdbseason == '1' and episodeoffset == '0' and len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0']")) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
-    Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>2}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, defaulttvdbseason, episodeoffset, GetXml(anime, 'name')))
+    Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>3}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, 
+      ("({})".format(anime.get('defaulttvdbseason')) if anime.get('defaulttvdbseason')!=defaulttvdbseason else '')+defaulttvdbseason, episodeoffset, GetXml(anime, 'name')))
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
@@ -123,7 +123,7 @@ def GetMetadata(media, movie, error_log, id):
           if source=="tvdb6" and int(episodeoffset)>0:  SaveDict({'min': '0', 'max': '0'}, mappingList, 'season_map', AniDBid)  # Force series as special if not starting the TVDB season
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
           anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
-          Log.Info("    - season: [{:>2}],           [{:>2}], range:      [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, (season.text or '').strip(';')))
+          Log.Info("    - season: [{:>2}],           [{:>2}], range:       [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, (season.text or '').strip(';')))
           for ep in range(int(start), int(end)+1)        if start       else []:
             #Log.Info("[?] start: {}, end: {}, ep: {}".format(start, end, ep))
             if not Dict(mappingList, 'TVDB', 's'+tvdbseason+'e'+str(ep+int(offset))):
