@@ -126,14 +126,16 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       else:  continue
   elif source.startswith('anidb') and AniDBid != "":  full_array, AniDB_array = [AniDBid], {AniDBid:[]}
   else:                                               full_array, AniDB_array = [], {}
-  Log.Info("AniDBid: {}, AniDBids list: {}, source: {}".format(AniDBid, full_array, source))
+  
+  active_array = full_array if source in ["tvdb", "tvdb6"] else AniDB_array.keys()
+  Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   Log.Info('language_posters: {}'.format(language_posters))
   
   ### Load anidb xmls in tvdb numbering format if needed ###
-  for AniDBid in full_array if source in ["tvdb", "tvdb6"] else AniDB_array:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage for full relation_map data
-    is_primary_entry = AniDBid==original or len(full_array if source in ["tvdb", "tvdb6"] else AniDB_array)==1
+  for AniDBid in active_array:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage for full relation_map data
+    is_primary_entry = AniDBid==original or len(active_array)==1
 
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))
     Log.Info('AniDBid: {}, IsPrimary: {}, url: {}'.format(AniDBid, is_primary_entry, ANIDB_HTTP_API_URL+AniDBid))
