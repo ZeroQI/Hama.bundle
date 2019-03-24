@@ -133,6 +133,15 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   Log.Info('language_posters: {}'.format(language_posters))
   
+  ### Build list_abs_eps for tvdb 3/4/5 ###
+  list_abs_eps, list_sp_eps={}, []
+  if source in ('tvdb3', 'tvdb4'):
+    for s in media.seasons:
+      for e in media.seasons[s].episodes:
+          if s=='0':  list_sp_eps.append(e)
+          else:       list_abs_eps[e]=s 
+    Log.Info('Present abs eps: {}'.format(list_abs_eps))
+
   ### Load anidb xmls in tvdb numbering format if needed ###
   for AniDBid in active_array:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage for full relation_map data
     is_primary_entry = AniDBid==original or len(active_array)==1
@@ -250,15 +259,19 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           #If tvdb numbering used, save anidb episode meta using tvdb numbering
           if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:
             season, episode = AnimeLists.tvdb_ep(mappingList, season, episode, AniDBid)
-
-            # Get season from absolute number OR convert episode number to absolute number
-            if source in ('tvdb3', 'tvdb4') and season not in ('-1', '0'):
-              if season=='1' or source=='tvdb4':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
-              elif episode!='0':
-                try:  episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
-                except Exception as e:  Log.Error("Exception: {}".format(e))
-
-            if season=='0' and episode=='0' or not season in media.seasons or not episode in media.seasons[season].episodes:   Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType));  continue
+            
+            # Get episode number to absolute number
+            if source in ('tvdb3', 'tvdb4') and season not in ['-1', '0']:
+              if source=='tvdb4' or season=='1':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
+              else:
+                try:     episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
+                except:  pass
+            
+            if not(season =='0' and episode in list_sp_eps) and \
+               not(source in ('tvdb3', 'tvdb4') and episode in list_abs_eps) and \
+               not(season in media.seasons and episode in media.seasons[season].episodes):
+              Log.Info('[ ] {} => s{:>1}e{:>3} epNumType: {}'.format(numbering, season, episode, epNumType))
+              continue
             
             ### Series poster as season poster
             if GetXml(xml, 'picture') and not Dict(AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture')):
