@@ -264,15 +264,10 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
-  
-  # <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping> + <mapping-list> <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
+  # <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping>
+  # <mapping-list> <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
   ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
   if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
-  
-  ### bug here
-  #ep_mappings   = [key for key in Dict(mappingList, 'TVDB') if 'e' in key and anidbid == Dict(mappingList, 'TVDB', key)[2]]  
-  #Log.Info('ep_mappings: "{}" so dropping non listed ep mappings'.format(ep_mappings));
-  #if ep_mappings:  return '0', '0', anidbid 
   
   # <mapping-list> <mapping anidbseason="1" tvdbseason="5" offset="-12"/>
   anidbid_list = Dict(mappingList, 'TVDB', 's'+season)
