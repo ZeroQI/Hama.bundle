@@ -117,17 +117,20 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
     full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
-    AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' else {}
+    AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' and source!='tvdb4' else {}
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
-        new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
-        numbering                        = 's{}e{}'.format(season, episode)
+        if int(episode)>99:  continue  # AniDB non-normal special (op/ed/t/o) that is not mapable
+        if   source=='tvdb3' and season!=0:  new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, Dict(mappingList, 'absolute_map', episode, default=(season, episode))[1])  # Pull absolute number then try to map
+        elif source=='tvdb4' and season!=0:  new_season, new_episode          = Dict(mappingList, 'absolute_map', episode, default=(season, episode)); anidbid = 'UNKN'                             # Not TVDB mapping. Use custom ASS mapping to pull season/episode
+        else:                                new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)                                                                   # Try to map
+        numbering = 's{}e{}'.format(season, episode) + ('(s{}e{})'.format(new_season, new_episode) if season!=new_season and episode!=new_episode else '')
         if anidbid and not (new_season=='0' and new_episode=='0'):  SaveDict([numbering], AniDB_array, anidbid)
       else:  continue
   elif source.startswith('anidb') and AniDBid != "":  full_array, AniDB_array = [AniDBid], {AniDBid:[]}
   else:                                               full_array, AniDB_array = [], {}
   
-  active_array = full_array if source in ["tvdb", "tvdb6"] else AniDB_array.keys()
+  active_array = full_array if source in ("tvdb", "tvdb4", "tvdb6") else AniDB_array.keys()  # anidb3(tvdb)/anidb4(tvdb6) for full relation_map data | tvdb4 bc the above will not be able to know the AniDBid
   Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
   for anidbid in AniDB_array:
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
@@ -143,7 +146,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info('Present abs eps: {}'.format(list_abs_eps))
 
   ### Load anidb xmls in tvdb numbering format if needed ###
-  for AniDBid in active_array:  # Only pull all if anidb3(tvdb)/anidb4(tvdb6) usage for full relation_map data
+  for AniDBid in active_array:
     is_primary_entry = AniDBid==original or len(active_array)==1
 
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))
