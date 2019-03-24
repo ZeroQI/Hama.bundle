@@ -742,7 +742,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
-        new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
+        new_season, new_episode = season, episode
         source_title, title, rank = '', '', len(languages)+1
         for field in FieldListEpisodes:  # metadata.seasons[season].episodes[episode].attrs.keys()
           meta_old     = getattr(metadata.seasons[season].episodes[episode], field)
