@@ -132,7 +132,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   
   active_array = full_array if source in ("tvdb", "tvdb4", "tvdb6") else AniDB_array.keys()  # anidb3(tvdb)/anidb4(tvdb6) for full relation_map data | tvdb4 bc the above will not be able to know the AniDBid
   Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
-  for anidbid in AniDB_array:
+  for anidbid in sorted(AniDB_array, key=common.natural_sort_key):
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
   Log.Info('language_posters: {}'.format(language_posters))
   
@@ -146,7 +146,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info('Present abs eps: {}'.format(list_abs_eps))
 
   ### Load anidb xmls in tvdb numbering format if needed ###
-  for AniDBid in active_array:
+  for AniDBid in sorted(active_array, key=common.natural_sort_key):
     is_primary_entry = AniDBid==original or len(active_array)==1
 
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))

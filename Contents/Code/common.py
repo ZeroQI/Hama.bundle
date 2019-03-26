@@ -267,7 +267,7 @@ def DictString(input_value, max_depth, depth=0):
     elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
     else:                                output += "{}".format(input_value)
   else:
-    for i, key in enumerate(sorted(input_value, key=None if False in [x.isdigit() for x in input_value] else int)):
+    for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
       output += (
         "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
