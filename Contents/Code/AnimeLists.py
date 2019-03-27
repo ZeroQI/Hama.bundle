@@ -105,14 +105,15 @@ def GetMetadata(media, movie, error_log, id):
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
-      SaveDict(anime.get('tmdbid',        ""),              mappingList, 'tmdbid'           )
-      SaveDict(anime.get('imdbid',        ""),              mappingList, 'imdbid'           )
-      SaveDict(defaulttvdbseason,                           mappingList, 'defaulttvdbseason')
-      SaveDict(episodeoffset,                               mappingList, 'episodeoffset'    )
-      SaveDict(GetXml(anime, 'name'         ),              mappingList, 'name'             )
-      SaveDict(GetXml(anime, "supplemental-info/studio"  ), AnimeLists_dict, 'studio'        )
-      SaveDict(GetXml(anime, "supplemental-info/director"), AnimeLists_dict, 'director'      )
-      SaveDict(GetXml(anime, "supplemental-info/credits" ), AnimeLists_dict, 'writer'        )
+      SaveDict(anime.get('tmdbid', ""),                                mappingList, 'tmdbid'             )
+      SaveDict(anime.get('imdbid', ""),                                mappingList, 'imdbid'             )
+      SaveDict(defaulttvdbseason,                                      mappingList, 'defaulttvdbseason'  )
+      SaveDict(True if anime.get('defaulttvdbseason')=='a' else False, mappingList, 'defaulttvdbseason_a')
+      SaveDict(episodeoffset,                                          mappingList, 'episodeoffset'      )
+      SaveDict(GetXml(anime, 'name'         ),                         mappingList, 'name'               )
+      SaveDict(GetXml(anime, "supplemental-info/studio"  ),            AnimeLists_dict, 'studio'         )
+      SaveDict(GetXml(anime, "supplemental-info/director"),            AnimeLists_dict, 'director'       )
+      SaveDict(GetXml(anime, "supplemental-info/credits" ),            AnimeLists_dict, 'writer'         )
       for genre in anime.xpath('supplemental-info/genre'):         SaveDict([genre.text],                                                          AnimeLists_dict, 'genres')
       for art   in anime.xpath('supplemental-info/fanart/thumb'):  SaveDict({art.text:('/'.join(art.text.split('/')[3:]), 1, art.get('preview'))}, AnimeLists_dict, 'art'   )
       
@@ -121,7 +122,8 @@ def GetMetadata(media, movie, error_log, id):
       if TVDBid.isdigit():
         if defaulttvdbseason:
           if defaulttvdbseason == '1' and episodeoffset == '0' and len(s1_mapping) == 0:
-            SaveDict(defaulttvdbseason, mappingList, 'defaulttvdbseason')
+            SaveDict(defaulttvdbseason,                                      mappingList, 'defaulttvdbseason'  )
+            SaveDict(True if anime.get('defaulttvdbseason')=='a' else False, mappingList, 'defaulttvdbseason_a')
             AniDB_id2 = AniDBid
           SaveDict(episodeoffset, mappingList, 'TVDB', 's-1' if defaulttvdbseason == '0' and len(s1_mapping) >= 1 else 's'+defaulttvdbseason, AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
           SaveDict({'min': defaulttvdbseason, 'max': defaulttvdbseason}, mappingList, 'season_map', AniDBid)  # Set the min/max season to the 'defaulttvdbseason'
