@@ -263,18 +263,14 @@ def DictString(input_value, max_depth, depth=0):
   """
   output = "{" if depth == 0 else ""
   if depth >= max_depth or not isinstance(input_value, dict):
-    if   isinstance(input_value, str):   output += ('"%s"' if "'" in input_value else "'%s'") % input_value
-    elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
-    else:                                output += "{}".format(input_value)
+    if isinstance(input_value, str):  output += ('"%s"' if "'" in input_value else "'%s'") % input_value
+    else:                             output += "{}".format(input_value)
   else:
     for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
       output += (
         "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
-        ("{%s%s%s}" if isinstance(input_value[key], dict) else "%s%s%s") % (
-          "\n" if depth==max_depth and isinstance(input_value[key], dict) else "",
-          "  " * (depth+2) if depth==max_depth and isinstance(input_value[key], dict) else "", 
-          DictString(input_value[key], max_depth, depth+1)) + 
+        "%s" % (DictString(input_value[key], max_depth, depth+1)) + 
         ("," if i!=len(input_value)-1 else ""))  # remove last ','
   return output + ("}" if depth == 0 else "")
   # Other options passed on as can't define expansion depth
