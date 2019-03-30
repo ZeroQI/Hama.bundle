@@ -252,29 +252,25 @@ def DisplayDict(items={}, fields=[]):
 def DictString(input_value, max_depth, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
-      If a dict is at max depth and has only one key, it will keep it on the same line.
       EX: (max_depth=1)
         mappingList: {
           'season_map': {'13493': {'max': '3', 'min': '3'}}}
-      Instead of:
+      EX: (max_depth=2)
         mappingList: {
           'season_map': {
-            '9306': {'max': '2', 'min': '1'}, '11665': {'max': '3', 'min': '3'}}}
+            '9306': {'max': '2', 'min': '1'},
+            '11665': {'max': '3', 'min': '3'}}}
   """
   output = "{" if depth == 0 else ""
   if depth >= max_depth or not isinstance(input_value, dict):
-    if   isinstance(input_value, str):   output += ('"%s"' if "'" in input_value else "'%s'") % input_value
-    elif isinstance(input_value, dict):  output += re.sub(r"^\{(?P<a>.*)\}$", r'\g<a>', "{}".format(input_value))  # remove surrounding brackets
-    else:                                output += "{}".format(input_value)
+    if isinstance(input_value, str):  output += ('"%s"' if "'" in input_value else "'%s'") % input_value
+    else:                             output += "{}".format(input_value)
   else:
-    for i, key in enumerate(sorted(input_value, key=None if False in [x.isdigit() for x in input_value] else int)):
+    for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
       output += (
         "\n" + "  " * (depth+1) + 
         "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
-        ("{%s%s%s}" if isinstance(input_value[key], dict) else "%s%s%s") % (
-          "\n" if depth+1==max_depth and isinstance(input_value[key], dict) and len(input_value[key])>1 else "",
-          "  " * (depth+2) if isinstance(input_value[key], dict) and len(input_value[key])>1 else "", 
-          DictString(input_value[key], max_depth, depth+1)) + 
+        "%s" % (DictString(input_value[key], max_depth, depth+1)) + 
         ("," if i!=len(input_value)-1 else ""))  # remove last ','
   return output + ("}" if depth == 0 else "")
   # Other options passed on as can't define expansion depth
@@ -686,7 +682,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     meta_old    = getattr(metadata, field)
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
     language_rank, language_source = len(languages)+1, None
-    for source in (source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]):
+    for source in [source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]]:
       if source in MetaSources:
         #For AniDB assigned series will favor AniDB summary even if TheTVDB is before in the source order for summary fields IF the anidb series is not mapped to TheTVDB season 1.
         if Dict(MetaSources, source, field):
@@ -727,7 +723,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
-        for source in (source.strip() for source in Prefs[field].split(',') if Prefs[field]):
+        for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
               if field=='posters':  season_posters_list.extend(Dict(MetaSources, source, 'seasons', season, 'posters', default={}).keys())
@@ -742,7 +738,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       languages = Prefs['EpisodeLanguagePriority'].replace(' ', '').split(',')
       for episode in sorted(media.seasons[season].episodes, key=natural_sort_key):
         Log.Info("metadata.seasons[{:>2}].episodes[{:>3}]".format(season, episode))
-        new_season, new_episode = '1' if (metadata.id.startswith('tvdb3') or metadata.id.startswith('tvdb4')) and not season=='0' else season, episode
+        new_season, new_episode = season, episode
         source_title, title, rank = '', '', len(languages)+1
         for field in FieldListEpisodes:  # metadata.seasons[season].episodes[episode].attrs.keys()
           meta_old     = getattr(metadata.seasons[season].episodes[episode], field)
@@ -809,6 +805,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   """
   Log.Info("=== common.AdjustMapping() ===".ljust(157, '=')) 
   is_modified   = False
+  adjustments   = {}
   tvdb6_seasons = {1: 1}
   is_banned     = Dict(dict_AniDB,  'Banned',        default=False)
   TVDB          = Dict(mappingList, 'TVDB',          default={})
@@ -821,10 +818,11 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
   Log.Info("season_map: {}".format(DictString(season_map, 0)))
   Log.Info("relations_map: {}".format(DictString(relations_map, 1)))
-  Log.Info("TVDB Before: {}".format(DictString(TVDB, 0)))
 
   try:
-    for id in season_map:
+    Log.Info("--- tvdb mapping adjustments ---".ljust(157, '-'))
+    Log.Info("TVDB Before: {}".format(DictString(TVDB, 0)))
+    for id in sorted(season_map, key=natural_sort_key):
       new_season, new_episode = '', ''
       if id == 'max_season':  continue
       #### Note: Below must match scanner (variable names are different but logic matches) ####
@@ -854,20 +852,27 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
 
       if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
         is_modified = True
+        removed = {}
         for key in TVDB.keys():
           if isinstance(TVDB[key], dict)  and id in TVDB[key]:
             Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
+            removed[key] = {id: TVDB[key][id]}
             del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
           if isinstance(TVDB[key], tuple) and TVDB[key][0] == '1' and TVDB[key][2] == id:
             Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
+            removed[key] = TVDB[key]
             del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
         SaveDict(str(new_episode), TVDB, 's'+str(new_season), id)
         Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
+        
+        adjustments['s'+str(new_season)+'e'+str(new_episode)] = {'deleted': removed, 'added': [str(new_season), str(new_episode)]}
+        tvdb6_seasons[new_season] = season_map[id]['min']  # tvdb6_seasons[New season] = [Old season]
 
-      if source=="tvdb6" and str(new_season).isdigit():  tvdb6_seasons[new_season] = season_map[id]['min']  # tvdb6_seasons[New season] = [Old season]
-
+    Log.Info("TVDB After : {}".format(DictString(Dict(mappingList, 'TVDB'), 0)))
+    
     # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
     if source=="tvdb6":
+      Log.Info("--- tvdb meta season adjustments ---".ljust(157, '-'))
       top_season, season, adjustment, new_seasons = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}
       Log.Info("dict_TheTVDB Seasons Before : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
       Log.Info("tvdb6_seasons : {}".format(tvdb6_seasons))
@@ -883,6 +888,39 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
       SaveDict(new_seasons, dict_TheTVDB, 'seasons')
       Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
 
+    # Copy in the 'dict_TheTVDB' deleted episode meta into its new added location
+    Log.Info("--- tvdb meta episode adjustments ---".ljust(157, '-'))
+    Log.Info("adjustments: {}".format(DictString(adjustments, 2)))
+    for entry in sorted(adjustments, key=natural_sort_key):
+      # EX: {'s6e0': {'added': ['6', '0'], 'deleted': {'s0e16': ('1', '1', '12909'), 's-1': {'12909': '0'}}}}
+      added_season, added_offset = adjustments[entry]['added']  # 'added': ['6', '0']
+      Log.Info("added_season: '{}', added_offset: '{}'".format(added_season, added_offset))
+      for deleted in sorted(adjustments[entry]['deleted'], key=natural_sort_key):
+        Log.Info("-- deleted: '{}': {}".format(deleted, adjustments[entry]['deleted'][deleted]))
+        if isinstance(adjustments[entry]['deleted'][deleted], dict):
+          deleted_season = deleted[1:]                                         # {-->'s0'<--: {'6463': '0'}}
+          deleted_offset = adjustments[entry]['deleted'][deleted].values()[0]  # {'s0': {'6463': -->'0'<--}}
+          if deleted=='s-1':
+            Log.Info("---- {:<9}: Dead season".format("'%s'" % deleted))
+            continue  # EX: {'s-1': {'12909': '0'}}
+          if deleted!='s0' and added_offset=='0' and deleted_offset=='0':
+            Log.Info("---- {:<9}: Whole season (s1+) was adjusted in previous section".format("'%s'" % deleted))
+            continue  # EX: {'s3e0': 'added': ['3', '0'], 'deleted': {'s2': {'7680': '0'}}} == Adjusting season '2' -> '3'
+          # EX: {'s2e0': 'added': ['2', '0' ], 'deleted': {'s0': {'6463': '0'}}}
+          # EX: {'s1e100': 'added': ['1', '100'], 'deleted': {'s0': {'982': '1'}}}
+          interation = 1
+          Log.Info("---- deleted_season: '{}', deleted_offset: '{}'".format(deleted_season, deleted_offset))
+          while Dict(dict_TheTVDB, 'seasons', deleted_season, 'episodes', str(int(deleted_offset) + interation)):
+            a, b, x = deleted_season, str(int(deleted_offset) + interation), str(int(added_offset) + interation)
+            SaveDict(Dict(dict_TheTVDB, 'seasons', a, 'episodes', b), dict_TheTVDB, 'seasons', added_season, 'episodes', x)
+            Log.Info("---- {:<9}: dict_TheTVDB['seasons']['{}']['episodes']['{}'] => dict_TheTVDB['seasons']['{}']['episodes']['{}']".format("'%s'" % deleted, a, b, added_season, x))
+            interation += 1
+        if isinstance(adjustments[entry]['deleted'][deleted], tuple):
+          a, b = list(filter(None, re.split(r"[se]", deleted)))                        # 's0e16' --> ['0', '16']
+          x = str(int(adjustments[entry]['deleted'][deleted][1]) + int(added_offset))  # ('1', -->'1'<--, '12909')
+          Log.Info("---- {:<9}: dict_TheTVDB['seasons']['{}']['episodes']['{}'] => dict_TheTVDB['seasons']['{}']['episodes']['{}']".format("'%s'" % deleted, a, b, added_season, x))
+          SaveDict(Dict(dict_TheTVDB, 'seasons', a, 'episodes', b), dict_TheTVDB, 'seasons', added_season, 'episodes', x)
+
   except Exception as e:
     if is_banned:  Log.Info("Expected exception hit, as you were banned from AniDB so you have incomplete data to proceed")
     else:          Log.Error("Unexpected exception hit")
@@ -891,7 +929,6 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB.clear(); dict_TheTVDB.clear()
     is_modified = False
 
-  Log.Info("TVDB After : {}".format(DictString(Dict(mappingList, 'TVDB'), 0)))
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("is_modified: {}".format(is_modified))
   return is_modified
