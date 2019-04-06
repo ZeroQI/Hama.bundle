@@ -263,8 +263,9 @@ def DictString(input_value, max_depth, depth=0):
   """
   output = "{" if depth == 0 else ""
   if depth >= max_depth or not isinstance(input_value, dict):
-    if isinstance(input_value, str):  output += ('"%s"' if "'" in input_value else "'%s'") % input_value
-    else:                             output += "{}".format(input_value)
+    if isinstance(input_value, str):   output += ('"%s"' if "'" in input_value else "'%s'") % input_value
+    if isinstance(input_value, list):  output += "[\n" + "  " * (depth+1) + ("\n" + "  " * (depth+1)).join([("'%s'" if isinstance(x, str) else "%s") % str(x) for x in input_value]) + "]"
+    else:                              output += "{}".format(input_value)
   else:
     for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
       output += (
