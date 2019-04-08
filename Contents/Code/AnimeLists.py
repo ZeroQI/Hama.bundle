@@ -2,6 +2,7 @@
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
 import os          # os.path(.basename, .splitext, .foldername, .dirname, .exists, .join, .realpath)
+import copy
 import common      # CachePath, common.WEB_LINK , common.LoadFile
 import AniDB
 from   common import GetXml, SaveDict, Dict, Log, DictString
@@ -14,30 +15,42 @@ AniDBMovieSets = None
 
 ### Merge Source ScudLee anidb to tvdb mapping list witl Online and local fix ones ###
 def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
+  AniDBTVDBMap_new = copy.deepcopy(AniDBTVDBMap)
   dict_nodes, count = {}, 0  #Log.Info('type1: {}, type2: {}'.format(type(AniDBTVDBMap).__name__ , type(AniDBTVDBMap_fix).__name__))
   if type(AniDBTVDBMap_fix).__name__ == '_Element':
     for node in AniDBTVDBMap_fix or []:  dict_nodes[node.get('anidbid')] = node          # save mod list and nodes
     Log.Info("MergeMaps() - AniDBids concerned: " + str(dict_nodes.keys()))              #
-  for node in AniDBTVDBMap or []:                                                        # LOOP IN EVERY ANIME IN MAPPING FILE
-    if node and node.get('anidbid') in dict_nodes:  AniDBTVDBMap.remove(node); count+=1  #   if a correction exists: remove old mapping from AniDBTVDBMap
+  for node in AniDBTVDBMap_new or []:                                                        # LOOP IN EVERY ANIME IN MAPPING FILE
+    if node and node.get('anidbid') in dict_nodes:  AniDBTVDBMap_new.remove(node); count+=1  #   if a correction exists: remove old mapping from AniDBTVDBMap
     if count == len(dict_nodes):                    break                                #   if deleted all exit loop
-  for key in dict_nodes or {}:  AniDBTVDBMap.append( dict_nodes[key] )                   # add all new anidb mapping
+  for key in dict_nodes or {}:  AniDBTVDBMap_new.append( dict_nodes[key] )                   # add all new anidb mapping
+  return AniDBTVDBMap_new
   
 ### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from MAPPING url with MAPPING_FIX corrections ###
 def GetAniDBTVDBMap():  
   global AniDBTVDBMap
   MAPPING       = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
   MAPPING_FIX   = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'                  # ScudLee mapping file url online override
-  MAPPING_LOCAL = os.path.join(common.CachePath, 'AnimeLists', 'anime-list-custom.xml')                                            # Custom mapping list(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems", 'AnimeLists', 'anime-list-corrections.xml')
   AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(MAPPING), relativeDirectory="AnimeLists", url=MAPPING, cache= CACHE_1DAY*6)  # 
   if not AniDBTVDBMap:  Log.Critical("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(MAPPING))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
-  MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1DAY*6))  #Online ScudLee anidb to tvdb mapping list
-    
-  if os.path.exists(MAPPING_LOCAL):  #Local  ScudLee anidb to tvdb mapping list
-    Log.Info("GetAniDBTVDBMap() - Loading local custom mapping - url: " + MAPPING_LOCAL)
-    try:                    MergeMaps(AniDBTVDBMap, XML.ElementFromString(Core.storage.load(MAPPING_LOCAL)))
-    except Exception as e:  Log.Info("GetAniDBTVDBMap() - Failed open scudlee_filename_custom, error: '%s'" % e)
-  else:                     Log.Info("GetAniDBTVDBMap() - Local custom mapping file not present: {}".format(MAPPING_LOCAL))
+  AniDBTVDBMap  = MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(MAPPING_FIX), relativeDirectory="AnimeLists", url=MAPPING_FIX, cache= CACHE_1DAY*6))  #Online ScudLee anidb to tvdb mapping list
+  
+def GetAniDBTVDBMapCustom(media, movie):  
+  MAPPING_LOCAL = 'anime-list-custom.xml'
+  AniDBTVDBMapCustom = None
+  lib, root, path = common.GetLibraryRootPath(common.GetMediaDir(media, movie))
+  dir = os.path.join(root, path)
+  while dir and os.path.splitdrive(dir)[1] != os.sep:
+    scudlee_filename_custom = os.path.join(dir, MAPPING_LOCAL)
+    if os.path.exists( scudlee_filename_custom ):
+      try:
+        AniDBTVDBMapCustom = XML.ElementFromString(Core.storage.load(scudlee_filename_custom))
+        Log.Info("Local custom mapping file loaded: {}".format(scudlee_filename_custom))
+      except:  Log.Error("Failed to open: '%s', error: '%s'" % (scudlee_filename_custom, e))
+      else:    break
+    dir = os.path.dirname(dir)
+  else:  Log.Info("Local custom mapping file not present: {}".format(MAPPING_LOCAL))
+  return AniDBTVDBMapCustom
   
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
@@ -67,6 +80,10 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info("tvdb_numbering: {}".format(tvdb_numbering))
   AniDB_id2, TVDB_id2 = "",""
 
+  AniDBTVDBMapCustom = GetAniDBTVDBMapCustom(media, movie)
+  if AniDBTVDBMapCustom:  AniDBTVDBMapFull = MergeMaps(AniDBTVDBMap, AniDBTVDBMapCustom)
+  else:                   AniDBTVDBMapFull = AniDBTVDBMap
+
   def anime_core(anime):
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
@@ -75,7 +92,7 @@ def GetMetadata(media, movie, error_log, id):
 
   Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
   forcedID={'anidbid':AniDB_id,'tvdbid':TVDB_id,'tmdbid':TMDB_id, "imdbid": ""}
-  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap else []:
+  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull else []:
     # gather any manually specified source ids
     foundID,wantedID = {},{}
     for check in forcedID.keys():
@@ -187,7 +204,7 @@ def GetMetadata(media, movie, error_log, id):
   
   ### Update collection/studio
   TVDB_collection, title, studio = [], '', ''
-  for anime in AniDBTVDBMap.iter('anime') if AniDBTVDBMap and TVDB_winner.isdigit() else []:
+  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull and TVDB_winner.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
       defaulttvdbseason, episodeoffset, s1_mapping = anime_core(anime)
