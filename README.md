@@ -80,7 +80,7 @@ The XMLs are downloaded (cached) and a copy is saved In the agent data folders a
     * anime-titles.xml:	         http://anidb.net/api/anime-titles.xml.gz [API: http://wiki.anidb.net/w/API]
     * anime-list-full.xml:	 Maps the AniDB ID to the TVDB ID, providing studio,episode mapping matrix, tmdb/tmdb id
     * anime-movieset-list.xml: 	 Allows movies to be grouped together
-    * tvdb benner and serie xml: episode titles and summaries, screenshot, posters
+    * tvdb banner and serie xml: episode titles and summaries, screenshot, posters
     * anidb serie xml:           Serie information, poster
     * Plex theme song:           Serie theme song
 
@@ -191,21 +191,18 @@ Plex main folder location:
     * '/raid0/data/PLEX_CONFIG/Plex Media Server/'                               # Thecus Plex community    
 
 MANDATORY: Hama needs some folders in the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and while they should now be auto-created, make sure they are: (folders are included in Zip archive in release tab and nammed "Plug-in.Support.zip"
+- "Logs"
 - "AniDB"
 - "Plex"
 - "OMDB"
 - "TMDB"
-- "TVDB"
-- "TVDB/blank
-- "TVDB/_cache/fanart/original"
+- "TheTVDB"
+- "TheTVDB/banner/graphical"
 - "TVDB/episodes"
 - "TVDB/fanart/original"
-- "TVDB/fanart/vignette"
-- "TVDB/graphical"
+- "TVDB/json"
 - "TVDB/posters"
 - "TVDB/seasons"
-- "TVDB/seasonswide"
-- "TVDB/text"
 - "FanartTV"
 
 Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders normally (worked  around now).
