@@ -261,20 +261,20 @@ def DictString(input_value, max_depth, depth=0):
             '9306': {'max': '2', 'min': '1'},
             '11665': {'max': '3', 'min': '3'}}}
   """
-  output = "{" if depth == 0 else ""
+  output = ""
   if depth >= max_depth or not isinstance(input_value, dict):
-    if   isinstance(input_value, dict) and depth==0:  output += "{}".format(input_value)[1:-1]  #Trim off end brackets
-    elif isinstance(input_value, str ):  output += ('"%s"' if "'" in input_value else "'%s'") % input_value
-    elif isinstance(input_value, list):  output += "[\n" + "  " * (depth+1) + ("\n" + "  " * (depth+1)).join([("'%s'" if isinstance(x, str) else "%s") % str(x) for x in input_value]) + "]"
-    else:                                output += "{}".format(input_value)
+    if isinstance(input_value, list):  output += "[\n" + "  " * (depth+1) + ("\n" + "  " * (depth+1)).join([("'{}'," if isinstance(x, str) else "{},").format(x) for x in input_value])[:-1] + "]"
+    else:                              output += "{}".format(input_value)
   else:
     for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
+      value = input_value[key] if isinstance(input_value[key], basestring) else DictString(input_value[key], max_depth, depth+1)
       output += (
         "\n" + "  " * (depth+1) + 
-        "%s: " % (('"%s"' if "'" in key else "'%s'") % key if isinstance(key, str) else key) + 
-        "%s" % (DictString(input_value[key], max_depth, depth+1)) + 
+        "{}: ".format("'{}'".format(key.replace("'", "\\'")) if isinstance(key, basestring) else key) + 
+        "{}".format("'{}'".format(value.replace("'", "\\'").replace("\n", "\\n")) if isinstance(input_value[key], basestring) else value) + 
         ("," if i!=len(input_value)-1 else ""))  # remove last ','
-  return output + ("}" if depth == 0 else "")
+    output = "{" + output + "}"
+  return output
   # Other options passed on as can't define expansion depth
   #import pprint; pprint.pprint(input_value)
   #import json; return json.dumps(input_value, indent=2, sort_keys=True)
