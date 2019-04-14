@@ -249,7 +249,7 @@ def DisplayDict(items={}, fields=[]):
   len_fields = DisplayDictLen(items, fields)
   for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
 
-def DictString(input_value, max_depth, depth=0):
+def DictString(input_value, max_depth, initial_indent=0, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
       EX: (max_depth=1)
@@ -262,14 +262,15 @@ def DictString(input_value, max_depth, depth=0):
             '11665': {'max': '3', 'min': '3'}}}
   """
   output = ""
+  indent = "\n" + " " * initial_indent + "  " * (depth+1)
   if depth >= max_depth or not isinstance(input_value, dict):
-    if isinstance(input_value, list):  output += "[\n" + "  " * (depth+1) + ("\n" + "  " * (depth+1)).join([("'{}'," if isinstance(x, str) else "{},").format(x) for x in input_value])[:-1] + "]"
-    else:                              output += "{}".format(input_value)
+    if isinstance(input_value, list) and depth<max_depth:  output += "[" + indent + indent.join([("'{}'," if isinstance(x, str) else "{},").format(x) for x in input_value])[:-1] + "]"
+    else:                                                  output += "{}".format(input_value)
   else:
     for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
-      value = input_value[key] if isinstance(input_value[key], basestring) else DictString(input_value[key], max_depth, depth+1)
+      value = input_value[key] if isinstance(input_value[key], basestring) else DictString(input_value[key], max_depth, initial_indent, depth+1)
       output += (
-        "\n" + "  " * (depth+1) + 
+        indent + 
         "{}: ".format("'{}'".format(key.replace("'", "\\'")) if isinstance(key, basestring) else key) + 
         "{}".format("'{}'".format(value.replace("'", "\\'").replace("\n", "\\n")) if isinstance(input_value[key], basestring) else value) + 
         ("," if i!=len(input_value)-1 else ""))  # remove last ','
@@ -617,7 +618,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
     else:                        sources = '|'.join([Prefs[field].split('|')[is_episode], Prefs[field].split('|')[1].replace(source, '('+source+')')])                   
   else:  sources = Prefs[field].replace(source, '('+source+')')
   
-  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}\n    meta_old: {}'.format(DictString(meta_new, 1), sorted(meta_old.keys()))) # Can't print meta_old values as plex custom class without a string print call
+  if isinstance(meta_new, dict) and field=='posters':  Log.Info('[?] meta_new: {}\n    meta_old: {}'.format(DictString(meta_new, 1, 4), DictString(sorted(meta_old.keys(), key=natural_sort_key), 1, 4))) # Can't print meta_old values as plex custom class without a string print call
   if meta_new == meta_old_value or field not in MetaRoleList and (isinstance(meta_new, dict) and set(meta_new.keys()).issubset(meta_old.keys()) or isinstance(meta_new, list) and set(meta_new)== set(meta_old)):
     Log.Info("[=] {field:<23}  {len:>4}  Sources: {sources:<60}  Inside: '{source_list}'  Value: '{value}'".format(field=field, len="({:>2})".format(len(meta_root[field])) if isinstance(meta_root[field], (list, dict)) else "", sources=sources, value=meta_new_short, source_list=source_list))
   else: 
