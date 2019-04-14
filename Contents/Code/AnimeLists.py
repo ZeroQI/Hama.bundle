@@ -87,7 +87,7 @@ def GetMetadata(media, movie, error_log, id):
   def anime_core(anime):
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
-    s1_mapping        = anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']")
+    s1_mapping        = len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']"))
     return defaulttvdbseason, episodeoffset, s1_mapping
 
   Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
@@ -116,7 +116,7 @@ def GetMetadata(media, movie, error_log, id):
     defaulttvdbseason, episodeoffset, s1_mapping = anime_core(anime)
 
     if not tvdb_numbering and not TVDB_id:                                                                                                                                                                           TVDB_id   = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit() and defaulttvdbseason == '1' and episodeoffset == '0' and len(s1_mapping) == 0 and not AniDB_id:  AniDB_id2 = AniDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit() and defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping == 0 and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>3}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, 
       ("({})".format(anime.get('defaulttvdbseason')) if anime.get('defaulttvdbseason')!=defaulttvdbseason else '')+defaulttvdbseason, episodeoffset, GetXml(anime, 'name')))
     
@@ -138,11 +138,11 @@ def GetMetadata(media, movie, error_log, id):
     if TVDB_id or not movie and max(map(int, media.seasons.keys()))>1 and AniDB_id=='':  #In case AniDB guid but multiple seasons
       if TVDBid.isdigit():
         if defaulttvdbseason:
-          if defaulttvdbseason == '1' and episodeoffset == '0' and len(s1_mapping) == 0:
+          if defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping == 0:
             SaveDict(defaulttvdbseason,                                      mappingList, 'defaulttvdbseason'  )
             SaveDict(True if anime.get('defaulttvdbseason')=='a' else False, mappingList, 'defaulttvdbseason_a')
             AniDB_id2 = AniDBid
-          SaveDict(episodeoffset, mappingList, 'TVDB', 's-1' if defaulttvdbseason == '0' and len(s1_mapping) >= 1 else 's'+defaulttvdbseason, AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
+          SaveDict(episodeoffset, mappingList, 'TVDB', 's-1' if defaulttvdbseason == '0' and s1_mapping >= 1 else 's'+defaulttvdbseason, AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
           SaveDict({'min': defaulttvdbseason, 'max': defaulttvdbseason}, mappingList, 'season_map', AniDBid)  # Set the min/max season to the 'defaulttvdbseason'
           if source=="tvdb6" and int(episodeoffset)>0:  SaveDict({'min': '0', 'max': '0'}, mappingList, 'season_map', AniDBid)  # Force series as special if not starting the TVDB season
         for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
@@ -208,7 +208,7 @@ def GetMetadata(media, movie, error_log, id):
     if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
       defaulttvdbseason, episodeoffset, s1_mapping = anime_core(anime)
-      if defaulttvdbseason == '1' and episodeoffset == '0' and len(s1_mapping) == 0:
+      if defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping == 0:
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
         studio = GetXml(anime, "supplemental-info/studio")
   if len(TVDB_collection)>1 and title:  # Require that there be at least 2 anidb mappings for a collection
