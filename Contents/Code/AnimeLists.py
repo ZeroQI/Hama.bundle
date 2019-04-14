@@ -122,6 +122,7 @@ def GetMetadata(media, movie, error_log, id):
     
     ### Anidb numbered serie ###
     if AniDB_id: # or defaulttvdbseason=='1':
+      TVDB_id2 = TVDBid
       SaveDict(anime.get('tmdbid', ""),                                mappingList, 'tmdbid'             )
       SaveDict(anime.get('imdbid', ""),                                mappingList, 'imdbid'             )
       SaveDict(defaulttvdbseason,                                      mappingList, 'defaulttvdbseason'  )
@@ -194,8 +195,8 @@ def GetMetadata(media, movie, error_log, id):
       # keeping this reset since im not clear on it's purpose.
       AniDBid,TVDBid = '',''
   
-  AniDB_winner = AniDB_id or AniDB_id2 or AniDBid
-  TVDB_winner  = TVDB_id or TVDBid
+  AniDB_winner = AniDB_id or AniDB_id2
+  TVDB_winner  = TVDB_id  or TVDB_id2
   
   Log.Info('             -----          ------')
   Log.Info('             {:>5}          {:>6}'.format(AniDB_winner, TVDB_winner))
@@ -217,7 +218,7 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info("[ ] studio: {}".format(SaveDict(studio, AnimeLists_dict, 'studio')))
   
   Log.Info("--- return ---".ljust(157, '-'))
-  Log.Info("AniDB_id: '{}', AniDB_id2: '{}', AniDBid: '{}', TVDB_id: '{}', TVDBid: '{}'".format(AniDB_id, AniDB_id2, AniDBid, TVDB_id, TVDBid))
+  Log.Info("AniDB_id: '{}', AniDB_id2: '{}', AniDBid: '{}', TVDB_id: '{}', TVDB_id2: '{}', TVDBid: '{}'".format(AniDB_id, AniDB_id2, AniDBid, TVDB_id, TVDB_id2, TVDBid))
   Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
   Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
   return AnimeLists_dict, AniDB_winner, TVDB_winner if TVDB_winner.isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
