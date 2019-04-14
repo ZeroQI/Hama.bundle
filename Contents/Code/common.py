@@ -272,7 +272,7 @@ def DictString(input_value, max_depth, initial_indent=0, depth=0):
       output += (
         indent + 
         "{}: ".format("'{}'".format(key.replace("'", "\\'")) if isinstance(key, basestring) else key) + 
-        "{}".format("'{}'".format(value.replace("'", "\\'").replace("\n", "\\n")) if isinstance(input_value[key], basestring) else value) + 
+        "{}".format("'{}'".format(value.replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r")) if isinstance(input_value[key], basestring) else value) + 
         ("," if i!=len(input_value)-1 else ""))  # remove last ','
     output = "{" + output + "}"
   return output
@@ -584,7 +584,7 @@ def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source
   
   meta_old       = getattr(metadata, field) # getattr( metadata, field, None)
   meta_new       = meta_root[field]
-  meta_new_short = (meta_new[:80]).replace("\n", " ")+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
+  meta_new_short = (meta_new[:80]).replace("\n", "\\n").replace("\r", "\\r")+'..' if isinstance(meta_new, basestring) and len(meta_new)> 80 else meta_new
   MetaFieldList  = ('directors', 'writers', 'producers', 'guest_stars', 'collections', 'genres', 'tags', 'countries')
   MetaRoleList   = ('directors', 'writers', 'producers', 'guest_stars', 'roles')
   MetaIntList    = ('year', 'absolute_number', 'duration')
