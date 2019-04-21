@@ -550,6 +550,8 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
     for line in filter(None, entry.strip().splitlines()):
       season = line.strip().split("|")
       for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
+      SaveDict(True if "(unknown length)" in season[3] else False, mappingList, 'absolute_map', 'unknown_series_length')
+      SaveDict(str(int(season[0])), mappingList, 'absolute_map', 'max_season')
 
   Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
   try:

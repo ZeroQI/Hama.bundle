@@ -121,7 +121,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
         if int(episode)>99:  continue  # AniDB non-normal special (op/ed/t/o) that is not mapable
-        if   source=='tvdb3' and season!=0:  new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, Dict(mappingList, 'absolute_map', episode, default=(season, episode))[1])  # Pull absolute number then try to map
+        if   source=='tvdb3' and season!=0:  new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, Dict(mappingList, 'absolute_map', episode, default=(None, episode))[1])  # Pull absolute number then try to map
         elif source=='tvdb4' and season!=0:  new_season, new_episode          = Dict(mappingList, 'absolute_map', episode, default=(season, episode)); anidbid = 'UNKN'                             # Not TVDB mapping. Use custom ASS mapping to pull season/episode
         else:                                new_season, new_episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)                                                                   # Try to map
         numbering = 's{}e{}'.format(season, episode) + ('(s{}e{})'.format(new_season, new_episode) if season!=new_season and episode!=new_episode else '')
@@ -265,7 +265,9 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             
             # Get episode number to absolute number
             if source in ('tvdb3', 'tvdb4') and season not in ['-1', '0']:
-              if source=='tvdb4' or season=='1':  season = Dict(mappingList, 'absolute_map', episode, default=(season, episode))[0]
+              if source=='tvdb4' or season=='1':
+                ms, usl = (season, True) if source=='tvdb3' else (Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length'))
+                season  = Dict(mappingList, 'absolute_map', episode, default=(ms if usl else str(int(ms)+1), None))[0]
               else:
                 try:     episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
                 except:  pass
