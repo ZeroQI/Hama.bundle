@@ -265,7 +265,14 @@ def DictString(input_value, max_depth, initial_indent=0, depth=0):
   indent = "\n" + " " * initial_indent + "  " * (depth+1)
   if depth >= max_depth or not isinstance(input_value, dict):
     if isinstance(input_value, list) and depth<max_depth:  output += "[" + indent + indent.join([("'{}'," if isinstance(x, str) else "{},").format(x) for x in input_value])[:-1] + "]"
-    else:                                                  output += "{}".format(input_value)
+    elif isinstance(input_value, dict):
+      for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
+        output += (
+          "{}: ".format("'{}'".format(key.replace("'", "\\'")) if isinstance(key, basestring) else key) + 
+          "{}".format("'{}'".format(input_value[key].replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r")) if isinstance(input_value[key], basestring) else input_value[key]) + 
+          (", " if i!=len(input_value)-1 else ""))  # remove last ','
+      output = "{" + output + "}"
+    else:  output += "{}".format(input_value)
   else:
     for i, key in enumerate(sorted(input_value, key=natural_sort_key)):
       value = input_value[key] if isinstance(input_value[key], basestring) else DictString(input_value[key], max_depth, initial_indent, depth+1)
