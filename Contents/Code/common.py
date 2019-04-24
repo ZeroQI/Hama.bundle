@@ -533,13 +533,13 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
     e      = media.seasons[s].episodes.keys()[0]
     folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
     while folder and not folder.endswith("/") and not folder.endswith("\\"):
-      filename = os.path.join(folder, os.path.basename(TVDB4_MAPPING_URL))
+      filename = os.path.join(folder, "tvdb4.mapping")
       if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
       folder = os.path.dirname(folder)
-    else: Log.Info("No 'tvdb4.mapping.xml' file detected locally")
+    else: Log.Info("No 'tvdb4.mapping' file detected locally")
   except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
   
-  if TVDB4_mapping: Log.Debug("'tvdb4.mapping.xml' file detected locally")
+  if TVDB4_mapping: Log.Debug("'tvdb4.mapping' file detected locally")
   else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
