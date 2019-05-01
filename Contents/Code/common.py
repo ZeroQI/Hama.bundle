@@ -12,6 +12,7 @@ import datetime               # datetime.now
 import ssl, urllib2           # urlopen
 import unicodedata            #
 import logging                #
+import StringIO, gzip
 from io     import open       # open
 from string import maketrans  # maketrans
 from lxml   import etree      # fromstring
@@ -368,6 +369,10 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
       Log.Root("Completed '{}'".format(url))
+    
+    if url.endswith("anime-titles.xml.gz"):
+      try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()
+      except:  pass
     
     # AniDB
     if url.startswith('http://api.anidb.net:9001'):
