@@ -194,7 +194,7 @@ def ssl_open(url, headers=None, timeout=20):
   '''
   if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0', 'appversion': '5.0.14'}
   if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
-  else:                           return urllib2.urlopen(url, timeout=timeout).read()
+  else:                           return urllib2.urlopen(urllib2.Request(url, headers=headers), timeout=timeout).read()
   
 def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the length of the array or index no errors
@@ -427,7 +427,7 @@ def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnai
         file = (ssl_open((url_thumbnail or url).replace('thetvdb.com', 'thetvdb.plexapp.com')) if 'thetvdb.com' in url else False) or ssl_open(url_thumbnail or url)
         if file:  status += ", Downloaded and Saved locally";  SaveFile(filename, file)
       if file:  metatype[ url ] = Proxy.Preview(file, sort_order=num) if url_thumbnail else Proxy.Media(file, sort_order=num) # or metatype[ url ] != proxy_item # proxy_item = 
-    except Exception as e:  Log.Info("common.SaveFile() - Exception: {}, url: '{}', filename: '{}'".format(e, url, filename));  return
+    except Exception as e:  Log.Info("common.metadata_download() - Exception: {}, url: '{}', filename: '{}'".format(e, url, filename));  return
   downloaded[string] = downloaded[string] + 1
   
 def cleanse_title(string):
