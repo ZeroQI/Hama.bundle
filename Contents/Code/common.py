@@ -342,7 +342,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     if file_valid:
       try:     file = Data.Load(relativeFilename)
       except:  file = None
-      Log.Debug(   "common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(time.time() + cache), file_valid=file_valid))
+      Log.Debug("common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(file_time + cache), file_valid=file_valid))
   
   if not file:
     netLock.acquire()
