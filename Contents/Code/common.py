@@ -44,7 +44,8 @@ FieldListSeasons  = ('summary','posters', 'art')  #'summary',
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
-HEADERS           = {'User-agent': 'Plex/Nine', 'Content-type': 'application/json'}
+HEADERS_CORE      = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
+HEADERS_TVDB      = {}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -181,7 +182,7 @@ def replaceList     (string, a, b, *args):
   return string
 
 ### Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
-def ssl_open(url, headers=None, timeout=20):
+def ssl_open(url, headers={}, timeout=20):
   ''' SSLV3_ALERT_HANDSHAKE_FAILURE
       1. Do not verify certificates. A bit like how older Python versions worked
          Import ssl and urllib2
@@ -192,7 +193,7 @@ def ssl_open(url, headers=None, timeout=20):
          Import certifi and requests into your Python code
          Use requests
   '''
-  if not headers:  headers = { 'User-Agent': 'ABC/5.0.14(iPad4,4; cpu iOS 10_2_1 like mac os x; en_nl) CFNetwork/758.5.3 Darwin/15.6.0', 'appversion': '5.0.14'}
+  headers = UpdateDict(headers, HEADERS_CORE)
   if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
   else:                           return urllib2.urlopen(urllib2.Request(url, headers=headers), timeout=timeout).read()
   
@@ -334,6 +335,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
   fullpathFilename                   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   file_valid, converted, Saved, file = False, False, False, None
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
+
+  headers = UpdateDict(headers, HEADERS_CORE)
   
   # Load from cache if recent
   if Data.Exists(relativeFilename):
@@ -349,16 +352,16 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # TheTVDB
     if url.startswith('https://api.thetvdb.com'):
-      if 'Authorization' in HEADERS:
-        try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
+      if 'Authorization' in HEADERS_TVDB:
+        try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except:  file = None
         Log.Root("Completed '{}'".format(url))
       if not file:
-        try:                      HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
-        except Exception as e:    Log.Info('Error: {}'.format(e))
-        else:                     Log.Info('not authorised, headers: {}, HEADERS: {}'.format(headers, HEADERS))
+        try:                      HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
+        except Exception as e:    Log.Root('Error: {}'.format(e))
+        else:                     Log.Root('Now authorised, headers: {}, HEADERS_TVDB: {}'.format(headers, HEADERS_TVDB))
     
-    # AniDB
+    # AniDB: safeguard if netLock does not work as expected
     if url.startswith('http://api.anidb.net:9001'):
       while 'anidb' in netLocked and netLocked['anidb'][0]:  Log.Root("Waiting for lock: 'anidb'"); time.sleep(1)
       netLocked['anidb'] = (True, int(time.time()))
@@ -366,15 +369,16 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
 
     # File download
     if not file:
-      try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-      except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, HEADERS, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
       Log.Root("Completed '{}'".format(url))
     
+    # AniDB: try to decompress again incase still compressed 
     if url.endswith("anime-titles.xml.gz"):
       try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()
       except:  pass
     
-    # AniDB
+    # AniDB: safeguard if netLock does not work as expected
     if url.startswith('http://api.anidb.net:9001'):
       time.sleep(6)  #Sleeping after call completion to prevent ban
       if file and '>banned<' in file:  Log.Root("Banned from 'anidb': {}".format(file))
