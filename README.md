@@ -167,10 +167,7 @@ Folders to copy in Plex main folder:
     * "Scanners"         "Scanners/Series" folder needs creating. Absolute series Scanner.py" goes inside. 
     			 https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
     * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
-    * "Plug-ins support" https://github.com/ZeroQI/Hama.bundle/releases/tag/v1.0 > Plug-in.Support.folders.zip Agent data folders (Plug-ins support/Data/com.plexapp.agents.hama/DataItems/AniDB|OMDB|Plex|TMDB|TVDB) goes inside
 
-    token id file is no longer required as XML.ElementFromURL() is always authenticated
-    
 Here is how to find the plug-in folder location:
 https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-
 
@@ -190,7 +187,7 @@ Plex main folder location:
     * '/raid0/data/module/Plex/sys/Plex Media Server/',                          # Thecus
     * '/raid0/data/PLEX_CONFIG/Plex Media Server/'                               # Thecus Plex community    
 
-MANDATORY: Hama needs some folders in the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems") and while they should now be auto-created, make sure they are: (folders are included in Zip archive in release tab and nammed "Plug-in.Support.zip"
+Hama auto-creates some folders in the agent data folder ("Plug-In Support/Data/com.plexapp.agents.hama/DataItems")
 - "Logs"
 - "AniDB"
 - "Plex"
