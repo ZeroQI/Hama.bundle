@@ -267,7 +267,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             if source in ('tvdb3', 'tvdb4') and season not in ['-1', '0']:
               if source=='tvdb4' or season=='1':
                 ms, usl = (season, True) if source=='tvdb3' else (Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length'))
-                season  = Dict(mappingList, 'absolute_map', episode, default=(ms if usl else str(int(ms)+1), None))[0]
+                if ms and usl:  season  = Dict(mappingList, 'absolute_map', episode, default=(ms if usl else str(int(ms)+1), None))[0]
               else:
                 try:     episode = list(Dict(mappingList, 'absolute_map', default={}).keys())[list(Dict(mappingList, 'absolute_map', default={}).values()).index((season, episode))]
                 except:  pass

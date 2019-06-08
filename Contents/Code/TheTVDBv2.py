@@ -126,7 +126,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
 
       # Get the max season number from TVDB API
       if int(season) > max_season:  max_season = int(season)
-
+      
       ### ep translation
       anidbid=""
       if season!='0':  abs_number = abs_number + 1
@@ -136,8 +136,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       elif season!='0' and metadata_source=='tvdb3':  
         episode             = str(abs_number)
       elif season!='0' and metadata_source=='tvdb4':  
-        ms, usl             = Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length')
-        season, episode     = Dict(mappingList, 'absolute_map', str(abs_number), default=(ms if usl else str(int(ms)+1), None))[0], str(abs_number)
+        ms, usl                         = Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length')
+        if ms and usl:  season, episode = Dict(mappingList, 'absolute_map', str(abs_number), default=(ms if usl else str(int(ms)+1), None))[0], str(abs_number)
       elif season!='0' and metadata_source=='tvdb5':  
         episode, abs_number = str(Dict(episode_json, 'absoluteNumber') or abs_number), int(Dict(episode_json, 'absoluteNumber') or abs_number)
       

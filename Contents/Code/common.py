@@ -316,105 +316,107 @@ def SaveFile(filename="", file="", relativeDirectory=""):
     Data.Save(relativeFilename, file)
   except Exception as e:  Log.Debug("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}', file: '{file}'".format(exception=e, relativeFilename=relativeFilename, file=file))
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
+
+#def startswithlist(string, list, case_incensitive=False):
+#  for item in list:
+#    if string.startswith(item) or case_incensitive and string.lowercase().startswith(item.lowercase()):  return True
+
+# Return string or object if appropriate
+def ObjectFromFile (file=""):
+  try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()  # AniDB: try to decompress again incase still compressed 
+  except:  pass
    
+  #TEXT file
+  if isinstance(file, basestring):
+
+    #XML
+    if file.startswith('<?xml '):  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
+      try:     return XML.ElementFromString(file)
+      except:  
+        try:   return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
+        except:
+          Log.Info("XML still corrupted after normalization"); return
+
+    #JSON
+    elif file.startswith('{'):  #Json
+      try:     return JSON.ObjectFromString(file, encoding=None)
+      except:  Log.Info("XML still corrupted after normalization"); return
+  
+    #Empty file
+    elif file=="":  Log.Info("Empty file");  return
+  
+  return file
+
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
-      Usage (TheTVDBv2): 
-      2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
-      2018-05-31 05:32:31,046 (2384) :  INFO (logkit:16) - TheTVDB.GetMetadata() - TVDBid: '280330', IMDbid: '', language_series : ['en'], language_episodes: ['en']
-      2018-05-31 05:32:31,048 (2384) :  DEBUG (networking:166) - Requesting 'https://api.thetvdb.com/login'
-      2018-05-31 05:32:33,694 (2384) :  ERROR (networking:219) - Error opening URL 'https://api.thetvdb.com/login'
-      2018-05-31 05:32:33,694 (2384) :  INFO (logkit:16) - Error: HTTP Error 503: Service Unavailable
-      2018-05-31 05:32:33,710 (2384) :  DEBUG (networking:166) - Requesting 'https://api.thetvdb.com/series/280330'
-      2018-05-31 05:32:35,138 (2384) :  ERROR (networking:219) - Error opening URL 'https://api.thetvdb.com/series/280330'
-      2018-05-31 05:32:35,138 (2384) :  WARNING (logkit:19) - common.LoadFile() - issue loading url: 'https://api.thetvdb.com/series/280330', filename: 'series.json', Exception: 'HTTP Error 503: Service Unavailable'
-      2018-05-31 05:32:35,140 (2384) :  INFO (logkit:16) - LoadFile() - returning string
-      2018-05-31 05:32:35,141 (2384) :  INFO (logkit:16) - -------------------------------------------------------------------------------------------------------------------------------------------------------------
   '''
-  relativeFilename                   = os.path.join(relativeDirectory, filename) 
-  fullpathFilename                   = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
-  file_valid, converted, Saved, file = False, False, False, None
+  headers           = UpdateDict(headers, HEADERS_CORE)
+  relativeFilename  = os.path.join(relativeDirectory, filename) 
+  fullpathFilename  = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
 
-  headers = UpdateDict(headers, HEADERS_CORE)
-  
-  # Load from cache if recent
+  # Load from disk if present
+  file, file_age, ended, file_downloaded, file_object = None, None, None, None, None
   if Data.Exists(relativeFilename):
-    file_time  = os.stat(fullpathFilename).st_mtime
-    file_valid = file_time+cache > time.time()
-    if file_valid:
-      try:     file = Data.Load(relativeFilename)
-      except:  file = None
-      Log.Debug("common.LoadFile() - file cached - CacheTime: '{time}', Limit: '{limit}', url: '{url}', Filename: '{file}' file_valid: '{file_valid}'".format(file=relativeFilename, url=url, time=time.ctime(file_time), limit=time.ctime(file_time + cache), file_valid=file_valid))
+    try:     file = Data.Load(relativeFilename)
+    except:  Log.Debug("common.LoadFile() - File cache locally but failed loading - file: {}".format(relativeFilename))
+    else:  
+      file_object = ObjectFromFile(file)
+      if file_object:  
+        # See if series in progress
+        file_age = time.time() - os.stat(fullpathFilename).st_mtime
+        if url.startswith('http://api.anidb.net'   ):  Ended = Dict(file_object, 'enddate', False)           #tag endate present or not
+        if url.startswith('https://api.thetvdb.com'):  Ended = Dict(file_object, 'data', 'status')=="Ended"  #"status":"Continuing"|"Ended"
+        Log.Debug("common.LoadFile() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age}', Ended: {ended}".format(url=url, file=relativeFilename, age=file_age, ended=ended))
+      else:
+        Log.Info('LoadFile() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
+        Data.Remove(relativeFilename) #DELETE CACHE AS CORRUPTED
   
-  if not file:
+  #File cache older than 6 days or a year if ended or a day if in progress (or ep aired and no title)
+  if not file or file_age > cache if ended==None else CACHE_1DAY*364 if ended else CACHE_1DAY*0.9: #last ep aired no title bolean improvement 'or lastEpAiredNoTitle'?
     netLock.acquire()
-    
-    # TheTVDB
-    if url.startswith('https://api.thetvdb.com'):
-      if 'Authorization' in HEADERS_TVDB:
-        try:     file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
-        except:  file = None
-        Log.Root("Completed '{}'".format(url))
-      if not file:
-        try:                      HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
-        except Exception as e:    Log.Root('Error: {}'.format(e))
-        else:                     Log.Root('Now authorised, headers: {}, HEADERS_TVDB: {}'.format(headers, HEADERS_TVDB))
-    
-    # AniDB: safeguard if netLock does not work as expected
-    if url.startswith('http://api.anidb.net:9001'):
-      while 'anidb' in netLocked and netLocked['anidb'][0]:  Log.Root("Waiting for lock: 'anidb'"); time.sleep(1)
-      netLocked['anidb'] = (True, int(time.time()))
-      Log.Root("Lock acquired: 'anidb'")
 
-    # File download
-    if not file:
-      try:                    file = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB if url.startswith('https://api.thetvdb.com') else {}), timeout=60, cacheTime=cache).content             #'Accept-Encoding':'gzip'                        # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-      except Exception as e:  file = None;  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))                                                           # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-      Log.Root("Completed '{}'".format(url))
-    
-    # AniDB: try to decompress again incase still compressed 
-    if url.endswith("anime-titles.xml.gz"):
-      try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()
-      except:  pass
-    
     # AniDB: safeguard if netLock does not work as expected
     if url.startswith('http://api.anidb.net:9001'):
-      time.sleep(6)  #Sleeping after call completion to prevent ban
-      if file and '>banned<' in file:  Log.Root("Banned from 'anidb': {}".format(file))
-      netLocked['anidb'] = (False, 0)
-      Log.Root("Lock released: 'anidb'")
+      while 'anidb' in netLocked and netLocked['anidb'][0]:
+        Log.Root("AniDB - Waiting for lock: 'anidb'"); time.sleep(1)
+      netLocked['anidb'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
+    
+    # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
+    elif url.startswith('https://api.thetvdb.com'):
+      if 'Authorization' in HEADERS_TVDB:
+        try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
+        except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
+      if not file:
+        try:                    HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
+        except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
+        else:                   Log.Root('TheTVDB - URL {}, headers: {}, HEADERS_TVDB: {}'.format(url, headers, HEADERS_TVDB))
+
+    # Download URL to memory, Plex cache to 1 day
+    if not file_downloaded:
+      try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB if url.startswith('https://api.thetvdb.com') else HEADERS_CORE), timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      except Exception as e:  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      else:                   Log.Root("Downloaded URL '{}'".format(url))
+
+      # AniDB: safeguard if netLock does not work as expected
+      if url.startswith('http://api.anidb.net:9001'):
+        if url.endswith("anime-titles.xml.gz"):
+          try:     file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again incase still compressed 
+          except:  pass
+        time.sleep(6)  #Sleeping after call completion to prevent ban
+        netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
 
     netLock.release()
     
-    # File checks and saving as cache
-    if file and (len(file)>64 or '{' in file):
-      Saved = True
-      SaveFile(filename, file, relativeDirectory)
-    else:
-      Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
-      file=None  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
-      if Data.Exists(relativeFilename):
-        Log.Root("Loading preexisting file '{}'".format(relativeFilename))
-        file = Data.Load(relativeFilename) #present, cache expired but online version incorrect or not available
-      else:
-        Log.Root("No preexisting file '{}' to load".format(relativeFilename))
-
-  if isinstance(file, basestring):
-    if file.startswith('<?xml '):
-      try:     return XML.ElementFromString(file)
-      except:  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
-        try:   return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
-        except:
-          Log.Info("still corrupted xml after normalization")
-          if Saved:  Data.Remove(relativeFilename); file=''  #DELETE CACHE AS CORRUPTED
-          if Data.Exists(relativeFilename):  return Data.Load(relativeFilename) 
-    else:  #Json
-      try:     return JSON.ObjectFromString(file, encoding=None)
-      except:  pass
-  Log.Info('LoadFile() - not xml nor json: {0:80}'.format(file))
-  return file
-      
+    # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
+    if file_downloaded:
+      file_downloaded_object = ObjectFromFile(file_downloaded)
+      if len(file_downloaded)<64:       Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
+      elif not file_downloaded_object:  Log.Info('[!] File received but failed validity (>=64 bytes), file: "{}"'.format(file));  file_downloaded=None
+      else:                             SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
+  
+  return file_object
+  
 ### Download images and themes for Plex ###############################################################################################################################
 def metadata_download(metadata, metatype, url, filename="", num=99, url_thumbnail=None):
   if   metatype==metadata.posters:             string = "posters"
