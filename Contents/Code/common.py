@@ -411,9 +411,9 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
     if file_downloaded:
       file_downloaded_object = ObjectFromFile(file_downloaded)
-      if len(file_downloaded)<64:       Log.Info('[!] File received too small (<64 bytes), file: "{}"'.format(file))
-      elif not file_downloaded_object:  Log.Info('[!] File received but failed validity (>=64 bytes), file: "{}"'.format(file));  file_downloaded=None
-      else:                             SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
+      if not file_downloaded_object:                         Log.Info('[!] File received but failed validity,   file: "{}"'.format(file));  file_downloaded=None
+      elif url.endswith('.xml') and len(file_downloaded)<24: Log.Info('[!] File received too small (<24 bytes), file: "{}"'.format(file));  file_downloaded=None
+      else:                                                  SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
   
   return file_object
   
