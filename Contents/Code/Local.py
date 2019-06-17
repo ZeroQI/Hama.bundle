@@ -9,7 +9,7 @@ import re      # match, ignorecase
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
 SEASON_RX = [                                                                     ### Seasons Folders
               r'^Specials',                                                       # Specials (season 0)
-              r'^(Season|Series|Book|Saison|Livre|S)[ _\-]*(?P<season>\d{1,2})',  # Season / Series / Book / Saison / Livre / S
+              r'^(Season|Series|Book|Saison|Livre|S)[ _\-\.]*(?P<season>\d{1,2})',  # Season / Series / Book / Saison / Livre / S
               r'^(?P<show>.*?)[\._\- ]+S(?P<season>\d{2})$',                      # (title) S01
               r'^(?P<season>\d{1,2})',                                            # ##
               r'^(Saga|(Story )?Ar[kc])']                                         # Last entry, folder name droped but files kept: Saga / Story Ar[kc] / Ar[kc]
