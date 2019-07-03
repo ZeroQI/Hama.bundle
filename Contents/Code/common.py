@@ -387,7 +387,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if 'Authorization' in HEADERS_TVDB:
         try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
         except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
-      if not file:
+      if not file_downloaded:
         try:                    HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
         except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
         else:                   Log.Root('TheTVDB - URL {}, headers: {}, HEADERS_TVDB: {}'.format(url, headers, HEADERS_TVDB))
