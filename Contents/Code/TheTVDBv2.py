@@ -138,6 +138,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       elif season!='0' and metadata_source=='tvdb4':  
         ms, usl                         = Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length')
         if ms and usl:  season, episode = Dict(mappingList, 'absolute_map', str(abs_number), default=(ms if usl else str(int(ms)+1), None))[0], str(abs_number)
+        if season not in media.seasons or episode not in media.seasons[season].episodes:  #tvdb4 with custom season folder mapping
+          for s in media.seasons:
+            if str(abs_number) in media.seasons[s].episodes:
+              season, episode = s, str(abs_number)
+              break      
       elif season!='0' and metadata_source=='tvdb5':  
         episode, abs_number = str(Dict(episode_json, 'absoluteNumber') or abs_number), int(Dict(episode_json, 'absoluteNumber') or abs_number)
       
