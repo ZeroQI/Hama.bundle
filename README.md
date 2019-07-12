@@ -178,6 +178,7 @@ Plex main folder location:
     * '$HOME/Library/Application Support/Plex Media Server/'                     # Mac OS
     * '$PLEX_HOME/Library/Application Support/Plex Media Server/',               # Linux
     * '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/', # Debian,Fedora,CentOS,Ubuntu
+    * '/var/lib/plex/Plex Media Server/',                                        # Arch
     * '/usr/local/plexdata/Plex Media Server/',                                  # FreeBSD
     * '/usr/pbi/plexmediaserver-amd64/plexdata/Plex Media Server/',              # FreeNAS
     * '${JAIL_ROOT}/var/db/plexdata/Plex Media Server/',                         # FreeNAS
