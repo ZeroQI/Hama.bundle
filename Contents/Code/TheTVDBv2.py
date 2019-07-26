@@ -129,21 +129,21 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       
       ### ep translation
       anidbid=""
-      if season!='0':  abs_number = abs_number + 1
+      abs_number = Dict(episode_json, 'absoluteNumber', default=0 if season=='0' else abs_number+1)
       if anidb_numbering:
-        if season!='0' and Dict(mappingList, 'defaulttvdbseason_a'):  season, episode          = '1', str(abs_number)
-        else:                                                         season, episode, anidbid = anidb_ep(mappingList, season, episode)
-      elif season!='0' and metadata_source=='tvdb3':  
+        if Dict(mappingList, 'defaulttvdbseason_a'):  season, episode          = '1', str(abs_number)
+        else:                                         season, episode, anidbid = anidb_ep(mappingList, season, episode)
+      elif metadata_source=='tvdb3':  
         episode             = str(abs_number)
-      elif season!='0' and metadata_source=='tvdb4':  
+      elif metadata_source=='tvdb4':  
         ms, usl                         = Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length')
         if ms and usl:  season, episode = Dict(mappingList, 'absolute_map', str(abs_number), default=(ms if usl else str(int(ms)+1), None))[0], str(abs_number)
         if season not in media.seasons or episode not in media.seasons[season].episodes:  #tvdb4 with custom season folder mapping
           for s in media.seasons:
-            if str(abs_number) in media.seasons[s].episodes:
+            if str(abs_number) in media.seasons[s].episodes:  #if str(abs_number) in list_abs_eps
               season, episode = s, str(abs_number)
               break      
-      elif season!='0' and metadata_source=='tvdb5':  
+      elif metadata_source=='tvdb5':  
         episode, abs_number = str(Dict(episode_json, 'absoluteNumber') or abs_number), int(Dict(episode_json, 'absoluteNumber') or abs_number)
       
       # Record absolute number mapping for AniDB metadata pull
@@ -156,7 +156,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       
       ### Check for Missing Episodes ###
       is_missing = False
-      if not(season =='0' and episode in list_sp_eps) and \
+      if not(str(Dict(episode_json, 'airedSeason'))=='0' and str(Dict(episode_json, 'airedEpisodeNumber')) in list_sp_eps) and \
          not(metadata_source in ('tvdb3', 'tvdb4') and str(abs_number) in list_abs_eps) and \
          not(not movie and season in media.seasons and episode in media.seasons[season].episodes):
         is_missing = True
