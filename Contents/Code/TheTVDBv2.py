@@ -239,7 +239,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     map_min_values = [int(Dict(mappingList, 'season_map')[x]['min']) for x in Dict(mappingList, 'season_map', default={}) for y in Dict(mappingList, 'season_map')[x] if y=='min']
     for entry in Dict(mappingList, 'season_map', default={}):
       entry_min, entry_max = int(mappingList['season_map'][entry]['min']), int(mappingList['season_map'][entry]['max'])
-      while entry_min!=0 and entry_max+1 not in map_min_values + [max_season+1]:  entry_max += 1
+      while entry_min!=0 and entry_max+1 not in map_min_values and entry_max < max_season:  entry_max += 1
       mappingList['season_map'][entry] = {'min': entry_min, 'max': entry_max}
     SaveDict(max_season, mappingList, 'season_map', 'max_season')
 
