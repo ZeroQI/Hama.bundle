@@ -947,11 +947,12 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
           SaveDict(Dict(dict_TheTVDB, 'seasons', a, 'episodes', b), dict_TheTVDB, 'seasons', added_season, 'episodes', x)
 
   except Exception as e:
-    if is_banned:  Log.Info("Expected exception hit, as you were banned from AniDB so you have incomplete data to proceed")
+    if is_banned:  Log.Info("Expected exception hit as you were banned from AniDB so you have incomplete data to proceed")
     else:          Log.Error("Unexpected exception hit")
     Log.Info('Exception: "{}"'.format(e))
-    Log.Info("Removing AniDB & TVDB data from memory to prevent incorrect data from being loaded")
-    dict_AniDB.clear(); dict_TheTVDB.clear()
+    Log.Info("If a key error, look at the 'season_map'/'relations_map' info to see why it is missing")
+    if source=="tvdb":   Log.Info("Source is 'tvdb' so metadata will be loaded but it will not be complete for any 'anidb3' end of season additions")
+    if source=="tvdb6":  Log.Info("Source is 'tvdb6' so removing AniDB & TVDB metadata from memory to prevent incorrect data from being loaded"); dict_AniDB.clear(); dict_TheTVDB.clear()
     is_modified = False
 
   Log.Info("--- return ---".ljust(157, '-'))
