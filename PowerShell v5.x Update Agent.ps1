@@ -25,16 +25,6 @@ if (Test-Path README.md)
 }
 else
 {
-  if (Test-Path $repository-old)
-  { Write-Host [*] Deleting $repository-old as it was present 
-    Remove-Item $repository-old -Recurse -Force
-  }
-  
-  if (Test-Path $repository)
-  { Write-Host [*] Moving  "$repository" to $repository-old
-    Move-Item $repository -Destination $repository-old -Force
-  }
-  
   Write-Host [*] Dowloading latest release from "$download" to "$zip"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   Invoke-WebRequest -Uri $download -Out $zip
