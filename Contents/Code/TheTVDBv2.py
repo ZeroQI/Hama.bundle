@@ -197,8 +197,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if episode_details_json:
           
           # Std ep info loaded for Library language ten details for 1st language, loading other languages if needed
-          if lang2 in language_episodes and language_episodes.index(lang2)<rank and Dict(episode_details_json, 'language', 'episodeName')==lang2:
-            rank  = language_episodes.index(lang2) 
+          if lang2 in language_episodes and language_episodes.index(lang2)<rank and Dict(episode_details_json, 'language', 'episodeName')==lang2 and Dict(episode_details_json, 'episodeName'):
+            rank  = language_episodes.index(lang2)
             title = Dict(episode_details_json, 'episodeName')
             Log.Info(' - [2] language_rank: {:>1}, language: {:>4}, title: {}'.format(rank, lang2, title))
           
@@ -220,9 +220,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           if Dict(episode_details_json, 'episodeName') :  
             title = Dict(episode_details_json, 'episodeName')
             rank  = lang_rank
-            Log.Info(' - [3] language_rank: {}, title: {}'.format(rank, title))
             break
-          else:  Log.Info('no ep title in language: {}'.format(language_episodes[lang_rank]))
+          else:  Log.Info('[3] no ep title in language: {}'.format(language_episodes[lang_rank]))
         SaveDict( title, TheTVDB_dict, 'seasons', season, 'episodes', episode, 'title'        )
         SaveDict( rank , TheTVDB_dict, 'seasons', season, 'episodes', episode, 'language_rank')      
         #Log.Info('[?] numbering: {} => s{:>1}e{:>3} language_rank: {:>1}, title: "{}"'.format(numbering, season, episode, rank, title))

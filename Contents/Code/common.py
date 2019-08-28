@@ -771,14 +771,17 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
-                if not field=='title':  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
-                else:
+                if field=='title':  
                   language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                   if language_rank not in ('', None) and language_rank < rank or len(languages)< rank:  #Manage title language for AniDB and TheTVDB by recording the rank
                     source_title = source
                     title        = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'title'        )
                     rank         = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                     Log.Info('[?] rank: {:>1}, source_title: {:>7}, title: "{}"'.format(rank, source_title, title))
+                  else:
+                    Log.Info('[!] title: {}, language_rank {}, rank: {}, len(languages): "{}"'.format(title, language_rank, rank, len(languages)))
+                else:
+                  UpdateMetaField(metadata, (metadata, season, episode, new_season, new_episode), Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode), FieldListEpisodes, field, source, movie, source_list)
                 if field in count:  count[field] = count[field] + 1
                 if field!='title' and (field not in ['posters', 'art', 'banners', 'themes', 'thumbs', 'title']):  break
             elif not source=="None":  Log.Info("[!] '{}' source not in MetaSources dict, please Check case and spelling".format(source))
