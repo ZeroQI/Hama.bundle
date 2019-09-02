@@ -402,10 +402,10 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if url.startswith('http://anidb.net'):
         if url.endswith("anime-titles.xml.gz"):
           try:
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again incase still compressed 
+            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress
             Log.Root('decompressed first pass')
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again incase still compressed 
-            Log.Root('decompressed first pass')
+            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again in case it was double compressed 
+            Log.Root('decompressed second pass')
           except:  pass
         time.sleep(6)  #Sleeping after call completion to prevent ban
         netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
