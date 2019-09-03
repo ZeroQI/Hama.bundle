@@ -399,7 +399,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       else:                   Log.Root("Downloaded URL '{}'".format(url))
 
       # AniDB: safeguard if netLock does not work as expected
-      if url.startswith('http://anidb.net'):
+      if 'anidb.net' in url:  #url.startswith('http://api.anidb.net:9001'), url.startswith('http://anidb.net'):
         if url.endswith("anime-titles.xml.gz"):
           try:
             file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress
