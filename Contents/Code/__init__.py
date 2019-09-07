@@ -12,12 +12,12 @@ import AnimeLists        # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovi
 import AniDB             # Functions: GetMetadata, Search, GetAniDBTitlesDB, GetAniDBTitle       Variables: ANIDB_SERIE_URL
 import TheTVDBv2         # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
 import TheMovieDb        # Functions: GetMetadata, Search                                        Variables: None
-import MyAnimeList       # Functions: GetMetadata                                                Variables: None
 import OMDb              # Functions: GetMetadata                                                Variables: None
 import FanartTV          # Functions: GetMetadata                                                Variables: None
 import Plex              # Functions: GetMetadata                                                Variables: None
 import TVTunes           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
+#import MyAnimeList       # Functions: GetMetadata                                                Variables: None
 
 import re
 import os
@@ -30,6 +30,15 @@ from io import open
 def ValidatePrefs():
   Log.Info("".ljust(157, '='))
   Log.Info ("ValidatePrefs(), PlexRoot: "+common.PlexRoot)
+
+  #Reset to default agent setting
+  Prefs['reset_to_defaults']  #avoid logs message on first accesslike: 'Loaded preferences from DefaultPrefs.json' + 'Loaded the user preferences for com.plexapp.agents.lambda'
+  filename_xml  = os.path.join(PlexRoot, 'Plug-in Support', 'Preferences', 'com.plexapp.agents.hama.xml')
+  filename_json = os.path.join(PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
+  Log.Info ("[?] agent settings json file: '{}'".format(os.path.relpath(filename_json, PlexRoot)))
+  Log.Info ("[?] agent settings xml prefs: '{}'".format(os.path.relpath(filename_xml , PlexRoot)))
+  if Prefs['reset_to_defaults'] and os.path.isfile(filename_xml):  os.remove(filename_xml)  #delete filename_xml file to reset settings to default
+
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
   filename       = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
   if os.path.isfile(filename):
@@ -130,7 +139,7 @@ def Update(metadata, media, lang, force, movie):
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
+  #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   if common.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
@@ -139,8 +148,7 @@ def Update(metadata, media, lang, force, movie):
   common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
-                                             'OMDb':       dict_OMDb,       'MyAnimeList': dict_MyAnimeList, 'Local':   dict_Local}, mappingList)
-  Log.Info('=== Update() ==='.ljust(157, '='))
+                                             'OMDb':       dict_OMDb,       'Local':   dict_Local}, mappingList)  #'MyAnimeList': dict_MyAnimeList, 
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
