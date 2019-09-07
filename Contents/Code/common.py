@@ -4,7 +4,6 @@
 
 ### Imports ###               ### Functions used ###
 import os                     # path.abspath, join, dirname
-import inspect                # getfile, currentframe
 import time                   # datetime.datetime.now() 
 import re                     # sub
 import logging                #
@@ -24,7 +23,7 @@ tlocal = threading.local()
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
 strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
-PlexRoot          = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", ".."))
+PlexRoot          = Core.app_support_path # import inspect                # getfile, currentframeos.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", "..")) #Core.app_support_path
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
 netLock           = Thread.Lock()

@@ -29,18 +29,18 @@ from io import open
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
 def ValidatePrefs():
   Log.Info("".ljust(157, '='))
-  Log.Info ("ValidatePrefs(), PlexRoot: "+common.PlexRoot)
+  Log.Info ("ValidatePrefs(), PlexRoot: "+Core.app_support_path)
 
   #Reset to default agent setting
   Prefs['reset_to_defaults']  #avoid logs message on first accesslike: 'Loaded preferences from DefaultPrefs.json' + 'Loaded the user preferences for com.plexapp.agents.lambda'
-  filename_xml  = os.path.join(PlexRoot, 'Plug-in Support', 'Preferences', 'com.plexapp.agents.hama.xml')
-  filename_json = os.path.join(PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
-  Log.Info ("[?] agent settings json file: '{}'".format(os.path.relpath(filename_json, PlexRoot)))
-  Log.Info ("[?] agent settings xml prefs: '{}'".format(os.path.relpath(filename_xml , PlexRoot)))
+  filename_xml  = os.path.join(common.PlexRoot, 'Plug-in Support', 'Preferences', 'com.plexapp.agents.hama.xml')
+  filename_json = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
+  Log.Info ("[?] agent settings json file: '{}'".format(os.path.relpath(filename_json, common.PlexRoot)))
+  Log.Info ("[?] agent settings xml prefs: '{}'".format(os.path.relpath(filename_xml , common.PlexRoot)))
   if Prefs['reset_to_defaults'] and os.path.isfile(filename_xml):  os.remove(filename_xml)  #delete filename_xml file to reset settings to default
 
   PrefsFieldList = list(set(common.FieldListMovies + common.FieldListSeries + common.FieldListEpisodes + common.DefaultPrefs))  # set is un-ordered lsit so order is lost
-  filename       = os.path.join(common.PlexRoot, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
+  filename       = os.path.join(Core.app_support_path, 'Plug-ins', 'Hama.bundle', 'Contents', 'DefaultPrefs.json')
   if os.path.isfile(filename):
     try:   json = JSON.ObjectFromString(Core.storage.load(filename), encoding=None)  ### Load 'DefaultPrefs.json' to have access to default settings ###
     except Exception as e:  json = None; Log.Info("Error :"+str(e)+", filename: "+filename)
