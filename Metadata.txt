@@ -1,158 +1,47 @@
-TSEMAGT | Metadata Model Classes  | Type            | Anime-Lists |  AniDB.net  | TheTVDB.com |  Fanart.tv  | MyAnimeList | TheMovieDB  | OpenMovieDB | Plex Themes |  TV  Tunes  | tvdb4       | Simkl       | Tract.tv     
+TSEMAGT | Metadata Model Classes  | Type            | Anime-Lists |  AniDB.net  | TheTVDB.com |  Fanart.tv  | TheMovieDB  | OpenMovieDB | Plex Themes | TV  Tunes   | tvdb4       | Local       | MyAnimeList |
 ------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-T–––––– | class TV_Show           | TV show         | Yes*        | Yes         | Yes         |             |             |             | Yes         | Yes         | Yes         |             |             |             |
-–S––––– | class Season            | Season          | None        | No*         | Yes         |             |             |             |             | None        | None        |             |             |             |
-––E–––– | class Episode           | Episode         | None        | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-–––M––– | class Movie             | Movie           | Yes*        | Yes         | None        |             |             |             | Yes         | Yes         | Yes         |             |             |             |
-––––A–– | class Album             | Music Album     | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        |
-–––––G– | class Artist            | Artist or group | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        |
-––––––T | class Track             | Audio track     | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        |
-------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-T--MA-- | id                      | string          |             | AniDB       | TVDB        |             |             |             | IMDb, title | TVDB        | None        |             |             |             |
-T–EMAG– | title                   | string          | Yes (en)    | Yes(en)     | Yes (multi) |             |             |             |             | None        | None        |             |             |             |
-TSEMAG– | summary                 | string          | None        | Yes(eps)    | Yes         |             |             |             |             | None        | None        |             |             |             |
-T–EMA–– | originally_available_at | date            | None        | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-T–EMAG– | rating                  | float (0-10)    | None        | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-T––MA–– | studio                  | string          | Yes         | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-T––M––– | duration                | integer (ms)    | None        | Yes(eps)    | None        |             |             |             |             | None        | None        |             |             |             |
-T––MA–– | countries               | set of strings  | None        | None        | None        |             |             |             |             | None        | None        |             |             |             |
-T––MAG– | genres                  | set of strings  | None        | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-T––M--– | roles                   | new() role attr | None        | Yes         | Yes         |             |             |             |             | None        | None        |             |             |             |
-T––MAG– | tags                    | set of strings  | None        | None        | None        |             |             |             |             | None        | None        |             |             |             |
-T––MAG– | collections             | set of strings  | Yes         | Yes*        | None        |             |             |             |             | None        | None        |             |             |             |
-T––M––– | content_rating          | string          | Yes*        | Yes()       | Yes         |             |             |             |             | None        | None        |             |             |             |
--––M––– | tagline                 | string          | None        | None        | None        |             |             | Yes         |             | None        | None        |             |             |             |
-––E–––– | absolute_index          | integer         | None        | ?           | None        |             |             |             |             | None        | None        |             |             |             |
-––––––T | name                    | string          | None        | None        | None        |             |             |             |             | None        | None        |             |             |             |
-T–––––– | seasons                 | map of Season   | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | 
-–S––––– | episodes                | map of Episodes | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        |
-––––A–– | tracks                  | map of Tracks   | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        | None        |
-------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-T––M–G– | art                     | dict of proxys  | None        | None        | Yes         | Yes         |             |             | None        | None        | None        |             |             |             |
-TS–MAG– | posters                 | dict of proxys  | Yes(T)      | Yes(T)      | Yes(TS)     | Yes         |             |             | Yes         | None        | None        |             |             |             |
-TS––––– | banners                 | dict of proxys  | None        | None        | Yes         | Yes         |             |             | None        | None        | None        |             |             |             |
-T––M–G– | themes                  | dict of proxys  | None        | None        | None        | None        | None        | None        | None        | Yes (30s)   | Yes         | None        | None        | None        |
-––E–––– | thumbs                  | dict of proxys  | None        | None        | Yes (1)     | None        |             |             | None        | None        | None        |             |             |             |
-------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-––EM––– | writers                 | set of strings  | Yes*        | Yes(bad)    | Yes(per Ep) |             |             |             | Yes (M)     | None        | None        |             |             |             |
-––EM––– | directors               | set of strings  | Yes*        | Yes(bad)    | Yes(per Ep) |             |             |             | Yes (M)     | None        | None        |             |             |             |
-––EMA–– | producers               | set of strings  | None        | Yes(bad)    | Yes(per Ep) |             |             |             | Yes (M)     | None        | None        |             |             |             |
-------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-–––M––– | year                    | integer         | None        | Yes         | None        |             |             |             | Yes         | None        | None        |             |             |             |
-–––M––– | content_rating_age      | string          | None        | None        | None        |             |             |             | None        | None        | None        |             |             |             |
-–––M––– | trivia                  | string          | None        | None        | None        |             |             |             | None        | None        | None        |             |             |             |
-–––M––– | quotes                  | string          | None        | None        | None        |             |             |             | None        | None        | None        |             |             |             |
-–––MA–– | original_title          | string          | None        | Yes         | None        |             |             |             | None        | None        | None        |             |             |             |
-------- | ----------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Scanner:
-- CachePath = os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", "..", "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems"))
-- use above code to remove need for logs path
-- https://github.com/ZeroQI/Absolute-Series-Scanner/issues/82
-
-Agent:
-- add priorities in DefaultPrefs.json
-- Prefs remove list of keys
-- add module variable according priority
-
-Haider of Sweden
-- movie scanner
-
-MoviePriority   = { 'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'tags'                    : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'collections'             : ('AnimeLists', 'AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'duration'                : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),  # milliseconds
-                    'rating'                  : ('AniDB', 'TheTVDB'),  #float 0-10
-                    'rating_image'            : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'audience_rating'         : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'audience_rating_image'   : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'original_title'          : ('AniDB', 'TheTVDB'),
-                    'title'                   : ('AniDB', 'TheTVDB'),
-                    'roles'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),  # Not in Framework guide 2.1.1
-                    #'title_sort'             : ('AniDB', 'TheTVDB'),
-                    'year'                    : ('AniDB', 'TheTVDB'),
-                    'originally_available_at' : ('AniDB', 'TheTVDB'),
-                    'studio'                  : ('AnimeLists', 'AniDB', 'TheMovieDB'),
-                    'tagline'                 : ('TheMovieDB',),
-                    'summary'                 : ('AniDB', 'TheTVDB'),
-                    'trivia'                  : (),
-                    'quotes'                  : (),
-                    'content_rating'          : ('AniDB', 'TheTVDB'),
-                    'content_rating_age'      : (),
-                    'producers'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'directors'               : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'writers'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'countries'               : (),
-                    'posters'                 : ('TheTVDB', 'FanartTV', 'TheMovieDB', 'OMDb', 'AniDB'),
-                    'art'                     : ('TheTVDB', 'FanartTV', 'TheMovieDB'),
-                    'themes'                  : ('TVTunes', 'Plex')
-                    }
-SeriePriority   = { 'genres'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'tags'                    : (),
-                    'collections'             : ('AnimeLists', 'AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'duration'                : ('AniDB', 'MyAnimeList' 'TheMovieDB', 'OMDb'),
-                    'rating'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'rating_image'            : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'audience_rating'         : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'audience_rating_image'   : (),   # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDB.bundle/blob/master/Contents/Code/__init__.py
-                    'title'                   : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'), 
-                    'summary'                 : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'originally_available_at' : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'content_rating'          : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'studio'                  : ('AnimeLists', 'AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),
-                    'countries'               : (),
-                    'posters'                 : ('TheTVDB', 'FanartTV', 'MyAnimeList', 'TheMovieDB', 'OMDb', 'AniDB'),
-                    'banners'                 : ('TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV'),
-                    'art'                     : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV'),
-                    'themes'                  : ('TVTunes', 'Plex'),
-                    'roles'                   : ('AniDB',   'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),  # Not in Framework guide 2.1.1
-                    'original_title'          : ('AniDB', ),                                                           # in gui, not in Framework guide 2.1.1
-                  }
-SeasonPriority  = { 'summary'                 : ('TheTVDB',),
-                    'posters'                 : ('TheTVDB',),
-                    #'banners'                 : ('TheTVDB',),
-                    'art'                     : (),        # in gui, not in Framework guide 2.1.1
-                  }
-EpisodePriority = { 'title'                   : ('TheTVDB', 'AniDB'),
-                    'summary'                 : ('TheTVDB',),
-                    'originally_available_at' : ('TheTVDB', 'AniDB'),
-                    'writers'                 : ('TheTVDB',),
-                    'directors'               : ('TheTVDB',),
-                    'producers'               : ('TheTVDB',),
-                    'guest_stars'             : ('TheTVDB',),
-                    'rating'                  : ('AniDB', 'TheTVDB', 'MyAnimeList' 'TheMovieDB', 'FanartTV', 'OMDb'),        #'absolute_number'         : ('TheTVDB',), #
-                    'thumbs'                  : ('TheTVDB',),
-                    #'absolute_number'         : ('TheTVDB',),  #???
-                    'duration'                : ('AniDB', )
-[
-  { "id": "SerieLanguagePriority",    "label": "Serie Language Priority",                                 "type": "text",  "default": "main, x-jat, en, jap"                                    },
-  { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",                               "type": "text",  "default": "main, x-jat, en, jap"                                    },
-  { "id": "MinimumWeight",            "label": "Map categories at or above the minimum weight selected",  "type": "enum",  "values"  : ["600","500","400","300","200","100","0"], "default": "400" },
-  { "id": "localart",                 "label": "Prefer artwork based on section language",                "type": "bool",  "default": "true"  },
-  { "id": "adult",                    "label": "Include adult content",                                   "type": "bool",  "default": "false" },
-  { "id": "GetSingleOne",             "label": "Fetch a single metadata for posters, fanart",             "type": "bool",  "default": "true"  },
-  
-  { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "sort_title",               "label": "T-EM 'sort_title'",               "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "rating",                   "label": "T-EM 'rating'",                   "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "content_rating",           "label": "T--M 'content_rating'",           "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "original_title",           "label": "T-EM 'original_title'",           "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "studio",                   "label": "T--M 'studio'",                   "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "tagline",                  "label": "T--M 'tagline'",                  "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "summary",                  "label": "TSEM 'summary'",                  "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "directors",                "label": "--EM 'directors'",                "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "producers",                "label": "--EM 'producers'",                "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "countries",                "label": "T--M 'countries",                 "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "genres",                   "label": "T--M 'genres'",                   "type": "text",  "default": "AniDB"                                                   },
-  { "id": "tags",                     "label": "T--M 'tags'",                     "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "writers",                  "label": "T-EM 'writers'",                  "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "duration",                 "label": "T--M 'duration'",                 "type": "text",  "default": "AniDB,TVDB,Plex"                                         },
-  { "id": "roles",                    "label": "T--M 'roles'",                    "type": "text",  "default": "TVDB, AniDB"                                             },
-  { "id": "themes",                   "label": "T--M 'themes'",                   "type": "text",  "default": "TVTunes,Plex"                                            },
-  { "id": "posters",                  "label": "TS-M 'poster'",                   "type": "bool",  "default": "true"                                                    },
-  { "id": "fanarts",                  "label": "T--M 'fanarts'",                  "type": "bool",  "default": "true"                                                    },
-  { "id": "banners",                  "label": "???? 'banners'",                  "type": "bool",  "default": "false"                                                   },
-  { "id": "thumbs",                   "label": "--E- 'thumbs'",                   "type": "bool",  "default": "false"                                                   }
-]  
+T–––––– | class TV_Show           | TV show         | Yes*        | Yes         | Yes         |             |             | Yes         | Yes         | Yes         |             |             |             |
+–S––––– | class Season            | Season          |             | No*         | Yes         |             |             |             |             |             |             |             |             |
+––E–––– | class Episode           | Episode         |             | Yes         | Yes         |             |             |             |             |             |             |             |             |
+–––M––– | class Movie             | Movie           | Yes*        | Yes         |             |             |             | Yes         | Yes         | Yes         |             |             |             |
+––––A–– | class Album             | Music Album     |             |             |             |             |             |             |             |             |             |             |             |
+–––––G– | class Artist            | Artist or group |             |             |             |             |             |             |             |             |             |             |             |
+––––––T | class Track             | Audio track     |             |             |             |             |             |             |             |             |             |             |             |
+------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+T--MA-- | id                      | string          |             | AniDB       | TVDB        |             |             | IMDb, Title | TVDB        | Title       |             |             |             |
+T–EMAG– | title                   | string          | Yes (en)    | Yes(en)     | Yes (multi) |             |             |             |             |             |             |             |             |
+TSEMAG– | summary                 | string          |             | Yes(eps)    | Yes         |             |             |             |             |             |             |             |             |
+T–EMA–– | originally_available_at | date            |             | Yes         | Yes         |             |             |             |             |             |             |             |             |
+T–EMAG– | rating                  | float (0-10)    |             | Yes         | Yes         |             | yes         |             |             |             |             |             |             |
+T––MA–– | studio                  | string          | Yes         | Yes         | Yes         |             | Yes         |             |             |             |             |             |             |
+T––M––– | duration                | integer (ms)    |             | Yes(eps)    |             |             | Yes         |             |             |             |             |             |             |
+T––MA–– | countries               | set of strings  |             |             |             |             | Yes         |             |             |             |             |             |             |
+T––MAG– | genres                  | set of strings  | Yes*        | Yes         | Yes         |             | Yes         |             |             |             |             |             |             |
+T––M--– | roles                   | new() role attr |             | Yes         | Yes         |             |             |             |             |             |             |             |             |
+T––MAG– | tags                    | set of strings  |             |             |             |             |             |             |             |             |             |             |             |
+T––MAG– | collections             | set of strings  | Yes         | Yes*        |             |             | Yes         |             |             |             |             | Yes         |             |
+T––M––– | content_rating          | string          | Yes*        | Yes()       | Yes         |             |             |             |             |             |             |             |             |
+-––M––– | tagline                 | string          |             |             |             |             | Yes         |             |             |             |             |             |             |
+––E–––– | absolute_index          | integer         |             |             | Yes*        |             |             |             |             |             |             |             |             |
+––E–––– | guest_stars             | set of strings  |             |             | Yes         |             |             |             |             |             |             |             |             |
+––––––T | name                    | string          |             |             |             |             |             |             |             |             |             |             |             |
+T–––––– | seasons                 | map of Season   |             |             |             |             |             |             |             |             |             |             |             | 
+–S––––– | episodes                | map of Episodes |             |             |             |             |             |             |             |             |             |             |             |
+––––A–– | tracks                  | map of Tracks   |             |             |             |             |             |             |             |             |             |             |             |
+------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+T––M–G– | art                     | dict of proxys  | yes*        |             | Yes         | Yes         | Yes         |             |             |             |             |             |             |
+TS–MAG– | posters                 | dict of proxys  | Yes(T)      | Yes(T)      | Yes(TS)     | Yes         | Yes         | Yes         |             |             | Yes         |             |             |
+TS––––– | banners                 | dict of proxys  |             |             | Yes         | Yes         |             |             |             |             |             |             |             |
+––E–––– | thumbs                  | dict of proxys  |             |             | Yes (1)     |             |             |             |             |             |             |             |             |
+T––M–G– | themes                  | dict of proxys  |             |             |             |             |             |             | Yes (30s)   | Yes         |             |             |             |
+------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+––EM––– | writers                 | set of strings  | Yes*        | Yes(T)      | Yes(per Ep) |             |             | Yes (M)     |             |             |             |             |             |
+––EM––– | directors               | set of strings  | Yes*        | Yes(T)      | Yes(per Ep) |             |             | Yes (M)     |             |             |             |             |             |
+––EMA–– | producers               | set of strings  |             | Yes(T)      | Yes(per Ep) |             |             | Yes (M)     |             |             |             |             |             |
+------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+–––M––– | year                    | integer         |             | Yes         |             |             |             | Yes         |             |             |             |             |             |
+–––M––– | content_rating_age      | string          |             |             |             |             |             |             |             |             |             |             |             |
+–––M––– | trivia                  | string          |             |             |             |             |             |             |             |             |             |             |             |
+–––M––– | quotes                  | string          |             |             |             |             |             |             |             |             |             |             |             |
+–––MA–– | original_title          | string          |             | Yes         |             |             |             |             |             |             |             |             |             |
+------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
