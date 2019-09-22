@@ -261,10 +261,10 @@ To avoid already solved issues, and make sure you do include all relevant logs i
 - including all the following logs: (location: https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.agents.hama.log (Agent logs)
    - [...]/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.system.log (show why the agent cannot launch)
-   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.filelist.log (episodes info)
-   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.scanner.log (episodes info)
-   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-search.log (guid assignment)
-   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/root_folder.agent-update.log (metadata update)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/series_root_folder.filelist.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/series_root_folder.scanner.log (episodes info)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/(Library_name/)series_root_folder.agent-search.log (guid assignment)
+   - [...]/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/_Logs/(Library_name/)series_root_folder.agent-update.log (metadata update)
    - Screen capture to illustrate if needed. Above logs are still mandatory
 
 Support thread for agent:
