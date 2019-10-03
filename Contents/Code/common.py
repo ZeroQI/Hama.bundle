@@ -193,9 +193,8 @@ def ssl_open(url, headers={}, timeout=20):
          Use requests
   '''
   headers = UpdateDict(headers, HEADERS_CORE)
-  if url.startswith('https://'):  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1), timeout=timeout).read()
-  else:                           return urllib2.urlopen(urllib2.Request(url, headers=headers), timeout=timeout).read()
-  
+  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1_2), timeout=timeout).read()  
+
 def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the length of the array or index no errors
   """
