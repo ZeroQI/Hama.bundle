@@ -111,6 +111,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
+  anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
   language_posters         = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
   priority_posters         = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   
@@ -171,7 +172,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         Log.Info("[ ] original_title: {}".format(SaveDict(original_title, AniDB_dict, 'original_title')))
         Log.Info("[ ] language_rank: {}" .format(SaveDict(language_rank,  AniDB_dict, 'language_rank' )))
         if SaveDict( GetXml(xml, 'startdate'  ), AniDB_dict, 'originally_available_at'):  Log.Info("[ ] originally_available_at: '{}'".format(AniDB_dict['originally_available_at']))
-        if SaveDict(summary_sanitizer(GetXml(xml, 'description')), AniDB_dict, 'summary') and not movie and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
+        if SaveDict(summary_sanitizer(GetXml(xml, 'description')), AniDB_dict, 'summary') and not movie and not anidb_numbering and Dict(mappingList, 'defaulttvdbseason').isdigit() and mappingList['defaulttvdbseason'] in media.seasons:
           SaveDict(AniDB_dict['summary'], AniDB_dict, 'seasons', mappingList['defaulttvdbseason'], 'summary') 
             
         Log.Info("[ ] rating: '{}'".format(SaveDict( GetXml(xml, 'ratings/permanent'), AniDB_dict, 'rating')))
@@ -181,7 +182,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           rank = 1
           if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
           if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0]))}
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0])
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
@@ -250,6 +251,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           
           ### Title, Season, Episode number, Specials
           title, main, language_rank = GetAniDBTitle (ep_obj.xpath('title'), [language.strip() for language in Prefs['EpisodeLanguagePriority'].split(',')])
+          if not anidb_numbering and title=='Complete Movie':  title = ""  # For mapping use meanningful titles
           epNum     = ep_obj.xpath('epno')[0]
           epNumType = epNum.get('type')
           season    = "1" if epNumType == "1" else "0"
@@ -283,7 +285,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
               rank = 1
               if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
               if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0])), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
+              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
 
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
@@ -376,8 +378,6 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
   langLevel     = [20 for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
   langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
   for title in titles:                                                                       # Loop through all languages listed in the anime XML
-    if title.text=='Complete Movie':  continue                                               # For mapping use meanningful titles
-    
     lang, type = title.get('{http://www.w3.org/XML/1998/namespace}lang'), title.get('type')  # If Serie: Main, official, Synonym, short. If episode: None # Get the language, 'xml:lang' attribute need hack to read properly
     if title_sort:  title.text = common.SortTitle(title.text, lang)                          # clean up title
     if lang in languages and (type!='short' and type_priority[type] < langLevel[languages.index(lang)] or not type):  langTitles[languages.index(lang)  ], langLevel [languages.index(lang)  ] = title.text.replace("`", "'"), type_priority [ type ] if type else 6 + languages.index(lang)
