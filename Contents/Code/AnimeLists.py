@@ -302,7 +302,7 @@ def anidb_ep(mappingList, season, episode):
   # <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset')
-  if season==defaulttvdbseason:  return defaulttvdbseason, str(int(episode)-int(episodeoffset)), ''
+  if season==defaulttvdbseason:  return '1', str(int(episode)-int(episodeoffset)), ''
   
   # Map season 0 episodes directly to tvdb season 0 episodes
   # On condition of being the only anidb id mapped to the tvdbid, its set to season 1, and has no special mappings
