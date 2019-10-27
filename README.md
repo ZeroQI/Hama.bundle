@@ -175,7 +175,7 @@ Plex main folder location:
 
     * '%LOCALAPPDATA%\Plex Media Server\'                                        # Windows Vista/7/8
     * '%USERPROFILE%\Local Settings\Application Data\Plex Media Server\'         # Windows XP, 2003, Home Server
-    * '$HOME/Library/Application Support/Plex Media Server/'                     # Mac OS
+    * (userdir)/library/Logs/Plex Media Server/PMS Plugin Logs                   # Mac OS
     * '$PLEX_HOME/Library/Application Support/Plex Media Server/',               # Linux
     * '/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/', # Debian,Fedora,CentOS,Ubuntu
     * '/var/lib/plex/Plex Media Server/',                                        # Arch
