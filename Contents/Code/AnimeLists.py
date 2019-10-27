@@ -293,16 +293,20 @@ def anidb_ep(mappingList, season, episode):
   if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
   
   # <mapping-list> <mapping anidbseason="1" tvdbseason="5" offset="-12"/>
-  anidbid_list = Dict(mappingList, 'TVDB', 's'+season)
+  anidbid_list = Dict(mappingList, 'TVDB', 's'+season, default={})
   #Log.Info('anidbid_list: {}'.format(anidbid_list))
-  for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True) if anidbid_list else[]:  #reverse value&index and sort per offset
+  for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True):  #reverse value&index and sort per offset
     #Log.Info("- offset: {}, anidbid: {}, int(episode.split('-')[0]): {}".format(offset, anidbid, int(episode.split('-')[0])))
     if int(episode.split('-')[0])> int(offset):  return '1', str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
   
   # <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset')
-  if season==defaulttvdbseason:  return '1', str(int(episode)-int(episodeoffset)), ''
+  if season==defaulttvdbseason:
+    for values in Dict(mappingList, 'TVDB', default={}).values():  # Only use the episodeoffset if s1e1 is not specificially mapped
+      if isinstance(values, tuple) and values[0]=='1' and values[1]=='1':  break
+    else:
+      return '1', str(int(episode)-int(episodeoffset)), ''
   
   # Map season 0 episodes directly to tvdb season 0 episodes
   # On condition of being the only anidb id mapped to the tvdbid, its set to season 1, and has no special mappings
