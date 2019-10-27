@@ -87,8 +87,9 @@ def GetMetadata(media, movie, error_log, id):
   def anime_core(anime):
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
-    s1_mapping        = len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']"))
-    return defaulttvdbseason, episodeoffset, s1_mapping
+    s1_mapping_count  = len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']"))
+    is_primary_series = True if defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping_count == 0 else False
+    return defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series
 
   Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
   forcedID={'anidbid':AniDB_id,'tvdbid':TVDB_id,'tmdbid':TMDB_id, "imdbid": ""}
@@ -112,10 +113,10 @@ def GetMetadata(media, movie, error_log, id):
     # record the number of entries using the same tvdb id
     SaveDict(Dict(tvdbcounts, TVDBid, default=0)+1, tvdbcounts, TVDBid)
 
-    defaulttvdbseason, episodeoffset, s1_mapping = anime_core(anime)
+    defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series = anime_core(anime)
 
-    if not tvdb_numbering and not TVDB_id:                                                                                                          TVDB_id2  = TVDBid
-    if tvdb_numbering and AniDBid and TVDBid.isdigit() and defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping == 0 and not AniDB_id:  AniDB_id2 = AniDBid
+    if not tvdb_numbering and not TVDB_id:                                                      TVDB_id2  = TVDBid
+    if tvdb_numbering and AniDBid and TVDBid.isdigit() and is_primary_series and not AniDB_id:  AniDB_id2 = AniDBid
     Log.Info("[+] AniDBid: {:>5}, TVDBid: {:>6}, defaulttvdbseason: {:>3}, offset: {:>3}, name: {}".format(AniDBid, TVDBid, 
       ("({})".format(anime.get('defaulttvdbseason')) if anime.get('defaulttvdbseason')!=defaulttvdbseason else '')+defaulttvdbseason, episodeoffset, GetXml(anime, 'name')))
     
@@ -207,8 +208,7 @@ def GetMetadata(media, movie, error_log, id):
   for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull and TVDB_winner.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
-      defaulttvdbseason, episodeoffset, s1_mapping = anime_core(anime)
-      if defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping == 0:
+      if anime_core(anime)[3]:  #[3]==is_primary_series
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
         studio = GetXml(anime, "supplemental-info/studio")
   if len(TVDB_collection)>1 and title:  # Require that there be at least 2 anidb mappings for a collection
