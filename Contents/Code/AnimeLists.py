@@ -258,7 +258,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   '''
   mapping = ('0', '0')#(season or '0', episode)
   debug   = False
-  if debug:  Log.Info('[?] #1 season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
+  if debug:  Log.Info('[?] (#1) season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
   defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
   episodeoffset     = Dict(mappingList, 'episodeoffset')
@@ -275,16 +275,16 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   tvdbList = Dict(mappingList, 'TVDB', default={})
   if value in tvdbList.values():
     mapping = list(tvdbList.keys())[list(tvdbList.values()).index(value)][1:].split('e')
-    if debug:  Log.Info('[?] value "{}" in mappingList "{}"'.format(value, mappingList)) 
+    if debug:  Log.Info('[?] (#2) value "{}" in mappingList "{}"'.format(value, mappingList)) 
   
   # if not mapped with mapping, specials are not mapped with tvdb
   elif season=='0':
     mapping = ('0', '0')
-    if debug:  Log.Info('[?] value "{}" not in mappingList "{}" and season 0'.format(value, mappingList)) 
+    if debug:  Log.Info('[?] (#3) value "{}" not in mappingList "{}" and season 0'.format(value, mappingList)) 
   
   # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
   elif season=='1':
-    if debug:  Log.Info('[?] value "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(value, mappingList, defaulttvdbseason, episodeoffset))
+    if debug:  Log.Info('[?] (#4) value "{}" not in mappingList "{}" and season 1, defaulttvdbseason: {}, episodeoffset: {}'.format(value, mappingList, defaulttvdbseason, episodeoffset))
     mapping = (defaulttvdbseason, str(int(episode) + int(episodeoffset)))
   else:
     Log.Info('[!] error {}'.format(value))
@@ -293,29 +293,38 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
 
 ### Translate TVDB numbering into AniDB numbering ###
 def anidb_ep(mappingList, season, episode):
+  debug = False
+  if debug:  Log.Info('[?] (#1) season: {}, episode: {}'.format(season, episode))
+
   # <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-5;2-6;</mapping>
   # <mapping-list> <mapping anidbseason="1" tvdbseason="5" start="13" end="24" offset="-12"/>
   ep_mapping = Dict(mappingList, 'TVDB', 's'+season+'e'+episode.split('-')[0])
-  if ep_mapping:  return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
+  if ep_mapping:
+    if debug:  Log.Info('[?] (#2) Exact mapping: {}'.format(ep_mapping))
+    return ep_mapping[0], ep_mapping[1], ep_mapping[2]            #Lvl 3 & 2 direct ep mapping (ep or season with start-end range)
   
   # <mapping-list> <mapping anidbseason="1" tvdbseason="5" offset="-12"/>
   anidbid_list = Dict(mappingList, 'TVDB', 's'+season, default={})
-  #Log.Info('anidbid_list: {}'.format(anidbid_list))
+  if debug:  Log.Info('[?] (#3) s{}: {}'.format(season, anidbid_list))
   for offset, anidbid in sorted(zip(anidbid_list.values(), anidbid_list.keys()), key=lambda x: common.natural_sort_key(x[0]), reverse=True):  #reverse value&index and sort per offset
-    #Log.Info("- offset: {}, anidbid: {}, int(episode.split('-')[0]): {}".format(offset, anidbid, int(episode.split('-')[0])))
+    if debug:  Log.Info("[?] (#3) - offset: {}, anidbid: {}, int(episode.split('-')[0]): {}".format(offset, anidbid, int(episode.split('-')[0])))
     if int(episode.split('-')[0])> int(offset):  return '1', str(int(episode.split('-')[0])-int(offset)), anidbid   #Lvl 1 - defaulttvdbseason + offset
   
   # <anime anidbid="23" tvdbid="76885" defaulttvdbseason="1" episodeoffset="" tmdbid="" imdbid="">
-  defaulttvdbseason = Dict(mappingList, 'defaulttvdbseason')
-  episodeoffset     = Dict(mappingList, 'episodeoffset')
-  if season==defaulttvdbseason and not Dict(mappingList, 's1e1_mapped'):
+  defaulttvdbseason, episodeoffset, s1e1_mapped = Dict(mappingList, 'defaulttvdbseason'), Dict(mappingList, 'episodeoffset'), Dict(mappingList, 's1e1_mapped')
+  if debug:  Log.Info('[?] (#4) defaulttvdbseason: {}, episodeoffset: {}, s1e1_mapped: {}'.format(defaulttvdbseason, episodeoffset, s1e1_mapped))
+  if season==defaulttvdbseason and not s1e1_mapped:
     return '1', str(int(episode)-int(episodeoffset)), ''
   
   # Map season 0 episodes directly to tvdb season 0 episodes
   # On condition of being the only anidb id mapped to the tvdbid, its set to season 1, and has no special mappings
-  if season=="0" and Dict(mappingList, 'tvdbcount', default=0)==1 and Dict(mappingList, 'TVDB', 's1'): # Confirm only one entry and its 's1'
+  tvdbcount, s1_mapping = Dict(mappingList, 'tvdbcount', default=0), Dict(mappingList, 'TVDB', 's1')
+  if debug:  Log.Info('[?] (#5) defaulttvdbseason: {}, episodeoffset: {}, s1e1_mapped: {}'.format(defaulttvdbseason, episodeoffset, s1e1_mapped))
+  if season=="0" and tvdbcount==1 and s1_mapping: # Confirm only one entry and its 's1'
     for item in Dict(mappingList, 'TVDB'): # Also that there are no s0 mappings
-      if item.startswith("s0"):  break
+      if item.startswith("s0"):
+        if debug:  Log.Info('[?] (#5) Found: {}'.format(item))
+        break
     else:  return season, episode, list(Dict(mappingList, 'TVDB', 's1').keys())[0]
   
   return '0', '0', 'xxxxxxx'
