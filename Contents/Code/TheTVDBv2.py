@@ -130,24 +130,21 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       # Get the max season number from TVDB API
       if int(season) > max_season:  max_season = int(season)
       
-      ### ep translation
+      ### ep translation [Thetvdb absolute numbering followed, including in specials to stay accurate with scudlee's mapping]
       anidbid=""
       abs_number = Dict(episode_json, 'absoluteNumber', default=0 if season=='0' else abs_number+1)
       if anidb_numbering:
         if Dict(mappingList, 'defaulttvdbseason_a'):  season, episode          = '1', str(abs_number)
         else:                                         season, episode, anidbid = anidb_ep(mappingList, season, episode)
-      elif metadata_source=='tvdb3':  
-        episode             = str(abs_number)
-      elif metadata_source=='tvdb4':  
-        ms, usl                         = Dict(mappingList, 'absolute_map', 'max_season'), Dict(mappingList, 'absolute_map', 'unknown_series_length')
-        if ms and usl:  season, episode = Dict(mappingList, 'absolute_map', str(abs_number), default=(ms if usl else str(int(ms)+1), None))[0], str(abs_number)
-        if season not in media.seasons or episode not in media.seasons[season].episodes:  #tvdb4 with custom season folder mapping
+      elif metadata_source in ('tvdb3', 'tvdb4'):  
+        if str(abs_number) in list_abs_eps:  #if abs id exists on disk, leave specials with no translation
           for s in media.seasons:
-            if str(abs_number) in media.seasons[s].episodes:  #if str(abs_number) in list_abs_eps
+            if str(abs_number) in media.seasons[s].episodes:
               season, episode = s, str(abs_number)
-              break      
+              break
+          else:  continue
       elif metadata_source=='tvdb5':  
-        episode, abs_number = str(Dict(episode_json, 'absoluteNumber') or abs_number), int(Dict(episode_json, 'absoluteNumber') or abs_number)
+        episode = str(abs_number)
       
       # Record absolute number mapping for AniDB metadata pull
       if metadata_source=='tvdb3':  SaveDict((str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber'))), mappingList, 'absolute_map', str(abs_number))
