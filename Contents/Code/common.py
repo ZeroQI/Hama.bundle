@@ -316,14 +316,15 @@ def SaveFile(filename="", file="", relativeDirectory=""):
   except Exception as e:  Log.Debug("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}', file: '{file}'".format(exception=e, relativeFilename=relativeFilename, file=file))
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
 
-#def startswithlist(string, list, case_incensitive=False):
-#  for item in list:
-#    if string.startswith(item) or case_incensitive and string.lowercase().startswith(item.lowercase()):  return True
+def decompress(file):
+  try:
+    while True:  file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()  # AniDB: try to decompress
+  except:  pass
+  return file
 
 # Return string or object if appropriate
 def ObjectFromFile (file=""):
-  try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()  # AniDB: try to decompress again incase still compressed 
-  except:  pass
+  file = decompress(file)
    
   #TEXT file
   if isinstance(file, basestring):
@@ -399,13 +400,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
 
       # AniDB: safeguard if netLock does not work as expected
       if 'anidb.net' in url:  #url.startswith('http://api.anidb.net:9001'), url.startswith('http://anidb.net'):
-        if url.endswith("anime-titles.xml.gz"):
-          try:
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress
-            Log.Root('decompressed first pass')
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again in case it was double compressed 
-            Log.Root('decompressed second pass')
-          except:  pass
+        if url.endswith("anime-titles.xml.gz"):  file_downloaded = decompress(file_downloaded)
         time.sleep(6)  #Sleeping after call completion to prevent ban
         netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
 
