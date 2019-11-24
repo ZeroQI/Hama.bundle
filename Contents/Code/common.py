@@ -307,9 +307,13 @@ def SaveFile(filename="", file="", relativeDirectory=""):
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
 
 def decompress(file):
+  times = 0
   try:
-    while True:  file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()  # AniDB: try to decompress
+    while True:
+      file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()
+      times += 1
   except:  pass
+  if times > 0:  Log.Root("Decompression times: {}".format(times))
   return file
 
 # Return string or object if appropriate
