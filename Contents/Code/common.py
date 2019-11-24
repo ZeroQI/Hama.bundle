@@ -56,7 +56,7 @@ def GetPlexLibraries():
 
 ### Get media directory ###
 def GetMediaDir(media, movie, file=False):
-  if movie:  return os.path.dirname(media.items[0].parts[0].file)
+  if movie:  return media.items[0].parts[0].file if file else os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons if media else []: # TV_Show:
       for e in media.seasons[s].episodes:
