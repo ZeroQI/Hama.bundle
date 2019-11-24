@@ -68,8 +68,9 @@ def GetLibraryRootPath(dir, repull_libraries=True):
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
     if root in PLEX_LIBRARY:  roots_found.append(root)
   if len(roots_found) > 0:
-    library = PLEX_LIBRARY[max(roots_found)]
-    path    = os.path.relpath(dir, max(roots_found))
+    root    = max(roots_found)
+    library = PLEX_LIBRARY[root]
+    path    = os.path.relpath(dir, root)
   else:
     if repull_libraries:
       GetPlexLibraries()  # Repull library listings as if a library was created while HAMA was already running, it would not be known
