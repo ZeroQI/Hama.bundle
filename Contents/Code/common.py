@@ -68,29 +68,19 @@ def GetMediaDir(media, movie, file=False):
         return media.seasons[s].episodes[e].items[0].parts[0].file if file else os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
 
 ### Get media root folder ###
-def GetLibraryRootPath(dir):
-  library, root, path = '', '', ''
+def GetLibraryRootPath(dir, repull_libraries=True):
+  roots_found, library, root, path = [], '', '', ''
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
-    if root in PLEX_LIBRARY:
-      library = PLEX_LIBRARY[root]
-      path    = os.path.relpath(dir, root)
-      break
-  else:  #401 no right to list libraries (windows)
-    Log.Info('[!] Library access denied')
-    filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
-    if os.path.isfile(filename):
-      Log.Info('[!] ASS root scanner file present: "{}"'.format(filename))
-      try:
-        with open(filename, 'r', -1, 'utf-8') as file:  line=file.read()
-      except Exception as e:  line='';  Log.Info('Exception: "{}"'.format(e))
-      
-      for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-        if "root: '{}'".format(root) in line:
-          path = os.path.relpath(dir, root).rstrip('.')
-          break
-        Log.Info('[!] root not found: "{}"'.format(root))
-      else: path, root = '_unknown_folder', ''
-    else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
+    if root in PLEX_LIBRARY:  roots_found.append(root)
+  if len(roots_found) > 0:
+    library = PLEX_LIBRARY[max(roots_found)]
+    path    = os.path.relpath(dir, max(roots_found))
+  else:
+    if repull_libraries:
+      GetPlexLibraries()  # Repull library listings as if a library was created while HAMA was already running, it would not be known
+      library, root, path = GetLibraryRootPath(dir, repull_libraries=False)  # Try again but don't repull libraries as it will get stuck in an infinite loop
+    else:
+      path, root = '_unknown_folder', ''
   return library, root, path
 
 ### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
