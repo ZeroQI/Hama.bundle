@@ -22,8 +22,7 @@ import Local             # Functions: GetMetadata                               
 import re
 import os
 import datetime
-from io import open
-      
+
 ### Variables ###
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######

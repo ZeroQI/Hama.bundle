@@ -8,7 +8,6 @@ import time
 import re
 from common     import GetXml, SaveDict, UpdateDict, Dict, natural_sort_key, Log, DictString
 from AnimeLists import tvdb_ep, anidb_ep
-#import re, unicodedata, hashlib, types
 #from collections import defaultdict
 
 ### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'

@@ -10,13 +10,8 @@ import logging                #
 import datetime               # datetime.now
 import ssl, urllib2           # urlopen
 import unicodedata            #
-import logging                #
-import StringIO, gzip
-from io     import open       # open
+import StringIO, gzip         #
 from string import maketrans  # maketrans
-from lxml   import etree      # fromstring
-#try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
-#except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
 import threading              #local,
 tlocal = threading.local()
 #Log.Info('tlocal: {}'.format(dir(tlocal)))
