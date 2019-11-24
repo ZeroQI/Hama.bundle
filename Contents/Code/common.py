@@ -374,17 +374,20 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
     elif url.startswith('https://api.thetvdb.com'):
+      headers = UpdateDict(headers, HEADERS_TVDB)
       if 'Authorization' in HEADERS_TVDB:
-        try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
+        try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content  # Normal loading, already Authentified
         except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
       if not file_downloaded:
-        try:                    HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
+        try:
+          HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers=headers, cacheTime=0).content)['token']
+          headers = UpdateDict(headers, HEADERS_TVDB)
         except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
-        else:                   Log.Root('TheTVDB - URL {}, headers: {}, HEADERS_TVDB: {}'.format(url, headers, HEADERS_TVDB))
+        else:                   Log.Root('TheTVDB - URL {}, headers: {}'.format(url, headers))
 
     # Download URL to memory, Plex cache to 1 day
     if not file_downloaded:
-      try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB if url.startswith('https://api.thetvdb.com') else HEADERS_CORE), timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       except Exception as e:  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
       else:                   Log.Root("Downloaded URL '{}'".format(url))
 
