@@ -333,7 +333,7 @@ def Search(results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Sea
   TVDB_SERIE_SEARCH = 'http://thetvdb.com/api/GetSeries.php?seriesname='
   orig_title = ( media.title if movie else media.show )
   maxi = 0
-  try:                    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), cacheTime=CACHE_1HOUR * 24)
+  try:                    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + orig_title.replace(" ", "%20"), headers=common.HEADERS_CORE, cacheTime=CACHE_1HOUR * 24)
   except Exception as e:  Log.Error("TVDB Loading search XML failed, Exception: '%s'" % e)
   else:
     for serie in TVDBsearchXml.xpath('Series'):

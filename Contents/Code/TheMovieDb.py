@@ -82,7 +82,7 @@ def Search(results, media, lang, manual, movie):
   maxi = 0
   
   Log.Info("TMDB  - url: " + TMDB_MOVIE_SEARCH.format(orig_title))
-  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH.format(orig_title), sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2)
+  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH.format(orig_title), sleep=2.0, headers=common.HEADERS_CORE, cacheTime=CACHE_1WEEK * 2)
   except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %( TMDB_MOVIE_SEARCH % orig_title, e)) # json   = common.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
   else:
     if isinstance(json, dict) and 'results' in json:
