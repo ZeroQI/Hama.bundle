@@ -52,7 +52,7 @@ def GetPlexLibraries():
       for location in directory:
         if directory.get("agent") == "com.plexapp.agents.hama":  PLEX_LIBRARY[location.get("path")] = directory.get("title")  # Only pull libraries that use HAMA to prevent miss identification
         Log.Root('[{}] id: {:>2}, type: {:<6}, agent: {:<30}, scanner: {:<30}, library: {:<24}, path: {}'.format('x' if directory.get("agent") == "com.plexapp.agents.hama" else ' ', directory.get("key"), directory.get('type'), directory.get("agent"), directory.get("scanner"), directory.get('title'), location.get("path")))
-  except Exception as e:  Log.Info("PLEX_LIBRARY_URL - Exception: '{}'".format(e));  library_key, library_path, library_name = '', '', ''
+  except Exception as e:  Log.Root("PLEX_LIBRARY_URL - Exception: '{}'".format(e))
 
 ### Get media directory ###
 def GetMediaDir(media, movie, file=False):
@@ -312,7 +312,7 @@ def decompress(file):
   return file
 
 # Return string or object if appropriate
-def ObjectFromFile (file=""):
+def ObjectFromFile(file=""):
   file = decompress(file)
    
   #TEXT file
