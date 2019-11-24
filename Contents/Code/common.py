@@ -223,18 +223,6 @@ def SaveDict(value, var, *arg):
 ### import var 2 dict into var and returns it
 def UpdateDict(var, var2):  var.update(var2);  return var
 
-### return dict of fields containing their max length ###
-def DisplayDictLen(items={}, fields=[]):  
-  len_fields = {}
-  for item in items or []:
-    for field in fields:  len_fields[field] = max(len(Dict(item, field)), Dict(len_fields, field, default = 0))
-  return len_fields
-  
-### Display alligned dict entries ###
-def DisplayDict(items={}, fields=[]):
-  len_fields = DisplayDictLen(items, fields)
-  for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
-
 def DictString(input_value, max_depth, initial_indent=0, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
