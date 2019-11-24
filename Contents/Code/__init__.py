@@ -73,6 +73,7 @@ def Start():
   #HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
   HTTP.CacheTime = CACHE_1MINUTE*30
   ValidatePrefs()
+  common.GetPlexLibraries()
   # Load core files
   AnimeLists.GetAniDBTVDBMap()
   AnimeLists.GetAniDBMovieSets()

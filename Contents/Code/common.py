@@ -48,18 +48,19 @@ HEADERS_TVDB      = {}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-try:
-  library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, timeout=float(30))
-  Log.Info('Libraries: ')
-  for directory in library_xml.iterchildren('Directory'):
-    for location in directory:
-      Log.Info('[{}] id: {:>2}, type: {:>6}, library: {:<24}, path: {}'.format(' ', directory.get("key"), directory.get('type'), directory.get('title'), location.get("path")))
-      PLEX_LIBRARY[location.get("path")] = directory.get("title")
-      #library_key, library_path, library_name = directory.get("key"), location.get("path"), directory.get('title')
-except Exception as e:  Log.Info("PLEX_LIBRARY_URL - Exception: '{}'".format(e));  library_key, library_path, library_name = '', '', ''
+def GetPlexLibraries():
+  try:
+    library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30))
+    PLEX_LIBRARY.clear()
+    Log.Root('Libraries: ')
+    for directory in library_xml.iterchildren('Directory'):
+      for location in directory:
+        if directory.get("agent") == "com.plexapp.agents.hama":  PLEX_LIBRARY[location.get("path")] = directory.get("title")  # Only pull libraries that use HAMA to prevent miss identification
+        Log.Root('[{}] id: {:>2}, type: {:<6}, agent: {:<30}, scanner: {:<30}, library: {:<24}, path: {}'.format('x' if directory.get("agent") == "com.plexapp.agents.hama" else ' ', directory.get("key"), directory.get('type'), directory.get("agent"), directory.get("scanner"), directory.get('title'), location.get("path")))
+  except Exception as e:  Log.Info("PLEX_LIBRARY_URL - Exception: '{}'".format(e));  library_key, library_path, library_name = '', '', ''
 
 ### Get media directory ###
-def GetMediaDir (media, movie, file=False):
+def GetMediaDir(media, movie, file=False):
   if movie:  return os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons if media else []: # TV_Show:
