@@ -520,20 +520,24 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict
   Log.Info("tvdb4 mode")
 
+  def find_tvdb4_file(file_to_find)
+    try:
+      folder = GetMediaDir(media, movie)
+      while folder and folder[-1] not in ["/", "\\"]:
+        filename = os.path.join(folder, file_to_find)
+        if os.path.exists(filename):
+          try:     return XML.ElementFromString(Core.storage.load(os.path.realpath(filename)))
+          except:  return Core.storage.load(os.path.realpath(filename))
+        folder = os.path.dirname(folder)
+      else: Log.Info("No '{}' file detected locally".format(file_to_find))
+    except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+    return ""
+
   Log.Info("--- tvdb4.mapping.xml ---".ljust(157, '-'))
-  try:
-    s      = media.seasons.keys()[0]
-    e      = media.seasons[s].episodes.keys()[0]
-    folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
-    while folder and not folder.endswith("/") and not folder.endswith("\\"):
-      filename = os.path.join(folder, "tvdb4.mapping")
-      if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
-      folder = os.path.dirname(folder)
-    else: Log.Info("No 'tvdb4.mapping' file detected locally")
-  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+  TVDB4_mapping = find_tvdb4_file("tvdb4.mapping")
   
   if TVDB4_mapping: Log.Debug("'tvdb4.mapping' file detected locally")
-  else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache=CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
   else:
@@ -547,19 +551,10 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       SaveDict(str(int(season[0])), mappingList, 'absolute_map', 'max_season')
 
   Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
-  try:
-    s      = media.seasons.keys()[0]
-    e      = media.seasons[s].episodes.keys()[0]
-    folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
-    while folder and not folder.endswith("/") and not folder.endswith("\\"):
-      filename = os.path.join(folder, os.path.basename(TVDB4_POSTERS_URL))
-      if os.path.exists(filename):  TVDB4_xml = XML.ElementFromString( Core.storage.load(os.path.realpath(filename)) );  break
-      folder = os.path.dirname(folder)
-    else: Log.Info("No 'tvdb4.posters.xml' file detected locally")
-  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
+  TVDB4_xml = find_tvdb4_file(os.path.basename(TVDB4_POSTERS_URL))
   
   if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
-  else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache=CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if TVDB4_xml:
     seasonposternum = 0
     entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
