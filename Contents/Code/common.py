@@ -520,14 +520,15 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict
   Log.Info("tvdb4 mode")
 
-  def find_tvdb4_file(file_to_find)
+  def find_tvdb4_file(file_to_find):
     try:
       folder = GetMediaDir(media, movie)
       while folder and folder[-1] not in ["/", "\\"]:
         filename = os.path.join(folder, file_to_find)
         if os.path.exists(filename):
-          try:     return XML.ElementFromString(Core.storage.load(os.path.realpath(filename)))
-          except:  return Core.storage.load(os.path.realpath(filename))
+          file = Core.storage.load(os.path.realpath(filename))
+          try:     return XML.ElementFromString(file)
+          except:  return file
         folder = os.path.dirname(folder)
       else: Log.Info("No '{}' file detected locally".format(file_to_find))
     except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
