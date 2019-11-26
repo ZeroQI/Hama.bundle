@@ -334,7 +334,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
 
   # Load from disk if present
-  file, file_age, ended, file_downloaded, file_object = None, None, None, None, None
+  file, file_age, file_downloaded, file_object = None, None, None, None
   if Data.Exists(relativeFilename):
     try:     file = Data.Load(relativeFilename)
     except:  Log.Debug("common.LoadFile() - File cache locally but failed loading - file: {}".format(relativeFilename))
@@ -343,15 +343,19 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if file_object:  
         # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
-        if url.startswith('http://api.anidb.net'   ):  Ended = Dict(file_object, 'enddate', False)           #tag endate present or not
-        if url.startswith('https://api.thetvdb.com'):  Ended = Dict(file_object, 'data', 'status')=="Ended"  #"status":"Continuing"|"Ended"
-        Log.Debug("common.LoadFile() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age}', Ended: {ended}".format(url=url, file=relativeFilename, age=file_age, ended=ended))
+        if url.startswith('http://api.anidb.net'):  # Override requested file cache age based on series end date
+          enddate = datetime.datetime.strptime(GetXml(file_object, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d"), '%Y-%m-%d')
+          days_old = (datetime.datetime.now() - enddate).days
+          if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago = 1 year cache
+          elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago = 3 month cache
+          elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
+        Log.Debug("common.LoadFile() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days'".format(url=url, file=relativeFilename, age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
       else:
         Log.Info('LoadFile() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
         Data.Remove(relativeFilename) #DELETE CACHE AS CORRUPTED
   
-  #File cache older than 6 days or a year if ended or a day if in progress (or ep aired and no title)
-  if not file or file_age > cache if ended==None else CACHE_1DAY*364 if ended else CACHE_1DAY*0.9: #last ep aired no title bolean improvement 'or lastEpAiredNoTitle'?
+  #File not cached OR cache older than passed cache age / adjusted AniDB age
+  if not file or file_age > cache:
     netLock.acquire()
 
     # AniDB: safeguard if netLock does not work as expected
