@@ -18,6 +18,8 @@ import Plex              # Functions: GetMetadata                               
 import TVTunes           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
 #import MyAnimeList       # Functions: GetMetadata                                                Variables: None
+import anidb34
+import tvdb4
 
 import re
 import os
@@ -131,7 +133,7 @@ def Update(metadata, media, lang, force, movie):
   #   mappingList['relations_map']: AniDB->AdjustMapping
   #   mappingList['absolute_map']:  common->TheTVDBv2->AniDB
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id)
-  dict_tvdb4                                                    =      common.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
+  dict_tvdb4                                                    =       tvdb4.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
   dict_TheTVDB,                             IMDbid              =   TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)
@@ -141,7 +143,7 @@ def Update(metadata, media, lang, force, movie):
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
   #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
   dict_Local                                                    =       Local.GetMetadata(media, movie)
-  if common.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
+  if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   Log.Info('=== Update() ==='.ljust(157, '='))
   Log.Info("AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
