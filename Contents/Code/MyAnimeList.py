@@ -3,17 +3,19 @@
 # API xml exemple:  http://fribbtastic-api.net/fribbtastic-api/services/anime?id=33487
 
 ### Imports ###
-import common
-from common import GetXml, SaveDict, Log, DictString
+# Python Modules #
 import os
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
 
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
+### Variables ###
+MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
+MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
 
 ### Functions ###
 def GetMetadata(movie, MALid):
   Log.Info("=== MyAnimeList.GetMetadata() ===".ljust(157, '='))
-  MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
-  MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
   MyAnimeList_dict = {}
 
   Log.Info("MALid: '%s'" % MALid)
