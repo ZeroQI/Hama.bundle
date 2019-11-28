@@ -5,33 +5,39 @@
 #TMDB_SEARCH_BY_IMDBID       = "https://api.TheMovieDb.org/3/find/tt0412142?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id"
 
 ### Imports ###
-import common
-from   common import SaveDict, Dict, Log, DictString
+# Python Modules #
 import os
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
-  
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
+
+### Variables ###
+TMDB_API_KEY                = '7f4a0bd0bd3315bb832e17feda70b5cd'
+TMDB_MOVIE_SEARCH           = 'http://api.tmdb.org/3/search/movie?api_key=%s&query={query}&year=&language=en&include_adult=true' % TMDB_API_KEY
+TMDB_MOVIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/movie/{id}?api_key=%s&append_to_response=releases,credits,trailers,external_ids&language=en' % TMDB_API_KEY  # Work with IMDbid
+TMDB_SERIE_SEARCH_BY_TVDBID = "http://api.TheMovieDb.org/3/find/{id}?api_key=%s&external_source=tvdb_id&append_to_response=releases,credits,trailers,external_ids&language=en" % TMDB_API_KEY
+TMDB_CONFIG_URL             = 'http://api.tmdb.org/3/configuration?api_key=%s' % TMDB_API_KEY
+#TMDB_MOVIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/movie/list?api_key=%s&language=en" % TMDB_API_KEY
+#TMDB_SERIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/tv/list?api_key=%s&language=en" % TMDB_API_KEY
+TMDB_MOVIE_IMAGES_URL       = 'https://api.tmdb.org/3/{mode}/{id}/images?api_key=%s' % TMDB_API_KEY
+
 ### ###
-def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
+def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
   Log.Info("=== TheMovieDb.GetMetadata() ===".ljust(157, '='))
-  TMDB_MOVIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/movie/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&append_to_response=releases,credits,trailers,external_ids&language=en'  #Work with IMDbid
-  TMDB_SERIE_SEARCH_BY_TVDBID = "http://api.TheMovieDb.org/3/find/%s?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=tvdb_id&append_to_response=releases,credits,trailers,external_ids&language=en"
-  TMDB_CONFIG_URL             = 'http://api.tmdb.org/3/configuration?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
-  #TMDB_MOVIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/movie/list?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&language=en-US"
-  #TMDB_SERIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/tv/list?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&language=en-US"
   TheMovieDb_dict = {}
   TSDbid          = ""
   
   Log.Info("TVDBid: '{}', TMDbid: '{}', IMDbid: '{}'".format(TVDBid, TMDbid, IMDbid))
-  if   TMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % TMDbid, "TMDB-"+TMDbid+".json"
-  elif IMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID % IMDbid, "IMDb-"+IMDbid+".json"
-  elif TVDBid.isdigit():  url, filename = TMDB_SERIE_SEARCH_BY_TVDBID % TVDBid, "TVDB-"+TVDBid+".json"
+  if   TMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid), "TMDB-"+TMDbid+".json"
+  elif IMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=IMDbid), "IMDb-"+IMDbid+".json"
+  elif TVDBid.isdigit():  url, filename = TMDB_SERIE_SEARCH_BY_TVDBID.format(id=TVDBid), "TVDB-"+TVDBid+".json"
   else:                   return TheMovieDb_dict, TSDbid, TMDbid, IMDbid
   
   mode        = "movie" if movie else "tv"
   Log.Info(("--- %s ---" % mode).ljust(157, '-'))
   json        = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url,             cache=CACHE_1WEEK)
   config_dict = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache=CACHE_1DAY *30)
-  if not json:  Log.Info("TMDB - url: failed to get json" + TMDB_MOVIE_SEARCH_BY_TMDBID % TMDbid)
+  if not json:  Log.Info("TMDB - url: failed to get json" + TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid))
   else:  
     if   'tv_results'    in json and json['tv_results'   ]:  json, mode = json['tv_results'   ][0], "tv"
     elif 'movie_results' in json and json['movie_results']:  json, mode = json['movie_results'][0], "movie"
@@ -61,7 +67,6 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
   Log.Info("--- pictures.more ---".ljust(157, '-'))
   Log.Info("TMDbid: '{}', TSDbid: '{}', IMDbid: '{}'".format(TMDbid, TSDbid, IMDbid))
   for id in IMDbid.split(',') if ',' in IMDbid else []:
-    TMDB_MOVIE_IMAGES_URL = 'https://api.tmdb.org/3/{mode}/{id}/images?api_key=7f4a0bd0bd3315bb832e17feda70b5cd'
     json                  = common.LoadFile(filename="TMDB-"+(IMDbid or TMDbid)+".json", relativeDirectory="TMDB", url=TMDB_MOVIE_IMAGES_URL.format(id=id, mode=mode), cache=CACHE_1WEEK)
     for index, poster in enumerate(Dict(json, 'posters') or []):
       if Dict(poster, 'file_path'):    Log.Info("[ ] poster: {}" .format(SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), 40, None), TheMovieDb_dict, 'posters', config_dict['images']['base_url'] + 'original' + poster['file_path'])))
@@ -76,14 +81,13 @@ def GetMetadata (media, movie, TVDBid, TMDbid, IMDbid):
 def Search(results, media, lang, manual, movie):
   Log.Info("=== TheMovieDb.Search() ===".ljust(157, '='))
   #'Uchiage Hanabi, Shita kara Miru ka？ Yoko kara Miru ka？ 打ち上げ花火、下から見るか？横から見るか？' Failed with: TypeError: not all arguments converted during string formatting
-  #Fixed with:tmdb_url = TMDB_MOVIE_SEARCH.format(String.Quote(orig_title)) Log.Info("TMDB - url: " + tmdb_url) try: json = JSON.ObjectFromURL(tmdb_url, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2) except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" % (tmdb_url, e) )
-  TMDB_MOVIE_SEARCH = 'http://api.tmdb.org/3/search/movie?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&query={}&year=&language=en&include_adult=true'
+  #Fixed with:tmdb_url = TMDB_MOVIE_SEARCH.format(query=String.Quote(orig_title)) Log.Info("TMDB - url: " + tmdb_url) try: json = JSON.ObjectFromURL(tmdb_url, sleep=2.0, headers={'Accept': 'application/json'}, cacheTime=CACHE_1WEEK * 2) except Exception as e: Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" % (tmdb_url, e) )
   orig_title = String.Quote(media.name if manual and movie else media.title if movie else media.show)
   maxi = 0
   
-  Log.Info("TMDB  - url: " + TMDB_MOVIE_SEARCH.format(orig_title))
-  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH.format(orig_title), sleep=2.0, headers=common.HEADERS_CORE, cacheTime=CACHE_1WEEK * 2)
-  except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %( TMDB_MOVIE_SEARCH % orig_title, e)) # json   = common.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
+  Log.Info("TMDB  - url: " + TMDB_MOVIE_SEARCH.format(query=orig_title))
+  try:                    json = JSON.ObjectFromURL(TMDB_MOVIE_SEARCH.format(query=orig_title), sleep=2.0, headers=common.HEADERS_CORE, cacheTime=CACHE_1WEEK * 2)
+  except Exception as e:  Log.Error("get_json - Error fetching JSON page '%s', Exception: '%s'" %( TMDB_MOVIE_SEARCH.format(query=orig_title), e)) # json   = common.get_json(TMDB_MOVIE_SEARCH % orig_title, cache_time=CACHE_1WEEK * 2)
   else:
     if isinstance(json, dict) and 'results' in json:
       for movie in json['results']:

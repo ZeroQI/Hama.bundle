@@ -1,9 +1,11 @@
 ### tvdb4 ###
 
 ### Imports ###               ### Functions used ###
-import common
-from common import Log, DictString, Dict, SaveDict # Direct import os heavily used functions
+# Python Modules #
 import os
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
 TVDB4_MAPPING_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'
@@ -70,4 +72,3 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
   Log.Info("TVDB4_dict: {}".format(DictString(TVDB4_dict, 4)))
   return TVDB4_dict
-

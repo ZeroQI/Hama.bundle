@@ -1,9 +1,11 @@
 ### anidb34 ###
 
 ### Imports ###               ### Functions used ###
-import common
-from common import Log, DictString, Dict, SaveDict # Direct import os heavily used functions
+# Python Modules #
 import re
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
 
@@ -147,4 +149,3 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("is_modified: {}".format(is_modified))
   return is_modified
-

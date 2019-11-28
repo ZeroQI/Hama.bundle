@@ -3,6 +3,7 @@
 # Usage: "common.GetPosters" = "from common import GetPosters"
 
 ### Imports ###               ### Functions used ###
+# Python Modules #
 import os                     # path.abspath, join, dirname
 import time                   # datetime.datetime.now() 
 import re                     # sub
@@ -15,8 +16,11 @@ from string import maketrans  # maketrans
 import threading              #local,
 tlocal = threading.local()
 #Log.Info('tlocal: {}'.format(dir(tlocal)))
+# HAMA Modules #
+import AniDB
+import TheTVDBv2
 
-### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
+### Variables ###
 PlexRoot          = Core.app_support_path
 if not os.path.isdir(PlexRoot):
   path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',

@@ -4,24 +4,27 @@
 # API xml exemple:  tt0186151  10559  Frequency  http://www.omdbapi.com/?i=tt0186151
 
 ### Imports ###
-import common
-from common import SaveDict, Dict, Log, DictString
+# Python Modules #
 import os
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
+OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i="
 
 ### Functions ###
 def GetMetadata(movie, IMDbid, num=98):  # return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
   Log.Info("=== OMDb.GetMetadata() ===".ljust(157, '='))
-  OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i=".format(api_key=Prefs['OMDbApiKey']) #'
-  OMDb_dict         = {}
+  url       = OMDB_HTTP_API_URL.format(api_key=Prefs['OMDbApiKey']) #'
+  OMDb_dict = {}
 
   if Prefs['OMDbApiKey'] in ('None', '', 'N/A'):  Log.Info("No api key found - Prefs['OMDbApiKey']: '{}'".format(Prefs['OMDbApiKey']));  return OMDb_dict
   
   Log.Info("IMDbid: '%s'" % IMDbid)
   for imdbid_single in IMDbid.split(",") if IMDbid.startswith("tt") else []:
     Log.Info(("--- %s.series ---" % imdbid_single).ljust(157, '-'))
-    json = common.LoadFile(filename=imdbid_single+".json", relativeDirectory=os.path.join('OMDb', 'json'), url=OMDB_HTTP_API_URL + imdbid_single, cache=CACHE_1WEEK)
+    json = common.LoadFile(filename=imdbid_single+".json", relativeDirectory=os.path.join('OMDb', 'json'), url=url + imdbid_single, cache=CACHE_1WEEK)
     if json:
       Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json,'title')     , OMDb_dict, 'title'                  )))
       Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json,'Plot')      , OMDb_dict, 'summary'                )))

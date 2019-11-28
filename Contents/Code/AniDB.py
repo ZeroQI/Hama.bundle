@@ -1,24 +1,33 @@
-# -*- coding: utf-8 -*-
-
 ### AniBD ###
 #http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
 
 ### Imports ###
-import common    # Functions: SaveFile, LoadFile, metadata_download, WriteLogs, cleanse_title, getImagesFromASS
-import os        # Functions: 
-import re        # Functions: re.search, re.match, re.sub, re.IGNORECASE
-import string    # Functions: 
-import datetime  # Functions: 
-import time      # Functions: 
+# Python Modules #
+import os
+import re
+import string
+import datetime
+import time
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
 import AnimeLists
-from common import GetXml, Dict, SaveDict, natural_sort_key, Log, DictString
-  
+
 ### Variables ###
-### Always on variables ###
+ANIDB_PROTOCOL = 'http://'
+
+ANIDB_DOMAIN  = 'anidb.net'
+ANIDB_TITLES  = ANIDB_PROTOCOL + ANIDB_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
 AniDBTitlesDB = None
 
-### Functions ###
+ANIDB_API_DOMAIN    = 'api.anidb.net:9001'
+ANIDB_HTTP_API_URL  = ANIDB_PROTOCOL + ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 
+ANIDB_IMAGE_DOMAIN  = 'img7.anidb.net'
+ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/'                                                        # AniDB picture directory
+ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/thumbs/150/{name}.jpg-thumb.jpg' 
+
+### Functions ###
 def Search(results, media, lang, manual, movie):
   ''' AniDB Search assign an anidbid to a series or movie
   '''
@@ -102,9 +111,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ''' Download metadata to dict_AniDB, ANNid, MALid
   '''
   Log.Info("=== AniDB.GetMetadata() ===".ljust(157, '='))
-  ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
-  ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
-  ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
@@ -178,7 +184,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           rank = 1
           if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
           if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0])
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
@@ -361,7 +367,6 @@ def GetAniDBTitlesDB():
   ''' Get the AniDB title database
   '''
   global AniDBTitlesDB
-  ANIDB_TITLES  = 'http://anidb.net/api/anime-titles.xml.gz'               # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
   AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
 
