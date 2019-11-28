@@ -159,26 +159,26 @@ Log = PlexLog()
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
 def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
 def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
-def LevenshteinRatio(first, second                  ):  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
 def natural_sort_key(s                              ):  return [int(text) if text.isdigit() else text for text in re.split(r'([0-9]+)', str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
 def replaceList     (string, a, b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
-
-### Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
-def ssl_open(url, headers={}, timeout=20):
-  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
-      1. Do not verify certificates. A bit like how older Python versions worked
-         Import ssl and urllib2
-         Use urllib2 with a default ssl context (which does not verify the certificate).
-      Or:
-      2. Set PlexPluginCodePolicy to Elevated in Info.plist
-         Add external Python libraries to your project bundle
-         Import certifi and requests into your Python code
-         Use requests
-  '''
-  headers = UpdateDict(headers, HEADERS_CORE)
-  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1_2), timeout=timeout).read()  
+def LevenshteinRatio(first, second):
+  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
+def LevenshteinDistance(first, second):
+  """ Compute Levenshtein distance
+  """
+  if len(first) > len(second):  first, second = second, first
+  if len(second) == 0: return len(first)
+  first_length    = len(first ) + 1
+  second_length   = len(second) + 1
+  distance_matrix = [[0] * second_length for x in range(first_length)]
+  for i in range(first_length):   distance_matrix[i][0] = i
+  for j in range(second_length):  distance_matrix[0][j] = j
+  for i in xrange(1, first_length):
+    for j in range(1, second_length):
+      distance_matrix[i][j] = min(distance_matrix[i][j-1]+1, distance_matrix[i-1][j]+1, distance_matrix[i-1][j-1] + (1 if first[i-1] != second[j-1] else 0))
+  return distance_matrix[first_length-1][second_length-1]
 
 def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the length of the array or index no errors
@@ -259,6 +259,20 @@ def DictString(input_value, max_depth, initial_indent=0, depth=0):
   # Other options passed on as can't define expansion depth
   #import pprint; pprint.pprint(input_value)
   #import json; return json.dumps(input_value, indent=2, sort_keys=True)
+
+def ssl_open(url, headers={}, timeout=20):
+  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
+      1. Do not verify certificates. A bit like how older Python versions worked
+         Import ssl and urllib2
+         Use urllib2 with a default ssl context (which does not verify the certificate).
+      Or:
+      2. Set PlexPluginCodePolicy to Elevated in Info.plist
+         Add external Python libraries to your project bundle
+         Import certifi and requests into your Python code
+         Use requests
+  '''
+  headers = UpdateDict(headers, HEADERS_CORE)
+  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_SSLv23), timeout=timeout).read()  
 
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data only from the host.
@@ -714,21 +728,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     Log.Info("".ljust(157, '-'))
   global downloaded; downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   
-def LevenshteinDistance(first, second):
-  """ Compute Levenshtein distance
-  """
-  if len(first) > len(second):  first, second = second, first
-  if len(second) == 0: return len(first)
-  first_length    = len(first ) + 1
-  second_length   = len(second) + 1
-  distance_matrix = [[0] * second_length for x in range(first_length)]
-  for i in range(first_length):   distance_matrix[i][0] = i
-  for j in range(second_length):  distance_matrix[0][j] = j
-  for i in xrange(1, first_length):
-    for j in range(1, second_length):
-      distance_matrix[i][j] = min(distance_matrix[i][j-1]+1, distance_matrix[i-1][j]+1, distance_matrix[i-1][j-1] + (1 if first[i-1] != second[j-1] else 0))
-  return distance_matrix[first_length-1][second_length-1]
-
 def SortTitle(title, language="en"):
   """ SortTitle
   """
