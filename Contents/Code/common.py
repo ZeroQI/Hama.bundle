@@ -17,8 +17,13 @@ tlocal = threading.local()
 #Log.Info('tlocal: {}'.format(dir(tlocal)))
 
 ### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
-strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
-PlexRoot          = Core.app_support_path # import inspect                # getfile, currentframeos.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", "..")) #Core.app_support_path
+PlexRoot          = Core.app_support_path
+if not os.path.isdir(PlexRoot):
+  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
+                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
+                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
+  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
 netLock           = Thread.Lock()
@@ -76,13 +81,6 @@ def GetLibraryRootPath(dir, repull_libraries=True):
     else:
       path, root = '_unknown_folder', ''
   return library, root, path
-
-### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
-if not os.path.isdir(PlexRoot):
-  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
-                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
-                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
-  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
 class PlexLog(object):
   ''' Logging class to join scanner and agent logging per serie
