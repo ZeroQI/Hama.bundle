@@ -357,7 +357,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       if file_object:  
         # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
-        if url.startswith('http://api.anidb.net'):  # Override requested file cache age based on series end date
+        if url.startswith(AniDB.ANIDB_API_DOMAIN):  # Override requested file cache age based on series end date
           enddate = datetime.datetime.strptime(GetXml(file_object, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d"), '%Y-%m-%d')
           days_old = (datetime.datetime.now() - enddate).days
           if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago = 1 year cache
@@ -373,20 +373,20 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     netLock.acquire()
 
     # AniDB: safeguard if netLock does not work as expected
-    if url.startswith('http://api.anidb.net:9001'):
+    if url.startswith(AniDB.ANIDB_API_DOMAIN):
       while 'anidb' in netLocked and netLocked['anidb'][0]:
         Log.Root("AniDB - Waiting for lock: 'anidb'"); time.sleep(1)
       netLocked['anidb'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
     
     # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
-    elif url.startswith('https://api.thetvdb.com'):
+    elif url.startswith(TheTVDBv2.TVDB_BASE_URL):
       headers = UpdateDict(headers, HEADERS_TVDB)
       if 'Authorization' in HEADERS_TVDB:
         try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content  # Normal loading, already Authentified
         except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
       if not file_downloaded:
         try:
-          HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers=headers, cacheTime=0).content)['token']
+          HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(TheTVDBv2.TVDB_LOGIN_URL, data=JSON.StringFromObject( {'apikey':TheTVDBv2.TVDB_API_KEY} ), headers=headers, cacheTime=0).content)['token']
           headers = UpdateDict(headers, HEADERS_TVDB)
         except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
         else:                   Log.Root('TheTVDB - URL {}, headers: {}'.format(url, headers))
@@ -398,8 +398,8 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       else:                   Log.Root("Downloaded URL '{}'".format(url))
 
       # AniDB: safeguard if netLock does not work as expected
-      if 'anidb.net' in url:  #url.startswith('http://api.anidb.net:9001'), url.startswith('http://anidb.net'):
-        if url.endswith("anime-titles.xml.gz"):  file_downloaded = decompress(file_downloaded)
+      if AniDB.ANIDB_DOMAIN in url:
+        if url==AniDB.ANIDB_TITLES:  file_downloaded = decompress(file_downloaded)
         time.sleep(6)  #Sleeping after call completion to prevent ban
         netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
 
