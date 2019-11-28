@@ -19,7 +19,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     's1': {'12560': '0'}
     '13950': (0, '')
   """
-  Log.Info("=== common.AdjustMapping() ===".ljust(157, '=')) 
+  Log.Info("=== anidb34.AdjustMapping() ===".ljust(157, '=')) 
   is_modified   = False
   adjustments   = {}
   tvdb6_seasons = {1: 1}

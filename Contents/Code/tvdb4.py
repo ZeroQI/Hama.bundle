@@ -16,7 +16,7 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   """ [tvdb4.mapping.xml] Attempt to get the ASS's episode mapping data
       [tvdb4.posters.xml] Attempt to get the ASS's image data
   """
-  Log.Info('=== common.GetMetadata() ==='.ljust(157, '='))
+  Log.Info('=== tvdb4.GetMetadata() ==='.ljust(157, '='))
   TVDB4_dict, TVDB4_mapping, TVDB4_xml = {}, None, None
 
   if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict

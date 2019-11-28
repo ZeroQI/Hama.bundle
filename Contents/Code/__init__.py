@@ -128,10 +128,10 @@ def Update(metadata, media, lang, force, movie):
   Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   
   # Major meta source hard required orders (ignoring id info):
-  #   mappingList:                  AnimeLists->TheTVDBv2/common/AniDB->AdjustMapping
+  #   mappingList:                  AnimeLists->TheTVDBv2/tvdb4/AniDB->AdjustMapping
   #   mappingList['season_map']:    AnimeLists->TheTVDBv2->AdjustMapping
   #   mappingList['relations_map']: AniDB->AdjustMapping
-  #   mappingList['absolute_map']:  common->TheTVDBv2->AniDB
+  #   mappingList['absolute_map']:  tvdb4->TheTVDBv2->AniDB
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id)
   dict_tvdb4                                                    =       tvdb4.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
   dict_TheTVDB,                             IMDbid              =   TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
