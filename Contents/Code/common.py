@@ -363,11 +363,11 @@ def LoadFileCache(filename="", relativeDirectory=""):
   
   return file_object, file_age
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
   headers = UpdateDict(headers, HEADERS_CORE)
-  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
+  if filename.endswith(".gz"):  filename = filename[:-3] # Remove and '.gz' from the local filename as it will be decompressed at pull
 
   # Load from disk if present
   file_object, file_age = LoadFileCache(filename, relativeDirectory)
@@ -377,14 +377,13 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
   if not file_object or file_age > cache:
     netLock.acquire()
 
-    # AniDB: safeguard if netLock does not work as expected
-    if url.startswith(AniDB.ANIDB_API_DOMAIN):
-      while 'anidb' in netLocked and netLocked['anidb'][0]:
-        Log.Root("AniDB - Waiting for lock: 'anidb'"); time.sleep(1)
-      netLocked['anidb'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
+    # Safeguard if netLock does not work as expected
+    while 'LoadFile' in netLocked and netLocked['LoadFile'][0]:
+      Log.Root("common.LoadFile() - Waiting for lock: 'LoadFile'"); time.sleep(1)
+    netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
     
     # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
-    elif url.startswith(TheTVDBv2.TVDB_BASE_URL):
+    if url.startswith(TheTVDBv2.TVDB_BASE_URL):
       headers = UpdateDict(headers, HEADERS_TVDB)
       if 'Authorization' in HEADERS_TVDB:
         try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content  # Normal loading, already Authentified
@@ -398,15 +397,19 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
 
     # Download URL to memory, Plex cache to 1 day
     if not file_downloaded:
-      try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-      except Exception as e:  Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-      else:                   Log.Root("Downloaded URL '{}'".format(url))
+      try:
+        file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+        if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
+      except Exception as e:
+        Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      else:
+        Log.Root("Downloaded URL '{}'".format(url))
 
-      # AniDB: safeguard if netLock does not work as expected
-      if AniDB.ANIDB_DOMAIN in url:
-        if url==AniDB.ANIDB_TITLES:  file_downloaded = decompress(file_downloaded)
-        time.sleep(6)  #Sleeping after call completion to prevent ban
-        netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
+    # Sleeping after call completion to prevent ban
+    time.sleep(sleep)
+
+    # Safeguard if netLock does not work as expected
+    netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
 
     netLock.release()
     

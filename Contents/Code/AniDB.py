@@ -164,7 +164,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago  = 1 year cache
       elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago   = 3 month cache
       elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
-    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache)
+    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6)
 
     if not xml or isinstance(xml, str):
       if not xml:               SaveDict(True, AniDB_dict, 'Banned')
