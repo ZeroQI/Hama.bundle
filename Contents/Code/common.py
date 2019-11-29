@@ -16,9 +16,6 @@ from string import maketrans  # maketrans
 import threading              #local,
 tlocal = threading.local()
 #Log.Info('tlocal: {}'.format(dir(tlocal)))
-# HAMA Modules #
-import AniDB
-import TheTVDBv2
 
 ### Variables ###
 PlexRoot          = Core.app_support_path
@@ -45,8 +42,7 @@ FieldListSeasons  = ('summary','posters', 'art')  #'summary',
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
-HEADERS_CORE      = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
-HEADERS_TVDB      = {}
+COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -273,7 +269,7 @@ def ssl_open(url, headers={}, timeout=20):
          Import certifi and requests into your Python code
          Use requests
   '''
-  headers = UpdateDict(headers, HEADERS_CORE)
+  headers = UpdateDict(headers, COMMON_HEADERS)
   return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_SSLv23), timeout=timeout).read()  
 
 def GetStatusCode(url):
@@ -366,7 +362,7 @@ def LoadFileCache(filename="", relativeDirectory=""):
 def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
-  headers = UpdateDict(headers, HEADERS_CORE)
+  headers = UpdateDict(headers, COMMON_HEADERS)
   if filename.endswith(".gz"):  filename = filename[:-3] # Remove and '.gz' from the local filename as it will be decompressed at pull
 
   # Load from disk if present
@@ -380,36 +376,22 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # Safeguard if netLock does not work as expected
     while 'LoadFile' in netLocked and netLocked['LoadFile'][0]:
       Log.Root("common.LoadFile() - Waiting for lock: 'LoadFile'"); time.sleep(1)
-    netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
+    netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
     
-    # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
-    if url.startswith(TheTVDBv2.TVDB_BASE_URL):
-      headers = UpdateDict(headers, HEADERS_TVDB)
-      if 'Authorization' in HEADERS_TVDB:
-        try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content  # Normal loading, already Authentified
-        except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
-      if not file_downloaded:
-        try:
-          HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(TheTVDBv2.TVDB_LOGIN_URL, data=JSON.StringFromObject( {'apikey':TheTVDBv2.TVDB_API_KEY} ), headers=headers, cacheTime=0).content)['token']
-          headers = UpdateDict(headers, HEADERS_TVDB)
-        except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
-        else:                   Log.Root('TheTVDB - URL {}, headers: {}'.format(url, headers))
-
     # Download URL to memory, Plex cache to 1 day
-    if not file_downloaded:
-      try:
-        file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-        if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
-      except Exception as e:
-        Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-      else:
-        Log.Root("Downloaded URL '{}'".format(url))
+    try:
+      file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
+    except Exception as e:
+      Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    else:
+      Log.Root("Downloaded URL '{}'".format(url))
 
     # Sleeping after call completion to prevent ban
     time.sleep(sleep)
 
     # Safeguard if netLock does not work as expected
-    netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
+    netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
     netLock.release()
     
