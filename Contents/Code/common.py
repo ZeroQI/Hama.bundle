@@ -339,19 +339,18 @@ def ObjectFromFile(file=""):
   
   return file
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
-  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
+def LoadFileCache(filename="", relativeDirectory=""):
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems (return file_object, file_age)
   '''
-  headers           = UpdateDict(headers, HEADERS_CORE)
   relativeFilename  = os.path.join(relativeDirectory, filename) 
   fullpathFilename  = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
 
   # Load from disk if present
-  file, file_age, file_downloaded, file_object = None, None, None, None
+  file, file_age, file_object = None, None, None
   if Data.Exists(relativeFilename):
     try:     file = Data.Load(relativeFilename)
-    except:  Log.Debug("common.LoadFile() - File cache locally but failed loading - file: {}".format(relativeFilename))
+    except:  Log.Debug("common.LoadFileCache() - File cache locally but failed loading - file: {}".format(relativeFilename))
     else:  
       file_object = ObjectFromFile(file)
       if file_object:  
@@ -363,13 +362,25 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
           if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago = 1 year cache
           elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago = 3 month cache
           elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
-        Log.Debug("common.LoadFile() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days'".format(url=url, file=relativeFilename, age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
+        Log.Debug("common.LoadFileCache() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days'".format(url=url, file=relativeFilename, age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
       else:
-        Log.Info('LoadFile() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
+        Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
         Data.Remove(relativeFilename) #DELETE CACHE AS CORRUPTED
   
+  return file_object, file_age
+
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
+  '''
+  headers = UpdateDict(headers, HEADERS_CORE)
+  if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
+
+  # Load from disk if present
+  file_object, file_age = LoadFileCache(filename, relativeDirectory)
+
   #File not cached OR cache older than passed cache age / adjusted AniDB age
-  if not file or file_age > cache:
+  file_downloaded = None
+  if not file_object or file_age > cache:
     netLock.acquire()
 
     # AniDB: safeguard if netLock does not work as expected
@@ -394,7 +405,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # Download URL to memory, Plex cache to 1 day
     if not file_downloaded:
       try:                    file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-      except Exception as e:  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+      except Exception as e:  Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
       else:                   Log.Root("Downloaded URL '{}'".format(url))
 
       # AniDB: safeguard if netLock does not work as expected
@@ -408,9 +419,9 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
     if file_downloaded:
       file_downloaded_object = ObjectFromFile(file_downloaded)
-      if not file_downloaded_object:                         Log.Info('[!] File received but failed validity, file: "{}"'.format(file_downloaded))
-      elif url.endswith('.xml') and len(file_downloaded)<24: Log.Info('[!] File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
-      elif file_downloaded.startswith("<error"):             Log.Info('[!] Error response received, file: "{}"'.format(file_downloaded))
+      if not file_downloaded_object:                         Log.Error('common.LoadFile() - File received but failed validity, file: "{}"'.format(file_downloaded))
+      elif url.endswith('.xml') and len(file_downloaded)<24: Log.Error('common.LoadFile() - File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
+      elif file_downloaded.startswith("<error"):             Log.Error('common.LoadFile() - Error response received, file: "{}"'.format(file_downloaded))
       else:                                                  SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
   
   return file_object
