@@ -356,12 +356,6 @@ def LoadFileCache(filename="", relativeDirectory=""):
       if file_object:  
         # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
-        if url.startswith(AniDB.ANIDB_API_DOMAIN):  # Override requested file cache age based on series end date
-          enddate = datetime.datetime.strptime(GetXml(file_object, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d"), '%Y-%m-%d')
-          days_old = (datetime.datetime.now() - enddate).days
-          if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago = 1 year cache
-          elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago = 3 month cache
-          elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
         Log.Debug("common.LoadFileCache() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days'".format(url=url, file=relativeFilename, age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
       else:
         Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))

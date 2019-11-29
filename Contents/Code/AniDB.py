@@ -155,7 +155,16 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))
     Log.Info('AniDBid: {}, IsPrimary: {}, url: {}'.format(AniDBid, is_primary_entry, ANIDB_HTTP_API_URL+AniDBid))
     Log.Info(("--- %s.series ---" % AniDBid).ljust(157, '-'))
-    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
+
+    xml = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
+    cache = CACHE_1DAY*6
+    if xml:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
+      enddate = datetime.datetime.strptime(GetXml(xml, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d"), '%Y-%m-%d')
+      days_old = (datetime.datetime.now() - enddate).days
+      if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago  = 1 year cache
+      elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago   = 3 month cache
+      elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
+    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache)
 
     if not xml or isinstance(xml, str):
       if not xml:               SaveDict(True, AniDB_dict, 'Banned')
