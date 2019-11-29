@@ -22,11 +22,11 @@ import TheTVDBv2
 
 ### Variables ###
 PlexRoot          = Core.app_support_path
-if not os.path.isdir(PlexRoot):
-  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
-                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
-                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
-  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+#if not os.path.isdir(PlexRoot):
+#  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
+#                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
+#                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
+#  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
