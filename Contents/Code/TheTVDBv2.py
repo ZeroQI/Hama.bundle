@@ -33,19 +33,28 @@ TVDB_SERIE_SEARCH          = 'http://thetvdb.com/api/GetSeries.php?seriesname='
 #                               'hr': '31', 'hu': '19', 'it': '15', 'ja': '25', 'ko': '32', 'nl': '13', 'no':  '9', 'pl': '18', 'pt': '26',
 #                               'ru': '22', 'sv':  '8', 'tr': '21', 'zh': '27', 'sl': '30'}
 TVDB_HEADERS   = {}
-TVDB_AUTH_TIME = time.time()
+TVDB_AUTH_TIME = None
+netLocked      = {}
 
 ### Functions ###  
 def LoadFileTVDB(id="", filename="", url="", headers={}):
   """ Wrapper around "common.LoadFile()" to remove the need to consistently define arguments 'relativeDirectory'/'cache'/'headers'
   """
+  global TVDB_AUTH_TIME
+
+  while 'LoadFileTVDB' in netLocked and netLocked['LoadFileTVDB'][0]:
+    Log.Root("TheTVDBv2.LoadFileTVDB() - Waiting for lock: 'LoadFileTVDB'"); time.sleep(1)
+  netLocked['LoadFileTVDB'] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
+
   # If no auth or auth is >12hrs old, authenticate from scratch
-  if 'Authorization' not in TVDB_HEADERS or (time.time()-TVDB_AUTH_TIME) > CACHE_1DAY/2:
+  if 'Authorization' not in TVDB_HEADERS or (TVDB_AUTH_TIME and (time.time()-TVDB_AUTH_TIME) > CACHE_1DAY/2):
     try:
       TVDB_HEADERS['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request(TVDB_LOGIN_URL, data=JSON.StringFromObject( {'apikey':TVDB_API_KEY} ), headers=common.UpdateDict(headers, common.COMMON_HEADERS), cacheTime=0).content)['token']
       TVDB_AUTH_TIME = time.time()
-    except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
-    else:                   Log.Root('TheTVDB - URL {}, headers: {}'.format(TVDB_LOGIN_URL, headers))
+    except Exception as e:  Log.Root('TheTVDBv2.LoadFileTVDB() - Authorization Error: {}'.format(e))
+    else:                   Log.Root('TheTVDBv2.LoadFileTVDB() - URL {}, headers: {}'.format(TVDB_LOGIN_URL, headers))
+
+  netLocked['LoadFileTVDB'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
   common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY, headers=common.UpdateDict(headers, TVDB_HEADERS))
 
