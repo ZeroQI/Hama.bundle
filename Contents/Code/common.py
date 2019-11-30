@@ -352,7 +352,6 @@ def LoadFileCache(filename="", relativeDirectory=""):
       if file_object:  
         # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
-        Log.Debug("common.LoadFileCache() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days'".format(url=url, file=relativeFilename, age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
       else:
         Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
         Data.Remove(relativeFilename) #DELETE CACHE AS CORRUPTED
@@ -367,6 +366,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
 
   # Load from disk if present
   file_object, file_age = LoadFileCache(filename, relativeDirectory)
+  if file_object:  Log.Debug("common.LoadFile() - File cached locally - Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days', url: '{url}'".format(url=url, file=os.path.join(relativeDirectory, filename), age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
 
   #File not cached OR cache older than passed cache age / adjusted AniDB age
   file_downloaded = None
