@@ -56,7 +56,7 @@ def LoadFileTVDB(id="", filename="", url="", headers={}):
 
   netLocked['LoadFileTVDB'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
-  common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY, headers=common.UpdateDict(headers, TVDB_HEADERS))
+  return common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY, headers=common.UpdateDict(headers, TVDB_HEADERS))
 
 def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
   ''' TVDB - Load serie JSON
@@ -345,7 +345,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if not Dict(bannerTypes, 'season'):  error_log['TVDB season posters missing'].append("TVDBid: %s | Title: '%s'" % (common.WEB_LINK % (common.TVDB_SERIE_URL + TVDBid, TVDBid), Dict(TheTVDB_dict, 'title')))
           
     Log.Info("--- final summary info ---".ljust(157, '-'))
-    Log.Info("url: '{}', IMDbid: {}, Present episodes: {}, Missing: {}".format(TVDB_SERIES.format(id=TVDBid), IMDbid, ep_count, sorted(episode_missing, key=common.natural_sort_key)))
+    Log.Info("url: '{}', IMDbid: {}, Present episodes: {}, Missing: {}".format(TVDB_SERIES_URL.format(id=TVDBid), IMDbid, ep_count, sorted(episode_missing, key=common.natural_sort_key)))
     
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
