@@ -56,7 +56,7 @@ def LoadFileTVDB(id="", filename="", url="", headers={}):
 
   netLocked['LoadFileTVDB'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
-  return common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY, headers=common.UpdateDict(headers, TVDB_HEADERS))
+  return common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY*6, headers=common.UpdateDict(headers, TVDB_HEADERS))
 
 def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
   ''' TVDB - Load serie JSON

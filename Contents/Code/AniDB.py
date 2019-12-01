@@ -376,7 +376,7 @@ def GetAniDBTitlesDB():
   ''' Get the AniDB title database
   '''
   global AniDBTitlesDB
-  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache=CACHE_1DAY*6)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
 
 def GetAniDBTitle(titles, lang=None, title_sort=False):

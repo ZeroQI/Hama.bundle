@@ -40,7 +40,7 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   TVDB4_mapping = find_tvdb4_file("tvdb4.mapping")
   
   if TVDB4_mapping: Log.Debug("'tvdb4.mapping' file detected locally")
-  else:             TVDB4_mapping = TVDB4_mapping or common.LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache=CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  else:             TVDB4_mapping = TVDB4_mapping or common.LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache=CACHE_1DAY*6)  # AniDB title database loaded once every 2 weeks
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
   else:
@@ -57,7 +57,7 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   TVDB4_xml = find_tvdb4_file(os.path.basename(TVDB4_POSTERS_URL))
   
   if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
-  else:         TVDB4_xml  = TVDB4_xml or common.LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache=CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  else:         TVDB4_xml  = TVDB4_xml or common.LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache=CACHE_1DAY*6)  # AniDB title database loaded once every 2 weeks
   if TVDB4_xml:
     seasonposternum = 0
     entry = common.GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
