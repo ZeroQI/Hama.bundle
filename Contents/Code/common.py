@@ -350,7 +350,6 @@ def LoadFileCache(filename="", relativeDirectory=""):
     else:  
       file_object = ObjectFromFile(file)
       if file_object:  
-        # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
       else:
         Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
