@@ -8,6 +8,7 @@ import re
 import string
 import datetime
 import time
+from lxml import etree
 # HAMA Modules #
 import common
 from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
@@ -28,6 +29,11 @@ ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/'      
 ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/thumbs/150/{name}.jpg-thumb.jpg' 
 
 ### Functions ###
+# Define custom functions to be available in 'xpath' calls
+ns = etree.FunctionNamespace(None)
+ns['lower-case' ] = lambda context, s: s[0].lower()
+ns['clean-title'] = lambda context, s: common.cleanse_title(s)
+
 def Search(results, media, lang, manual, movie):
   ''' AniDB Search assign an anidbid to a series or movie
   '''
