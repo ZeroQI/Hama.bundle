@@ -165,7 +165,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     xml = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
     cache = CACHE_1DAY*6
     if xml:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
-      enddate = datetime.datetime.strptime(GetXml(xml, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d"), '%Y-%m-%d')
+      ed = GetXml(xml, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
+      enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-30".format(ed) if len(ed)==7 else ed, '%Y-%m-%d')
       days_old = (datetime.datetime.now() - enddate).days
       if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago  = 1 year cache
       elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago   = 3 month cache
