@@ -43,6 +43,7 @@ FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', '
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
 COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
+THROTTLE          = {}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -357,7 +358,24 @@ def LoadFileCache(filename="", relativeDirectory=""):
   
   return file_object, file_age
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0):
+def throttle_count(index="", duration=0):
+  if not index or index not in THROTTLE:  return 0
+  now, removed = time.time(), 0
+  # Remove entries older than 1 hour
+  for entry in THROTTLE[index][:]:
+    if entry < now-duration:
+      THROTTLE[index].remove(entry)
+      removed += 1
+    else:  break  # First entry found under duration age so all others will also be under as well
+  if removed:  Log.Root("Throttle '{}' count reduced by '{}'".format(index, removed))
+  return len(THROTTLE[index])
+
+def throttle_add(index=""):
+  if index:
+    if index not in THROTTLE: THROTTLE[index] = []
+    THROTTLE[index].append(time.time())
+
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0, throttle=["", 0, 0]):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
   headers = UpdateDict(headers, COMMON_HEADERS)
@@ -370,11 +388,25 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
   #File not cached OR cache older than passed cache age / adjusted AniDB age
   file_downloaded = None
   if not file_object or file_age > cache:
+    # Check to see if we are at throttle max and needs to be put on hold
+    # Done before lock is aquired to alow other threads to move forward
+    while throttle[0]:  # Only check if throttle index is defined
+      count = throttle_count(throttle[0], throttle[1])
+      if count >= throttle[2]:
+        Log.Root("Throttle max hit {}. Waiting 60 sec for headroom".format(throttle))
+        time.sleep(60)
+      else:  # Add in this pull into the throttle count and continue on
+        throttle_add(throttle[0])
+        Log.Root("Throttle: '{}', Duration: {}, Count: {} of {}".format(throttle[0], throttle[1], count+1, throttle[2]))
+        break
+
+    # Thread lock aquire
     netLock.acquire()
 
     # Safeguard if netLock does not work as expected
     while 'LoadFile' in netLocked and netLocked['LoadFile'][0]:
-      Log.Root("common.LoadFile() - Waiting for lock: 'LoadFile'"); time.sleep(1)
+      Log.Root("Waiting for lock: 'LoadFile'")
+      time.sleep(1)
     netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
     
     # Download URL to memory, Plex cache to 1 day
@@ -392,6 +424,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     # Safeguard if netLock does not work as expected
     netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
+    # Thread lock release
     netLock.release()
     
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
