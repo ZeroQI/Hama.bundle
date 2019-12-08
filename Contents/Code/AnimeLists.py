@@ -208,7 +208,14 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info('             {:>5}          {:>6}'.format(AniDB_winner, TVDB_winner))
   
   SaveDict(Dict(tvdbcounts, TVDB_winner), mappingList, 'tvdbcount')
-  
+
+  if source=="tvdb":
+    for s in media.seasons:
+      for e in media.seasons[s].episodes:
+        if int(e) > 100:  SaveDict(True, mappingList, 'possible_anidb3'); break
+    else:  SaveDict(False, mappingList, 'possible_anidb3')
+  else:  SaveDict(False, mappingList, 'possible_anidb3')
+
   for values in Dict(mappingList, 'TVDB', default={}).values():
     if isinstance(values, tuple) and values[0]=='1' and values[1]=='1':  SaveDict(True, mappingList, 's1e1_mapped'); break
   else:  SaveDict(False, mappingList, 's1e1_mapped')

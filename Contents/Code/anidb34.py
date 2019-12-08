@@ -28,7 +28,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
   season_map    = Dict(mappingList, 'season_map',    default={})
   relations_map = Dict(mappingList, 'relations_map', default={})
   
-  if source not in ['tvdb', 'tvdb6']:  Log.Info("source is neither 'tvdb' nor 'tvdb6'");  return is_modified
+  if not (Dict(mappingList, 'possible_anidb3') or source=='tvdb6'):  Log.Info("Neither a possible 'anidb3/tvdb' enrty nor 'anidb4/tvdb6' entry");  return is_modified
   Log.Info("adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
 
   #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
