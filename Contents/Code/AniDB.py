@@ -168,9 +168,8 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       ed = GetXml(xml, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
       enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
       days_old = (datetime.datetime.now() - enddate).days
-      if   days_old > 730:  cache = CACHE_1DAY*365  # enddate > 2 years ago  = 1 year cache
-      elif days_old > 365:  cache = CACHE_1DAY*90   # enddate > 1 year ago   = 3 month cache
-      elif days_old > 180:  cache = CACHE_1DAY*30   # enddate > 6 months ago = 1 month cache
+      if   days_old > 1825:  cache = CACHE_1DAY*365                  # enddate > 5 years ago = 1 year cache
+      elif days_old >   30:  cache = (days_old*CACHE_1DAY*365)/1825  # enddate > 30 days ago = days_old/2 (days_old/5yrs ended = x/1yrs cache)
     xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6, throttle=['AniDB', CACHE_1HOUR, 100])
 
     if not xml or isinstance(xml, str):
