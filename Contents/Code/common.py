@@ -432,7 +432,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
       file_downloaded_object = ObjectFromFile(file_downloaded)
       if not file_downloaded_object:                         Log.Error('common.LoadFile() - File received but failed validity, file: "{}"'.format(file_downloaded))
       elif url.endswith('.xml') and len(file_downloaded)<24: Log.Error('common.LoadFile() - File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
-      elif file_downloaded.startswith("<error"):             Log.Error('common.LoadFile() - Error response received, file: "{}"'.format(file_downloaded))
+      elif file_downloaded.startswith("<error"):             Log.Error('common.LoadFile() - Error response received, file: "{}"'.format(file_downloaded));  return file_downloaded_object
       else:                                                  SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
   
   return file_object

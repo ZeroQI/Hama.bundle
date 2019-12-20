@@ -28,6 +28,8 @@ ANIDB_IMAGE_DOMAIN  = 'img7.anidb.net'
 ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/'                                                        # AniDB picture directory
 ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/thumbs/150/{name}.jpg-thumb.jpg' 
 
+AniDBBan = False
+
 ### Functions ###
 # Define custom functions to be available in 'xpath' calls
 ns = etree.FunctionNamespace(None)
@@ -162,20 +164,20 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info('AniDBid: {}, IsPrimary: {}, url: {}'.format(AniDBid, is_primary_entry, ANIDB_HTTP_API_URL+AniDBid))
     Log.Info(("--- %s.series ---" % AniDBid).ljust(157, '-'))
 
-    xml = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
-    cache = CACHE_1DAY*6
-    if xml:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
-      ed = GetXml(xml, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
+    xml, cache = None, CACHE_1DAY*6
+    xml_cache  = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
+    if xml_cache:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
+      ed = GetXml(xml_cache, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
       enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
       days_old = (datetime.datetime.now() - enddate).days
-      if   days_old > 1825:  cache = CACHE_1DAY*365                  # enddate > 5 years ago = 1 year cache
-      elif days_old >   30:  cache = (days_old*CACHE_1DAY*365)/1825  # enddate > 30 days ago = days_old/2 (days_old/5yrs ended = x/1yrs cache)
-    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6, throttle=['AniDB', CACHE_1HOUR, 100])
+      if   days_old > 1825:  cache = CACHE_1DAY*365                  # enddate > 5 years ago => 1 year cache
+      elif days_old >   30:  cache = (days_old*CACHE_1DAY*365)/1825  # enddate > 30 days ago => (days_old/5yrs ended = x/1yrs cache)
+    if AniDBBan:  xml = xml_cache  # Ban has been hit in this process' life span (which is transient)
+    else:         xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6, throttle=['AniDB', CACHE_1HOUR, 100])
+    if isinstance(xml, str) and 'banned' in xml:  global AniDBBan; AniDBBan = True  # Set ban hit on process level
+    if AniDBBan:  SaveDict(True, AniDB_dict, 'Banned')                              # Set ban hit on series level
 
     if not xml or isinstance(xml, str):
-      if not xml:               SaveDict(True, AniDB_dict, 'Banned')
-      if isinstance(xml, str):  Log.Error('Invalid str returned: "{}"'.format(xml))
-
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
       if is_primary_entry:
         Log.Info("[ ] title: {}"         .format(SaveDict(title,          AniDB_dict, 'title'         )))
