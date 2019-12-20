@@ -99,8 +99,8 @@ class PlexLog(object):
   def Debug    (self, msg, *args, **kwargs):  self.Logger().debug   (msg,                     *args, **kwargs)
   def Info     (self, msg, *args, **kwargs):  self.Logger().info    (msg,                     *args, **kwargs)
   def Warning  (self, msg, *args, **kwargs):  self.Logger().warning (msg,                     *args, **kwargs)
-  def Error    (self, msg, *args, **kwargs):  self.Logger().error   ("ERROR: {}".format(msg), *args, **kwargs)
-  def Critical (self, msg, *args, **kwargs):  self.Logger().critical(msg,                     *args, **kwargs)
+  def Error    (self, msg, *args, **kwargs):  self.Logger().error   ("ERROR: {}".format(msg), *args, **kwargs); self.Root("ERROR: {}".format(msg))
+  def Critical (self, msg, *args, **kwargs):  self.Logger().critical("FATAL: {}".format(msg), *args, **kwargs); self.Root("FATAL: {}".format(msg))
   def Open     (self, media=None, movie=False, search=False, isAgent=True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
     if not file:  
       library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
