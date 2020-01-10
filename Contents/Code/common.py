@@ -478,6 +478,10 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   Log.Info("=== common.write_logs() ===".ljust(157, '='))
   if  source == 'anidb':  source = 'AniDBid'
   elif source == 'tvdb':  source = 'TVDBid'
+
+  library = GetLibraryRootPath(GetMediaDir(media, movie))[0]
+  for char in list("\\/:*?<>|~;"):
+    if char in library:  library = library.replace(char, '-')
   
   ### File lock ###
   sleep_time_max = 10
@@ -495,7 +499,7 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
     Log.Info("{log:<{width}}: {content}".format(log=log, width=max(map(len, error_log)), content=str(error_log[log])))
     error_log_array    = {}
     log_line_separator = "<br />\r\n"
-    error_log_file     = os.path.join('_Logs', log+'.htm')
+    error_log_file     = os.path.join('_Logs', library+' - '+log+'.htm')
     if Data.Exists(error_log_file):
       for line in Data.Load(error_log_file).split(log_line_separator):
         if "|" in line:  error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
