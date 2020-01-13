@@ -5,25 +5,26 @@
 # - search word pick serie, do levenstein i partially match only (few chars difference)
 
 ### Imports ###
-import common            # Functions: Logging, SaveFile, LoadFile, metadata_download, WriteLogs, cleanse_title, GetMetadata, UpdateMeta, UpdateMetaField
-                         # Functions: GetMeta, natural_sort_key, SaveDict, Dict, GetXml, GetStatusCode
-from common import Dict  #import Simkl       # Functions: GetMetadata, Register                                      Variables: None
-import AnimeLists        # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSet, MergeMaps  Variables: MAPPING_FEEDBACK
-import AniDB             # Functions: GetMetadata, Search, GetAniDBTitlesDB, GetAniDBTitle       Variables: ANIDB_SERIE_URL
-import TheTVDBv2         # Functions: GetMetadata, Search                                        Variables: TVDB_SERIE_URL, TVDB_IMAGES_URL
-import TheMovieDb        # Functions: GetMetadata, Search                                        Variables: None
-import OMDb              # Functions: GetMetadata                                                Variables: None
-import FanartTV          # Functions: GetMetadata                                                Variables: None
-import Plex              # Functions: GetMetadata                                                Variables: None
-import TVTunes           # Functions: GetMetadata                                                Variables: None
-import Local             # Functions: GetMetadata                                                Variables: None
-#import MyAnimeList       # Functions: GetMetadata                                                Variables: None
-
+# Python Modules #
 import re
 import os
 import datetime
-from io import open
-      
+# HAMA Modules #
+import common            # Functions: GetPlexLibraries, write_logs, UpdateMeta                   Variables: PlexRoot, FieldListMovies, FieldListSeries, FieldListEpisodes, DefaultPrefs, SourceList
+from common import Dict
+import AnimeLists        # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSets            Variables: AniDBMovieSets
+import tvdb4             # Functions: GetMetadata                                                Variables: None
+import TheTVDBv2         # Functions: GetMetadata, Search                                        Variables: None
+import AniDB             # Functions: GetMetadata, Search, GetAniDBTitlesDB                      Variables: None
+import TheMovieDb        # Functions: GetMetadata, Search                                        Variables: None
+import FanartTV          # Functions: GetMetadata                                                Variables: None
+import Plex              # Functions: GetMetadata                                                Variables: None
+import TVTunes           # Functions: GetMetadata                                                Variables: None
+import OMDb              # Functions: GetMetadata                                                Variables: None
+#import MyAnimeList       # Functions: GetMetadata                                                Variables: None
+import Local             # Functions: GetMetadata                                                Variables: None
+import anidb34           # Functions: AdjustMapping                                              Variables: None
+
 ### Variables ###
   
 ### Pre-Defined ValidatePrefs function Values in "DefaultPrefs.json", accessible in Settings>Tab:Plex Media Server>Sidebar:Agents>Tab:Movies/TV Shows>Tab:HamaTV #######
@@ -73,6 +74,7 @@ def Start():
   #HTTP.CacheTime = CACHE_1DAY  # in sec: CACHE_1MINUTE, CACHE_1HOUR, CACHE_1DAY, CACHE_1WEEK, CACHE_1MONTH
   HTTP.CacheTime = CACHE_1MINUTE*30
   ValidatePrefs()
+  common.GetPlexLibraries()
   # Load core files
   AnimeLists.GetAniDBTVDBMap()
   AnimeLists.GetAniDBMovieSets()
@@ -126,12 +128,12 @@ def Update(metadata, media, lang, force, movie):
   Log.Info("start: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   
   # Major meta source hard required orders (ignoring id info):
-  #   mappingList:                  AnimeLists->TheTVDBv2/common/AniDB->AdjustMapping
+  #   mappingList:                  AnimeLists->TheTVDBv2/tvdb4/AniDB->AdjustMapping
   #   mappingList['season_map']:    AnimeLists->TheTVDBv2->AdjustMapping
   #   mappingList['relations_map']: AniDB->AdjustMapping
-  #   mappingList['absolute_map']:  common->TheTVDBv2->AniDB
+  #   mappingList['absolute_map']:  tvdb4->TheTVDBv2->AniDB
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id)
-  dict_tvdb4                                                    =      common.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
+  dict_tvdb4                                                    =       tvdb4.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
   dict_TheTVDB,                             IMDbid              =   TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList, Dict(AniDB, 'movie'))
   dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)
@@ -141,7 +143,7 @@ def Update(metadata, media, lang, force, movie):
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
   #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
   dict_Local                                                    =       Local.GetMetadata(media, movie)
-  if common.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
+  if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   Log.Info('=== Update() ==='.ljust(157, '='))
   Log.Info("AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))

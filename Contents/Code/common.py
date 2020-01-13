@@ -3,6 +3,7 @@
 # Usage: "common.GetPosters" = "from common import GetPosters"
 
 ### Imports ###               ### Functions used ###
+# Python Modules #
 import os                     # path.abspath, join, dirname
 import time                   # datetime.datetime.now() 
 import re                     # sub
@@ -10,29 +11,27 @@ import logging                #
 import datetime               # datetime.now
 import ssl, urllib2           # urlopen
 import unicodedata            #
-import logging                #
-import StringIO, gzip
-from io     import open       # open
+import StringIO, gzip         #
 from string import maketrans  # maketrans
-from lxml   import etree      # fromstring
-#try:                 from urllib.request import urlopen # urlopen Python 3.0 and later
-#except ImportError:  from urllib2        import urlopen # urlopen Python 2.x
 import threading              #local,
 tlocal = threading.local()
 #Log.Info('tlocal: {}'.format(dir(tlocal)))
 
-### Variables, accessible in this module (others if 'from common import xxx', or 'import common.py' calling them with 'common.Variable_name' ###
-strptime          = datetime.datetime.strptime #avoid init crash on first use in threaded environment  #dt.strptime(data, "%Y-%m-%d").date()
-PlexRoot          = Core.app_support_path # import inspect                # getfile, currentframeos.path.abspath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())), "..", "..", "..", "..")) #Core.app_support_path
+### Variables ###
+PlexRoot          = Core.app_support_path
+#if not os.path.isdir(PlexRoot):
+#  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
+#                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
+#                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
+#  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
+
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
 netLock           = Thread.Lock()
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
-TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='
-ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='
-TVDB4_MAPPING_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.mapping.xml'
-TVDB4_POSTERS_URL = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/tvdb4.posters.xml'
+TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='                     # Used in error_log generation
+ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='   # Used in error_log generation
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
@@ -43,61 +42,46 @@ FieldListSeasons  = ('summary','posters', 'art')  #'summary',
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
 SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
-HEADERS_CORE      = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
-HEADERS_TVDB      = {}
+COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
+THROTTLE          = {}
 
 ### Plex Library XML ###
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-try:
-  library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, timeout=float(30))
-  Log.Info('Libraries: ')
-  for directory in library_xml.iterchildren('Directory'):
-    for location in directory:
-      Log.Info('[{}] id: {:>2}, type: {:>6}, library: {:<24}, path: {}'.format(' ', directory.get("key"), directory.get('type'), directory.get('title'), location.get("path")))
-      PLEX_LIBRARY[location.get("path")] = directory.get("title")
-      #library_key, library_path, library_name = directory.get("key"), location.get("path"), directory.get('title')
-except Exception as e:  Log.Info("PLEX_LIBRARY_URL - Exception: '{}'".format(e));  library_key, library_path, library_name = '', '', ''
+def GetPlexLibraries():
+  try:
+    library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30))
+    PLEX_LIBRARY.clear()
+    Log.Root('Libraries: ')
+    for directory in library_xml.iterchildren('Directory'):
+      for location in directory:
+        if directory.get("agent") == "com.plexapp.agents.hama":  PLEX_LIBRARY[location.get("path")] = directory.get("title")  # Only pull libraries that use HAMA to prevent miss identification
+        Log.Root('[{}] id: {:>2}, type: {:<6}, agent: {:<30}, scanner: {:<30}, library: {:<24}, path: {}'.format('x' if directory.get("agent") == "com.plexapp.agents.hama" else ' ', directory.get("key"), directory.get('type'), directory.get("agent"), directory.get("scanner"), directory.get('title'), location.get("path")))
+  except Exception as e:  Log.Root("PLEX_LIBRARY_URL - Exception: '{}'".format(e))
 
 ### Get media directory ###
-def GetMediaDir (media, movie, file=False):
-  if movie:  return os.path.dirname(media.items[0].parts[0].file)
+def GetMediaDir(media, movie, file=False):
+  if movie:  return media.items[0].parts[0].file if file else os.path.dirname(media.items[0].parts[0].file)
   else:
     for s in media.seasons if media else []: # TV_Show:
       for e in media.seasons[s].episodes:
         return media.seasons[s].episodes[e].items[0].parts[0].file if file else os.path.dirname(media.seasons[s].episodes[e].items[0].parts[0].file)
 
 ### Get media root folder ###
-def GetLibraryRootPath(dir):
-  library, root, path = '', '', ''
+def GetLibraryRootPath(dir, repull_libraries=True):
+  roots_found, library, root, path = [], '', '', ''
   for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(0, dir.count(os.sep))]:
-    if root in PLEX_LIBRARY:
-      library = PLEX_LIBRARY[root]
-      path    = os.path.relpath(dir, root)
-      break
-  else:  #401 no right to list libraries (windows)
-    Log.Info('[!] Library access denied')
-    filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
-    if os.path.isfile(filename):
-      Log.Info('[!] ASS root scanner file present: "{}"'.format(filename))
-      try:
-        with open(filename, 'r', -1, 'utf-8') as file:  line=file.read()
-      except Exception as e:  line='';  Log.Info('Exception: "{}"'.format(e))
-      
-      for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
-        if "root: '{}'".format(root) in line:
-          path = os.path.relpath(dir, root).rstrip('.')
-          break
-        Log.Info('[!] root not found: "{}"'.format(root))
-      else: path, root = '_unknown_folder', ''
-    else:  Log.Info('[!] ASS root scanner file missing: "{}"'.format(filename))
+    if root in PLEX_LIBRARY:  roots_found.append(root)
+  if len(roots_found) > 0:
+    root    = max(roots_found)
+    library = PLEX_LIBRARY[root]
+    path    = os.path.relpath(dir, root)
+  else:
+    if repull_libraries:
+      GetPlexLibraries()  # Repull library listings as if a library was created while HAMA was already running, it would not be known
+      library, root, path = GetLibraryRootPath(dir, repull_libraries=False)  # Try again but don't repull libraries as it will get stuck in an infinite loop
+    else:
+      path, root = '_unknown_folder', ''
   return library, root, path
-
-### Check config files on boot up then create library variables ###    #platform = xxx if callable(getattr(sys,'platform')) else "" 
-if not os.path.isdir(PlexRoot):
-  path_location = { 'Windows': '%LOCALAPPDATA%\\Plex Media Server',
-                    'MacOSX':  '$HOME/Library/Application Support/Plex Media Server',
-                    'Linux':   '$PLEX_HOME/Library/Application Support/Plex Media Server' }
-  PlexRoot = os.path.expandvars(path_location[Platform.OS.lower()] if Platform.OS.lower() in path_location else '~')  # Platform.OS:  Windows, MacOSX, or Linux
 
 class PlexLog(object):
   ''' Logging class to join scanner and agent logging per serie
@@ -115,8 +99,8 @@ class PlexLog(object):
   def Debug    (self, msg, *args, **kwargs):  self.Logger().debug   (msg,                     *args, **kwargs)
   def Info     (self, msg, *args, **kwargs):  self.Logger().info    (msg,                     *args, **kwargs)
   def Warning  (self, msg, *args, **kwargs):  self.Logger().warning (msg,                     *args, **kwargs)
-  def Error    (self, msg, *args, **kwargs):  self.Logger().error   ("ERROR: {}".format(msg), *args, **kwargs)
-  def Critical (self, msg, *args, **kwargs):  self.Logger().critical(msg,                     *args, **kwargs)
+  def Error    (self, msg, *args, **kwargs):  self.Logger().error   ("ERROR: {}".format(msg), *args, **kwargs); self.Root("ERROR: {}".format(msg))
+  def Critical (self, msg, *args, **kwargs):  self.Logger().critical("FATAL: {}".format(msg), *args, **kwargs); self.Root("FATAL: {}".format(msg))
   def Open     (self, media=None, movie=False, search=False, isAgent=True, log_format='%(message)s', file="", mode='w', maxBytes=4*1024*1024, backupCount=5, encoding=None, delay=False, enable_debug=True):
     if not file:  
       library, root, path = GetLibraryRootPath(GetMediaDir(media, movie))#Get movie or serie episode folder location      
@@ -174,26 +158,26 @@ Log = PlexLog()
 def GetXml          (xml,      field                ):  return xml.xpath(field)[0].text if xml.xpath(field) and xml.xpath(field)[0].text not in (None, '', 'N/A', 'null') else ''  #allow isdigit() checks
 def urlFilename     (url                            ):  return "/".join(url.split('/')[3:])
 def urlDomain       (url                            ):  return "/".join(url.split('/')[:3])
-def LevenshteinRatio(first, second                  ):  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
 def natural_sort_key(s                              ):  return [int(text) if text.isdigit() else text for text in re.split(r'([0-9]+)', str(s).lower())]  # list.sort(key=natural_sort_key) #sorted(list, key=natural_sort_key) - Turn a string into string list of chunks "z23a" -> ["z", 23, "a"]
 def replaceList     (string, a, b, *args):
   for index in a:  string.replace(a[index], b[index], *args)
   return string
-
-### Library in Hama.bundle/Contents/Libraries/Shared) and "import requests"
-def ssl_open(url, headers={}, timeout=20):
-  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
-      1. Do not verify certificates. A bit like how older Python versions worked
-         Import ssl and urllib2
-         Use urllib2 with a default ssl context (which does not verify the certificate).
-      Or:
-      2. Set PlexPluginCodePolicy to Elevated in Info.plist
-         Add external Python libraries to your project bundle
-         Import certifi and requests into your Python code
-         Use requests
-  '''
-  headers = UpdateDict(headers, HEADERS_CORE)
-  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_TLSv1_2), timeout=timeout).read()  
+def LevenshteinRatio(first, second):
+  return 100 - int(100 * LevenshteinDistance(first, second) / float(max(len(first), len(second)))) if len(first)*len(second) else 0
+def LevenshteinDistance(first, second):
+  """ Compute Levenshtein distance
+  """
+  if len(first) > len(second):  first, second = second, first
+  if len(second) == 0: return len(first)
+  first_length    = len(first ) + 1
+  second_length   = len(second) + 1
+  distance_matrix = [[0] * second_length for x in range(first_length)]
+  for i in range(first_length):   distance_matrix[i][0] = i
+  for j in range(second_length):  distance_matrix[0][j] = j
+  for i in xrange(1, first_length):
+    for j in range(1, second_length):
+      distance_matrix[i][j] = min(distance_matrix[i][j-1]+1, distance_matrix[i-1][j]+1, distance_matrix[i-1][j-1] + (1 if first[i-1] != second[j-1] else 0))
+  return distance_matrix[first_length-1][second_length-1]
 
 def IsIndex(var, index):  #Avoid TypeError: argument of type 'NoneType' is not iterable
   """ Return the length of the array or index no errors
@@ -237,18 +221,6 @@ def SaveDict(value, var, *arg):
 ### import var 2 dict into var and returns it
 def UpdateDict(var, var2):  var.update(var2);  return var
 
-### return dict of fields containing their max length ###
-def DisplayDictLen(items={}, fields=[]):  
-  len_fields = {}
-  for item in items or []:
-    for field in fields:  len_fields[field] = max(len(Dict(item, field)), Dict(len_fields, field, default = 0))
-  return len_fields
-  
-### Display alligned dict entries ###
-def DisplayDict(items={}, fields=[]):
-  len_fields = DisplayDictLen(items, fields)
-  for item in items or {}:  Log.Info(''.join([('{}: {:<'+str(Dict(len_fields, field, default='20'))+'}, ').format(field, item[field]) for field in fields]))
-
 def DictString(input_value, max_depth, initial_indent=0, depth=0):
   """ Expand a dict down to 'max_depth' and sort the keys.
       To print it on a single line with this function use (max_depth=0).
@@ -287,6 +259,20 @@ def DictString(input_value, max_depth, initial_indent=0, depth=0):
   #import pprint; pprint.pprint(input_value)
   #import json; return json.dumps(input_value, indent=2, sort_keys=True)
 
+def ssl_open(url, headers={}, timeout=20):
+  ''' SSLV3_ALERT_HANDSHAKE_FAILURE
+      1. Do not verify certificates. A bit like how older Python versions worked
+         Import ssl and urllib2
+         Use urllib2 with a default ssl context (which does not verify the certificate).
+      Or:
+      2. Set PlexPluginCodePolicy to Elevated in Info.plist
+         Add external Python libraries to your project bundle
+         Import certifi and requests into your Python code
+         Use requests
+  '''
+  headers = UpdateDict(headers, COMMON_HEADERS)
+  return urllib2.urlopen(urllib2.Request(url, headers=headers), context=ssl.SSLContext(ssl.PROTOCOL_SSLv23), timeout=timeout).read()  
+
 def GetStatusCode(url):
     """ This function retreives the status code of a website by requesting HEAD data only from the host.
         This means that it only requests the headers. If the host cannot be reached or something else goes wrong, it returns None instead.
@@ -315,14 +301,19 @@ def SaveFile(filename="", file="", relativeDirectory=""):
   except Exception as e:  Log.Debug("common.SaveFile() - Exception: {exception}, relativeFilename: '{relativeFilename}', file: '{file}'".format(exception=e, relativeFilename=relativeFilename, file=file))
   else:                   Log.Info ("common.SaveFile() - CachePath: '{path}', file: '{file}'".format(path=CachePath, file=relativeFilename))
 
-#def startswithlist(string, list, case_incensitive=False):
-#  for item in list:
-#    if string.startswith(item) or case_incensitive and string.lowercase().startswith(item.lowercase()):  return True
+def decompress(file):
+  times = 0
+  try:
+    while True:
+      file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()
+      times += 1
+  except:  pass
+  if times > 0:  Log.Root("Decompression times: {}".format(times))
+  return file
 
 # Return string or object if appropriate
-def ObjectFromFile (file=""):
-  try:     file = gzip.GzipFile(fileobj=StringIO.StringIO(file)).read()  # AniDB: try to decompress again incase still compressed 
-  except:  pass
+def ObjectFromFile(file=""):
+  file = decompress(file)
    
   #TEXT file
   if isinstance(file, basestring):
@@ -345,77 +336,103 @@ def ObjectFromFile (file=""):
   
   return file
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}):  #, data=None):  #By Dingmatt, heavily moded
-  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
+def LoadFileCache(filename="", relativeDirectory=""):
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems (return file_object, file_age)
   '''
-  headers           = UpdateDict(headers, HEADERS_CORE)
   relativeFilename  = os.path.join(relativeDirectory, filename) 
   fullpathFilename  = os.path.abspath(os.path.join(CachePath, relativeDirectory, filename))
   if filename.endswith(".xml.gz"):  filename = filename[:-3] #anidb title database
 
   # Load from disk if present
-  file, file_age, ended, file_downloaded, file_object = None, None, None, None, None
+  file, file_age, file_object = None, None, None
   if Data.Exists(relativeFilename):
     try:     file = Data.Load(relativeFilename)
-    except:  Log.Debug("common.LoadFile() - File cache locally but failed loading - file: {}".format(relativeFilename))
+    except:  Log.Debug("common.LoadFileCache() - File cache locally but failed loading - file: {}".format(relativeFilename))
     else:  
       file_object = ObjectFromFile(file)
       if file_object:  
-        # See if series in progress
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
-        if url.startswith('http://api.anidb.net'   ):  Ended = Dict(file_object, 'enddate', False)           #tag endate present or not
-        if url.startswith('https://api.thetvdb.com'):  Ended = Dict(file_object, 'data', 'status')=="Ended"  #"status":"Continuing"|"Ended"
-        Log.Debug("common.LoadFile() - File cached locally - url: '{url}', Filename: '{file}', Age: '{age}', Ended: {ended}".format(url=url, file=relativeFilename, age=file_age, ended=ended))
       else:
-        Log.Info('LoadFile() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
+        Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
         Data.Remove(relativeFilename) #DELETE CACHE AS CORRUPTED
   
-  #File cache older than 6 days or a year if ended or a day if in progress (or ep aired and no title)
-  if not file or file_age > cache if ended==None else CACHE_1DAY*364 if ended else CACHE_1DAY*0.9: #last ep aired no title bolean improvement 'or lastEpAiredNoTitle'?
+  return file_object, file_age
+
+def throttle_count(index="", duration=0):
+  if not index or index not in THROTTLE:  return 0
+  now, removed = time.time(), 0
+  # Remove entries older than 1 hour
+  for entry in THROTTLE[index][:]:
+    if entry < now-duration:
+      THROTTLE[index].remove(entry)
+      removed += 1
+    else:  break  # First entry found under duration age so all others will also be under as well
+  if removed:  Log.Root("Throttle '{}' count reduced by '{}'".format(index, removed))
+  return len(THROTTLE[index])
+
+def throttle_add(index=""):
+  if index:
+    if index not in THROTTLE: THROTTLE[index] = []
+    THROTTLE[index].append(time.time())
+
+def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0, throttle=["", 0, 0]):
+  ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
+  '''
+  headers = UpdateDict(headers, COMMON_HEADERS)
+  if filename.endswith(".gz"):  filename = filename[:-3] # Remove and '.gz' from the local filename as it will be decompressed at pull
+
+  # Load from disk if present
+  file_object, file_age = LoadFileCache(filename, relativeDirectory)
+  if file_object:  Log.Debug("common.LoadFile() - File cached locally - Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days', url: '{url}'".format(url=url, file=os.path.join(relativeDirectory, filename), age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
+
+  #File not cached OR cache older than passed cache age / adjusted AniDB age
+  file_downloaded = None
+  if not file_object or file_age > cache:
+    # Check to see if we are at throttle max and needs to be put on hold
+    # Done before lock is aquired to alow other threads to move forward
+    while throttle[0]:  # Only check if throttle index is defined
+      count = throttle_count(throttle[0], throttle[1])
+      if count >= throttle[2]:
+        Log.Root("Throttle max hit {}. Waiting 60 sec for headroom".format(throttle))
+        time.sleep(60)
+      else:  # Add in this pull into the throttle count and continue on
+        throttle_add(throttle[0])
+        Log.Root("Throttle: '{}', Duration: {}, Count: {} of {}".format(throttle[0], throttle[1], count+1, throttle[2]))
+        break
+
+    # Thread lock aquire
     netLock.acquire()
 
-    # AniDB: safeguard if netLock does not work as expected
-    if url.startswith('http://api.anidb.net:9001'):
-      while 'anidb' in netLocked and netLocked['anidb'][0]:
-        Log.Root("AniDB - Waiting for lock: 'anidb'"); time.sleep(1)
-      netLocked['anidb'] = (True, int(time.time())) #Log.Root("Lock acquired: 'anidb'")
+    # Safeguard if netLock does not work as expected
+    while 'LoadFile' in netLocked and netLocked['LoadFile'][0]:
+      Log.Root("Waiting for lock: 'LoadFile'")
+      time.sleep(1)
+    netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
     
-    # TheTVDB: if auth present try to download, if no auth or prev failed authenticate from scratch
-    elif url.startswith('https://api.thetvdb.com'):
-      if 'Authorization' in HEADERS_TVDB:
-        try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB), timeout=60, cacheTime=0).content  # Normal loading, already Authentified
-        except Exception as e:  Log.Root("TheTVDB - Authorization expired for URL '{}', Error: {}".format(url, e))
-      if not file_downloaded:
-        try:                    HEADERS_TVDB['Authorization'] = 'Bearer ' + JSON.ObjectFromString(HTTP.Request('https://api.thetvdb.com/login', data=JSON.StringFromObject( {'apikey':'A27AD9BE0DA63333'} ), headers={'Content-type': 'application/json'}).content)['token']
-        except Exception as e:  Log.Root('TheTVDB - Authorization Error: {}'.format(e))
-        else:                   Log.Root('TheTVDB - URL {}, headers: {}, HEADERS_TVDB: {}'.format(url, headers, HEADERS_TVDB))
-
     # Download URL to memory, Plex cache to 1 day
-    if not file_downloaded:
-      try:                    file_downloaded = HTTP.Request(url, headers=UpdateDict(headers, HEADERS_TVDB if url.startswith('https://api.thetvdb.com') else HEADERS_CORE), timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
-      except Exception as e:  Log.Warning("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
-      else:                   Log.Root("Downloaded URL '{}'".format(url))
+    try:
+      file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
+    except Exception as e:
+      Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
+    else:
+      Log.Root("Downloaded URL '{}'".format(url))
 
-      # AniDB: safeguard if netLock does not work as expected
-      if 'anidb.net' in url:  #url.startswith('http://api.anidb.net:9001'), url.startswith('http://anidb.net'):
-        if url.endswith("anime-titles.xml.gz"):
-          try:
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress
-            Log.Root('decompressed first pass')
-            file_downloaded = gzip.GzipFile(fileobj=StringIO.StringIO(file_downloaded)).read()  # AniDB: try to decompress again in case it was double compressed 
-            Log.Root('decompressed second pass')
-          except:  pass
-        time.sleep(6)  #Sleeping after call completion to prevent ban
-        netLocked['anidb'] = (False, 0)  #Log.Root("Lock released: 'anidb'")
+    # Sleeping after call completion to prevent ban
+    time.sleep(sleep)
 
+    # Safeguard if netLock does not work as expected
+    netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
+
+    # Thread lock release
     netLock.release()
     
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
     if file_downloaded:
       file_downloaded_object = ObjectFromFile(file_downloaded)
-      if not file_downloaded_object:                         Log.Info('[!] File received but failed validity, file: "{}"'.format(file_downloaded))
-      elif url.endswith('.xml') and len(file_downloaded)<24: Log.Info('[!] File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
-      elif file_downloaded.startswith("<error"):             Log.Info('[!] Error response received, file: "{}"'.format(file_downloaded))
+      if not file_downloaded_object:                         Log.Error('common.LoadFile() - File received but failed validity, file: "{}"'.format(file_downloaded))
+      elif url.endswith('.xml') and len(file_downloaded)<24: Log.Error('common.LoadFile() - File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
+      elif file_downloaded.startswith("<error"):             Log.Error('common.LoadFile() - Error response received, file: "{}"'.format(file_downloaded));  return file_downloaded_object
       else:                                                  SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
   
   return file_object
@@ -461,6 +478,10 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   Log.Info("=== common.write_logs() ===".ljust(157, '='))
   if  source == 'anidb':  source = 'AniDBid'
   elif source == 'tvdb':  source = 'TVDBid'
+
+  library = GetLibraryRootPath(GetMediaDir(media, movie))[0]
+  for char in list("\\/:*?<>|~;"):
+    if char in library:  library = library.replace(char, '-')
   
   ### File lock ###
   sleep_time_max = 10
@@ -478,7 +499,7 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
     Log.Info("{log:<{width}}: {content}".format(log=log, width=max(map(len, error_log)), content=str(error_log[log])))
     error_log_array    = {}
     log_line_separator = "<br />\r\n"
-    error_log_file     = os.path.join('_Logs', log+'.htm')
+    error_log_file     = os.path.join('_Logs', library+' - '+log+'.htm')
     if Data.Exists(error_log_file):
       for line in Data.Load(error_log_file).split(log_line_separator):
         if "|" in line:  error_log_array[line.split("|", 1)[0].strip()] = line.split("|", 1)[1].strip()
@@ -534,70 +555,6 @@ def Other_Tags(media, movie, status):  # Other_Tags(media, Dict(AniDB_dict, 'sta
         
   return tags
   
-def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
-  """ [tvdb4.posters.xml] Attempt to get the ASS's image data
-  """
-  Log.Info('=== common.GetMetadata() ==='.ljust(157, '='))
-  TVDB4_dict, TVDB4_mapping, TVDB4_xml = {}, None, None
-
-  if movie or not source == "tvdb4":  Log.Info("not tvdb4 mode");  return TVDB4_dict
-  Log.Info("tvdb4 mode")
-
-  Log.Info("--- tvdb4.mapping.xml ---".ljust(157, '-'))
-  try:
-    s      = media.seasons.keys()[0]
-    e      = media.seasons[s].episodes.keys()[0]
-    folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
-    while folder and not folder.endswith("/") and not folder.endswith("\\"):
-      filename = os.path.join(folder, "tvdb4.mapping")
-      if os.path.exists(filename):  TVDB4_mapping = Core.storage.load(os.path.realpath(filename));  break
-      folder = os.path.dirname(folder)
-    else: Log.Info("No 'tvdb4.mapping' file detected locally")
-  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
-  
-  if TVDB4_mapping: Log.Debug("'tvdb4.mapping' file detected locally")
-  else:             TVDB4_mapping = TVDB4_mapping or LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), relativeDirectory="", url=TVDB4_MAPPING_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
-  entry = ""
-  if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
-  else:
-    entry = GetXml(TVDB4_mapping, "/tvdb4entries/anime[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("TVDBid '%s' is not found in mapping file" % TVDBid)
-  if entry:
-    for line in filter(None, entry.strip().splitlines()):
-      season = line.strip().split("|")
-      for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
-      SaveDict(True if "(unknown length)" in season[3] else False, mappingList, 'absolute_map', 'unknown_series_length')
-      SaveDict(str(int(season[0])), mappingList, 'absolute_map', 'max_season')
-
-  Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
-  try:
-    s      = media.seasons.keys()[0]
-    e      = media.seasons[s].episodes.keys()[0]
-    folder = os.path.dirname( media.seasons[ s ].episodes[ e ].items[0].parts[0].file)  #folder = os.path.dirname(media.seasons.itervalues().next().episodes.itervalues().next().items[0].parts[0].file)
-    while folder and not folder.endswith("/") and not folder.endswith("\\"):
-      filename = os.path.join(folder, os.path.basename(TVDB4_POSTERS_URL))
-      if os.path.exists(filename):  TVDB4_xml = XML.ElementFromString( Core.storage.load(os.path.realpath(filename)) );  break
-      folder = os.path.dirname(folder)
-    else: Log.Info("No 'tvdb4.posters.xml' file detected locally")
-  except Exception as e:  Log.Error("Issues in finding setup info as directories have most likely changed post scan into Plex, Exception: '%s'" % e)
-  
-  if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
-  else:         TVDB4_xml  = TVDB4_xml or LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), relativeDirectory="", url=TVDB4_POSTERS_URL, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
-  if TVDB4_xml:
-    seasonposternum = 0
-    entry = GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
-    if not entry:  Log.Error("TVDBid '%s' is not found in posters file" % TVDBid) 
-    for line in filter(None, entry.strip().splitlines()):
-      season, url       = line.strip().split("|",1)
-      season            = season.lstrip("0") if season.lstrip("0") else "0"
-      seasonposternum  += 1
-      SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
-
-  Log.Info("--- return ---".ljust(157, '-'))
-  Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
-  Log.Info("TVDB4_dict: {}".format(DictString(TVDB4_dict, 4)))
-  return TVDB4_dict
-
 ### Update meta field ###
 def UpdateMetaField(metadata_root, metadata, meta_root, fieldList, field, source, movie, source_list):
   if field not in meta_root:  Log.Info('[!] field: "{}" not in meta_root, source: "{}"'.format(field, source));  return
@@ -746,7 +703,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #def addMeta():
     season_posters_list = []
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
-      Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
+      Log.Info(("metadata.seasons[{:>2}]".format(season)).ljust(157, '-'))
       source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
@@ -799,21 +756,6 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     Log.Info("".ljust(157, '-'))
   global downloaded; downloaded = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
   
-def LevenshteinDistance(first, second):
-  """ Compute Levenshtein distance
-  """
-  if len(first) > len(second):  first, second = second, first
-  if len(second) == 0: return len(first)
-  first_length    = len(first ) + 1
-  second_length   = len(second) + 1
-  distance_matrix = [[0] * second_length for x in range(first_length)]
-  for i in range(first_length):   distance_matrix[i][0] = i
-  for j in range(second_length):  distance_matrix[0][j] = j
-  for i in xrange(1, first_length):
-    for j in range(1, second_length):
-      distance_matrix[i][j] = min(distance_matrix[i][j-1]+1, distance_matrix[i-1][j]+1, distance_matrix[i-1][j-1] + (1 if first[i-1] != second[j-1] else 0))
-  return distance_matrix[first_length-1][second_length-1]
-
 def SortTitle(title, language="en"):
   """ SortTitle
   """
@@ -824,143 +766,3 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
-
-def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
-  """ EX:
-  season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
-  relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
-  TVDB Before: {'s1': {'12560': '0'}, 's0': {'13950': '0'}, '13950': (0, '')}
-    's0e5': ('1', '4', '9453')
-    's1': {'12560': '0'}
-    '13950': (0, '')
-  """
-  Log.Info("=== common.AdjustMapping() ===".ljust(157, '=')) 
-  is_modified   = False
-  adjustments   = {}
-  tvdb6_seasons = {1: 1}
-  is_banned     = Dict(dict_AniDB,  'Banned',        default=False)
-  TVDB          = Dict(mappingList, 'TVDB',          default={})
-  season_map    = Dict(mappingList, 'season_map',    default={})
-  relations_map = Dict(mappingList, 'relations_map', default={})
-  
-  if source not in ['tvdb', 'tvdb6']:  Log.Info("source is neither 'tvdb' nor 'tvdb6'");  return is_modified
-  Log.Info("adjusting mapping for 'anidb3/tvdb' & 'anidb4/tvdb6' usage") 
-
-  #Log.Info("dict_TheTVDB: {}".format(dict_TheTVDB))
-  Log.Info("season_map: {}".format(DictString(season_map, 0)))
-  Log.Info("relations_map: {}".format(DictString(relations_map, 1)))
-
-  try:
-    Log.Info("--- tvdb mapping adjustments ---".ljust(157, '-'))
-    Log.Info("TVDB Before: {}".format(DictString(TVDB, 0)))
-    for id in sorted(season_map, key=natural_sort_key):
-      new_season, new_episode = '', ''
-      if id == 'max_season':  continue
-      #### Note: Below must match scanner (variable names are different but logic matches) ####
-      Log.Info("Checking AniDBid: %s" % id)
-      def get_prequel_info(prequel_id):
-        Log.Info("-- get_prequel_info(prequel_id): %s, season min: %s, season max: %s" % (prequel_id, season_map[prequel_id]['min'], season_map[prequel_id]['max']))
-        if source=="tvdb":
-          if season_map[prequel_id]['min'] == 0 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
-            a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
-            if not str(a).isdigit():  return ('', '')
-            return (a, b+100) if a < season_map['max_season'] else (a+1, 0)  # If the prequel is < max season, add 100 to the episode number offset: Else, add it into the next new season at episode 0
-          if season_map[prequel_id]['min'] == 0:                          return ('', '')                              # Root prequel is a special so leave mapping alone as special
-          elif season_map[prequel_id]['max'] < season_map['max_season']:  return (season_map[prequel_id]['max'], 100)  # Root prequel season is < max season so add to the end of the Prequel season
-          else:                                                           return (season_map['max_season']+1, 0)       # Root prequel season is >= max season so add to the season after max
-        if source=="tvdb6":
-          if season_map[prequel_id]['min'] != 1 and 'Prequel' in relations_map[prequel_id] and relations_map[prequel_id]['Prequel'][0] in season_map:
-            a, b = get_prequel_info(relations_map[prequel_id]['Prequel'][0])             # Recurively go down the tree following prequels
-            #Log.Info("%s+%s+%s-%s" % (a,1,season_map[prequel_id]['max'],season_map[prequel_id]['min']))
-            return (a+1+season_map[prequel_id]['max']-season_map[prequel_id]['min'], 0) if str(a).isdigit() else ('', '') # Add 1 to the season number and start at episode 0
-          return (2, 0) if season_map[prequel_id]['min'] == 1 else ('', '')              # Root prequel is season 1 so start counting up. Else was a sequel of specials only so leave mapping alone
-      if source=="tvdb":
-        if season_map[id]['min'] == 0 and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
-          new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to a TVDB season non-0 AniDB prequel 
-      if source=="tvdb6":
-        if 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
-          new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to the TVDB season 1 AniDB prequel 
-
-      if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
-        is_modified = True
-        removed = {}
-        for key in TVDB.keys():
-          if isinstance(TVDB[key], dict)  and id in TVDB[key]:
-            Log.Info("-- Deleted: %s: {'%s': '%s'}" % (key, id, TVDB[key][id]))
-            removed[key] = {id: TVDB[key][id]}
-            del TVDB[key][id]  # Delete season entries for its old anidb non-s0 season entries | 's4': {'11350': '0'}
-          if isinstance(TVDB[key], tuple) and TVDB[key][0] == '1' and TVDB[key][2] == id:
-            Log.Info("-- Deleted: {}: {}".format(key, TVDB[key]))
-            removed[key] = TVDB[key]
-            del TVDB[key]      # Delete episode entries for its old anidb s1 entries           | 's0e5': ('1', '4', '9453')
-        SaveDict(str(new_episode), TVDB, 's'+str(new_season), id)
-        Log.Info("-- Added  : {}: {}".format('s'+str(new_season), {id: str(new_episode)}))
-        
-        adjustments['s'+str(new_season)+'e'+str(new_episode)] = {'deleted': removed, 'added': [str(new_season), str(new_episode)]}
-        tvdb6_seasons[new_season] = season_map[id]['min']  # tvdb6_seasons[New season] = [Old season]
-
-    Log.Info("TVDB After : {}".format(DictString(Dict(mappingList, 'TVDB'), 0)))
-    
-    # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
-    if source=="tvdb6":
-      Log.Info("--- tvdb meta season adjustments ---".ljust(157, '-'))
-      top_season, season, adjustment, new_seasons = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}
-      Log.Info("dict_TheTVDB Seasons Before : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
-      Log.Info("tvdb6_seasons : {}".format(tvdb6_seasons))
-      if "0" in dict_TheTVDB['seasons']:  new_seasons["0"] = dict_TheTVDB['seasons'].pop("0")
-      while season <= top_season:
-        if Dict(tvdb6_seasons, season + adjustment) == 0:
-          Log.Info("-- New TVDB season  '{}'".format(season + adjustment))
-          adjustment += 1
-        else:
-          Log.Info("-- Adjusting season '{}' -> '{}'".format(season, season + adjustment))
-          if str(season) in dict_TheTVDB['seasons']:  new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
-          season += 1
-      SaveDict(new_seasons, dict_TheTVDB, 'seasons')
-      Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
-
-    # Copy in the 'dict_TheTVDB' deleted episode meta into its new added location
-    Log.Info("--- tvdb meta episode adjustments ---".ljust(157, '-'))
-    Log.Info("adjustments: {}".format(DictString(adjustments, 2)))
-    for entry in sorted(adjustments, key=natural_sort_key):
-      # EX: {'s6e0': {'added': ['6', '0'], 'deleted': {'s0e16': ('1', '1', '12909'), 's-1': {'12909': '0'}}}}
-      added_season, added_offset = adjustments[entry]['added']  # 'added': ['6', '0']
-      Log.Info("added_season: '{}', added_offset: '{}'".format(added_season, added_offset))
-      for deleted in sorted(adjustments[entry]['deleted'], key=natural_sort_key):
-        Log.Info("-- deleted: '{}': {}".format(deleted, adjustments[entry]['deleted'][deleted]))
-        if isinstance(adjustments[entry]['deleted'][deleted], dict):
-          deleted_season = deleted[1:]                                         # {-->'s0'<--: {'6463': '0'}}
-          deleted_offset = adjustments[entry]['deleted'][deleted].values()[0]  # {'s0': {'6463': -->'0'<--}}
-          if deleted=='s-1':
-            Log.Info("---- {:<9}: Dead season".format("'%s'" % deleted))
-            continue  # EX: {'s-1': {'12909': '0'}}
-          if deleted!='s0' and added_offset=='0' and deleted_offset=='0':
-            Log.Info("---- {:<9}: Whole season (s1+) was adjusted in previous section".format("'%s'" % deleted))
-            continue  # EX: {'s3e0': 'added': ['3', '0'], 'deleted': {'s2': {'7680': '0'}}} == Adjusting season '2' -> '3'
-          # EX: {'s2e0': 'added': ['2', '0' ], 'deleted': {'s0': {'6463': '0'}}}
-          # EX: {'s1e100': 'added': ['1', '100'], 'deleted': {'s0': {'982': '1'}}}
-          interation = 1
-          Log.Info("---- deleted_season: '{}', deleted_offset: '{}'".format(deleted_season, deleted_offset))
-          while Dict(dict_TheTVDB, 'seasons', deleted_season, 'episodes', str(int(deleted_offset) + interation)):
-            a, b, x = deleted_season, str(int(deleted_offset) + interation), str(int(added_offset) + interation)
-            SaveDict(Dict(dict_TheTVDB, 'seasons', a, 'episodes', b), dict_TheTVDB, 'seasons', added_season, 'episodes', x)
-            Log.Info("---- {:<9}: dict_TheTVDB['seasons']['{}']['episodes']['{}'] => dict_TheTVDB['seasons']['{}']['episodes']['{}']".format("'%s'" % deleted, a, b, added_season, x))
-            interation += 1
-        if isinstance(adjustments[entry]['deleted'][deleted], tuple):
-          a, b = list(filter(None, re.split(r"[se]", deleted)))                        # 's0e16' --> ['0', '16']
-          x = str(int(adjustments[entry]['deleted'][deleted][1]) + int(added_offset))  # ('1', -->'1'<--, '12909')
-          Log.Info("---- {:<9}: dict_TheTVDB['seasons']['{}']['episodes']['{}'] => dict_TheTVDB['seasons']['{}']['episodes']['{}']".format("'%s'" % deleted, a, b, added_season, x))
-          SaveDict(Dict(dict_TheTVDB, 'seasons', a, 'episodes', b), dict_TheTVDB, 'seasons', added_season, 'episodes', x)
-
-  except Exception as e:
-    if is_banned:  Log.Info("Expected exception hit as you were banned from AniDB so you have incomplete data to proceed")
-    else:          Log.Error("Unexpected exception hit")
-    Log.Info('Exception: "{}"'.format(e))
-    Log.Info("If a key error, look at the 'season_map'/'relations_map' info to see why it is missing")
-    if source=="tvdb":   Log.Info("Source is 'tvdb' so metadata will be loaded but it will not be complete for any 'anidb3' end of season additions")
-    if source=="tvdb6":  Log.Info("Source is 'tvdb6' so removing AniDB & TVDB metadata from memory to prevent incorrect data from being loaded"); dict_AniDB.clear(); dict_TheTVDB.clear()
-    is_modified = False
-
-  Log.Info("--- return ---".ljust(157, '-'))
-  Log.Info("is_modified: {}".format(is_modified))
-  return is_modified

@@ -1,27 +1,40 @@
-# -*- coding: utf-8 -*-
-
 ### AniBD ###
 #http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
 
 ### Imports ###
-import common    # Functions: SaveFile, LoadFile, metadata_download, WriteLogs, cleanse_title, getImagesFromASS
-import os        # Functions: 
-import re        # Functions: re.search, re.match, re.sub, re.IGNORECASE
-import string    # Functions: 
-import datetime  # Functions: 
-import time      # Functions: 
+# Python Modules #
+import os
+import re
+import string
+import datetime
+import time
+from lxml import etree
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
 import AnimeLists
-from common import GetXml, Dict, SaveDict, natural_sort_key, Log, DictString
-from lxml   import etree
+
+### Variables ###
+ANIDB_PROTOCOL = 'http://'
+
+ANIDB_DOMAIN  = 'anidb.net'
+ANIDB_TITLES  = ANIDB_PROTOCOL + ANIDB_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
+AniDBTitlesDB = None
+
+ANIDB_API_DOMAIN    = 'api.anidb.net:9001'
+ANIDB_HTTP_API_URL  = ANIDB_PROTOCOL + ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
+
+ANIDB_IMAGE_DOMAIN  = 'img7.anidb.net'
+ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/'                                                        # AniDB picture directory
+ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/pics/anime/thumbs/150/{name}.jpg-thumb.jpg' 
+
+AniDBBan = False
+
+### Functions ###
+# Define custom functions to be available in 'xpath' calls
 ns = etree.FunctionNamespace(None)
 ns['lower-case' ] = lambda context, s: s[0].lower()
 ns['clean-title'] = lambda context, s: common.cleanse_title(s)
-  
-### Variables ###
-### Always on variables ###
-AniDBTitlesDB = None
-
-### Functions ###
 
 def Search(results, media, lang, manual, movie):
   ''' AniDB Search assign an anidbid to a series or movie
@@ -106,9 +119,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   ''' Download metadata to dict_AniDB, ANNid, MALid
   '''
   Log.Info("=== AniDB.GetMetadata() ===".ljust(157, '='))
-  ANIDB_HTTP_API_URL       = 'http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
-  ANIDB_PIC_BASE_URL       = 'http://img7.anidb.net/pics/anime/'                                                                # AniDB picture directory
-  ANIDB_PIC_THUMB_URL      = 'http://img7.anidb.net/pics/anime/thumbs/150/{}.jpg-thumb.jpg' 
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
@@ -131,7 +141,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   elif source.startswith('anidb') and AniDBid != "":  full_array, AniDB_array = [AniDBid], {AniDBid:[]}
   else:                                               full_array, AniDB_array = [], {}
   
-  active_array = full_array if source in ("tvdb", "tvdb4", "tvdb6") else AniDB_array.keys()  # anidb3(tvdb)/anidb4(tvdb6) for full relation_map data | tvdb4 bc the above will not be able to know the AniDBid
+  active_array = full_array if Dict(mappingList, 'possible_anidb3') or source in ("tvdb4", "tvdb6") else AniDB_array.keys()  # anidb3(tvdb)/anidb4(tvdb6) for full relation_map data | tvdb4 bc the above will not be able to know the AniDBid
   Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
   for anidbid in sorted(AniDB_array, key=common.natural_sort_key):
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
@@ -153,12 +163,21 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     Log.Info(("--- %s ---" % AniDBid).ljust(157, '-'))
     Log.Info('AniDBid: {}, IsPrimary: {}, url: {}'.format(AniDBid, is_primary_entry, ANIDB_HTTP_API_URL+AniDBid))
     Log.Info(("--- %s.series ---" % AniDBid).ljust(157, '-'))
-    xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid)  # AniDB title database loaded once every 2 weeks
+
+    xml, cache = None, CACHE_1DAY*6
+    xml_cache  = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
+    if xml_cache:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
+      ed = GetXml(xml_cache, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
+      enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
+      days_old = (datetime.datetime.now() - enddate).days
+      if   days_old > 1825:  cache = CACHE_1DAY*365                  # enddate > 5 years ago => 1 year cache
+      elif days_old >   30:  cache = (days_old*CACHE_1DAY*365)/1825  # enddate > 30 days ago => (days_old/5yrs ended = x/1yrs cache)
+    if AniDBBan:  xml = xml_cache  # Ban has been hit in this process' life span (which is transient)
+    else:         xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6, throttle=['AniDB', CACHE_1HOUR, 100])
+    if isinstance(xml, str) and 'banned' in xml:  global AniDBBan; AniDBBan = True  # Set ban hit on process level
+    if AniDBBan:  SaveDict(True, AniDB_dict, 'Banned')                              # Set ban hit on series level
 
     if not xml or isinstance(xml, str):
-      if not xml:               SaveDict(True, AniDB_dict, 'Banned')
-      if isinstance(xml, str):  Log.Error('Invalid str returned: "{}"'.format(xml))
-
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
       if is_primary_entry:
         Log.Info("[ ] title: {}"         .format(SaveDict(title,          AniDB_dict, 'title'         )))
@@ -182,7 +201,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           rank = 1
           if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
           if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(GetXml(xml, 'picture').split('.')[0])
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
@@ -365,8 +384,7 @@ def GetAniDBTitlesDB():
   ''' Get the AniDB title database
   '''
   global AniDBTitlesDB
-  ANIDB_TITLES  = 'http://anidb.net/api/anime-titles.xml.gz'               # AniDB title database file contain all ids, all languages  #http://bakabt.info/anidb/animetitles.xml
-  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache= CACHE_1DAY * 6)  # AniDB title database loaded once every 2 weeks
+  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache=CACHE_1DAY*6)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
 
 def GetAniDBTitle(titles, lang=None, title_sort=False):

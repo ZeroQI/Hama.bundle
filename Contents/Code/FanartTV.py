@@ -3,24 +3,25 @@
 #http://webservice.fanart.tv/v3/tv/81189?api_key=cfa9dc054d221b8d107f8411cd20b13f
 
 ### Imports ###
+# HAMA Modules #
 import common
-from common import Dict, SaveDict, Dict, Log, DictString
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
+### Variables ###
+FTV_API_KEY        = 'cfa9dc054d221b8d107f8411cd20b13f'
+FTV_API_MOVIES_URL = 'http://webservice.fanart.tv/v3/movies/{id}?api_key=%s' % FTV_API_KEY
+FTV_API_TV_URL     = 'http://webservice.fanart.tv/v3/tv/{id}?api_key=%s' % FTV_API_KEY
 
 ### Functions ###
 def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100):  #Fetch from fanart.tv - Posters Seasons Fanarts Banner
   Log.Info("=== FanartTv.GetMetadata() ===".ljust(157, '='))
-  API_MOVIES_URL = 'http://webservice.fanart.tv/v3/movies/{id}?api_key={api_key}'
-  API_TV_URL     = 'http://webservice.fanart.tv/v3/tv/{id}?api_key={api_key}'
-  API_KEY        = 'cfa9dc054d221b8d107f8411cd20b13f'
-  FanartTV_dict  = {}
+  FanartTV_dict = {}
 
   Log.Info("movie:'{movie}', TVDBid: '{TVDBid}', tmdbid: '{tmdbid}', imdbid:'{imdbid}', season: '{season}', num: '{num}'".format(movie=movie, TVDBid=TVDBid, tmdbid=tmdbid, imdbid=imdbid, season=season, num=num))
   if "," in imdbid:  (GetMetadata(movie, "", "", imdbid_unique, season, num) for imdbid_unique in (tmdbid or imdbid).split(",")); return  #recusive call for each imdbid to reduce complexity
   if "," in tmdbid:  (GetMetadata(movie, "", tmdbid_unique, "", season, num) for tmdbid_unique in tmdbid.split(","));             return  #recusive call for each tmdbid to reduce complexity
-  if not movie and TVDBid.isdigit():  id, relativeDirectory, url = TVDBid,           "FanartTV/tv/"   +TVDBid,               API_TV_URL.format(id=TVDBid,           api_key=API_KEY)
-  elif movie and (imdbid or tmdbid):  id, relativeDirectory, url = imdbid or tmdbid, "FanartTV/movie/"+imdbid or tmdbid, API_MOVIES_URL.format(id=imdbid or tmdbid, api_key=API_KEY)
+  if not movie and TVDBid.isdigit():  id, relativeDirectory, url = TVDBid,           "FanartTV/tv/"   +TVDBid,               FTV_API_TV_URL.format(id=TVDBid)
+  elif movie and (imdbid or tmdbid):  id, relativeDirectory, url = imdbid or tmdbid, "FanartTV/movie/"+imdbid or tmdbid, FTV_API_MOVIES_URL.format(id=imdbid or tmdbid)
   else:                               return FanartTV_dict
   if TVDBid or tmdbid or imdbid:
     Log.Info(("--- %s.images ---" % id).ljust(157, '-'))
@@ -41,4 +42,3 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0, num=100)
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("FanartTV_dict: {}".format(DictString(FanartTV_dict, 4)))
   return FanartTV_dict
- 

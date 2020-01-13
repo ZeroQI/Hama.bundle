@@ -1,16 +1,17 @@
 ### televisiontunes.com ###
 #http://www.tunefind.com/api
 
-### Imports ###  "common.GetPosters" = "from common import GetPosters"
+### Imports ###
+# HAMA Modules #
 import common
-from common import SaveDict, Dict, Log, DictString
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
+### Variables ###
+THEME_URL = "http://www.televisiontunes.com/uploads/audio/{}.mp3"
 
 ### Functions ###
 def GetMetadata(metadata, title1, title2):
   Log.Info("=== TVTunes.GetMetadata() ===".ljust(157, '='))
-  THEME_URL    = "http://www.televisiontunes.com/uploads/audio/{}.mp3"
   TVTunes_dict = {}
 
   Log.Info("Prefs['themes']: '{}', title: '{}', title2: '{}'".format(Prefs['themes'], title1, title2))

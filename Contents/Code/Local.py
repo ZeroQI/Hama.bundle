@@ -1,27 +1,27 @@
 ### Local ###
 
 ### Imports ###  "common.GetPosters" = "from common import GetPosters"
-import common
-from common    import GetXml, SaveDict, Dict, natural_sort_key, GetMediaDir, GetLibraryRootPath, Log, DictString
+# Python Modules #
 import os      # path, listdir
 import re      # match, ignorecase
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
-SEASON_RX = [                                                                     ### Seasons Folders
-              r'^Specials',                                                       # Specials (season 0)
+### Variables ###
+SEASON_RX = [                                                                       ### Seasons Folders
+              r'^Specials',                                                         # Specials (season 0)
               r'^(Season|Series|Book|Saison|Livre|S)[ _\-\.]*(?P<season>\d{1,2})',  # Season / Series / Book / Saison / Livre / S
-              r'^(?P<show>.*?)[\._\- ]+S(?P<season>\d{2})$',                      # (title) S01
-              r'^(?P<season>\d{1,2})',                                            # ##
-              r'^(Saga|(Story )?Ar[kc])']                                         # Last entry, folder name droped but files kept: Saga / Story Ar[kc] / Ar[kc]
+              r'^(?P<show>.*?)[\._\- ]+S(?P<season>\d{2})$',                        # (title) S01
+              r'^(?P<season>\d{1,2})',                                              # ##
+              r'^(Saga|(Story )?Ar[kc])']                                           # Last entry, folder name droped but files kept: Saga / Story Ar[kc] / Ar[kc]
       
 ### Functions ###  
-  
-### Local ###
 def GetMetadata(media, movie):
   Log.Info("=== Local.GetMetadata() ===".ljust(157, '='))
   Local_dict          = {}
-  dir                 = GetMediaDir(media, movie)
-  library, root, path = GetLibraryRootPath(dir)
+  dir                 = common.GetMediaDir(media, movie)
+  library, root, path = common.GetLibraryRootPath(dir)
 
   if movie: return Local_dict
 

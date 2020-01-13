@@ -3,24 +3,26 @@
 # API xml exemple:  http://fribbtastic-api.net/fribbtastic-api/services/anime?id=33487
 
 ### Imports ###
-import common
-from common import GetXml, SaveDict, Log, DictString
+# Python Modules #
 import os
+# HAMA Modules #
+import common
+from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
 
-### Variables ###  Accessible in this module (others if 'from MyAnimeList import xxx', or 'import MyAnimeList.py' calling them with 'MyAnimeList.Variable_name'
+### Variables ###
+MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
+MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
 
 ### Functions ###
 def GetMetadata(movie, MALid):
   Log.Info("=== MyAnimeList.GetMetadata() ===".ljust(157, '='))
-  MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
-  MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
   MyAnimeList_dict = {}
 
   Log.Info("MALid: '%s'" % MALid)
   if not MALid or not MALid.isdigit():  return MyAnimeList_dict
 
   Log.Info("--- series ---".ljust(157, '-'))
-  xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid, cache=CACHE_1DAY * 7)
+  xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid, cache=CACHE_1WEEK)
   if isinstance(xml, str):
     Log.Error('Invalid str returned: "{}"'.format(xml))
   elif xml:
