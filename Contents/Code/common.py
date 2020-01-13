@@ -703,7 +703,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     #def addMeta():
     season_posters_list = []
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
-      Log.Info("metadata.seasons[{:>2}]".ljust(157, '-').format(season))
+      Log.Info(("metadata.seasons[{:>2}]".format(season)).ljust(157, '-'))
       source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
