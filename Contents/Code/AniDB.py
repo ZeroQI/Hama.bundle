@@ -392,7 +392,7 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
   '''
   languages = lang or [language.strip() for language in Prefs['SerieLanguagePriority'].split(',')] #[ Prefs['SerieLanguage1'], Prefs['SerieLanguage2'], Prefs['SerieLanguage3'] ]  #override default language
   if not 'main' in languages:  languages.append('main')                                      # Add main to the selection if not present in list (main nearly same as x-jat)
-  type_priority = {'main':1, 'official':2, 'syn':3, 'synonym':4, 'short':5, None:6}          # lower = highter priority
+  type_priority = {'main':1, 'official':2, 'kana':3, 'kanareading':3, 'card':4, 'titlecard':4, 'syn':5, 'synonym':5, 'short':6, None:7} # lower = higher priority
   langLevel     = [20 for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
   langTitles    = ["" for index in range(len(languages))]                                    # languages: title order including main title, then choosen title
   for title in titles:                                                                       # Loop through all languages listed in the anime XML
