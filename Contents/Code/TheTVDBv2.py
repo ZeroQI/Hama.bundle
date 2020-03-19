@@ -172,7 +172,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               break
           else:  continue
       elif metadata_source=='tvdb5':  
-        episode = str(abs_number)
+        if abs_number:  season, episode = '1', str(abs_number)
       
       # Record absolute number mapping for AniDB metadata pull
       if metadata_source=='tvdb3':  SaveDict((str(Dict(episode_json, 'airedSeason')), str(Dict(episode_json, 'airedEpisodeNumber'))), mappingList, 'absolute_map', str(abs_number))
