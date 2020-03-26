@@ -58,7 +58,7 @@ def LoadFileTVDB(id="", filename="", url="", headers={}):
 
   return common.LoadFile(filename=filename, relativeDirectory="TheTVDB/json/"+id, url=url, cache=CACHE_1DAY*6, headers=common.UpdateDict(headers, TVDB_HEADERS))
 
-def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList, AniDB_movie):
+def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid, IMDbid, mappingList):
   ''' TVDB - Load serie JSON
   '''
   Log.Info("=== TheTVDB.GetMetadata() ===".ljust(157, '='))
@@ -315,7 +315,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               if language  in language_posters:  rank = (rank//30)*30*language_posters.index(language)+rank%30
               if 'TheTVDB' in priority_posters:  rank = rank+ 6*priority_posters.index('TheTVDB')
               rank = rank + language_posters.index(language)*20
-              if AniDB_movie: rank = rank+Dict(bannerTypes, 'poster', default=0) if rank+Dict(bannerTypes, 'poster', default=0)<99 else 99
               
               ### Adding picture ###
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
