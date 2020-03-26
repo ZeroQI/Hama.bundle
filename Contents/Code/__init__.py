@@ -99,7 +99,7 @@ def Search(results, media, lang, manual, movie):
   
   ### Check if a guid is specified "Show name [anidb-id]" ###
   Log.Info('--- force id ---'.ljust(157, '-'))
-  match = re.search(r"(?P<show>.*?) ?\[(?P<source>(anidb(|[2-9])|tvdb(|[2-9])|tmdb|tsdb|imdb))-(tt)?(?P<guid>[^\[\]]*)\]", orig_title, re.IGNORECASE)
+  match = re.search(r"(?P<show>.*?) ?\[(?P<source>(anidb(|[2-9])|tvdb(|[2-9])|tmdb|tsdb|imdb))-(?P<guid>[^\[\]]*)\]", orig_title, re.IGNORECASE)
   if match is not None:
     guid=match.group('source') + '-' + match.group('guid')
     if guid.startswith('anidb') and not movie and max(map(int, media.seasons.keys()))>1:  Log.Info('[!] multiple seasons = tvdb numbering, BAKA!')
