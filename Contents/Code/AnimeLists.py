@@ -67,7 +67,7 @@ def GetAniDBMovieSets():
 ### Get the tvdbId from the AnimeId or the other way around ###
 def GetMetadata(media, movie, error_log, id):
   Log.Info("=== AnimeLists.GetMetadata() ===".ljust(157, '='))
-  mappingList, AnimeLists_dict   = {}, {}  #mappingList['poster_id_array'] = {}
+  mappingList, AnimeLists_dict   = {}, {}
   found                          = False
   source, id                     = id.split('-', 1) if '-' in id else ("",id)
   AniDB_id                       = id if source.startswith('anidb') else ""
