@@ -766,3 +766,18 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+def poster_rank(source, image_type, language='en', rank=1):
+  """
+    { "id": "PosterLanguagePriority", "label": "TheTVDB Poster Language Priority", "type": "text", "default": ... },
+    { "id": "posters",                "label": "TS-M 'poster'",                    "type": "text", "default": ... },
+    { "id": "art",                    "label": "T--M 'art'",                       "type": "text", "default": ... },
+    { "id": "banners",                "label": "T--M 'banners'",                   "type": "text", "default": ... },
+  """
+  language_posters         = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+  priority_posters         = [provider.strip() for provider in Prefs[image_type              ].split(',')]
+
+  if language in language_posters:  rank = (rank//30)*30*language_posters.index(language)+rank%30
+  if source   in priority_posters:  rank = rank+ 6*priority_posters.index(source)
+
+  return rank
