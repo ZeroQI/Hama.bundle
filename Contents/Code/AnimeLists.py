@@ -73,6 +73,7 @@ def GetMetadata(media, movie, error_log, id):
   AniDB_id                       = id if source.startswith('anidb') else ""
   TVDB_id                        = id if source.startswith( 'tvdb') else ""
   TMDB_id                        = id if source.startswith('tmdb') else ""
+  IMDB_id                        = id if source.startswith('imdb') else ""
   AniDBid                        = ""
   TVDBid                         = ""
   TMDBid                         = ""
@@ -189,9 +190,9 @@ def GetMetadata(media, movie, error_log, id):
     # fails the above tvdbid + anidbid check, so this used to return a blank tmdbid to be later used in
     # TheMovieDB.GetMetadata(), and '' as AniDBid to be used in AniDB.GetMetadata()
     # so, not resetting the AniDBid/TVDBid, and saving found info
-    if ( (TMDB_id or TMDBid) or IMDBid ):
+    if ( (TMDB_id or TMDBid) or (IMDB_id or IMDBid) ):
       SaveDict(TMDB_id or TMDBid or '', mappingList, 'tmdbid')
-      SaveDict(IMDBid or '', mappingList, 'imdbid')
+      SaveDict(IMDB_id or IMDBid or '', mappingList, 'imdbid')
       Log.Info("Saved possible tmdb/imdb values for later ('%s'/'%s'), since not in AnimeList." % (Dict(mappingList,'tmdbid'), Dict(mappingList,'imdbid')))
     elif not found:
       Log.Info("ERROR: Could not find %s: %s" % (source, id) )
