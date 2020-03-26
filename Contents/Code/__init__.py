@@ -83,7 +83,7 @@ def Start():
 ### Movie/Serie search ###################################################################################################################################################
 def Search(results, media, lang, manual, movie):
   from common import Log  #Import here for startup logging to go to the plex pms log
-  orig_title = media.title if movie else media.show
+  orig_title = media.name if movie else media.show
   Log.Open(media=media, movie=movie, search=True)
   Log.Info('=== Search() ==='.ljust(157, '='))
   Log.Info("title: '%s', name: '%s', filename: '%s', manual: '%s', year: '%s'" % (orig_title, media.name, media.filename, str(manual), media.year))  #if media.filename is not None: filename = String.Unquote(media.filename) #auto match only
