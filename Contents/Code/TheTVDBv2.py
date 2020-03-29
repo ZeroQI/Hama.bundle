@@ -309,6 +309,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
           else:
             images = sorted(images, key = lambda x: Dict(x, "ratingsInfo", "average", default=0), reverse=True)
             for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
+              if not Dict(image, 'fileName'):  continue  #Avod "IOError: [Errno 21] Is a directory: u'/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TheTVDB'" if filename empty
               
               #rank
               rank = 1 if bannerType=='poster' and anidb_offset == divmod(count_valid['poster'], Dict(bannerTypes, 'poster', default=0))[1] else count_valid[bannerType]+2
