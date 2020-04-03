@@ -4,7 +4,7 @@
   { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",       "type": "text",  "default": "main, en, ja"                                                   },
   { "id": "PosterLanguagePriority",   "label": "TheTVDB Poster Language Priority","type": "text",  "default": "en"                                                             },
   { "id": "season_poster_failover",   "label": "Season Poster failover",          "type": "enum",  "default": "None", "values" : ["None","series","series different poster"]   },
-  { "id": "load_all_porter_sources",  "label": "Load all poster metadata sources","type": "bool",  "default": "false"                                                          },
+  { "id": "load_all_poster_sources",  "label": "Load all poster metadata sources","type": "bool",  "default": "false"                                                          },
   { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "default": "400",  "values" : ["600","500","400","300","200","100","0"]     },
   { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                          },
   { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                    },
