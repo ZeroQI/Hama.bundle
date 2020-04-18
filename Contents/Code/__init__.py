@@ -99,6 +99,7 @@ def Search(results, media, lang, manual, movie):
   
   ### Check if a guid is specified "Show name [anidb-id]" ###
   Log.Info('--- force id ---'.ljust(157, '-'))
+  if orig_title and orig_title.isdigit():  orig_title = "xxx [tvdb-{}]".format(orig_title)  #Support tvdbid as title, allow to support Xattr from FileBot with tvdbid filled in
   match = re.search(r"(?P<show>.*?) ?\[(?P<source>(anidb(|[2-9])|tvdb(|[2-9])|tmdb|tsdb|imdb))-(?P<guid>[^\[\]]*)\]", orig_title, re.IGNORECASE)
   if match is not None:
     guid=match.group('source') + '-' + match.group('guid')
