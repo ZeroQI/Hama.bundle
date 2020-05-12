@@ -462,7 +462,7 @@ def cleanse_title(string):
   """ Cleanse title and translate anidb '`'
   """
   DeleteChars  = ""
-  ReplaceChars = maketrans("`:~/*?-.,;_", "           ")
+  ReplaceChars = maketrans("`:/*?-.,;_", "           ")  #~
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
   try:       string2 = string.encode('ascii', 'replace')       # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass
