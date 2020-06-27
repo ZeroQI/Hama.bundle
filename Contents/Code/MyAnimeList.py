@@ -60,12 +60,10 @@ def GetMetadata(myanimelistId, type, media):
     #  SaveDict(str(apiAnimeProducers[:-2]), result, "studio")
     #  Log.Debug("Producers: " + str(Dict(json, "producers")))
     
-    # get the duration if it is available
     if type == "tvshow":
       Log.Debug("Adding TV-Show specific data")        
       Log.Debug("Episodes: " + str(Dict(json, "episodes")))
     #   metadata.seasons[1].episode_count = int( Dict(json, "episodes") or len(media.seasons[1].episodes))
-    #
     #   pages = int(math.ceil(float(metadata.seasons[1].episode_count) / 100))  # fetch the episodes in 100 chunks
     #   if pages is not None:
     #     for page in range(1, pages + 1):
