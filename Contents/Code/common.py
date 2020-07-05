@@ -46,7 +46,7 @@ COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/jso
 THROTTLE          = {}
 
 ### Plex Library XML ###
-PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://127.0.0.1:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
+PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://localhost:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
 def GetPlexLibraries():
   try:
     library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30))
@@ -462,7 +462,7 @@ def cleanse_title(string):
   """ Cleanse title and translate anidb '`'
   """
   DeleteChars  = ""
-  ReplaceChars = maketrans("`:~/*?-.,;_", "           ")
+  ReplaceChars = maketrans("`:/*?-.,;_", "          ")  #~
   if len(string)<=len(String.StripDiacritics(string))+2:  string = String.StripDiacritics(string)  #else there is jap characters scrubebd outs
   try:       string2 = string.encode('ascii', 'replace')       # Encode into Ascii, prevent: UnicodeDecodeError: 'utf8' codec can't decode bytes in position 13-14: invalid continuation byte
   except:    pass

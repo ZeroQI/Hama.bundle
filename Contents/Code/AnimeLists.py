@@ -93,7 +93,8 @@ def GetMetadata(media, movie, error_log, id):
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
     s1_mapping_count  = len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']"))
-    is_primary_series = True if defaulttvdbseason == '1' and episodeoffset == '0' and s1_mapping_count == 0 else False
+    s1e1_mapping      = True if anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='1'][contains(text(), '-1;')]") else False
+    is_primary_series = True if defaulttvdbseason == '1' and episodeoffset == '0' and (s1_mapping_count == 0 or s1e1_mapping)   else False
     return defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series
 
   Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
