@@ -24,7 +24,7 @@ AniDBTitlesDB = None
 ANIDB_API_DOMAIN    = 'api.anidb.net:9001'
 ANIDB_HTTP_API_URL  = ANIDB_PROTOCOL + ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 
-ANIDB_IMAGE_DOMAIN  = 'cdn-us.anidb.net'
+ANIDB_IMAGE_DOMAIN  = 'cdn.anidb.net'
 ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/main/'
 ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/65x100/{name}.jpg-thumb.jpg'
 
