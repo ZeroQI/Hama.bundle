@@ -49,6 +49,8 @@ THROTTLE          = {}
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://localhost:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
 def GetPlexLibraries():
   try:
+    if "?X-Plex-Token=" not in PLEX_LIBRARY_URL and os.path.isfile(os.path.join(PlexRoot, "X-Plex-Token.id")):
+      PLEX_LIBRARY_URL = PLEX_LIBRARY_URL + "?X-Plex-Token=" + read_file(os.path.join(PlexRoot, "X-Plex-Token.id")).strip()
     library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30))
     PLEX_LIBRARY.clear()
     Log.Root('Libraries: ')
