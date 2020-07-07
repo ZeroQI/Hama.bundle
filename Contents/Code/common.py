@@ -665,7 +665,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
-    if field=='posters':  meta_old.validate_keys([])
+    if field=='posters':  meta_old.validate_keys([])  #This will allow the posters to get readded at the correct priority level if preferences are updates and meta is refreshed
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
     language_rank, language_source = len(languages)+1, None
     for source in [source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]]:
@@ -709,7 +709,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
-        if field=='posters':  meta_old.validate_keys([])
+        if field=='posters':  meta_old.validate_keys([])  #This will allow the posters to get readded at the correct priority level if preferences are updates and meta is refreshed
         for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
