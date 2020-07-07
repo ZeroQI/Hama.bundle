@@ -774,7 +774,7 @@ def poster_rank(source, image_type, language='en', rank_adjustment=0):
     { "id": "PosterLanguagePriority", "label": "TheTVDB Poster Language Priority", "type": "text", "default": ... },
     { "id": "posters",                "label": "TS-M 'poster'",                    "type": "text", "default": ... },
     { "id": "art",                    "label": "T--M 'art'",                       "type": "text", "default": ... },
-    { "id": "banners",                "label": "T--M 'banners'",                   "type": "text", "default": ... },
+    { "id": "banners",                "label": "TS-- 'banners'",                   "type": "text", "default": ... },
   """
   max_rank = 100
   if image_type == 'seasons':  image_type = 'posters'
