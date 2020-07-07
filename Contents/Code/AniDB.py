@@ -122,8 +122,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
-  language_posters         = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
-  priority_posters         = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
@@ -145,7 +143,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
   for anidbid in sorted(AniDB_array, key=common.natural_sort_key):
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
-  Log.Info('language_posters: {}'.format(language_posters))
   
   ### Build list_abs_eps for tvdb 3/4/5 ###
   list_abs_eps, list_sp_eps={}, []
@@ -198,10 +195,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         
         ### Posters
         if GetXml(xml, 'picture'):
-          rank = 1
-          if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
-          if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), common.poster_rank('AniDB', 'posters'), None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
@@ -301,10 +295,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             
             ### Series poster as season poster
             if GetXml(xml, 'picture') and not Dict(AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture')):
-              rank = 1
-              if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
-              if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
+              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), common.poster_rank('AniDB', 'posters'), None), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
 
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:

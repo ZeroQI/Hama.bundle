@@ -665,6 +665,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
+    if field in ('posters', 'banners', 'art'):  meta_old.validate_keys([])  #This will allow the images to get readded at the correct priority level if preferences are updates and meta is refreshed
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
     language_rank, language_source = len(languages)+1, None
     for source in [source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]]:
@@ -708,6 +709,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
+        if field in ('posters', 'banners', 'art'):  meta_old.validate_keys([])  #This will allow the images to get readded at the correct priority level if preferences are updates and meta is refreshed
         for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
@@ -766,3 +768,34 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+def poster_rank(source, image_type, language='en', rank_adjustment=0):
+  """
+    { "id": "PosterLanguagePriority", "label": "TheTVDB Poster Language Priority", "type": "text", "default": ... },
+    { "id": "posters",                "label": "TS-M 'poster'",                    "type": "text", "default": ... },
+    { "id": "art",                    "label": "T--M 'art'",                       "type": "text", "default": ... },
+    { "id": "banners",                "label": "TS-- 'banners'",                   "type": "text", "default": ... },
+  """
+  max_rank = 100
+  if image_type == 'seasons':  image_type = 'posters'
+
+  language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+  priority_posters = [provider.strip() for provider in Prefs[image_type              ].split(',')]
+
+  lp_len = len(language_posters)
+  pp_len = len(priority_posters)
+
+  lp_pos = language_posters.index(language) if language in language_posters else lp_len
+  pp_pos = priority_posters.index(source)   if source   in priority_posters else pp_len
+
+  lp_block_size = max_rank/lp_len
+  pp_block_size = lp_block_size/pp_len
+
+  rank = (lp_pos*lp_block_size)+(pp_pos*pp_block_size)+1+rank_adjustment
+  if rank > 100:  rank = 100
+  if rank < 1:    rank = 1
+
+  #Log.Info(" - language: {:<10}, lp_pos: {}, lp_block_size: {}, language_posters: {}".format(language, lp_pos, lp_block_size, language_posters))
+  #Log.Info(" - source:   {:<10}, pp_pos: {}, pp_block_size: {}, priority_posters: {}".format(source,   pp_pos, pp_block_size, priority_posters))
+  #Log.Info(" - image_type: {}, rank: {}".format(image_type, rank))
+  return rank

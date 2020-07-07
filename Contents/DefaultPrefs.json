@@ -37,7 +37,7 @@
   { "id": "guest_stars",              "label": "T--M 'guest_stars'",              "type": "text",  "default": "TheTVDB"                                                        },
   { "id": "posters",                  "label": "TS-M 'poster'",                   "type": "text",  "default": "tvdb4, TheMovieDb, TheTVDB, FanartTV, AniDB"                    },
   { "id": "art",                      "label": "T--M 'art'",                      "type": "text",  "default": "TheTVDB, TheMovieDb, FanartTV"                                  },
-  { "id": "banners",                  "label": "T--M 'banners'",                  "type": "text",  "default": "TheTVDB"                                                        },
+  { "id": "banners",                  "label": "TS-- 'banners'",                  "type": "text",  "default": "TheTVDB"                                                        },
   { "id": "thumbs",                   "label": "--E- 'thumbs'",                   "type": "text",  "default": "TheTVDB"                                                        },
   { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                           },
   { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                           },
