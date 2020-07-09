@@ -21,37 +21,36 @@ query($id: Int, $malId: Int) {
     bannerImage
   }
 }
-"""
+""".strip()
 
 def GetAniListIdFromAniDbId(AniDBid):
   try:
     response = JSON.ObjectFromURL(ARM_SERVER_URL.format(id=AniDBid), cacheTime=CACHE_1WEEK)
 
     return Dict(response, "anilist")
-  except Exception as e:
+  except Exception:
     return None
 
 def MakeGraphqlQuery(document, variables):
-  headers = {
-    'Accepts': '*/*',
-    'Accept-Encoding': 'identity',
-    'Content-Type': 'application/json',
-  }
   Log.Info("Making AniList GraphQL Query:\nQuery\n{}\nVariables: {}".format(document, variables))
-  response = HTTP.Request(
-    GRAPHQL_API_URL,
-    method="POST",
-    data=JSON.StringFromObject({
-      "query": document,
-      "variables": variables
-    }),
-    headers=headers,
-    cacheTime=CACHE_1DAY,
-    immediate=True
-  )
-  body = JSON.ObjectFromString(response.content)
 
-  Log.Info(response.content)
+  try:
+    response = HTTP.Request(
+      GRAPHQL_API_URL,
+      method="POST",
+      data=JSON.StringFromObject({
+        "query": document,
+        "variables": variables
+      }),
+      # Need Content-Type, the others might be unnecessary
+      headers={'Content-Type': 'application/json'},
+      cacheTime=CACHE_1DAY,
+      immediate=True
+    )
+    body = JSON.ObjectFromString(response.content)
+  except Exception:
+    return None
+
   if 'errors' in body and len(body.errors) > 0:
     Log.Error("Got error: {}".format(body.errors[0].message))
     return None
@@ -66,12 +65,14 @@ def GetMetadata(AniDBid, MALid):
     'banners': []
   }
 
+  # Try to match the AniDB id to an AniList id as it has a higher chance of being correct
   ALid = GetAniListIdFromAniDbId(AniDBid)
   Log.Info("AniDBid={}, MALid={}, ALid={}".format(AniDBid, MALid, ALid))
   if not MALid or not MALid.isdigit(): return AniList_dict
 
   Log.Info("--- series ---".ljust(157, "-"))
 
+  # Use the AniList id if we got one, but fall back to the MAL id
   if ALid is not None:
     variables = {
       "id": ALid
@@ -81,6 +82,7 @@ def GetMetadata(AniDBid, MALid):
       "malId": int(MALid)
     }
 
+  # Fetch data
   data = MakeGraphqlQuery(ANIME_DATA_DOCUMENT, variables)
 
   if not data:
