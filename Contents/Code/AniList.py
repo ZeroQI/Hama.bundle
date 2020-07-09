@@ -3,7 +3,7 @@
 
 ### Imports ###
 # Python Modules #
-from os import path
+import os
 # HAMA Modules #
 import common
 from common import Log, DictString, Dict, SaveDict
@@ -89,9 +89,9 @@ def GetMetadata(AniDBid, MALid):
     return AniList_dict
 
   posterUrl = data["anime"]["coverImage"]["url"]
-  posterPath = path.join('AniList', 'poster', posterUrl.split("/")[-1:][0])
+  posterPath = os.path.join('AniList', 'poster', posterUrl.split("/")[-1:][0])
   bannerUrl = data["anime"]["bannerImage"]
-  bannerPath = path.join('AniList', 'banners', bannerUrl.split("/")[-1:][0])
+  bannerPath = os.path.join('AniList', 'banners', bannerUrl.split("/")[-1:][0])
 
   AniList_dict['posters'] = {
     posterUrl: (posterPath, common.poster_rank('AniList', 'posters'), None)
