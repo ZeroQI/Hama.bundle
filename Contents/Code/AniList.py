@@ -9,10 +9,12 @@ import common
 from common import Log, DictString, Dict, SaveDict
 
 ### Variables ###
+ARM_SERVER_URL = "https://relations.yuna.moe/api/ids?source=anidb&id={id}"
+
 GRAPHQL_API_URL = "https://graphql.anilist.co"
-COVER_IMAGE_DOCUMENT = """
-query($malId: Int!) {
-  anime: Media(type: ANIME, idMal: $malId) {
+ANIME_DATA_DOCUMENT = """
+query($id: Int, $malId: Int) {
+  anime: Media(type: ANIME, id: $id, idMal: $malId) {
     coverImage {
       url: extraLarge
     }
@@ -20,6 +22,14 @@ query($malId: Int!) {
   }
 }
 """
+
+def GetAniListIdFromAniDbId(AniDBid):
+  try:
+    response = JSON.ObjectFromURL(ARM_SERVER_URL.format(id=AniDBid), cacheTime=CACHE_1WEEK)
+
+    return Dict(response, "anilist")
+  except Exception as e:
+    return None
 
 def MakeGraphqlQuery(document, variables):
   headers = {
@@ -49,20 +59,29 @@ def MakeGraphqlQuery(document, variables):
   return Dict(body, "data")
 
 ### Functions ###
-def GetMetadata(MALid):
+def GetMetadata(AniDBid, MALid):
   Log.Info("=== AniList.GetMetadata() ===".ljust(157, '='))
   AniList_dict = {
     'posters': [],
     'banners': []
   }
 
-  Log.Info("MALid: '%s'" % MALid)
+  ALid = GetAniListIdFromAniDbId(AniDBid)
+  Log.Info("AniDBid={}, MALid={}, ALid={}".format(AniDBid, MALid, ALid))
   if not MALid or not MALid.isdigit(): return AniList_dict
 
   Log.Info("--- series ---".ljust(157, "-"))
-  data = MakeGraphqlQuery(COVER_IMAGE_DOCUMENT, {
-    "malId": int(MALid)
-  })
+
+  if ALid is not None:
+    variables = {
+      "id": ALid
+    }
+  else:
+    variables = {
+      "malId": int(MALid)
+    }
+
+  data = MakeGraphqlQuery(ANIME_DATA_DOCUMENT, variables)
 
   if not data:
     return AniList_dict

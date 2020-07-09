@@ -144,7 +144,7 @@ def Update(metadata, media, lang, force, movie):
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
   #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
-  dict_AniList                                                  =     AniList.GetMetadata(MALid)
+  dict_AniList                                                  =     AniList.GetMetadata(AniDBid, MALid)
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
