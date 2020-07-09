@@ -22,6 +22,7 @@ import Plex              # Functions: GetMetadata                               
 import TVTunes           # Functions: GetMetadata                                                Variables: None
 import OMDb              # Functions: GetMetadata                                                Variables: None
 #import MyAnimeList       # Functions: GetMetadata                                                Variables: None
+import AniList           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
 import anidb34           # Functions: AdjustMapping                                              Variables: None
 
@@ -143,6 +144,7 @@ def Update(metadata, media, lang, force, movie):
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
   #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
+  dict_AniList                                                  =     AniList.GetMetadata(MALid)
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
@@ -151,7 +153,7 @@ def Update(metadata, media, lang, force, movie):
   common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
-                                             'OMDb':       dict_OMDb,       'Local':   dict_Local}, mappingList)  #'MyAnimeList': dict_MyAnimeList, 
+                                             'OMDb':       dict_OMDb,       'AniList':     dict_AniList,     'Local':   dict_Local}, mappingList)  #'MyAnimeList': dict_MyAnimeList,
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
