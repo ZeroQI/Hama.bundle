@@ -27,7 +27,7 @@ def GetAniListIdFromAniDbId(AniDBid):
   try:
     response = JSON.ObjectFromURL(ARM_SERVER_URL.format(id=AniDBid), cacheTime=CACHE_1WEEK)
 
-    return Dict(response, "anilist")
+    return response["anilist"]
   except Exception:
     return None
 
