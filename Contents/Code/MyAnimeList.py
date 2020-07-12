@@ -22,7 +22,7 @@ def GetMetadata(movie, MALid):
   if not MALid or not MALid.isdigit():  return MyAnimeList_dict
 
   Log.Info("--- series ---".ljust(157, '-'))
-  xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid, cache=CACHE_1WEEK)
+  xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid)
   if isinstance(xml, str):
     Log.Error('Invalid str returned: "{}"'.format(xml))
   elif xml:

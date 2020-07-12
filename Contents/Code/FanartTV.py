@@ -25,7 +25,7 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0):  #Fetch
   else:                               return FanartTV_dict
   if TVDBid or tmdbid or imdbid:
     Log.Info(("--- %s.images ---" % id).ljust(157, '-'))
-    json = common.LoadFile(filename=id+".json", relativeDirectory=relativeDirectory, url=url, cache=CACHE_1WEEK)
+    json = common.LoadFile(filename=id+".json", relativeDirectory=relativeDirectory, url=url)
     
     #Movies
     if json and (imdbid or tmdbid):

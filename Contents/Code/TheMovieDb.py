@@ -35,7 +35,7 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
   
   mode        = "movie" if movie else "tv"
   Log.Info(("--- %s ---" % mode).ljust(157, '-'))
-  json        = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url,             cache=CACHE_1WEEK)
+  json        = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url)
   config_dict = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache=CACHE_1MONTH)
   if not json:  Log.Info("TMDB - url: failed to get json" + TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid))
   else:  
@@ -67,7 +67,7 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
   Log.Info("--- pictures.more ---".ljust(157, '-'))
   Log.Info("TMDbid: '{}', TSDbid: '{}', IMDbid: '{}'".format(TMDbid, TSDbid, IMDbid))
   for id in IMDbid.split(',') if ',' in IMDbid else []:
-    json                  = common.LoadFile(filename="TMDB-"+(IMDbid or TMDbid)+".json", relativeDirectory="TMDB", url=TMDB_MOVIE_IMAGES_URL.format(id=id, mode=mode), cache=CACHE_1WEEK)
+    json                  = common.LoadFile(filename="TMDB-"+(IMDbid or TMDbid)+".json", relativeDirectory="TMDB", url=TMDB_MOVIE_IMAGES_URL.format(id=id, mode=mode))
     for index, poster in enumerate(Dict(json, 'posters') or []):
       if Dict(poster, 'file_path'):    Log.Info("[ ] poster: {}" .format(SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'posters'), None), TheMovieDb_dict, 'posters', config_dict['images']['base_url'] + 'original' + poster['file_path'])))
     for index, backdrop in enumerate(Dict(json, 'backdrops') or []):

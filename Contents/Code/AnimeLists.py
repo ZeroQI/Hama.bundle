@@ -38,9 +38,9 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
 ### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from SCHUDLEE_MASTER url with ASS_SCHUDLEE_CORRECTIONS corrections ###
 def GetAniDBTVDBMap():  
   global AniDBTVDBMap
-  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCHUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCHUDLEE_MASTER, cache=CACHE_1DAY*6)  # 
+  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCHUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCHUDLEE_MASTER)  # 
   if not AniDBTVDBMap:  Log.Critical("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCHUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
-  AniDBTVDBMap  = MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(ASS_SCHUDLEE_CORRECTIONS), relativeDirectory="AnimeLists", url=ASS_SCHUDLEE_CORRECTIONS, cache=CACHE_1DAY*6))  #Online ScudLee anidb to tvdb mapping list
+  AniDBTVDBMap  = MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(ASS_SCHUDLEE_CORRECTIONS), relativeDirectory="AnimeLists", url=ASS_SCHUDLEE_CORRECTIONS))  #Online ScudLee anidb to tvdb mapping list
   
 def GetAniDBTVDBMapCustom(media, movie):  
   AniDBTVDBMapCustom = None

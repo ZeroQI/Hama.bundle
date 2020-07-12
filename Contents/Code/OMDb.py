@@ -24,7 +24,7 @@ def GetMetadata(movie, IMDbid):  # return 200 but not downloaded correctly - IMD
   Log.Info("IMDbid: '%s'" % IMDbid)
   for imdbid_single in IMDbid.split(",") if IMDbid.startswith("tt") else []:
     Log.Info(("--- %s.series ---" % imdbid_single).ljust(157, '-'))
-    json = common.LoadFile(filename=imdbid_single+".json", relativeDirectory=os.path.join('OMDb', 'json'), url=url + imdbid_single, cache=CACHE_1WEEK)
+    json = common.LoadFile(filename=imdbid_single+".json", relativeDirectory=os.path.join('OMDb', 'json'), url=url + imdbid_single)
     if json:
       Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json,'title')     , OMDb_dict, 'title'                  )))
       Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json,'Plot')      , OMDb_dict, 'summary'                )))
