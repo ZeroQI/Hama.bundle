@@ -375,7 +375,7 @@ def throttle_add(index=""):
     if index not in THROTTLE: THROTTLE[index] = []
     THROTTLE[index].append(time.time())
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0, throttle=["", 0, 0]):
+def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, cache=CACHE_1DAY*6, sleep=0, throttle=["", 0, 0]):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
   headers = UpdateDict(headers, COMMON_HEADERS)
@@ -411,7 +411,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # Download URL to memory, Plex cache to 1 day
     try:
-      file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      file_downloaded = HTTP.Request(url, headers=headers, data=data, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
     except Exception as e:
       Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"

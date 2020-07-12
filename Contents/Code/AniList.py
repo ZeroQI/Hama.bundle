@@ -24,45 +24,28 @@ query($id: Int, $malId: Int) {
 """.strip()
 
 ### Functions ###
-def GetAniListIdFromAniDbId(AniDBid):
-  try:
-    response = JSON.ObjectFromURL(ARM_SERVER_URL.format(id=AniDBid), cacheTime=CACHE_1WEEK)
-
-    return Dict(response, "anilist", default=None)
-  except Exception:
-    return None
-
 def MakeGraphqlQuery(document, variables):
-  Log.Info("Making AniList GraphQL Query:\nQuery\n{}\nVariables: {}".format(document, variables))
+  Log.Info("Query: {}".format(document))
+  Log.Info("Variables: {}".format(variables))
 
-  try:
-    response = HTTP.Request(
-      GRAPHQL_API_URL,
-      method="POST",
-      data=JSON.StringFromObject({
-        "query": document,
-        "variables": variables
-      }),
-      headers=common.COMMON_HEADERS,
-      cacheTime=CACHE_1DAY,
-      immediate=True
-    )
-    body = JSON.ObjectFromString(response.content)
-  except Exception:
+  source   = variables.keys()[0]
+  data     = JSON.StringFromObject({"query": document, "variables": variables})
+  response = common.LoadFile(filename=str(variables[source])+'.json', relativeDirectory=os.path.join('AniList', 'json', source), url=GRAPHQL_API_URL, data=data, cache=CACHE_1DAY)
+
+  # EX: {"data":null,"errors":[{"message":"Not Found.","hint":"Use POST request to access graphql subdomain.","status":404}]}
+  if len(Dict(response, 'errors', default=[])) > 0:
+    Log.Error("Got error: {}".format(Dict(response, 'errors')[0]))
     return None
 
-  if 'errors' in body and len(body.errors) > 0:
-    Log.Error("Got error: {}".format(body.errors[0].message))
-    return None
-
-  return Dict(body, "data")
+  return Dict(response, "data")
 
 def GetMetadata(AniDBid, MALid):
   Log.Info("=== AniList.GetMetadata() ===".ljust(157, '='))
   AniList_dict = {}
 
   # Try to match the AniDB id to an AniList id as it has a higher chance of being correct
-  ALid = GetAniListIdFromAniDbId(AniDBid)
+  ALid = Dict(common.LoadFile(filename=AniDBid+'.json', relativeDirectory=os.path.join('AniList', 'json', 'AniDBid'), url=ARM_SERVER_URL.format(id=AniDBid)), "anilist", default=None)
+
   Log.Info("AniDBid={}, MALid={}, ALid={}".format(AniDBid, MALid, ALid))
   if not MALid or not MALid.isdigit(): return AniList_dict
 
