@@ -165,12 +165,8 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         if Dict(mappingList, 'defaulttvdbseason_a'):  season, episode          = '1', str(abs_number)
         else:                                         season, episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
       elif metadata_source in ('tvdb3', 'tvdb4'):  
-        if str(abs_number) in list_abs_eps:  #if abs id exists on disk, leave specials with no translation
-          for s in media.seasons:
-            if str(abs_number) in media.seasons[s].episodes:
-              season, episode = s, str(abs_number)
-              break
-          else:  continue
+        for s in media.seasons:  #if abs id exists on disk, leave specials with no translation
+          if  str(abs_number) in list_abs_eps and str(abs_number) in media.seasons[s].episodes and s!="0":  season, episode = s, str(abs_number);  break
       elif metadata_source=='tvdb5':  
         if abs_number:  season, episode = '1', str(abs_number)
       
