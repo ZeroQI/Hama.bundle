@@ -163,11 +163,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
 
     xml, cache = None, CACHE_1DAY*6
     xml_cache  = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
+    if isinstance(xml_cache, str):  xml_cache = ''
     if xml_cache:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
-      try:
-        ed             = GetXml(xml_cache, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
-        enddate        = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
-      except:  enddate = datetime.datetime.now().strftime("%Y-%m-%d")
+      ed = GetXml(xml_cache, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
+      enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
       days_old = (datetime.datetime.now() - enddate).days
       if   days_old > 1825:  cache = CACHE_1DAY*365                  # enddate > 5 years ago => 1 year cache
       elif days_old >   30:  cache = (days_old*CACHE_1DAY*365)/1825  # enddate > 30 days ago => (days_old/5yrs ended = x/1yrs cache)
