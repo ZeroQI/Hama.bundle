@@ -163,7 +163,7 @@ Installation
 ============
 ASS scanner is installation is hightly recommended: Place https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py inside Plex main folder / "Scanners" / "Series" (folder needs creating).
     			 
-To install Hama, it's like other Plex agents: Get the latest source zip in https://github.com/ZeroQI/Hama.bundle > Code > Download Zip
+To install Hama, it's like other Plex agents: Get the latest source zip in https://github.com/ZeroQI/Hama.bundle > "Code" > "Download Zip".
 Inside the Hama.bundle-master.zip you will have the folder "Hama.bundle-master" to rename to "Hama.bundle" and place in Plex plugin folder [https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-] or Plex main folder / "Plug-ins"
 
 Plex main folder location:
