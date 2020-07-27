@@ -102,6 +102,13 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     if Dict(json[lang], 'runtime').isdigit():
       Log.Info('[ ] duration: {}'             .format(SaveDict(    int(Dict(json[lang], 'runtime'))*60*1000,                              TheTVDB_dict, 'duration'               )))  #in ms in plex
     
+    series_images = {  # Pull the primary images used for the series entry
+      'poster':     Dict(json[language], 'poster'),
+      'banner':     Dict(json[language], 'banner'),
+      'fanart':     Dict(json[language], 'fanart'),
+      'seasonwide': Dict(json[language], 'seasonwide'),
+      'series':     Dict(json[language], 'series')}
+
     ### TVDB Series Actors JSON ###
     Log.Info("--- actors ---".ljust(157, '-'))
     actor_json = Dict(LoadFileTVDB(id=TVDBid, filename='actors_{}.json'.format(lang), url=TVDB_ACTORS_URL.format(id=TVDBid), headers={'Accept-Language': lang}), 'data')
@@ -285,7 +292,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       except:  Log.Info("Invalid image JSON from url: " + TVDB_SERIES_IMG_INFO_URL % TVDBid)
       else:             #JSON format = {"fanart", "poster", "season", "seasonwide", "series"}
         metanames         = {'fanart': "art", 'poster': "posters", 'series': "banners", 'season': "seasons", 'seasonwide': 'seasonwide'}
-        #count_valid       = {key: 0 for key in metanames}
+        count_valid       = {key: 0 for key in metanames}
         Log.Info("bannerTypes: {}".format(bannerTypes))
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
@@ -300,9 +307,10 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
             images = sorted(images, key = lambda x: Dict(x, "ratingsInfo", "average", default=0), reverse=True)
             for image in images:  #JSON format = {"data": [{"id", "keyType", "subKey"(season/graphical/text), "fileName", "resolution", "ratingsInfo": {"average", "count"}, "thumbnail"}]}
               if not Dict(image, 'fileName'):  continue  #Avod "IOError: [Errno 21] Is a directory: u'/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems/TheTVDB'" if filename empty
+              count_valid[bannerType] = count_valid[bannerType] + 1
               
               ### Adding picture ###
-              rank      = common.poster_rank('TheTVDB', metanames[bannerType], language)
+              rank      = common.poster_rank('TheTVDB', metanames[bannerType], language, 0 if Dict(image, 'fileName') == Dict(series_images, bannerType) else count_valid[bannerType])
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
               Log.Info("[!] bannerType: {:>7} subKey: {:>9} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'count') ))
               if bannerType=='season':  #tvdb season posters or anidb specials and defaulttvdb season  ## season 0 et empty+ season ==defaulttvdbseason(a=1)
