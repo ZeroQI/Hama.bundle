@@ -304,7 +304,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               ### Adding picture ###
               rank      = common.poster_rank('TheTVDB', metanames[bannerType], language)
               thumbnail = TVDB_IMG_ROOT + image['thumbnail'] if Dict(image, 'thumbnail') else None
-              Log.Info("[!] bannerType: {:>7} subKey: {:>9} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'average', 'count') ))
+              Log.Info("[!] bannerType: {:>7} subKey: {:>9} rank: {:>3} filename: {} thumbnail: {} resolution: {} average: {} count: {}".format( metanames[bannerType], Dict(image, 'subKey'), rank, TVDB_IMG_ROOT + Dict(image, 'fileName'), TVDB_IMG_ROOT + Dict(image, 'thumbnail'), Dict(image, 'resolution'), Dict(image, 'ratingsInfo','average'), Dict(image, 'ratingsInfo', 'count') ))
               if bannerType=='season':  #tvdb season posters or anidb specials and defaulttvdb season  ## season 0 et empty+ season ==defaulttvdbseason(a=1)
                 if not anidb_numbering:  SaveDict(('TheTVDB/'+image['fileName'], rank, thumbnail), TheTVDB_dict, 'seasons', str(image['subKey']), 'posters', TVDB_IMG_ROOT + image['fileName'])
                 else:
