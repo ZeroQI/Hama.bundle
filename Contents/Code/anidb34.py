@@ -10,7 +10,7 @@ from common import Log, DictString, Dict, SaveDict # Direct import of heavily us
 ### Variables ###
 
 ### Functions ###
-def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
+def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
   """ EX:
   season_map: {'max_season': 2, '12560': {'max': 1, 'min': 1}, '13950': {'max': 0, 'min': 0}}
   relations_map: {'12560': {'Sequel': ['13950']}, '13950': {'Prequel': ['12560']}}
@@ -89,20 +89,25 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
     # Push back the 'dict_TheTVDB' season munbers if tvdb6 for the new inserted season
     if source=="tvdb6":
       Log.Info("--- tvdb meta season adjustments ---".ljust(157, '-'))
-      top_season, season, adjustment, new_seasons = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}
+      top_season, season, adjustment, new_seasons_tvdb, new_seasons_fan = max(map(int, dict_TheTVDB['seasons'].keys())), 1, 0, {}, {}
       Log.Info("dict_TheTVDB Seasons Before : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
+      Log.Info("dict_FanartTV Seasons Before : {}".format(sorted(dict_FanartTV['seasons'].keys(), key=int)))
       Log.Info("tvdb6_seasons : {}".format(tvdb6_seasons))
-      if "0" in dict_TheTVDB['seasons']:  new_seasons["0"] = dict_TheTVDB['seasons'].pop("0")
+      if "0" in dict_TheTVDB['seasons']:   new_seasons_tvdb["0"] = dict_TheTVDB['seasons'].pop("0")
+      if "0" in dict_FanartTV['seasons']:  new_seasons_fan["0"]  = dict_FanartTV['seasons'].pop("0")
       while season <= top_season:
         if Dict(tvdb6_seasons, season + adjustment) == 0:
           Log.Info("-- New TVDB season  '{}'".format(season + adjustment))
           adjustment += 1
         else:
           Log.Info("-- Adjusting season '{}' -> '{}'".format(season, season + adjustment))
-          if str(season) in dict_TheTVDB['seasons']:  new_seasons[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
+          if str(season) in dict_TheTVDB['seasons']:   new_seasons_tvdb[str(season + adjustment)] = dict_TheTVDB['seasons'].pop(str(season))
+          if str(season) in dict_FanartTV['seasons']:  new_seasons_fan[str(season + adjustment)]  = dict_FanartTV['seasons'].pop(str(season))
           season += 1
-      SaveDict(new_seasons, dict_TheTVDB, 'seasons')
+      SaveDict(new_seasons_tvdb, dict_TheTVDB,  'seasons')
+      SaveDict(new_seasons_fan,  dict_FanartTV, 'seasons')
       Log.Info("dict_TheTVDB Seasons After  : {}".format(sorted(dict_TheTVDB['seasons'].keys(), key=int)))
+      Log.Info("dict_FanartTV Seasons After  : {}".format(sorted(dict_FanartTV['seasons'].keys(), key=int)))
 
     # Copy in the 'dict_TheTVDB' deleted episode meta into its new added location
     Log.Info("--- tvdb meta episode adjustments ---".ljust(157, '-'))

@@ -146,7 +146,7 @@ def Update(metadata, media, lang, force, movie):
   #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(movie, MALid )
   dict_AniList                                                  =     AniList.GetMetadata(AniDBid, MALid)
   dict_Local                                                    =       Local.GetMetadata(media, movie)
-  if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB):
+  if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
     dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   Log.Info('=== Update() ==='.ljust(157, '='))
   Log.Info("AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
