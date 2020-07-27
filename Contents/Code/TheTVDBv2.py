@@ -297,7 +297,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
         for bannerType in bannerTypes or []:
-          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
+          if bannerTypes[bannerType]==0 or bannerType=='seasonwide' or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           #if anidb_numbering and Dict(mappingList, 'defaulttvdbseason') != '1' and bannerType=='poster':  continue  #skip if anidb numbered serie mapping to season 0 or 2+
           
           Log.Info(("--- images.%s ---" % bannerType).ljust(157, '-'))
