@@ -99,11 +99,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     Log.Info("[ ] rating: {}"                 .format(SaveDict(        Dict(json[lang], 'siteRating'),                                    TheTVDB_dict, 'rating'                 )))
     Log.Info("[ ] status: {}"                 .format(SaveDict(        Dict(json[lang], 'status'    ),                                    TheTVDB_dict, 'status'                 )))
     Log.Info("[ ] genres: {}"                 .format(SaveDict( sorted(Dict(json[lang], 'genre')),                                        TheTVDB_dict, 'genres'                 )))
-    if Dict(json[lang], 'runtime') and Dict(json[lang], 'runtime').isdigit():
-      Log.Info('[ ] duration: {}'             .format(SaveDict(     int(Dict(json[lang], 'runtime'))*60*1000, TheTVDB_dict, 'duration'               )))  #in ms in plex
     if Dict(json[lang], 'banner'):
       SaveDict((os.path.join('TheTVDB', 'banner', Dict(json[lang], 'banner')), common.poster_rank('TheTVDB', 'banners'), None), TheTVDB_dict, 'banners', TVDB_IMG_ROOT+Dict(json[lang], 'banner'))
       Log.Info('[ ] banner: {}'               .format(Dict(TheTVDB_dict, 'banners')))
+    if Dict(json[lang], 'runtime').isdigit():
+      Log.Info('[ ] duration: {}'             .format(SaveDict(    int(Dict(json[lang], 'runtime'))*60*1000,                              TheTVDB_dict, 'duration'               )))  #in ms in plex
     
     ### TVDB Series Actors JSON ###
     Log.Info("--- actors ---".ljust(157, '-'))
