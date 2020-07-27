@@ -99,9 +99,6 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     Log.Info("[ ] rating: {}"                 .format(SaveDict(        Dict(json[lang], 'siteRating'),                                    TheTVDB_dict, 'rating'                 )))
     Log.Info("[ ] status: {}"                 .format(SaveDict(        Dict(json[lang], 'status'    ),                                    TheTVDB_dict, 'status'                 )))
     Log.Info("[ ] genres: {}"                 .format(SaveDict( sorted(Dict(json[lang], 'genre')),                                        TheTVDB_dict, 'genres'                 )))
-    if Dict(json[lang], 'banner'):
-      SaveDict((os.path.join('TheTVDB', 'banner', Dict(json[lang], 'banner')), common.poster_rank('TheTVDB', 'banners'), None), TheTVDB_dict, 'banners', TVDB_IMG_ROOT+Dict(json[lang], 'banner'))
-      Log.Info('[ ] banner: {}'               .format(Dict(TheTVDB_dict, 'banners')))
     if Dict(json[lang], 'runtime').isdigit():
       Log.Info('[ ] duration: {}'             .format(SaveDict(    int(Dict(json[lang], 'runtime'))*60*1000,                              TheTVDB_dict, 'duration'               )))  #in ms in plex
     
@@ -293,7 +290,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
         for bannerType in bannerTypes or []:
-          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide', 'series') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
+          if bannerTypes[bannerType]==0 or bannerType in ('seasonwide') or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           #if anidb_numbering and Dict(mappingList, 'defaulttvdbseason') != '1' and bannerType=='poster':  continue  #skip if anidb numbered serie mapping to season 0 or 2+
           
           Log.Info(("--- images.%s ---" % bannerType).ljust(157, '-'))
