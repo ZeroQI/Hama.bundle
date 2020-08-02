@@ -30,14 +30,15 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
   elif TVDBid.isdigit():  url, filename = TMDB_SERIE_SEARCH_BY_TVDBID.format(id=TVDBid), "TVDB-"+TVDBid+".json"
   else:                   return TheMovieDb_dict, TSDbid, TMDbid, IMDbid
   
-  mode        = "movie" if movie else "tv"
+  mode           = "movie" if movie else "tv"
   Log.Info(("--- %s ---" % mode).ljust(157, '-'))
-  json        = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url)
-  config_dict = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache=CACHE_1MONTH)
+  json           = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url)
+  config_dict    = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache=CACHE_1MONTH)
+  image_base_url = Dict(config_dict, 'images', 'secure_base_url')
   if not json:  Log.Info("TMDB - url: failed to get json" + TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid))
   else:  
-    if   'tv_results'    in json and json['tv_results'   ]:  json, mode = json['tv_results'   ][0], "tv"
-    elif 'movie_results' in json and json['movie_results']:  json, mode = json['movie_results'][0], "movie"
+    if   Dict(json, 'tv_results'   ):  json, mode = json['tv_results'   ][0], "tv"
+    elif Dict(json, 'movie_results'):  json, mode = json['movie_results'][0], "movie"
     
     Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title' if mode=="movie" else 'name'), TheMovieDb_dict, 'title'                  )))
     Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(json, 'vote_average'),                       TheMovieDb_dict, 'rating'                 )))  #if 'vote_count' in json and json['vote_count'] > 3:  SaveDict( Dict(json, 'vote_average'), TheMovieDb_dict, 'rating')
@@ -46,10 +47,10 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
     Log.Info("[ ] duration: {}"               .format(SaveDict( Dict(json, 'runtime'),                            TheMovieDb_dict, 'duration'               )))
     Log.Info("[ ] countries: {}"              .format(SaveDict( Dict(json, 'origin_country'),                     TheMovieDb_dict, 'countries'              )))
     Log.Info("[ ] originally_available_at: {}".format(SaveDict( Dict(json, 'first_air_date'),                     TheMovieDb_dict, 'originally_available_at')))
-    if Dict(json, 'belongs_to_collection', 'name'):  Log.Info("[ ] collections: {}".format(SaveDict( [ Dict(json, 'belongs_to_collection', 'name')],                          TheMovieDb_dict, 'collections')))
+    if Dict(json, 'belongs_to_collection', 'name'):  Log.Info("[ ] collections: {}".format(SaveDict( [ Dict(json, 'belongs_to_collection', 'name')],                                TheMovieDb_dict, 'collections')))
     if Dict(json, 'genres'                       ):  Log.Info("[ ] genres: {}"     .format(SaveDict( sorted([ Dict(genre, 'name') for genre in Dict(json, 'genres', default=[]) ]), TheMovieDb_dict, 'genres'     )))
-    if Dict(json, 'poster_path'                  ):  TheMovieDb_dict['posters'] = { config_dict['images']['base_url']+'original'+json['poster_path'  ]: (os.path.join('TheMovieDb', 'poster',  json['poster_path'  ].lstrip('/')), common.poster_rank('TheMovieDb', 'posters'), None)}
-    if Dict(json, 'backdrop_path'                ):  TheMovieDb_dict['art'    ] = { config_dict['images']['base_url']+'original'+json['backdrop_path']: (os.path.join('TheMovieDb', 'artwork', json['backdrop_path'].lstrip('/')), common.poster_rank('TheMovieDb', 'art'    ), config_dict['images']['base_url']+'w300'+json['backdrop_path']) }
+    if Dict(json, 'poster_path'                  ):  Log.Info("[ ] poster: {}"     .format(image_base_url + 'original' + json['poster_path']));   SaveDict( (os.path.join('TheMovieDb', 'poster',  json['poster_path'  ].lstrip('/')), common.poster_rank('TheMovieDb', 'posters'), None),                                            TheMovieDb_dict, 'posters', image_base_url + 'original' + json['poster_path']  )
+    if Dict(json, 'backdrop_path'                ):  Log.Info("[ ] art: {}"        .format(image_base_url + 'original' + json['backdrop_path'])); SaveDict( (os.path.join('TheMovieDb', 'artwork', json['backdrop_path'].lstrip('/')), common.poster_rank('TheMovieDb', 'art'    ), image_base_url + 'w300' + json['backdrop_path']), TheMovieDb_dict, 'art',     image_base_url + 'original' + json['backdrop_path'])
     try:     Log.Info("[ ] duration: {}".format(SaveDict( int(Dict(json, 'duration')) * 60 * 1000,  TheMovieDb_dict, 'duration')))
     except:  pass
     if mode=='tv':   TSDbid = str(Dict(json, 'id'))
@@ -66,9 +67,9 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
   for id in IMDbid.split(',') if ',' in IMDbid else []:
     json                  = common.LoadFile(filename="TMDB-"+(IMDbid or TMDbid)+".json", relativeDirectory="TMDB", url=TMDB_MOVIE_IMAGES_URL.format(id=id, mode=mode))
     for index, poster in enumerate(Dict(json, 'posters', default=[])):
-      if Dict(poster, 'file_path'):    Log.Info("[ ] poster: {}" .format(SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'posters'), None), TheMovieDb_dict, 'posters', config_dict['images']['base_url'] + 'original' + poster['file_path'])))
+      if Dict(poster,   'file_path'):  Log.Info("[ ] poster: {}" .format(SaveDict((os.path.join('TheMovieDb', 'poster', "%s-%s.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'posters'), None), TheMovieDb_dict, 'posters', image_base_url + 'original' + poster['file_path'])))
     for index, backdrop in enumerate(Dict(json, 'backdrops', default=[])):
-      if Dict(backdrop, 'file_path'):  Log.Info("[ ] artwork: {}".format(SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'art'), config_dict['images']['base_url'] + 'w300'+ backdrop['file_path']), TheMovieDb_dict, 'art', config_dict['images']['base_url']+'original'+ backdrop['file_path'])))
+      if Dict(backdrop, 'file_path'):  Log.Info("[ ] artwork: {}".format(SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'art'), image_base_url + 'w300' + backdrop['file_path']), TheMovieDb_dict, 'art', image_base_url + 'original'+ backdrop['file_path'])))
   
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("TheMovieDb_dict: {}".format(DictString(TheMovieDb_dict, 4)))
