@@ -311,7 +311,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
               
               ### Adding picture ###
               rank         = common.poster_rank('TheTVDB', metanames[bannerType], language, 0 if Dict(image, 'fileName') == Dict(series_images, bannerType) else count_valid[bannerType])
-              fileNamePath = os.path.join('TheTVDB', Dict(image, 'fileName'))
+              fileNamePath = os.path.join('TheTVDB', Dict(image, 'fileName').replace('/', os.sep))
               fileNameURL  = TVDB_IMG_ROOT + Dict(image, 'fileName')
               thumbnail    = TVDB_IMG_ROOT + Dict(image, 'thumbnail') if Dict(image, 'thumbnail') else None
               subKey       = str(Dict(image, 'subKey'))  # Convert to string once
