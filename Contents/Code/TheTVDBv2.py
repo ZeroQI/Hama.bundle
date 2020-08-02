@@ -111,9 +111,9 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
 
     ### TVDB Series Actors JSON ###
     Log.Info("--- actors ---".ljust(157, '-'))
-    actor_json = Dict(LoadFileTVDB(id=TVDBid, filename='actors_{}.json'.format(lang), url=TVDB_ACTORS_URL.format(id=TVDBid), headers={'Accept-Language': lang}), 'data')
+    actor_json = Dict(LoadFileTVDB(id=TVDBid, filename='actors_{}.json'.format(lang), url=TVDB_ACTORS_URL.format(id=TVDBid), headers={'Accept-Language': lang}), 'data', default=[])
     if actor_json:               #JSON format: 'data': [{"seriesId", "name", "image", "lastUpdated", "imageAuthor", "role", "sortOrder", "id", "imageAdded", },...]
-      for role in actor_json or []:
+      for role in actor_json:
         try:
           role_dict = {'role': Dict(role, 'role'), 'name': Dict(role, 'name'), 'photo': TVDB_IMG_ROOT + role['image'] if Dict(role, 'image') else ''}
           SaveDict([role_dict], TheTVDB_dict, 'roles')
@@ -296,7 +296,7 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
         Log.Info("bannerTypes: {}".format(bannerTypes))
         
         #Loop per banner type ("fanart", "poster", "season", "series") skip 'seasonwide' - Load bannerType images list JSON
-        for bannerType in bannerTypes or []:
+        for bannerType in bannerTypes:
           if bannerTypes[bannerType]==0 or bannerType=='seasonwide' or movie and not bannerType in ('fanart', 'poster'):  continue  #Loop if no images
           #if anidb_numbering and Dict(mappingList, 'defaulttvdbseason') != '1' and bannerType=='poster':  continue  #skip if anidb numbered serie mapping to season 0 or 2+
           
