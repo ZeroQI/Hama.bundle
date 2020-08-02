@@ -39,7 +39,7 @@ def GetMetadata(movie, IMDbid):  # return 200 but not downloaded correctly - IMD
       Log.Info("[ ] rating: {}".format(Dict(OMDb_dict,'rating')))
       if SaveDict( Dict(json,'Rated'), OMDb_dict, 'content_rating') in common.Movie_to_Serie_US_rating and not movie and Dict(json,'Type')=="movie":
         Log.Info("[ ] content_rating: {}".format(SaveDict(common.Movie_to_Serie_US_rating[json['Rated']], OMDb_dict, 'content_rating')))
-      if Dict(json,'Poster'):  Log.Info("[ ] poster: {}".format(SaveDict((os.path.join('OMDb', 'poster', imdbid_single+'.jpg'), common.poster_rank('OMDb', 'posters'), None), OMDb_dict, 'posters', json['Poster'])))
+      if Dict(json,'Poster'):  Log.Info("[ ] poster: {}".format(json['Poster'])); SaveDict((os.path.join('OMDb', 'poster', imdbid_single+'.jpg'), common.poster_rank('OMDb', 'posters'), None), OMDb_dict, 'posters', json['Poster'])
       try:     Log.Info("[ ] duration: {}".format(SaveDict( int(Dict(json,'Runtime').replace(' min','')) * 60 * 1000, OMDb_dict, 'duration')))  # Plex save duration in millisecs
       except:  pass
 
