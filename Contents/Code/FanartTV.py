@@ -31,15 +31,15 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0):  #Fetch
     
     #Movies
     if json and (imdbid or tmdbid):
-      for item in Dict(json, 'movieposter'    , default=[]):  Log.Info("[ ] poster: {}".format(SaveDict((os.path.join(relativeDirectory, id, "movieposter",     "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'posters', Dict(item, 'url'))))
-      for item in Dict(json, 'moviebackground', default=[]):  Log.Info("[ ] art: {}"   .format(SaveDict((os.path.join(relativeDirectory, id, "moviebackground", "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'art'    ), None), FanartTV_dict, 'art',     Dict(item, 'url'))))
+      for item in Dict(json, 'movieposter'    , default=[]):  Log.Info("[ ] poster: {}".format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "movieposter",     "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'posters', Dict(item, 'url'))
+      for item in Dict(json, 'moviebackground', default=[]):  Log.Info("[ ] art: {}"   .format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "moviebackground", "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'art'    ), None), FanartTV_dict, 'art',     Dict(item, 'url'))
     
     #Series
     if json and TVDBid.isdigit():
-      for item in Dict(json, 'tvposter'       , default=[]):  Log.Info("[ ] poster: {}"       .format(SaveDict((os.path.join(relativeDirectory, id, "tvposter",       "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'posters', Dict(item, 'url'))))
-      for item in Dict(json, 'showbackground' , default=[]):  Log.Info("[ ] art: {}"          .format(SaveDict((os.path.join(relativeDirectory, id, "showbackground", "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'art'    ), None), FanartTV_dict, 'art',     Dict(item, 'url'))))
-      for item in Dict(json, 'tvbanner'       , default=[]):  Log.Info("[ ] banner: {}"       .format(SaveDict((os.path.join(relativeDirectory, id, "tvbanner",       "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'banners'), None), FanartTV_dict, 'banners', Dict(item, 'url'))))
-      for item in Dict(json, 'seasonposter'   , default=[]):  Log.Info("[ ] season poster: {}".format(SaveDict((os.path.join(relativeDirectory, id, "seasonposter",   "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'seasons', Dict(item, 'season'), 'posters', Dict(item, 'url'))))
+      for item in Dict(json, 'tvposter'       , default=[]):  Log.Info("[ ] poster: {}"       .format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "tvposter",       "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'posters', Dict(item, 'url'))
+      for item in Dict(json, 'showbackground' , default=[]):  Log.Info("[ ] art: {}"          .format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "showbackground", "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'art'    ), None), FanartTV_dict, 'art',     Dict(item, 'url'))
+      for item in Dict(json, 'tvbanner'       , default=[]):  Log.Info("[ ] banner: {}"       .format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "tvbanner",       "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'banners'), None), FanartTV_dict, 'banners', Dict(item, 'url'))
+      for item in Dict(json, 'seasonposter'   , default=[]):  Log.Info("[ ] season poster: {}".format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "seasonposter",   "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'seasons', Dict(item, 'season'), 'posters', Dict(item, 'url'))
 
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("FanartTV_dict: {}".format(DictString(FanartTV_dict, 4)))
