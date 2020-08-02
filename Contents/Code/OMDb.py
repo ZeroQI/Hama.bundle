@@ -1,7 +1,7 @@
 ### omdbapi.com ###  
-# API               http://www.omdbapi.com/
-# API xml exemple:  tt0412142   1408  House md   http://www.omdbapi.com/?i=tt0412142
-# API xml exemple:  tt0186151  10559  Frequency  http://www.omdbapi.com/?i=tt0186151
+# API               https://www.omdbapi.com/
+# API xml exemple:  tt0412142   1408  House md   https://www.omdbapi.com/?i=tt0412142
+# API xml exemple:  tt0186151  10559  Frequency  https://www.omdbapi.com/?i=tt0186151
 
 ### Imports ###
 # Python Modules #
@@ -11,7 +11,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i="
+OMDB_HTTP_API_URL = "https://www.omdbapi.com/?apikey={api_key}&i="
 
 ### Functions ###
 def GetMetadata(movie, IMDbid):  # return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file

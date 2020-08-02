@@ -18,7 +18,7 @@ SCHUDLEE_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/maste
 AniDBMovieSets    = None
 
 SCHUDLEE_CUSTOM   = 'anime-list-custom.xml'
-SCHUDLEE_FEEDBACK = 'http://github.com/ScudLee/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
+SCHUDLEE_FEEDBACK = 'https://github.com/ScudLee/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
 
 ### Functions ###
 

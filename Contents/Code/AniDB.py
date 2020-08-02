@@ -1,5 +1,5 @@
 ### AniBD ###
-#http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
+# http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
 
 ### Imports ###
 # Python Modules #
@@ -15,18 +15,16 @@ from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of he
 import AnimeLists
 
 ### Variables ###
-ANIDB_PROTOCOL = 'http://'
+ANIDB_TITLE_DOMAIN = 'https://anidb.net'
+ANIDB_TITLES       = ANIDB_TITLE_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
+AniDBTitlesDB      = None
 
-ANIDB_DOMAIN  = 'anidb.net'
-ANIDB_TITLES  = ANIDB_PROTOCOL + ANIDB_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
-AniDBTitlesDB = None
+ANIDB_API_DOMAIN   = 'http://api.anidb.net:9001'
+ANIDB_HTTP_API_URL = ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 
-ANIDB_API_DOMAIN    = 'api.anidb.net:9001'
-ANIDB_HTTP_API_URL  = ANIDB_PROTOCOL + ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
-
-ANIDB_IMAGE_DOMAIN  = 'cdn.anidb.net'
-ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/main/'
-ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/65x100/{name}.jpg-thumb.jpg'
+ANIDB_IMAGE_DOMAIN  = 'https://cdn.anidb.net'
+ANIDB_PIC_BASE_URL  = ANIDB_IMAGE_DOMAIN + '/images/main/'
+ANIDB_PIC_THUMB_URL = ANIDB_IMAGE_DOMAIN + '/images/65x100/{name}.jpg-thumb.jpg'
 
 AniDBBan = False
 

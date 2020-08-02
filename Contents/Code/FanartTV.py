@@ -1,6 +1,6 @@
 ### FanartTV.com ###
-#http://webservice.fanart.tv/v3/tv/79824?api_key=cfa9dc054d221b8d107f8411cd20b13f #Naruto Shippuden
-#http://webservice.fanart.tv/v3/tv/81189?api_key=cfa9dc054d221b8d107f8411cd20b13f
+# https://webservice.fanart.tv/v3/tv/79824?api_key=cfa9dc054d221b8d107f8411cd20b13f #Naruto Shippuden
+# https://webservice.fanart.tv/v3/tv/81189?api_key=cfa9dc054d221b8d107f8411cd20b13f
 
 ### Imports ###
 # Python Modules #
@@ -11,8 +11,8 @@ from common import Log, DictString, Dict, SaveDict # Direct import of heavily us
 
 ### Variables ###
 FTV_API_KEY        = 'cfa9dc054d221b8d107f8411cd20b13f'
-FTV_API_MOVIES_URL = 'http://webservice.fanart.tv/v3/movies/{id}?api_key=%s' % FTV_API_KEY
-FTV_API_TV_URL     = 'http://webservice.fanart.tv/v3/tv/{id}?api_key=%s' % FTV_API_KEY
+FTV_API_MOVIES_URL = 'https://webservice.fanart.tv/v3/movies/{id}?api_key=%s' % FTV_API_KEY
+FTV_API_TV_URL     = 'https://webservice.fanart.tv/v3/tv/{id}?api_key=%s' % FTV_API_KEY
 
 ### Functions ###
 def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0):  #Fetch from fanart.tv - Posters Seasons Fanarts Banner

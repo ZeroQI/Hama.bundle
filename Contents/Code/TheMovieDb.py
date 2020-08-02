@@ -1,8 +1,5 @@
 ### TheMovieDb ###  Does movies but also series, for which i call it tsdb in metadata id ##
-# tt0412142   1408  House md   http://www.omdbapi.com/?i=tt0412142 tvdb 73255
-# tt0186151  10559  Frequency  http://www.omdbapi.com/?i=tt0186151
-# tt5311514         Your Name
-#TMDB_SEARCH_BY_IMDBID       = "https://api.TheMovieDb.org/3/find/tt0412142?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id"
+# TMDB_SEARCH_BY_IMDBID       = "https://api.TheMovieDb.org/3/find/tt0412142?api_key=7f4a0bd0bd3315bb832e17feda70b5cd&external_source=imdb_id"
 
 ### Imports ###
 # Python Modules #
@@ -13,10 +10,10 @@ from common import Log, DictString, Dict, SaveDict # Direct import of heavily us
 
 ### Variables ###
 TMDB_API_KEY                = '7f4a0bd0bd3315bb832e17feda70b5cd'
-TMDB_MOVIE_SEARCH           = 'http://api.tmdb.org/3/search/movie?api_key=%s&query={query}&year=&language=en&include_adult=true' % TMDB_API_KEY
-TMDB_MOVIE_SEARCH_BY_TMDBID = 'http://api.tmdb.org/3/movie/{id}?api_key=%s&append_to_response=releases,credits,trailers,external_ids&language=en' % TMDB_API_KEY  # Work with IMDbid
-TMDB_SERIE_SEARCH_BY_TVDBID = "http://api.TheMovieDb.org/3/find/{id}?api_key=%s&external_source=tvdb_id&append_to_response=releases,credits,trailers,external_ids&language=en" % TMDB_API_KEY
-TMDB_CONFIG_URL             = 'http://api.tmdb.org/3/configuration?api_key=%s' % TMDB_API_KEY
+TMDB_MOVIE_SEARCH           = 'https://api.tmdb.org/3/search/movie?api_key=%s&query={query}&year=&language=en&include_adult=true' % TMDB_API_KEY
+TMDB_MOVIE_SEARCH_BY_TMDBID = 'https://api.tmdb.org/3/movie/{id}?api_key=%s&append_to_response=releases,credits,trailers,external_ids&language=en' % TMDB_API_KEY  # Work with IMDbid
+TMDB_SERIE_SEARCH_BY_TVDBID = "https://api.TheMovieDb.org/3/find/{id}?api_key=%s&external_source=tvdb_id&append_to_response=releases,credits,trailers,external_ids&language=en" % TMDB_API_KEY
+TMDB_CONFIG_URL             = 'https://api.tmdb.org/3/configuration?api_key=%s' % TMDB_API_KEY
 #TMDB_MOVIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/movie/list?api_key=%s&language=en" % TMDB_API_KEY
 #TMDB_SERIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/tv/list?api_key=%s&language=en" % TMDB_API_KEY
 TMDB_MOVIE_IMAGES_URL       = 'https://api.tmdb.org/3/{mode}/{id}/images?api_key=%s' % TMDB_API_KEY

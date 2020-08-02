@@ -1,5 +1,5 @@
 ### TheTVDB.com API v2 ###
-# http://thetvdb.com/api/A27AD9BE0DA63333/series/103291/all/en.xml
+# https://thetvdb.com/api/A27AD9BE0DA63333/series/103291/all/en.xml
 
 ### Imports ###
 # Python Modules #
@@ -27,7 +27,7 @@ TVDB_SERIES_IMG_INFO_URL   = TVDB_SERIES_URL + '/images'
 TVDB_SERIES_IMG_QUERY_URL  = TVDB_SERIES_URL + '/images/query?keyType={type}'
 
 TVDB_SEARCH_URL            = TVDB_BASE_URL + '/search/series?name=%s'
-TVDB_SERIE_SEARCH          = 'http://thetvdb.com/api/GetSeries.php?seriesname='
+TVDB_SERIE_SEARCH          = 'https://thetvdb.com/api/GetSeries.php?seriesname='
 
 #THETVDB_LANGUAGES_CODE     = { 'cs': '28', 'da': '10', 'de': '14', 'el': '20', 'en':  '7', 'es': '16', 'fi': '11', 'fr': '17', 'he': '24', 
 #                               'hr': '31', 'hu': '19', 'it': '15', 'ja': '25', 'ko': '32', 'nl': '13', 'no':  '9', 'pl': '18', 'pt': '26',

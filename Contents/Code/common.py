@@ -30,8 +30,8 @@ downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0,
 netLock           = Thread.Lock()
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
-TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='                     # Used in error_log generation
-ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='   # Used in error_log generation
+TVDB_SERIE_URL    = 'https://thetvdb.com/?tab=series&id='  # Used in error_log generation
+ANIDB_SERIE_URL   = 'https://anidb.net/anime/'             # Used in error_log generation
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
@@ -517,7 +517,7 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
 
     ### Generate prefix, append to error_log_array and Save error_log_array ###
     log_prefix = ''
-    if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
+    if log == 'TVDB posters missing': log_prefix = "Series posters must be 680x1000 and be JPG format. They should not contain spoilers, nudity, or vulgarity. Please ensure they are of high quality with no watermarks, unrelated logos, and that they don't appear stretched." + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
     try:     Data.Save(error_log_file, log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub(r"<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
