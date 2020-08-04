@@ -1,7 +1,7 @@
 ### omdbapi.com ###  
-# API               http://www.omdbapi.com/
-# API xml exemple:  tt0412142   1408  House md   http://www.omdbapi.com/?i=tt0412142
-# API xml exemple:  tt0186151  10559  Frequency  http://www.omdbapi.com/?i=tt0186151
+# API               https://www.omdbapi.com/
+# API xml exemple:  tt0412142   1408  House md   https://www.omdbapi.com/?i=tt0412142
+# API xml exemple:  tt0186151  10559  Frequency  https://www.omdbapi.com/?i=tt0186151
 
 ### Imports ###
 # Python Modules #
@@ -11,7 +11,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-OMDB_HTTP_API_URL = "http://www.omdbapi.com/?apikey={api_key}&i="
+OMDB_HTTP_API_URL = "https://www.omdbapi.com/?apikey={api_key}&i="
 
 ### Functions ###
 def GetMetadata(movie, IMDbid):  # return 200 but not downloaded correctly - IMDB has a single poster, downloading through OMDB xml, prefered by mapping file
@@ -39,7 +39,7 @@ def GetMetadata(movie, IMDbid):  # return 200 but not downloaded correctly - IMD
       Log.Info("[ ] rating: {}".format(Dict(OMDb_dict,'rating')))
       if SaveDict( Dict(json,'Rated'), OMDb_dict, 'content_rating') in common.Movie_to_Serie_US_rating and not movie and Dict(json,'Type')=="movie":
         Log.Info("[ ] content_rating: {}".format(SaveDict(common.Movie_to_Serie_US_rating[json['Rated']], OMDb_dict, 'content_rating')))
-      if Dict(json,'Poster'):  Log.Info("[ ] poster: {}".format(SaveDict((os.path.join('OMDb', 'poster', imdbid_single+'.jpg'), common.poster_rank('OMDb', 'posters'), None), OMDb_dict, 'posters', json['Poster'])))
+      if Dict(json,'Poster'):  Log.Info("[ ] poster: {}".format(json['Poster'])); SaveDict((os.path.join('OMDb', 'poster', imdbid_single+'.jpg'), common.poster_rank('OMDb', 'posters'), None), OMDb_dict, 'posters', json['Poster'])
       try:     Log.Info("[ ] duration: {}".format(SaveDict( int(Dict(json,'Runtime').replace(' min','')) * 60 * 1000, OMDb_dict, 'duration')))  # Plex save duration in millisecs
       except:  pass
 

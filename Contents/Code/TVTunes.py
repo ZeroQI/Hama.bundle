@@ -1,5 +1,5 @@
 ### televisiontunes.com ###
-#http://www.tunefind.com/api
+# https://www.tunefind.com/api
 
 ### Imports ###
 # HAMA Modules #
@@ -7,7 +7,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-THEME_URL = "http://www.televisiontunes.com/uploads/audio/{}.mp3"
+THEME_URL = "https://www.televisiontunes.com/uploads/audio/{}.mp3"
 
 ### Functions ###
 def GetMetadata(metadata, title1, title2):

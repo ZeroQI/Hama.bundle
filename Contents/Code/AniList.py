@@ -64,11 +64,11 @@ def GetMetadata(AniDBid, MALid):
 
     posterUrl = Dict(data, "anime", "coverImage", "url")
     if posterUrl:
-      Log.Info("[ ] poster: {}".format(SaveDict((os.path.join('AniList', 'poster',  os.path.basename(posterUrl)), common.poster_rank('AniList', 'posters'), None), AniList_dict, 'posters', posterUrl)))
+      Log.Info("[ ] poster: {}".format(posterUrl)); SaveDict((os.path.join('AniList', 'poster',  os.path.basename(posterUrl)), common.poster_rank('AniList', 'posters'), None), AniList_dict, 'posters', posterUrl)
 
     bannerUrl = Dict(data, "anime", "bannerImage")
     if bannerUrl:
-      Log.Info("[ ] banner: {}".format(SaveDict((os.path.join('AniList', 'banners', os.path.basename(bannerUrl)), common.poster_rank('AniList', 'banners'), None), AniList_dict, 'banners', bannerUrl)))
+      Log.Info("[ ] banner: {}".format(bannerUrl)); SaveDict((os.path.join('AniList', 'banners', os.path.basename(bannerUrl)), common.poster_rank('AniList', 'banners'), None), AniList_dict, 'banners', bannerUrl)
 
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("AniList_dict: {}".format(DictString(AniList_dict, 4)))
