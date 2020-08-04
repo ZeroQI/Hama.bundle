@@ -40,7 +40,7 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
   TVDB4_mapping = find_tvdb4_file("tvdb4.mapping")
   
   if TVDB4_mapping: Log.Debug("'tvdb4.mapping' file detected locally")
-  else:             TVDB4_mapping = TVDB4_mapping or common.LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), url=TVDB4_MAPPING_URL)  # AniDB title database loaded once every 2 weeks
+  else:             TVDB4_mapping = TVDB4_mapping or common.LoadFile(filename=os.path.basename(TVDB4_MAPPING_URL), url=TVDB4_MAPPING_URL)
   entry = ""
   if isinstance(TVDB4_mapping, str):  entry = TVDB4_mapping
   else:
@@ -52,21 +52,24 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       for absolute_episode in range(int(season[1]), int(season[2])+1):  SaveDict((str(int(season[0])), str(absolute_episode)), mappingList, 'absolute_map', str(absolute_episode))
       SaveDict(True if "(unknown length)" in season[3] else False, mappingList, 'absolute_map', 'unknown_series_length')
       SaveDict(str(int(season[0])), mappingList, 'absolute_map', 'max_season')
+      Log.Info("[ ] season: {}, starting episode: {}, ending episode: {}, label: {}".format(season[0], season[1], season[2], season[3]))
 
   Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
   TVDB4_xml = find_tvdb4_file(os.path.basename(TVDB4_POSTERS_URL))
   
   if TVDB4_xml: Log.Debug("'tvdb4.posters.xml' file detected locally")
-  else:         TVDB4_xml  = TVDB4_xml or common.LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), url=TVDB4_POSTERS_URL)  # AniDB title database loaded once every 2 weeks
+  else:         TVDB4_xml  = TVDB4_xml or common.LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), url=TVDB4_POSTERS_URL)
   if TVDB4_xml:
-    seasonposternum = 0
+    season_posters = {}
     entry = common.GetXml(TVDB4_xml, "/tvdb4entries/posters[@tvdbid='%s']" % TVDBid)
     if not entry:  Log.Error("TVDBid '%s' is not found in posters file" % TVDBid) 
     for line in filter(None, entry.strip().splitlines()):
       season, url       = line.strip().split("|",1)
       season            = season.lstrip("0") if season.lstrip("0") else "0"
-      seasonposternum  += 1
-      SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), 1, None), TVDB4_dict, 'seasons', season, 'posters', url)
+      SaveDict(Dict(season_posters, season, default=0)+1, season_posters, season)
+      rank = common.poster_rank('tvdb4', 'posters', rank_adjustment=season_posters[season]-1)
+      SaveDict(("TheTVDB/seasons/%s-%s-%s" % (TVDBid, season, os.path.basename(url)), rank, None), TVDB4_dict, 'seasons', season, 'posters', url)
+      Log.Info("[ ] season: {:>2}, rank: {:>3}, filename: {}".format(season, rank, url))
 
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("absolute_map: {}".format(DictString(Dict(mappingList, 'absolute_map', default={}), 0)))
