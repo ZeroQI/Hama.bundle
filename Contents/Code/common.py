@@ -40,7 +40,7 @@ FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
 FieldListSeasons  = ('summary','posters', 'art')  #'summary', 
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
-SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
+SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local', 'AniList') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
 COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
 THROTTLE          = {}
