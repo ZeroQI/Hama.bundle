@@ -46,7 +46,7 @@ def GetAniDBTVDBMapCustom(media, movie):
   AniDBTVDBMapCustom = None
   lib, root, path = common.GetLibraryRootPath(common.GetMediaDir(media, movie))
   dir = os.path.join(root, path)
-  while dir and os.path.splitdrive(dir)[1] != os.sep:
+  while dir:
     scudlee_filename_custom = os.path.join(dir, SCHUDLEE_CUSTOM)
     if os.path.exists( scudlee_filename_custom ):
       try:
@@ -54,7 +54,7 @@ def GetAniDBTVDBMapCustom(media, movie):
         Log.Info("Local custom mapping file loaded: {}".format(scudlee_filename_custom))
       except:  Log.Error("Failed to open: '%s', error: '%s'" % (scudlee_filename_custom, e))
       else:    break
-    dir = os.path.dirname(dir)
+    dir = os.path.dirname(dir) if len(dir) > len(root) else ''  # Clear variable if we've just finished processing down to (and including) root
   else:  Log.Info("Local custom mapping file not present: {}".format(SCHUDLEE_CUSTOM))
   return AniDBTVDBMapCustom
   
