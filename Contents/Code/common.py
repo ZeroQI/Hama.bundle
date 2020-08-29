@@ -321,15 +321,15 @@ def ObjectFromFile(file=""):
     #XML
     if file.startswith('<?xml '):  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
       try:     return XML.ElementFromString(file)
-      except:  
-        try:   return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
-        except:
-          Log.Info("XML still corrupted after normalization"); return
+      except Exception as e:  
+        Log.Info("XML corrupted. Exception: {}".format(e))
+        try:                     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
+        except Exception as e2:  Log.Info("XML still corrupted after normalization. Exception: {}".format(e2)); return
 
     #JSON
     elif file.startswith('{'):  #Json
-      try:     return JSON.ObjectFromString(file, encoding=None)
-      except:  Log.Info("XML still corrupted after normalization"); return
+      try:                    return JSON.ObjectFromString(file, encoding=None)
+      except Exception as e:  Log.Info("JSON corrupted. Exception: {}".format(e)); return
   
     #Empty file
     elif file=="":  Log.Info("Empty file");  return
