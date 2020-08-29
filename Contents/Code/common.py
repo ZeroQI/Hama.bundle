@@ -320,7 +320,7 @@ def ObjectFromFile(file=""):
 
     #XML
     if file.startswith('<?xml '):  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
-      try:     return XML.ElementFromString(file)
+      try:     return XML.ElementFromString(file, max_size=1024*1024*10)  # Overide max size to 10mb from 5mg default
       except Exception as e:  
         Log.Info("XML corrupted. Exception: {}".format(e))
         try:                     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
