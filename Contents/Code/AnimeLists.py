@@ -39,7 +39,8 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
 def GetAniDBTVDBMap():  
   global AniDBTVDBMap
   AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCHUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCHUDLEE_MASTER)  # 
-  if not AniDBTVDBMap:  Log.Critical("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCHUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
+  if not AniDBTVDBMap:  raise Exception("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCHUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
+  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBTVDBMap), SCHUDLEE_MASTER))
   AniDBTVDBMap  = MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(ASS_SCHUDLEE_CORRECTIONS), relativeDirectory="AnimeLists", url=ASS_SCHUDLEE_CORRECTIONS))  #Online ScudLee anidb to tvdb mapping list
   
 def GetAniDBTVDBMapCustom(media, movie):  
@@ -62,7 +63,8 @@ def GetAniDBTVDBMapCustom(media, movie):
 def GetAniDBMovieSets():  
   global AniDBMovieSets
   AniDBMovieSets = common.LoadFile(filename=os.path.basename(SCHUDLEE_MOVIESET), relativeDirectory="AnimeLists", url=SCHUDLEE_MOVIESET, cache=CACHE_1MONTH)
-  if not AniDBMovieSets:  Log.Error ("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCHUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
+  if not AniDBMovieSets:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCHUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
+  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBMovieSets), SCHUDLEE_MOVIESET))
   
 ### Get the tvdbId from the AnimeId or the other way around ###
 def GetMetadata(media, movie, error_log, id):
