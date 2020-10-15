@@ -177,6 +177,7 @@ Plex main folder location:
     * '/usr/local/plexdata/Plex Media Server/',                                  # FreeBSD
     * '/usr/pbi/plexmediaserver-amd64/plexdata/Plex Media Server/',              # FreeNAS
     * '${JAIL_ROOT}/var/db/plexdata/Plex Media Server/',                         # FreeNAS
+    * '${JAIL_ROOT}/Plex Media Server/Plug-ins',                                 # FreeNAS 11.3 #skmagiik
     * '/c/.plex/Library/Application Support/Plex Media Server/',                 # ReadyNAS
     * '/share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/',        # QNAP
     * '/volume1/Plex/Library/Application Support/Plex Media Server/',            # Synology, Asustor
