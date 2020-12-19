@@ -1,4 +1,4 @@
-### github.com/ScudLee/anime-lists ###
+### github.com/Anime-Lists/anime-lists ###
 
 ### Imports ###
 # Python Modules #
@@ -10,15 +10,15 @@ from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of he
 import AniDB
 
 ### Variables ###
-SCHUDLEE_MASTER          = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
+SCHUDLEE_MASTER          = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
 ASS_SCHUDLEE_CORRECTIONS = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'                  # ScudLee mapping file url online override
 AniDBTVDBMap             = None
 
-SCHUDLEE_MOVIESET = 'https://raw.githubusercontent.com/ScudLee/anime-lists/master/anime-movieset-list.xml'
+SCHUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
 AniDBMovieSets    = None
 
 SCHUDLEE_CUSTOM   = 'anime-list-custom.xml'
-SCHUDLEE_FEEDBACK = 'https://github.com/ScudLee/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
+SCHUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
 
 ### Functions ###
 
