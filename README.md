@@ -63,9 +63,9 @@ Plex's trailer feature also supports displaying trailers from a URL - the metada
 
 Metadata sources
 ================
-I use AniDB HTTP title database file and ScudLee's XML files with his approval
+I use AniDB HTTP title database file and ScudLee's XML files with his approval. A new ScudLee fork is used for HAMA:
 
-ScudLee's XMLs:                 https://github.com/ScudLee/anime-lists/
+ScudLee's XMLs:                 https://github.com/Anime-Lists/anime-lists
 ScudLee's XBMC AniDB mod agent: http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010
 
     * anime-titles.xml        AniDB HTTP API, contain all anime titles, downloaded from http://anidb.net/api/anime-titles.xml.gz
