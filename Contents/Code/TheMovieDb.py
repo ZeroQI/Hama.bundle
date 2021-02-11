@@ -40,7 +40,7 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
     if   Dict(json, 'tv_results'   ):  json, mode = json['tv_results'   ][0], "tv"
     elif Dict(json, 'movie_results'):  json, mode = json['movie_results'][0], "movie"
     
-    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title' if mode=="movie" else 'name'), TheMovieDb_dict, 'title'                  )))
+    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title') or Dict(json, 'name'), TheMovieDb_dict, 'title'                  )))`
     Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(json, 'vote_average'),                       TheMovieDb_dict, 'rating'                 )))  #if 'vote_count' in json and json['vote_count'] > 3:  SaveDict( Dict(json, 'vote_average'), TheMovieDb_dict, 'rating')
     Log.Info("[ ] tagline: {}"                .format(SaveDict( Dict(json, 'tagline'),                            TheMovieDb_dict, 'tagline'                )))
     Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json, 'overview'),                           TheMovieDb_dict, 'summary'                )))
