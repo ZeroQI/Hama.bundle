@@ -232,7 +232,7 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info("AniDB_id: '{}', AniDB_id2: '{}', AniDBid: '{}', TVDB_id: '{}', TVDB_id2: '{}', TVDBid: '{}'".format(AniDB_id, AniDB_id2, AniDBid, TVDB_id, TVDB_id2, TVDBid))
   Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
   Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
-  return AnimeLists_dict, AniDB_winner, TVDB_winner if TVDB_winner.isdigit() else "", Dict(mappingList, 'tmdbid'), Dict(mappingList, 'imdbid'), mappingList
+  return AnimeLists_dict, AniDB_winner, TVDB_winner if TVDB_winner.isdigit() else "", Dict(mappingList, 'tmdbid') or TMDB_id, Dict(mappingList, 'imdbid') or IMDB_id, mappingList
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, anidbid=''):
