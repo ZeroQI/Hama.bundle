@@ -10,15 +10,12 @@ from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of he
 import AniDB
 
 ### Variables ###
-SCHUDLEE_MASTER          = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
-ASS_SCHUDLEE_CORRECTIONS = 'https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/anime-list-corrections.xml'                  # ScudLee mapping file url online override
-AniDBTVDBMap             = None
-
-SCHUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
-AniDBMovieSets    = None
-
-SCHUDLEE_CUSTOM   = 'anime-list-custom.xml'
-SCHUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
+AniDBTVDBMap     = None
+AniDBMovieSets   = None
+SCUDLEE_MASTER   = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
+SCUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
+SCUDLEE_CUSTOM   = 'anime-list-custom.xml'
+SCUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
 
 ### Functions ###
 
@@ -29,26 +26,25 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
   if type(AniDBTVDBMap_fix).__name__ == '_Element':
     for node in AniDBTVDBMap_fix or []:  dict_nodes[node.get('anidbid')] = node          # save mod list and nodes
     Log.Info("MergeMaps() - AniDBids concerned: " + str(dict_nodes.keys()))              #
-  for node in AniDBTVDBMap_new or []:                                                        # LOOP IN EVERY ANIME IN SCHUDLEE_MASTER FILE
+  for node in AniDBTVDBMap_new or []:                                                        # LOOP IN EVERY ANIME IN SCUDLEE_MASTER FILE
     if node and node.get('anidbid') in dict_nodes:  AniDBTVDBMap_new.remove(node); count+=1  #   if a correction exists: remove old mapping from AniDBTVDBMap
     if count == len(dict_nodes):                    break                                #   if deleted all exit loop
   for key in dict_nodes or {}:  AniDBTVDBMap_new.append( dict_nodes[key] )                   # add all new anidb mapping
   return AniDBTVDBMap_new
   
-### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from SCHUDLEE_MASTER url with ASS_SCHUDLEE_CORRECTIONS corrections ###
+### anidb to tvdb imdb tmdb mapping file - Loading AniDBTVDBMap from SCUDLEE_MASTER url with ASS_SCUDLEE_CORRECTIONS corrections ###
 def GetAniDBTVDBMap():  
   global AniDBTVDBMap
-  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCHUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCHUDLEE_MASTER)  # 
-  if not AniDBTVDBMap:  raise Exception("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCHUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
-  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBTVDBMap), SCHUDLEE_MASTER))
-  AniDBTVDBMap  = MergeMaps(AniDBTVDBMap, common.LoadFile(filename=os.path.basename(ASS_SCHUDLEE_CORRECTIONS), relativeDirectory="AnimeLists", url=ASS_SCHUDLEE_CORRECTIONS))  #Online ScudLee anidb to tvdb mapping list
+  AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCUDLEE_MASTER)  # 
+  if not AniDBTVDBMap:  raise Exception("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
+  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBTVDBMap), SCUDLEE_MASTER))
   
 def GetAniDBTVDBMapCustom(media, movie):  
   AniDBTVDBMapCustom = None
   lib, root, path = common.GetLibraryRootPath(common.GetMediaDir(media, movie))
   dir = os.path.join(root, path)
   while dir:
-    scudlee_filename_custom = os.path.join(dir, SCHUDLEE_CUSTOM)
+    scudlee_filename_custom = os.path.join(dir, SCUDLEE_CUSTOM)
     if os.path.exists( scudlee_filename_custom ):
       try:
         AniDBTVDBMapCustom = XML.ElementFromString(Core.storage.load(scudlee_filename_custom))
@@ -56,15 +52,15 @@ def GetAniDBTVDBMapCustom(media, movie):
       except:  Log.Error("Failed to open: '%s', error: '%s'" % (scudlee_filename_custom, e))
       else:    break
     dir = os.path.dirname(dir) if len(dir) > len(root) else ''  # Clear variable if we've just finished processing down to (and including) root
-  else:  Log.Info("Local custom mapping file not present: {}".format(SCHUDLEE_CUSTOM))
+  else:  Log.Info("Local custom mapping file not present: {}".format(SCUDLEE_CUSTOM))
   return AniDBTVDBMapCustom
   
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
   global AniDBMovieSets
-  AniDBMovieSets = common.LoadFile(filename=os.path.basename(SCHUDLEE_MOVIESET), relativeDirectory="AnimeLists", url=SCHUDLEE_MOVIESET, cache=CACHE_1MONTH)
-  if not AniDBMovieSets:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCHUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
-  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBMovieSets), SCHUDLEE_MOVIESET))
+  AniDBMovieSets = common.LoadFile(filename=os.path.basename(SCUDLEE_MOVIESET), relativeDirectory="AnimeLists", url=SCUDLEE_MOVIESET, cache=CACHE_1MONTH)
+  if not AniDBMovieSets:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
+  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBMovieSets), SCUDLEE_MOVIESET))
   
 ### Get the tvdbId from the AnimeId or the other way around ###
 def GetMetadata(media, movie, error_log, id):
@@ -181,7 +177,7 @@ def GetMetadata(media, movie, error_log, id):
     ### 
     if TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
     elif TVDBid in ("", "unknown", None):
-      link = SCHUDLEE_FEEDBACK.format(title="aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), body=String.StripTags(XML.StringFromElement(anime, encoding='utf8')))
+      link = SCUDLEE_FEEDBACK.format(title="aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), body=String.StripTags(XML.StringFromElement(anime, encoding='utf8')))
       error_log['anime-list TVDBid missing'].append('AniDBid: "{}" | Title: "{}" | Has no matching TVDBid "{}" in mapping file | <a href="{}" target="_blank">Submit bug report</a>'.format(AniDB_id, "title", TVDBid, link))
       Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format(TVDBid))
         
