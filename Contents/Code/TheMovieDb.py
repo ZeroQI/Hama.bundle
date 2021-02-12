@@ -40,13 +40,13 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
     if   Dict(json, 'tv_results'   ):  json, mode = json['tv_results'   ][0], "tv"
     elif Dict(json, 'movie_results'):  json, mode = json['movie_results'][0], "movie"
     
-    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title') or Dict(json, 'name'), TheMovieDb_dict, 'title'                  )))`
-    Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(json, 'vote_average'),                       TheMovieDb_dict, 'rating'                 )))  #if 'vote_count' in json and json['vote_count'] > 3:  SaveDict( Dict(json, 'vote_average'), TheMovieDb_dict, 'rating')
-    Log.Info("[ ] tagline: {}"                .format(SaveDict( Dict(json, 'tagline'),                            TheMovieDb_dict, 'tagline'                )))
-    Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json, 'overview'),                           TheMovieDb_dict, 'summary'                )))
-    Log.Info("[ ] duration: {}"               .format(SaveDict( Dict(json, 'runtime'),                            TheMovieDb_dict, 'duration'               )))
-    Log.Info("[ ] countries: {}"              .format(SaveDict( Dict(json, 'origin_country'),                     TheMovieDb_dict, 'countries'              )))
-    Log.Info("[ ] originally_available_at: {}".format(SaveDict( Dict(json, 'first_air_date'),                     TheMovieDb_dict, 'originally_available_at')))
+    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title') or Dict(json, 'name'),                  TheMovieDb_dict, 'title'                  )))`
+    Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(json, 'vote_average'),                                 TheMovieDb_dict, 'rating'                 )))  #if 'vote_count' in json and json['vote_count'] > 3:  SaveDict( Dict(json, 'vote_average'), TheMovieDb_dict, 'rating')
+    Log.Info("[ ] tagline: {}"                .format(SaveDict( Dict(json, 'tagline'),                                      TheMovieDb_dict, 'tagline'                )))
+    Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json, 'overview'),                                     TheMovieDb_dict, 'summary'                )))
+    Log.Info("[ ] duration: {}"               .format(SaveDict( Dict(json, 'runtime'),                                      TheMovieDb_dict, 'duration'               )))
+    Log.Info("[ ] countries: {}"              .format(SaveDict( Dict(json, 'origin_country'),                               TheMovieDb_dict, 'countries'              )))
+    Log.Info("[ ] originally_available_at: {}".format(SaveDict( Dict(json, 'first_air_date') or Dict(json, 'release_date'), TheMovieDb_dict, 'originally_available_at')))
     if Dict(json, 'belongs_to_collection', 'name'):  Log.Info("[ ] collections: {}".format(SaveDict( [ Dict(json, 'belongs_to_collection', 'name')],                                TheMovieDb_dict, 'collections')))
     if Dict(json, 'genres'                       ):  Log.Info("[ ] genres: {}"     .format(SaveDict( sorted([ Dict(genre, 'name') for genre in Dict(json, 'genres', default=[]) ]), TheMovieDb_dict, 'genres'     )))
     if Dict(json, 'poster_path'                  ):  Log.Info("[ ] poster: {}"     .format(image_base_url + 'original' + json['poster_path']  )); SaveDict( (os.path.join('TheMovieDb', 'poster',  json['poster_path'  ].lstrip('/')), common.poster_rank('TheMovieDb', 'posters'), None),                                            TheMovieDb_dict, 'posters', image_base_url + 'original' + json['poster_path']  )
