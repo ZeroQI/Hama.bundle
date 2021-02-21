@@ -1,5 +1,5 @@
 ### AniBD ###
-#http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
+# http://api.anidb.net:9001/httpapi?request=anime&client=hama&clientver=1&protover=1&aid=6481
 
 ### Imports ###
 # Python Modules #
@@ -15,18 +15,16 @@ from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of he
 import AnimeLists
 
 ### Variables ###
-ANIDB_PROTOCOL = 'http://'
+ANIDB_TITLE_DOMAIN = 'https://anidb.net'
+ANIDB_TITLES       = ANIDB_TITLE_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
+AniDBTitlesDB      = None
 
-ANIDB_DOMAIN  = 'anidb.net'
-ANIDB_TITLES  = ANIDB_PROTOCOL + ANIDB_DOMAIN + '/api/anime-titles.xml.gz'  # AniDB title database file contain all ids, all languages
-AniDBTitlesDB = None
+ANIDB_API_DOMAIN   = 'http://api.anidb.net:9001'
+ANIDB_HTTP_API_URL = ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
 
-ANIDB_API_DOMAIN    = 'api.anidb.net:9001'
-ANIDB_HTTP_API_URL  = ANIDB_PROTOCOL + ANIDB_API_DOMAIN + '/httpapi?request=anime&client=hama&clientver=1&protover=1&aid='
-
-ANIDB_IMAGE_DOMAIN  = 'cdn-us.anidb.net'
-ANIDB_PIC_BASE_URL  = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/main/'
-ANIDB_PIC_THUMB_URL = ANIDB_PROTOCOL + ANIDB_IMAGE_DOMAIN + '/images/65x100/{name}.jpg-thumb.jpg'
+ANIDB_IMAGE_DOMAIN  = 'https://cdn.anidb.net'
+ANIDB_PIC_BASE_URL  = ANIDB_IMAGE_DOMAIN + '/images/main/'
+ANIDB_PIC_THUMB_URL = ANIDB_IMAGE_DOMAIN + '/images/65x100/{name}.jpg-thumb.jpg'
 
 AniDBBan = False
 
@@ -122,12 +120,10 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   AniDB_dict, ANNid, MALid = {}, "", ""
   original                 = AniDBid
   anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
-  language_posters         = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
-  priority_posters         = [provider.strip() for provider in Prefs['posters'               ].split(',')]
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
-    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB') or [] for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
+    full_array  = [ anidbid for season in Dict(mappingList, 'TVDB', default=[]) for anidbid in Dict(mappingList, 'TVDB', season) if season and 'e' not in season and anidbid.isdigit() ]
     AniDB_array = { AniDBid: [] } if Dict(mappingList, 'defaulttvdbseason')=='1' and source!='tvdb4' else {}
     for season in sorted(media.seasons, key=common.natural_sort_key) if not movie else []:  # For each season, media, then use metadata['season'][season]...
       for episode in sorted(media.seasons[season].episodes, key=common.natural_sort_key):
@@ -145,7 +141,6 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
   Log.Info("Source: {}, AniDBid: {}, Full AniDBids list: {}, Active AniDBids list: {}".format(source, AniDBid, full_array, active_array))
   for anidbid in sorted(AniDB_array, key=common.natural_sort_key):
     Log.Info('[+] {:>5}: {}'.format(anidbid, AniDB_array[anidbid]))
-  Log.Info('language_posters: {}'.format(language_posters))
   
   ### Build list_abs_eps for tvdb 3/4/5 ###
   list_abs_eps, list_sp_eps={}, []
@@ -166,6 +161,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
 
     xml, cache = None, CACHE_1DAY*6
     xml_cache  = common.LoadFileCache(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"))[0]
+    if isinstance(xml_cache, str):  xml_cache = ''
     if xml_cache:  # Pull the enddate and adjust max cache age based on series enddate in relation to now
       ed = GetXml(xml_cache, 'enddate') or datetime.datetime.now().strftime("%Y-%m-%d")
       enddate = datetime.datetime.strptime("{}-12-31".format(ed) if len(ed)==4 else "{}-{}".format(ed, ([30, 31] if int(ed[-2:])<=7 else [31, 30])[int(ed[-2:]) % 2] if ed[-2:]!='02' else 28) if len(ed)==7 else ed, '%Y-%m-%d')
@@ -198,10 +194,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         
         ### Posters
         if GetXml(xml, 'picture'):
-          rank = 1
-          if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
-          if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
+          AniDB_dict['posters'] = {ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'): ( os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), common.poster_rank('AniDB', 'posters'), None)}  # ANIDB_PIC_THUMB_URL.format(name=GetXml(xml, 'picture').split('.')[0])
         
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
@@ -301,10 +294,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             
             ### Series poster as season poster
             if GetXml(xml, 'picture') and not Dict(AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture')):
-              rank = 1
-              if 'en'     in language_posters:  rank = (rank//30)*30*language_posters.index('en')+rank%30
-              if 'AniDB'  in priority_posters:  rank = rank+ 6*priority_posters.index('AniDB')
-              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), rank, None), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
+              SaveDict((os.path.join('AniDB', 'poster', GetXml(xml, 'picture')), common.poster_rank('AniDB', 'posters'), None), AniDB_dict, 'seasons', season, 'posters', ANIDB_PIC_BASE_URL + GetXml(xml, 'picture'))
 
           ### In AniDB numbering, Movie episode group, create key and create key in dict with empty list if doesn't exist ###
           else:  #if source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))<=1:
@@ -384,8 +374,9 @@ def GetAniDBTitlesDB():
   ''' Get the AniDB title database
   '''
   global AniDBTitlesDB
-  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES, cache=CACHE_1DAY*6)  # AniDB title database loaded once every 2 weeks
+  AniDBTitlesDB = common.LoadFile(filename='anime-titles.xml', relativeDirectory="AniDB", url=ANIDB_TITLES)  # AniDB title database loaded once every 2 weeks
   if not AniDBTitlesDB:  raise Exception("Failed to load core file '{url}'".format(url=os.path.splitext(os.path.basename(ANIDB_TITLES))[0]))
+  else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBTitlesDB), ANIDB_TITLES))
 
 def GetAniDBTitle(titles, lang=None, title_sort=False):
   ''' Extract the series/movie/Episode title from AniDB
@@ -411,6 +402,7 @@ def GetAniDBTitle(titles, lang=None, title_sort=False):
 def summary_sanitizer(summary):
   summary = summary.replace("`", "'")                                                                # Replace backquote with single quote
   summary = re.sub(r'https?://anidb\.net/[a-z]{1,2}[0-9]+ \[(?P<text>.+?)\]', r'\g<text>', summary)  # Replace links
+  summary = re.sub(r'https?://anidb\.net/[a-z]+/[0-9]+ \[(?P<text>.+?)\]', r'\g<text>', summary)     # Replace long-form links
   summary = re.sub(r'^(\*|--|~) .*',              "",      summary, flags=re.MULTILINE)              # Remove the line if it starts with ('* ' / '-- ' / '~ ')
   summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)                 # Remove all lines after this is seen
   summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)                 # Condense multiple empty lines

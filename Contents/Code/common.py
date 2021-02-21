@@ -30,8 +30,8 @@ downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0,
 netLock           = Thread.Lock()
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
-TVDB_SERIE_URL    = 'http://thetvdb.com/?tab=series&id='                     # Used in error_log generation
-ANIDB_SERIE_URL   = 'http://anidb.net/perl-bin/animedb.pl?show=anime&aid='   # Used in error_log generation
+TVDB_SERIE_URL    = 'https://thetvdb.com/?tab=series&id='  # Used in error_log generation
+ANIDB_SERIE_URL   = 'https://anidb.net/anime/'             # Used in error_log generation
 DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
@@ -40,7 +40,7 @@ FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration
                      'rating_image', 'audience_rating', 'audience_rating_image')  # Not in Framework guide 2.1.1, in https://github.com/plexinc-agents/TheMovieDb.bundle/blob/master/Contents/Code/__init__.py
 FieldListSeasons  = ('summary','posters', 'art')  #'summary', 
 FieldListEpisodes = ('title', 'summary', 'originally_available_at', 'writers', 'directors', 'producers', 'guest_stars', 'rating', 'thumbs', 'duration', 'content_rating', 'content_rating_age', 'absolute_index') #'titleSort
-SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local') #"Simkl", 
+SourceList        = ('AniDB', 'MyAnimeList', 'FanartTV', 'OMDb', 'TheTVDB', 'TheMovieDb', 'Plex', 'AnimeLists', 'tvdb4', 'TVTunes', 'Local', 'AniList') #"Simkl", 
 Movie_to_Serie_US_rating = {"G"    : "TV-Y7", "PG"   : "TV-G", "PG-13": "TV-PG", "R"    : "TV-14", "R+"   : "TV-MA", "Rx"   : "NC-17"}
 COMMON_HEADERS    = {'User-agent': 'Plex/HAMA', 'Content-type': 'application/json'}
 THROTTLE          = {}
@@ -49,7 +49,7 @@ THROTTLE          = {}
 PLEX_LIBRARY, PLEX_LIBRARY_URL = {}, "http://localhost:32400/library/sections/"    # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
 def GetPlexLibraries():
   try:
-    library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30))
+    library_xml = XML.ElementFromURL(PLEX_LIBRARY_URL, cacheTime=0, timeout=float(30), headers={"X-Plex-Token": os.environ['PLEXTOKEN']})
     PLEX_LIBRARY.clear()
     Log.Root('Libraries: ')
     for directory in library_xml.iterchildren('Directory'):
@@ -320,16 +320,16 @@ def ObjectFromFile(file=""):
 
     #XML
     if file.startswith('<?xml '):  #if type(file).__name__ == '_Element' or isinstance(file, basestring) and file.startswith('<?xml '):
-      try:     return XML.ElementFromString(file)
-      except:  
-        try:   return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
-        except:
-          Log.Info("XML still corrupted after normalization"); return
+      try:  return XML.ElementFromString(file, max_size=1024*1024*10)  # Overide max size to 10mb from 5mb default
+      except Exception as e:  
+        Log.Info("XML corrupted. Exception: {}".format(e))
+        try:                     return XML.ElementFromString(file.decode('utf-8','ignore').replace('\b', '').encode("utf-8"))
+        except Exception as e2:  Log.Info("XML still corrupted after normalization. Exception: {}".format(e2)); return
 
     #JSON
     elif file.startswith('{'):  #Json
-      try:     return JSON.ObjectFromString(file, encoding=None)
-      except:  Log.Info("XML still corrupted after normalization"); return
+      try:                    return JSON.ObjectFromString(file, encoding=None)
+      except Exception as e:  Log.Info("JSON corrupted. Exception: {}".format(e)); return
   
     #Empty file
     elif file=="":  Log.Info("Empty file");  return
@@ -375,7 +375,7 @@ def throttle_add(index=""):
     if index not in THROTTLE: THROTTLE[index] = []
     THROTTLE[index].append(time.time())
 
-def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, headers={}, sleep=0, throttle=["", 0, 0]):
+def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, cache=CACHE_1DAY*6, sleep=0, throttle=["", 0, 0]):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
   headers = UpdateDict(headers, COMMON_HEADERS)
@@ -411,7 +411,7 @@ def LoadFile(filename="", relativeDirectory="", url="", cache=CACHE_1DAY*6, head
     
     # Download URL to memory, Plex cache to 1 day
     try:
-      file_downloaded = HTTP.Request(url, headers=headers, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
+      file_downloaded = HTTP.Request(url, headers=headers, data=data, timeout=60, cacheTime=CACHE_1DAY).content   #'Accept-Encoding':'gzip'  # Loaded with Plex cache, str prevent AttributeError: 'HTTPRequest' object has no attribute 'find', None if 'thetvdb' in url else 
       if url.endswith(".gz"):  file_downloaded = decompress(file_downloaded)
     except Exception as e:
       Log.Error("common.LoadFile() - issue loading url: '{}', filename: '{}', Headers: {}, Exception: '{}'".format(url, filename, headers, e))        # issue loading, but not AniDB banned as it returns "<error>Banned</error>"
@@ -517,7 +517,7 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
 
     ### Generate prefix, append to error_log_array and Save error_log_array ###
     log_prefix = ''
-    if log == 'TVDB posters missing': log_prefix = WEB_LINK % ("http://thetvdb.com/wiki/index.php/Posters",              "Restrictions") + log_line_separator
+    if log == 'TVDB posters missing': log_prefix = "Series posters must be 680x1000 and be JPG format. They should not contain spoilers, nudity, or vulgarity. Please ensure they are of high quality with no watermarks, unrelated logos, and that they don't appear stretched." + log_line_separator
     if log == 'Plex themes missing':  log_prefix = WEB_LINK % ("https://plexapp.zendesk.com/hc/en-us/articles/201572843","Restrictions") + log_line_separator
     for entry in error_log[log]:  error_log_array[entry.split("|", 1)[0].strip()] = entry.split("|", 1)[1].strip() if len(entry.split("|", 1))>=2 else ""
     try:     Data.Save(error_log_file, log_prefix + log_line_separator.join(sorted([str(key)+" | "+str(error_log_array[key]) for key in error_log_array], key = lambda x: x.split("|",1)[1] if x.split("|",1)[1].strip().startswith("Title:") and not x.split("|",1)[1].strip().startswith("Title: ''") else int(re.sub(r"<[^<>]*>", "", x.split("|",1)[0]).strip().split()[1].strip("'")) )))
@@ -665,6 +665,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
   
   for field in FieldListMovies if movie else FieldListSeries:
     meta_old    = getattr(metadata, field)
+    if field in ('posters', 'banners', 'art'):  meta_old.validate_keys([])  #This will allow the images to get readded at the correct priority level if preferences are updates and meta is refreshed
     source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, field) ]
     language_rank, language_source = len(languages)+1, None
     for source in [source.strip() for source in (Prefs[field].split('|')[0] if '|' in Prefs[field] else Prefs[field]).split(',') if Prefs[field]]:
@@ -708,6 +709,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
         meta_old = getattr(metadata.seasons[season], field)
+        if field in ('posters', 'banners', 'art'):  meta_old.validate_keys([])  #This will allow the images to get readded at the correct priority level if preferences are updates and meta is refreshed
         for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
           if source in MetaSources:
             if Dict(MetaSources, source, 'seasons', season, field) or metadata.id.startswith('tvdb4'):
@@ -766,3 +768,34 @@ def SortTitle(title, language="en"):
   title  = title.replace("'", " ")
   prefix = title.split  (" ", 1)[0]  #Log.Info("SortTitle - title:{}, language:{}, prefix:{}".format(title, language, prefix))
   return title.replace(prefix+" ", "", 1) if language in dict_sort and prefix in dict_sort[language] else title 
+
+def poster_rank(source, image_type, language='en', rank_adjustment=0):
+  """
+    { "id": "PosterLanguagePriority", "label": "TheTVDB Poster Language Priority", "type": "text", "default": ... },
+    { "id": "posters",                "label": "TS-M 'poster'",                    "type": "text", "default": ... },
+    { "id": "art",                    "label": "T--M 'art'",                       "type": "text", "default": ... },
+    { "id": "banners",                "label": "TS-- 'banners'",                   "type": "text", "default": ... },
+  """
+  max_rank = 100
+  if image_type == 'seasons':  image_type = 'posters'
+
+  language_posters = [language.strip() for language in Prefs['PosterLanguagePriority'].split(',')]
+  priority_posters = [provider.strip() for provider in Prefs[image_type              ].split(',')]
+
+  lp_len = len(language_posters)
+  pp_len = len(priority_posters)
+
+  lp_pos = language_posters.index(language) if language in language_posters else lp_len
+  pp_pos = priority_posters.index(source)   if source   in priority_posters else pp_len
+
+  lp_block_size = max_rank/lp_len
+  pp_block_size = lp_block_size/pp_len
+
+  rank = (lp_pos*lp_block_size)+(pp_pos*pp_block_size)+1+rank_adjustment
+  if rank > 100:  rank = 100
+  if rank < 1:    rank = 1
+
+  #Log.Info(" - language: {:<10}, lp_pos: {}, lp_block_size: {}, language_posters: {}".format(language, lp_pos, lp_block_size, language_posters))
+  #Log.Info(" - source:   {:<10}, pp_pos: {}, pp_block_size: {}, priority_posters: {}".format(source,   pp_pos, pp_block_size, priority_posters))
+  #Log.Info(" - image_type: {}, rank: {}".format(image_type, rank))
+  return rank

@@ -88,7 +88,7 @@ def GetMetadata(myanimelistId, type, media):
     #
     if type == "movie":
       Log.Debug("Adding Movie specific data, nothing specific to add")
-  
+
   Log.Info("MyAnimeList_dict: {}".format(DictString(MyAnimeList_dict, 4)))
   Log.Info("--- return ---".ljust(157, '-'))
   return result

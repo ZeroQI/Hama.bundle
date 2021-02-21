@@ -11,7 +11,7 @@ from common import Log, DictString, Dict, SaveDict # Direct import of heavily us
 ### Variables ###
 SEASON_RX = [                                                                       ### Seasons Folders
               r'^Specials',                                                         # Specials (season 0)
-              r'^(Season|Series|Book|Saison|Livre|S)[ _\-\.]*(?P<season>\d{1,2})',  # Season / Series / Book / Saison / Livre / S
+              r'^(Season|Series|Book|Saison|Livre|Temporada|S)[ _\-\.]*(?P<season>\d{1,4})',  # Season / Series / Book / Saison / Livre / S
               r'^(?P<show>.*?)[\._\- ]+S(?P<season>\d{2})$',                        # (title) S01
               r'^(?P<season>\d{1,2})',                                              # ##
               r'^(Saga|(Story )?Ar[kc])']                                           # Last entry, folder name droped but files kept: Saga / Story Ar[kc] / Ar[kc]

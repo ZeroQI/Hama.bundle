@@ -63,9 +63,9 @@ Plex's trailer feature also supports displaying trailers from a URL - the metada
 
 Metadata sources
 ================
-I use AniDB HTTP title database file and ScudLee's XML files with his approval
+I use AniDB HTTP title database file and ScudLee's XML files with his approval. A new ScudLee fork is used for HAMA:
 
-ScudLee's XMLs:                 https://github.com/ScudLee/anime-lists/
+ScudLee's XMLs:                 https://github.com/Anime-Lists/anime-lists
 ScudLee's XBMC AniDB mod agent: http://forum.xbmc.org/showthread.php?tid=142835&pid=1432010#pid1432010
 
     * anime-titles.xml        AniDB HTTP API, contain all anime titles, downloaded from http://anidb.net/api/anime-titles.xml.gz
@@ -161,15 +161,10 @@ The titles will be in the priority indicated first and secondarily by the metada
 
 Installation
 ============
-Get the latest source zip in github release for hama https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip
-Folders to copy in Plex main folder:
-
-    * "Scanners"         "Scanners/Series" folder needs creating. Absolute series Scanner.py" goes inside. 
-    			 https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
-    * "Plug-ins"         https://github.com/ZeroQI/Hama.bundle > "Clone or download > Download Zip. Copy Hama.bundle-master.zip\Hama.bundle-master in plug-ins folders but rename to "Hama.bundle" (remove -master) 
-
-Here is how to find the plug-in folder location:
-https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-
+ASS scanner is installation is hightly recommended: Place https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py inside Plex main folder / "Scanners" / "Series" (folder needs creating).
+    			 
+To install Hama, it's like other Plex agents: Get the latest source zip in https://github.com/ZeroQI/Hama.bundle > "Code" > "Download Zip".
+Inside the Hama.bundle-master.zip you will have the folder "Hama.bundle-master" to rename to "Hama.bundle" and place in Plex plugin folder [https://support.plex.tv/hc/en-us/articles/201106098-How-do-I-find-the-Plug-Ins-folder-] or Plex main folder / "Plug-ins"
 
 Plex main folder location:
 
@@ -182,6 +177,7 @@ Plex main folder location:
     * '/usr/local/plexdata/Plex Media Server/',                                  # FreeBSD
     * '/usr/pbi/plexmediaserver-amd64/plexdata/Plex Media Server/',              # FreeNAS
     * '${JAIL_ROOT}/var/db/plexdata/Plex Media Server/',                         # FreeNAS
+    * '${JAIL_ROOT}/Plex Media Server/Plug-ins',                                 # FreeNAS 11.3 #skmagiik
     * '/c/.plex/Library/Application Support/Plex Media Server/',                 # ReadyNAS
     * '/share/MD0_DATA/.qpkg/PlexMediaServer/Library/Plex Media Server/',        # QNAP
     * '/volume1/Plex/Library/Application Support/Plex Media Server/',            # Synology, Asustor
@@ -203,9 +199,6 @@ Hama auto-creates some folders in the agent data folder ("Plug-In Support/Data/c
 - "TVDB/seasons"
 - "FanartTV"
 
-Agents can only write data in data folder as binary objects or as dictionaries, but cannot create folders normally (worked  around now).
-Any folder missing will crash the agent when an attempt to write inside is done. That is a Framework issue, all attemps are in try/except structure, to no avail...
-
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
@@ -225,7 +218,6 @@ chmod 777 /var/lib/plexmediaserver/Library/Application Support/Plex Media Server
 chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/._StoredValues
 
 service plexmediaserver restart
-
     
 Updating:
 =========

@@ -12,7 +12,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-THEME_URL = 'http://tvthemes.plexapp.com/{}.mp3'
+THEME_URL = 'https://tvthemes.plexapp.com/{}.mp3'
 
 ### Functions ###
 def GetMetadata(metadata, error_log, TVDBid, title):
