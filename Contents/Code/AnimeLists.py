@@ -149,7 +149,11 @@ def GetMetadata(media, movie, error_log, id):
       SaveDict(defaulttvdbseason,                                      mappingList, 'defaulttvdbseason'  )
       SaveDict(True if anime.get('defaulttvdbseason')=='a' else False, mappingList, 'defaulttvdbseason_a')
 
-    ###
+    ### protection logic: tvdbid entry without defaulttvdbseason entry will remove the tvdbid defaulting to the anidb meta   # https://github.com/ZeroQI/Hama.bundle/issues/425#issuecomment-705320517
+    if defaulttvdbseason=='a': defaulttvdbseason='1'
+    elif not defaulttvdbseason.isdigit(): tvdbid, defaulttvdbseason = '', ''
+    
+    ### TheTVDB ###
     if TVDBid.isdigit():
       SaveDict(episodeoffset, mappingList, 'TVDB', 's-1' if defaulttvdbseason == '0' and s1_mapping_count >= 1 else 's'+defaulttvdbseason, AniDBid)  #mappingList['TVDB'][s1][anidbid]=episodeoffset
       SaveDict({'min': defaulttvdbseason, 'max': defaulttvdbseason}, mappingList, 'season_map', AniDBid)  # Set the min/max season to the 'defaulttvdbseason'
