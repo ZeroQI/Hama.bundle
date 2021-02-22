@@ -35,7 +35,7 @@ def search(name, results, lang):
 '''
 def GetMetadata(myanimelistId, type, media):
   Log.Info("=== MyAnimeList.GetMetadata() ===".ljust(157, '='))
-  detailUrl = MYANIMELIST_URL_DETAILS.format(id=myanimelistId)
+  detailUrl        = MYANIMELIST_URL_DETAILS.format(id=myanimelistId)
   Log.Info("URL : "+ str(detailUrl))
   try:                    json = JSON.ObjectFromString(HTTP.Request(detailUrl, sleep=2.0, cacheTime=MYANIMELIST_CACHE_TIME).content)
   except Exception as e:  Log.Error("No Detail Information were available " + str(e));  return
@@ -89,6 +89,6 @@ def GetMetadata(myanimelistId, type, media):
     if type == "movie":
       Log.Debug("Adding Movie specific data, nothing specific to add")
 
-  Log.Info("MyAnimeList_dict: {}".format(DictString(MyAnimeList_dict, 4)))
+  Log.Info("MyAnimeList_dict: {}".format(DictString(result, 4)))
   Log.Info("--- return ---".ljust(157, '-'))
   return result
