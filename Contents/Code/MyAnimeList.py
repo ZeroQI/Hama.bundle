@@ -1,57 +1,94 @@
 ### MyAnimeList.net ###
 # Source agent:     https://github.com/Fribb/MyAnimeList.bundle/blob/master/Contents/Code/__init__.py
-# API xml exemple:  http://fribbtastic-api.net/fribbtastic-api/services/anime?id=33487
+# API xml exemple:  https://atarashii.fribbtastic.net/web/2.1/anime/33487
 
 ### Imports ###
-# Python Modules #
-import os
-# HAMA Modules #
-import common
-from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
+#import math
+import re, ssl, urllib2
+import difflib
+from datetime import datetime
+from common   import Log, Dict, SaveDict, DictString
 
-### Variables ###
-MAL_HTTP_API_URL = "http://fribbtastic-api.net/fribbtastic-api/services/anime?id="
-MAL_PREFIX       = "https://myanimelist.cdn-dena.com"  # Some links in the XML will come from TheTVDB, not adding those....
+### Constants ###
+MYANIMELIST_URL_SEARCH   = "https://atarashii.fribbtastic.net/web/2.1/anime/search?q={title}"
+MYANIMELIST_URL_DETAILS  = "https://atarashii.fribbtastic.net/web/2.1/anime/{id}"
+MYANIMELIST_URL_EPISODES = "https://atarashii.fribbtastic.net/web/2.1/anime/episodes/{id}?page={page}"
+MYANIMELIST_CACHE_TIME   = CACHE_1HOUR * 24 * 7
 
 ### Functions ###
-def GetMetadata(movie, MALid):
+'''
+def search(name, results, lang):
+  forceID   = re.match(r'^[mal-([0-9]+)]$', str(name))
+  searchUrl = MYANIMELIST_URL_DETAILS.format(id=str(forceID.group(1))) if forceID else MYANIMELIST_URL_SEARCH.format(title=String.Quote(name, usePlus=True))
+  Log.Info("[MyAnimeList Search() - forceID {}, name: {}, searchUrl: {}".format(forceID, name, searchUrl))
+  try:                    searchResults = JSON.ObjectFromString(HTTP.Request(searchUrl, sleep=2.0, cacheTime=MYANIMELIST_CACHE_TIME).content)
+  except Exception as e:  Log.Info("search results could not be requested " + str(e));  return
+  Log.Info("Results found: " + str(len(searchResults)))
+  for series in [searchResults] if forceID else searchResults:      
+    apiAnimeId      = str(Dict(series, "id"        ))
+    apiAnimeTitle   = str(Dict(series, "title"     ))
+    apiAnimeYear    = str(Dict(series, "start_date")).split("-")[0]
+    animeMatchScore = 100 if forceID else int(difflib.SequenceMatcher(None, apiAnimeTitle, name).ratio()*100) if len(apiAnimeTitle) > 0 else 0
+    Log.Debug("Anime Found - ID={}, Title={},  Year={},  MatchScore={}".format(apiAnimeId, apiAnimeTitle, apiAnimeYear, animeMatchScore))
+    results.Append(MetadataSearchResult(id=apiAnimeId, name=apiAnimeTitle, year=apiAnimeYear, score=animeMatchScore, lang=lang))
+  return
+'''
+def GetMetadata(myanimelistId, type, media):
   Log.Info("=== MyAnimeList.GetMetadata() ===".ljust(157, '='))
-  MyAnimeList_dict = {}
+  detailUrl        = MYANIMELIST_URL_DETAILS.format(id=myanimelistId)
+  Log.Info("URL : "+ str(detailUrl))
+  try:                    json = JSON.ObjectFromString(HTTP.Request(detailUrl, sleep=2.0, cacheTime=MYANIMELIST_CACHE_TIME).content)
+  except Exception as e:  Log.Error("No Detail Information were available " + str(e));  return
+  result = {}
+  if json:
+    if Dict(json, "id"            ):  SaveDict(                                str(Dict(json, "id"            )  ), result, "id"                             );  Log.Debug("ID:             " + str(Dict(json, "id"            )))
+    if Dict(json, "title"         ):  SaveDict(                                str(Dict(json, "title"         )  ), result, "title"                          );  Log.Debug("Title:          " + str(Dict(json, "title"         )))
+    if Dict(json, "synopsis"      ):  SaveDict(str(re.sub(re.compile('<.*?>'), '', Dict(json, "synopsis"     ))  ), result, "summary"                        );  Log.Debug("Summary:        " + str(Dict(json, "synopsis"      )))
+    if Dict(json, "members_score" ):  SaveDict(                              float(Dict(json, "members_score" )  ), result, "rating"                         );  Log.Debug("Rating:         " + str(Dict(json, "members_score" )))
+    if Dict(json, "classification"):  SaveDict(                                str(Dict(json, "classification")  ), result, "content_rating"                 );  Log.Debug("Content Rating: " + str(Dict(json, "classification")))
+    if Dict(json, "duration"      ):  SaveDict(                                int(Dict(json, "duration")*60000  ), result, "duration"                       );  Log.Debug("Duration:       " + str(Dict(json, "duration")*60000))
+    if Dict(json, "start_date"    ):  SaveDict(                                    Dict(json, "start_date"       ), result, "originally_available_at"        );  Log.Debug("Release date:   " + str(Dict(json, "start_date"    )))
+    if Dict(json, "image_url"     ):  SaveDict(                                   (Dict(json, "image_url"),1,None), result, 'poster', Dict(json, "image_url"));  Log.Debug("Cover:          " + str(Dict(json, "image_url"     )))
+    for genre in Dict(json, "genres") if Dict(json, "genres") and len(Dict(json, "genres")) > 0 else []:
+      SaveDict([str(genre)], result, "genres")
+      Log.Debug("Genres: " + str(Dict(json, "genres")))
+    
+    ### TODO: Switch to Studios when they are available in the API (or add Producers to metadata when this is possible in Plex) 
+    #if Dict(json, "producers") and len(Dict(json, "producers")) > 0:
+    #  apiAnimeProducers = ""
+    #  for idx, producer in enumerate(Dict(json, "producers")):  apiAnimeProducers += str(producer) + ", "
+    #  SaveDict(str(apiAnimeProducers[:-2]), result, "studio")
+    #  Log.Debug("Producers: " + str(Dict(json, "producers")))
+    
+    if type == "tvshow":
+      Log.Debug("Adding TV-Show specific data")        
+      Log.Debug("Episodes: " + str(Dict(json, "episodes")))
+    #   metadata.seasons[1].episode_count = int( Dict(json, "episodes") or len(media.seasons[1].episodes))
+    #   pages = int(math.ceil(float(metadata.seasons[1].episode_count) / 100))  # fetch the episodes in 100 chunks
+    #   if pages is not None:
+    #     for page in range(1, pages + 1):
+    #       episodesUrl = MYANIMELIST_URL_EPISODES.format(id=metadata.id,page=page)
+    #       try:
+    #         Log.Info("Fetching URL " + str(episodesUrl))
+    #         episodeResult = JSON.ObjectFromString(HTTP.Request(episodesUrl, sleep=2.0, cacheTime=MYANIMELIST_CACHE_TIME).content)
+    #       except Exception as e:  Log.Info("episode results could not be requested " + str(e));  return
+    #       if "error" in episodeResult:
+    #         Log.Warn("Episode Information are not available (" + str(episodeResult["error"]) + ") (might want to add them to MyAnimeList.net)!")
+    #         break
+    #
+    #       for episode in episodeResult:
+    #         apiEpisodeNumber  = Dict(json, "number"  )
+    #         apiEpisodeTitle   = Dict(json, "title"   )
+    #         apiEpisodeAirDate = Dict(json, "air_date")
+    #         if apiEpisodeNumber is not None:
+    #           plexEpisode                         = metadata.seasons[1].episodes[int(apiEpisodeNumber)]
+    #           plexEpisode.title                   = str(apiEpisodeTitle) if apiEpisodeTitle else "Episode: #" + str(apiEpisodeNumber)
+    #           plexEpisode.originally_available_at = datetime.strptime(str(apiEpisodeAirDate), "%Y-%m-%d") if apiEpisodeAirDate else datetime.now()
+    #         Log.Debug("Episode " + str(apiEpisodeNumber) + ": " + str(apiEpisodeTitle) + " - " + str(apiEpisodeAirDate))
+    #
+    if type == "movie":
+      Log.Debug("Adding Movie specific data, nothing specific to add")
 
-  Log.Info("MALid: '%s'" % MALid)
-  if not MALid or not MALid.isdigit():  return MyAnimeList_dict
-
-  Log.Info("--- series ---".ljust(157, '-'))
-  xml = common.LoadFile(filename=MALid+".xml", relativeDirectory=os.path.join('MyAnimeList', 'xml'), url=MAL_HTTP_API_URL + MALid)
-  if isinstance(xml, str):
-    Log.Error('Invalid str returned: "{}"'.format(xml))
-  elif xml:
-    Log.Info("[ ] title: {}"                  .format(SaveDict( GetXml(xml, 'title'         ), MyAnimeList_dict, 'title'                  )))
-    Log.Info("[ ] summary: {}"                .format(SaveDict( GetXml(xml, 'synopsis'      ), MyAnimeList_dict, 'summary'                )))
-    Log.Info("[ ] score: {}"                  .format(SaveDict( GetXml(xml, 'rating'        ), MyAnimeList_dict, 'score'                  )))
-    #Log.Info("[ ] rating: {}"                 .format(SaveDict( GetXml(xml, 'content_rating').split(" ")[0], MyAnimeList_dict, 'rating'   )))
-    Log.Info("[ ] originally_available_at: {}".format(SaveDict( GetXml(xml, 'firstAired'    ), MyAnimeList_dict, 'originally_available_at')))
-      
-    #for item in xml.xpath('//anime/genres/genre' or []):  SaveDict([item.text], MyAnimeList_dict, 'genres')
-    if GetXml(xml, '//anime/genres/genre'):          Log.Info("[ ] genres: {}".format(SaveDict( sorted([item.text for item in xml.xpath('//anime/genres/genre')]), MyAnimeList_dict, 'genres')))
-    if GetXml(xml, 'status') == 'Currently Airing':  Log.Info("[ ] status: {}".format(SaveDict( "Continuing", MyAnimeList_dict, 'status')))
-    if GetXml(xml, 'status') == 'Finished Airing':   Log.Info("[ ] status: {}".format(SaveDict( "Ended"     , MyAnimeList_dict, 'status')))
-
-    Log.Info("--- episodes ---".ljust(157, '-'))
-    for item in xml.xpath('//anime/episodes/episode') or []:
-      ep_number, ep_title, ep_air = GetXml(item, 'episodeNumber'), GetXml(xml, 'engTitle'), GetXml(xml, 'aired')
-      Log.Info('[ ] s1e{:>3} air_date: {}, title: "{}"'.format(ep_number, ep_title, ep_air))
-      SaveDict( ep_title, MyAnimeList_dict, 'seasons', "1", 'episodes', ep_number, 'title'                  )
-      SaveDict( ep_air,   MyAnimeList_dict, 'seasons', "1", 'episodes', ep_number, 'originally_available_at')
-      
-    Log.Info("--- images ---".ljust(157, '-'))
-    for item in xml.xpath('//anime/covers/cover'          ):
-      Log.Info("[ ] poster: {}".format(SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), common.poster_rank('MyAnimeList', 'posters'), None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'posters', item.text)))
-    for item in xml.xpath('//anime/backgrounds/background'):
-      Log.Info("[ ] art: {}"   .format(SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), common.poster_rank('MyAnimeList', 'art'    ), None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'art',     item.text)))
-    for item in xml.xpath('//anime/banners/banner'        ):
-      Log.Info("[ ] banner: {}".format(SaveDict(("MyAnimeList/" + "/".join(item.text.split('/')[3:]), common.poster_rank('MyAnimeList', 'banners'), None) if item.text.startswith(MAL_PREFIX) else "", MyAnimeList_dict, 'banners', item.text)))
-
+  Log.Info("MyAnimeList_dict: {}".format(DictString(result, 4)))
   Log.Info("--- return ---".ljust(157, '-'))
-  Log.Info("MyAnimeList_dict: {}".format(DictString(MyAnimeList_dict, 4)))
-  return MyAnimeList_dict
+  return result
