@@ -32,7 +32,7 @@ netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'https://thetvdb.com/?tab=series&id='  # Used in error_log generation
 ANIDB_SERIE_URL   = 'https://anidb.net/anime/'             # Used in error_log generation
-DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
+DefaultPrefs      = ("SerieLanguagePriority", "EpisodeLanguagePriority", "PosterLanguagePriority", "AnidbGenresMainOnly", "MinimumWeight", "adult", "OMDbApiKey") #"Simkl", 
 FieldListMovies   = ('original_title', 'title', 'title_sort', 'roles', 'studio', 'year', 'originally_available_at', 'tagline', 'summary', 'content_rating', 'content_rating_age',
                      'producers', 'directors', 'writers', 'countries', 'posters', 'art', 'themes', 'rating', 'quotes', 'trivia')
 FieldListSeries   = ('title', 'title_sort', 'originally_available_at', 'duration','rating',  'reviews', 'collections', 'genres', 'tags' , 'summary', 'extras', 'countries', 'rating_count',
