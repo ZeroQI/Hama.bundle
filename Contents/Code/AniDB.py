@@ -199,7 +199,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
         ### genre ###
         RESTRICTED_GENRE     = {"18 restricted": 'X', "pornography": 'X', "tv censoring": 'TV-MA', "borderline porn": 'TV-MA'}
         for tag in xml.xpath('tags/tag'):
-          if GetXml(tag, 'name') and tag.get('weight', '').isdigit() and int(tag.get('weight', '') or '200') >= int(Prefs['MinimumWeight'] or '200'):
+          if Prefs['AnidbGenresMainOnly'] and tag.get('infobox', '') or not Prefs['AnidbGenresMainOnly'] and GetXml(tag, 'name') and tag.get('weight', '').isdigit() and int(tag.get('weight', '') or '200') >= int(Prefs['MinimumWeight'] or '200'):
             SaveDict( [string.capwords(GetXml(tag, 'name'), '-')], AniDB_dict, 'genres')
             if GetXml(tag, 'name').lower() in RESTRICTED_GENRE:  AniDB_dict['content_rating'] = RESTRICTED_GENRE[ GetXml(tag, 'name').lower() ]
         if Dict(AniDB_dict, 'genres'): AniDB_dict['genres'].sort()
