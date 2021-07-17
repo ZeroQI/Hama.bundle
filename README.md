@@ -202,6 +202,8 @@ Hama auto-creates some folders in the agent data folder ("Plug-In Support/Data/c
 I use these folders to cache all pictures, theme songs, since they are not cached by Plex.
 This way, even if you recreate the whole Plex anime folder entry, you do not have to download the same file again.
 
+Synology DSM7- SSH and copy in /volume1/@apphome/PlexMediaServer/Plex Media Server 
+
 Specific instal procedures go in the wiki:
 - Ubuntu Server 16.04: https://github.com/ZeroQI/Hama.bundle/wiki/Installing-Hama-and-ASS-on-Ubuntu
 
