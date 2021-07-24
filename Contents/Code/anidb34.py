@@ -63,7 +63,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
         if season_map[id]['min'] == 0 and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
           new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to a TVDB season non-0 AniDB prequel 
       if source=="tvdb6":
-        if 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        if id in relations_map and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
           new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to the TVDB season 1 AniDB prequel 
 
       if str(new_season).isdigit():  # A new season & eppisode offset has been assigned # As anidb4/tvdb6 does full season adjustments, we need to remove and existing season mapping
