@@ -262,7 +262,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
     </supplemental-info>
 </anime>
   '''
-  mapping = ('0', '0')#(season or '0', episode)
+  mapping = (season, episode) #(season or '0', episode)
   debug   = False
   if debug:  Log.Info('[?] (#1) season: {}, episode: {}, anidbid: {}'.format(season, episode, anidbid))
   
@@ -285,7 +285,6 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   
   # if not mapped with mapping, specials are not mapped with tvdb
   elif season=='0':
-    mapping = ('0', '0')
     if debug:  Log.Info('[?] (#3) value "{}" not in mappingList "{}" and season 0'.format(value, mappingList)) 
   
   # <anime anidbid="xxxxx" tvdbid="xxxxx" defaulttvdbseason="x" episodeoffset="x">
@@ -333,4 +332,4 @@ def anidb_ep(mappingList, season, episode):
         break
     else:  return season, episode, list(Dict(mappingList, 'TVDB', 's1').keys())[0]
   
-  return '0', '0', 'xxxxxxx'
+  return season, episode, 'xxxxxxx'
