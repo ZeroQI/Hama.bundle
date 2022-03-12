@@ -221,20 +221,6 @@ chown plex:plex /var/lib/plexmediaserver/Library/Application Support/Plex Media 
 
 service plexmediaserver restart
     
-Updating:
-=========
-If no folder in data was created or data moved there and no new option was added to the agent settings, it will work.
-
-    * Update scanner file with the latest from https://github.com/ZeroQI/Absolute-Series-Scanner/blob/master/Scanners/Series/Absolute%20Series%20Scanner.py
-    * replace agent "_ _init_ _.py" with the latest from https://github.com/ZeroQI/Hama.bundle/blob/master/Contents/Code/__init__.py
-    * replace agent "DefaultPrefs.json" with the latest from https://github.com/ZeroQI/Hama.bundle/blob/master/Contents/DefaultPrefs.json
-    
-If it doesn't, get latest zip and start from scratch, but no need to delete "Plug-in Support" folder
-
-After restarting Plex servers, the new agent will be loaded and you will find all agents settings in the official framework agent settings window:
-
-    * "Plex > Settings > Server > Agents > TV Shows > HamaTV > Agent settings"
-
 Troubleshooting:
 ================
 If you ask for something already answered in the readme, or post scanner issues on the agent page or vice-versa, please donate (will be refered to as the RTFM tax)
