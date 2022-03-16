@@ -80,7 +80,7 @@ def Search(results, media, lang, manual, movie):
   for word in orig_title_cleansed.split():  (words_skipped if word in FILTER_SEARCH_WORDS or len(word) <= 3 else words).append(word)
   if not words:  words, words_skipped = orig_title_cleansed.split(), []  #Prevent CRITICAL Exception in the search function of agent named 'HamaTV', called with keyword arguments {'show': 'No 6', 'id': '20145', 'year': None} (most recent call last):
   Log.Info("Keyword Search - Words: {}, skipped: {}".format(str(words), str(words_skipped)))
-  type_order=('main', 'official', 'syn', 'short', 'card', '')
+  type_order=('main', 'official', 'syn', 'short', 'card', 'kana', '')
   best_score, best_title, best_aid, best_type, best_lang = 0, "", "", "", ""
   last_chance, best_score_entry=[], 0
   start_time = time.time()
