@@ -144,7 +144,7 @@ def Update(metadata, media, lang, force, movie):
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
-  dict_MyAnimeList                                              = MyAnimeList.GetMetadata(MALid, "movie" if movie else "tvshow", media)
+  #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(MALid, "movie" if movie else "tvshow", media)
   dict_AniList                                                  =     AniList.GetMetadata(AniDBid, MALid)
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
@@ -154,19 +154,19 @@ def Update(metadata, media, lang, force, movie):
   common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
-                                             'OMDb':       dict_OMDb,       'Local':       dict_Local,       'AniList': dict_AniList, 'MyAnimeList': dict_MyAnimeList}, mappingList)
+                                             'OMDb':       dict_OMDb,       'Local':       dict_Local,       'AniList': dict_AniList}, mappingList) #, 'MyAnimeList': dict_MyAnimeList
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
 ### Agent declaration ##################################################################################################################################################
 class HamaTVAgent(Agent.TV_Shows):  # 'com.plexapp.agents.none', 'com.plexapp.agents.opensubtitles'
-  name, primary_provider, fallback_agent, contributes_to, accepts_from = 'HamaTV', True, False, None, ['com.plexapp.agents.localmedia'] 
+  name, primary_provider, fallback_agent, contributes_to, accepts_from = 'HamaTV', True, False, None, ['com.plexapp.agents.localmedia',  'net.fribbtastic.coding.plex.myanimelist'] 
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
   def search (self, results,  media, lang, manual):  Search (results,  media, lang, manual, False)
   def update (self, metadata, media, lang, force ):  Update (metadata, media, lang, force,  False)
 
 class HamaMovieAgent(Agent.Movies):
-  name, primary_provider, fallback_agent, contributes_to, accepts_from = 'HamaMovies', True, False, None, ['com.plexapp.agents.localmedia']
+  name, primary_provider, fallback_agent, contributes_to, accepts_from = 'HamaMovies', True, False, None, ['com.plexapp.agents.localmedia', 'net.fribbtastic.coding.plex.myanimelist']
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
   def search (self, results,  media, lang, manual):  Search (results,  media, lang, manual, True)
   def update (self, metadata, media, lang, force ):  Update (metadata, media, lang, force,  True)
