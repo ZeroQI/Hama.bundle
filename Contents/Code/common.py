@@ -430,7 +430,7 @@ def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, c
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
     if file_downloaded:
       file_downloaded_object = ObjectFromFile(file_downloaded)
-      if not file_downloaded_object:                         Log.Error('common.LoadFile() - File received but failed validity, file: "{}"'.format(file_downloaded))
+      if file_downloaded_object is None:                     Log.Error('common.LoadFile() - File received but failed validity, file: "{}"'.format(file_downloaded))
       elif url.endswith('.xml') and len(file_downloaded)<24: Log.Error('common.LoadFile() - File received too small (<24 bytes), file: "{}"'.format(file_downloaded))
       elif file_downloaded.startswith("<error"):             Log.Error('common.LoadFile() - Error response received, file: "{}"'.format(file_downloaded));  return file_downloaded_object
       else:                                                  SaveFile(filename, file_downloaded, relativeDirectory);  return file_downloaded_object
