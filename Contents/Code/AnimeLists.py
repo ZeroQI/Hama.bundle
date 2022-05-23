@@ -36,7 +36,7 @@ def MergeMaps(AniDBTVDBMap, AniDBTVDBMap_fix):
 def GetAniDBTVDBMap():  
   global AniDBTVDBMap
   AniDBTVDBMap  = common.LoadFile(filename=os.path.basename(SCUDLEE_MASTER), relativeDirectory="AnimeLists", url=SCUDLEE_MASTER)  # 
-  if not AniDBTVDBMap:  raise Exception("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
+  if AniDBTVDBMap is None:  raise Exception("GetAniDBTVDBMap() - Failed to load core file '{file}'".format(url=os.path.splitext(os.path.basename(SCUDLEE_MASTER))))  #; AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>")  #; raise Exception("HAMA Fatal Error Hit")
   else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBTVDBMap), SCUDLEE_MASTER))
   
 def GetAniDBTVDBMapCustom(media, movie):  
@@ -59,7 +59,7 @@ def GetAniDBTVDBMapCustom(media, movie):
 def GetAniDBMovieSets():  
   global AniDBMovieSets
   AniDBMovieSets = common.LoadFile(filename=os.path.basename(SCUDLEE_MOVIESET), relativeDirectory="AnimeLists", url=SCUDLEE_MOVIESET, cache=CACHE_1MONTH)
-  if not AniDBMovieSets:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
+  if AniDBMovieSets is None:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBMovieSets), SCUDLEE_MOVIESET))
   
 ### Get the tvdbId from the AnimeId or the other way around ###
@@ -97,7 +97,7 @@ def GetMetadata(media, movie, error_log, id):
 
   Log.Info("--- AniDBTVDBMap ---".ljust(157, '-'))
   forcedID={'anidbid':AniDB_id,'tvdbid':TVDB_id,'tmdbid':TMDB_id,'imdbid':IMDB_id}
-  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull else []:
+  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull is not None else []:
     # gather any manually specified source ids
     foundID,wantedID = {},{}
     for check in forcedID.keys():
@@ -217,7 +217,7 @@ def GetMetadata(media, movie, error_log, id):
 
   ### Update collection/studio
   TVDB_collection, title, studio = [], '', ''
-  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull and TVDB_winner.isdigit() else []:
+  for anime in AniDBTVDBMapFull.iter('anime') if AniDBTVDBMapFull is not None and TVDB_winner.isdigit() else []:
     if anime.get('tvdbid',  "") == TVDB_winner:
       TVDB_collection.append(anime.get("anidbid", ""))
       if anime_core(anime)[3]:  #[3]==is_primary_series
