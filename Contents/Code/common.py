@@ -350,7 +350,7 @@ def LoadFileCache(filename="", relativeDirectory=""):
     except:  Log.Debug("common.LoadFileCache() - File cache locally but failed loading - file: {}".format(relativeFilename))
     else:  
       file_object = ObjectFromFile(file)
-      if file_object:  
+      if file_object is not None:  
         file_age = time.time() - os.stat(fullpathFilename).st_mtime
       else:
         Log.Info('common.LoadFileCache() - local file "{}" deleted as failed validity test - file: {}'.format(relativeFilename, file))
@@ -383,11 +383,11 @@ def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, c
 
   # Load from disk if present
   file_object, file_age = LoadFileCache(filename, relativeDirectory)
-  if file_object:  Log.Debug("common.LoadFile() - File cached locally - Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days', url: '{url}'".format(url=url, file=os.path.join(relativeDirectory, filename), age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
+  if file_object is not None:  Log.Debug("common.LoadFile() - File cached locally - Filename: '{file}', Age: '{age:.2f} days', Limit: '{limit} days', url: '{url}'".format(url=url, file=os.path.join(relativeDirectory, filename), age=file_age/CACHE_1DAY, limit=cache/CACHE_1DAY))
 
   #File not cached OR cache older than passed cache age / adjusted AniDB age
   file_downloaded = None
-  if not file_object or file_age > cache:
+  if file_object is None or file_age > cache:
     # Check to see if we are at throttle max and needs to be put on hold
     # Done before lock is aquired to alow other threads to move forward
     while throttle[0]:  # Only check if throttle index is defined
