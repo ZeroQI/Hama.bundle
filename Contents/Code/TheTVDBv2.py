@@ -142,6 +142,16 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
     
     ### episode loop ###
     tvdb_special_missing, summary_missing_special, summary_missing, summary_present, episode_missing, episode_missing_season, episode_missing_season_all, abs_number, ep_count = [], [], [], [], [], [], True, 0, 0
+
+    # To avoid duplicate mapping we will remember episodes that have been mapped to a different value
+    mapped_episodes = []
+    for key in sorted(sorted_episodes_json):
+      episode_json = sorted_episodes_json[key]
+      episode    = str(Dict(episode_json, 'airedEpisodeNumber'))
+      season     = str(Dict(episode_json, 'airedSeason'       ))
+      season, episode, anidbid = AnimeLists.anidb_ep(mappingList, season, episode)
+      if anidbid != 'xxxxxxx': mapped_episodes.append((season, episode))
+
     for key in sorted(sorted_episodes_json):
       
       # Episode and Absolute number calculation engine, episode translation
@@ -185,9 +195,11 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
       
       ### Check for Missing Episodes ###
       is_missing = False
-      if not(str(Dict(episode_json, 'airedSeason'))=='0' and str(Dict(episode_json, 'airedEpisodeNumber')) in list_sp_eps) and \
-         not(metadata_source in ('tvdb3', 'tvdb4') and str(abs_number) in list_abs_eps) and \
-         not(not movie and season in media.seasons and episode in media.seasons[season].episodes):
+      if (not(str(Dict(episode_json, 'airedSeason'))=='0' and str(Dict(episode_json, 'airedEpisodeNumber')) in list_sp_eps) and
+         not(metadata_source in ('tvdb3', 'tvdb4') and str(abs_number) in list_abs_eps) and
+         not(not movie and season in media.seasons and episode in media.seasons[season].episodes)) or \
+         (not movie and season in media.seasons and episode in media.seasons[season].episodes and
+         anidbid == 'xxxxxxx' and (season, episode) in mapped_episodes):
         is_missing = True
         Log.Info('[ ] {:>7} s{:0>2}e{:0>3} anidbid: {:>7} air_date: {}'.format(numbering, season, episode, anidbid, Dict(episode_json, 'firstAired')))
         air_date = Dict(episode_json, 'firstAired')
