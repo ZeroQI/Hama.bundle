@@ -15,7 +15,7 @@ AniDBMovieSets   = None
 SCUDLEE_MASTER   = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
 SCUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
 SCUDLEE_CUSTOM   = 'anime-list-custom.xml'
-SCUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?title={title}&body={body}'  # ScudLee mapping file git feedback url
+SCUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?template=new_mapping.yml&title={title}&anidb_id={id}&anime_title={anidb_title}'  # ScudLee mapping file git feedback url
 
 ### Functions ###
 
@@ -181,7 +181,7 @@ def GetMetadata(media, movie, error_log, id):
     ### 
     if TVDBid=="hentai":  SaveDict("X", AnimeLists_dict, 'content_rating')
     elif TVDBid in ("", "unknown", None):
-      link = SCUDLEE_FEEDBACK.format(title="aid:%s &#39;%s&#39; TVDBid:" % (AniDB_id, "title"), body=String.StripTags(XML.StringFromElement(anime, encoding='utf8')))
+      link = SCUDLEE_FEEDBACK.format(title="[HAMA] AniDB ID:%s" % AniDB_id, anidb_title=GetXml(anime, 'name'), anidb_id=AniDB_id)
       error_log['anime-list TVDBid missing'].append('AniDBid: "{}" | Title: "{}" | Has no matching TVDBid "{}" in mapping file | <a href="{}" target="_blank">Submit bug report</a>'.format(AniDB_id, "title", TVDBid, link))
       Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format(TVDBid))
         
