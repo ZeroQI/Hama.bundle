@@ -15,7 +15,7 @@ AniDBMovieSets   = None
 SCUDLEE_MASTER   = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
 SCUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
 SCUDLEE_CUSTOM   = 'anime-list-custom.xml'
-SCUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?template=new_mapping.yml&title={title}&anidb_id={id}&anime_title={anidb_title}'  # ScudLee mapping file git feedback url
+SCUDLEE_FEEDBACK = 'https://github.com/Anime-Lists/anime-lists/issues/new?template=new_mapping.yml&title={title}&anidb_id={anidb_id}&anime_title={anidb_title}'  # ScudLee mapping file git feedback url
 
 ### Functions ###
 
