@@ -9,7 +9,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-ARM_SERVER_URL = "https://relations.yuna.moe/api/ids?source=anidb&id={id}"
+ARM_SERVER_URL = "https://arm.haglund.dev/api/v2/ids?source=anidb&include=anilist&id={id}"
 
 GRAPHQL_API_URL = "https://graphql.anilist.co"
 ANIME_DATA_DOCUMENT = """
@@ -43,11 +43,16 @@ def GetMetadata(AniDBid, MALid):
   Log.Info("=== AniList.GetMetadata() ===".ljust(157, '='))
   AniList_dict = {}
 
-  # Try to match the AniDB id to an AniList id as it has a higher chance of being correct
-  ALid = Dict(common.LoadFile(filename=AniDBid+'.json', relativeDirectory=os.path.join('AniList', 'json', 'AniDBid'), url=ARM_SERVER_URL.format(id=AniDBid)), "anilist", default=None)
+  # Only try to get AniList ID if we have a AniDB ID
+  if AniDBid is not None:
+    # Try to match the AniDB id to an AniList id as it has a higher chance of being correct
+    ALid = Dict(common.LoadFile(filename=AniDBid+'.json', relativeDirectory=os.path.join('AniList', 'json', 'AniDBid'), url=ARM_SERVER_URL.format(id=AniDBid)), "anilist", default=None)
+  else:
+    ALid = None
 
   Log.Info("AniDBid={}, MALid={}, ALid={}".format(AniDBid, MALid, ALid))
-  if not MALid or not MALid.isdigit(): return AniList_dict
+  # Don't try to fetch data from AniList if we don't know what to fetch
+  if ALid is None and (MALid is None or not MALid.isdigit()): return AniList_dict
 
   Log.Info("--- series ---".ljust(157, "-"))
 
