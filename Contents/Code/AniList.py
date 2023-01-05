@@ -9,7 +9,7 @@ import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
 
 ### Variables ###
-ARM_SERVER_URL = "https://relations.yuna.moe/api/ids?source=anidb&id={id}"
+ARM_SERVER_URL = "https://arm.haglund.dev/api/v2/ids?source=anidb&include=anilist&id={id}"
 
 GRAPHQL_API_URL = "https://graphql.anilist.co"
 ANIME_DATA_DOCUMENT = """
