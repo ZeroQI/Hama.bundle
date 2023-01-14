@@ -77,7 +77,6 @@ def GetMetadata(media, movie, error_log, id):
   TMDBid                         = ""
   IMDBid                         = ""
   tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
-  tvdbcounts                     = {}
 
   ### Search for match ###
   Log.Info("tvdb_numbering: {}".format(tvdb_numbering))
@@ -113,9 +112,6 @@ def GetMetadata(media, movie, error_log, id):
     # nothing found, skip
     else: continue
     found = True
-
-    # record the number of entries using the same tvdb id
-    SaveDict(Dict(tvdbcounts, TVDBid, default=0)+1, tvdbcounts, TVDBid)
 
     defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series = anime_core(anime)
 
@@ -201,8 +197,6 @@ def GetMetadata(media, movie, error_log, id):
   
   Log.Info('             -----          ------')
   Log.Info('             {:>5}          {:>6}'.format(AniDB_winner, TVDB_winner))
-  
-  SaveDict(Dict(tvdbcounts, TVDB_winner), mappingList, 'tvdbcount')
 
   if source=="tvdb":
     for s in media.seasons:
@@ -223,6 +217,8 @@ def GetMetadata(media, movie, error_log, id):
       if anime_core(anime)[3]:  #[3]==is_primary_series
         title = AniDB.GetAniDBTitle(AniDB.AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(anime.get("anidbid", ""))))[0]  #returns [title, main, language_rank]
         studio = GetXml(anime, "supplemental-info/studio")
+  # record the number of entries using the same tvdb id
+  SaveDict(len(TVDB_collection), mappingList, 'tvdbcount')
   if len(TVDB_collection)>1 and title:  # Require that there be at least 2 anidb mappings for a collection
     Log.Info("[ ] collection: TVDBid '%s' is part of collection: '%s', related_anime_list: %s" % (TVDB_winner, SaveDict([title + ' Collection'], AnimeLists_dict, 'collections'), TVDB_collection))
   else:  Log.Info("[ ] collection: TVDBid '%s' is not part of any collection" % TVDB_winner)
