@@ -41,6 +41,7 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0):  #Fetch
       for item in Dict(json, 'tvbanner'       , default=[]):  Log.Info("[ ] banner: {}"       .format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "tvbanner",       "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'banners'), None), FanartTV_dict, 'banners', Dict(item, 'url'))
       for item in Dict(json, 'seasonposter'   , default=[]):  Log.Info("[ ] season poster: {}".format(Dict(item, 'url'))); SaveDict((os.path.join(relativeDirectory, id, "seasonposter",   "{filename}.jpg".format(filename=Dict(item, 'id'))), common.poster_rank('FanartTV', 'posters'), None), FanartTV_dict, 'seasons', Dict(item, 'season'), 'posters', Dict(item, 'url'))
 
+  FanartTV_dict.get('seasons', {}).pop('all', None)  #FanartTV_dict.seasons can now contain an all key in addition to the numeric keys which causes the exception, invalid literal for int() with base 10: 'all', to occur in anidb34.py#L94.
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("FanartTV_dict: {}".format(DictString(FanartTV_dict, 4)))
   return FanartTV_dict
