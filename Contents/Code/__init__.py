@@ -110,13 +110,14 @@ def Search(results, media, lang, manual, movie):
     response_content = json.loads(response)
 
     if "error" not in response_content:
-      name = "%s [%s]" % (orig_title, response_content["id"])
-      Log.Debug("Got result from vector search API: %s" % name)
-      results.Append(MetadataSearchResult(id=response_content["id"],
-                                          name=name,
-                                          year=media.year,
-                                          lang=lang,
-                                          score=100))
+      for response_entry in response_content:
+        name = "%s [%s]" % (response_entry["name"], response_entry["id"])
+        Log.Debug("Got result from vector search API: %s" % name)
+        results.Append(MetadataSearchResult(id=response_entry["id"],
+                                            name=name,
+                                            year=media.year,
+                                            lang=lang,
+                                            score=int(round(response_entry["score"] * 100))))
       Log.Close()
       return
     

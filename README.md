@@ -137,13 +137,75 @@ Sanzoku no Musume Ronja「山賊の娘ローニャ」[anidb-10421]
 Without this prefix, the automatic matching tends to break and requires a manual Fix Match unless you follow standard naming conventions. Using this vector search, such issues are no longer a problem, as the API will return to the agent (again for the given example):
 
 ```
-{"id":"anidb-10421","name":"\u5c71\u8cca\u306e\u5a18\u30ed\u30fc\u30cb\u30e3","score":0.8278500437736511}
+[
+  {
+    "id": "anidb-10421",
+    "language": "ja",
+    "name": "山賊の娘ローニャ",
+    "score": 0.8278497457504272
+  },
+  {
+    "id": "anidb-10421",
+    "language": "x-jat",
+    "name": "Sanzoku no Musume Ronja",
+    "score": 0.7398622035980225
+  },
+  {
+    "id": "anidb-5467",
+    "language": "ja",
+    "name": "山姫の実",
+    "score": 0.7317830324172974
+  },
+  {
+    "id": "anidb-2309",
+    "language": "ja",
+    "name": "山ねずみ ロッキーチャック",
+    "score": 0.7189916968345642
+  },
+  {
+    "id": "anidb-16528",
+    "language": "ja",
+    "name": "狂気山脈 ネイキッド・ピーク",
+    "score": 0.7166963815689087
+  }
+]
 ```
 
 The ML model currently running has additionally been trained on a large corpus of English data, which means (among other things) even partial matches or related words can work. For example, the query `Raeliana noble` will return:
 
 ```
-{"id":"anidb-17498","name":"Why Raeliana Ended Up at the Duke`s Mansion","score":0.5921988487243652}
+[
+  {
+    "id": "anidb-17498",
+    "language": "en",
+    "name": "Why Raeliana Ended Up at the Duke`s Mansion",
+    "score": 0.5921987891197205
+  },
+  {
+    "id": "anidb-17498",
+    "language": "en",
+    "name": "The Reason Why Raeliana Ended Up at the Duke`s Mansion",
+    "score": 0.5916491746902466
+  },
+  {
+    "id": "anidb-17498",
+    "language": "de",
+    "name": "Raeliana – Warum sie die Verlobte des Dukes wurde",
+    "score": 0.565862238407135
+  },
+  {
+    "id": "anidb-6384",
+    "language": "ja",
+    "name": "Rispara",
+    "score": 0.5636906623840332
+  },
+  {
+    "id": "anidb-10421",
+    "language": "fi",
+    "name": "Ronja ryövärintytär",
+    "score": 0.5635910034179688
+  }
+]
 ```
 
 As a `duke` is a type of `noble`.
