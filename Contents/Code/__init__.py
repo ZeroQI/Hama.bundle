@@ -103,7 +103,7 @@ def Search(results, media, lang, manual, movie):
   
   # Shortcut other search methods and use vector search if enabled
   if Prefs["vector_search_enabled"] and Prefs["vector_search_api"] is not None:
-    Log.Info("Searching for '%s' using vector search API" % (orig_title))
+    Log.Debug("Searching for '%s' using vector search API" % (orig_title))
     
     api_url = "%s?name=%s" % (Prefs["vector_search_api"], urllib.quote(orig_title))
     response = HTTP.Request(api_url, cacheTime=CACHE_1DAY).content
@@ -111,17 +111,17 @@ def Search(results, media, lang, manual, movie):
 
     if "error" not in response_content:
       name = "%s [%s]" % (orig_title, response_content["id"])
-      Log.Info("Got result from vector search API: %s" % name)
+      Log.Debug("Got result from vector search API: %s" % name)
       results.Append(MetadataSearchResult(id=response_content["id"],
                                           name=name,
                                           year=media.year,
                                           lang=lang,
-                                          score=response_content["score"]*100))
+                                          score=100))
       Log.Close()
       return
     
     # Continue with normal search
-    Log.Info("Got error result from vector search API: %s" % (response_content["error"]))    
+    Log.Debug("Got error result from vector search API: %s" % (response_content["error"]))    
   
   ### Check if a guid is specified "Show name [anidb-id]" ###
   Log.Info('--- force id ---'.ljust(157, '-'))
