@@ -270,14 +270,14 @@
   },
   {
     "id": "vector_search_enabled",
-    "label": "Use vector search API to match series/movies and circumvent other searching methods.",
+    "label": "Use unofficial AniDB vector search API to match anime series/movies and circumvent other searching methods.",
     "type": "bool",
     "default": "false"
   },
   {
     "id": "vector_search_api",
-    "label": "API of the vector search endpoint",
+    "label": "URL of the AniDB vector search endpoint API. Visit https://github.com/khell/anidb-semantic-search-api to optionally host it yourself.\n\nIf you choose to use the default hosted API here. no warranties or guarantees are implied of any kind, and all queries will be transiently logged on the API server (until the next server reboot). It is strongly recommended to host the API yourself.",
     "type": "text",
-    "default": "None"
+    "default": "https://anidb.khell.net/api/anidb/id"
   }
 ]

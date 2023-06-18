@@ -119,6 +119,37 @@ You can use anidb.id file in series or Series/Extras folder or in the serie name
 
 Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
 
+AniDB Vector Search
+=============
+
+You can use Khell's [AniDB vector search](https://github.com/khell/anidb-semantic-search-api) as an alternative to standard matching. To opt in, scroll down to the bottom of the agent configuration to find the settings to enable AniDB vector search. This will send your names from the scanner to the configured AniDB vector search endpoint to match it against an AniDB id. Using this means that you do not need to follow any particular naming rules for your folders, as it will use a machine-learning semantic search model to match your series name to the closest AniDB match. For example, I like to name my directories with both English and Japanese names, like so:
+
+```
+Sanzoku no Musume Ronja「山賊の娘ローニャ」
+```
+
+Previously, this sort of naming would require the suffixing of a source id to the end of the folder name, such as:
+
+```
+Sanzoku no Musume Ronja「山賊の娘ローニャ」[anidb-10421]
+```
+
+Without this prefix, the automatic matching tends to break and requires a manual Fix Match unless you follow standard naming conventions. Using this vector search, such issues are no longer a problem, as the API will return to the agent (again for the given example):
+
+```
+{"id":"anidb-10421","name":"\u5c71\u8cca\u306e\u5a18\u30ed\u30fc\u30cb\u30e3","score":0.8278500437736511}
+```
+
+The ML model currently running has additionally been trained on a large corpus of English data, which means (among other things) even partial matches or related words can work. For example, the query `Raeliana noble` will return:
+
+```
+{"id":"anidb-17498","name":"Why Raeliana Ended Up at the Duke`s Mansion","score":0.5921988487243652}
+```
+
+As a `duke` is a type of `noble`.
+
+Please note that if you choose to use the default hosted API by Khell that no warranties or guarantees are implied of any kind, and your queries will be transiently logged on the API server (until the next server reboot). It is strongly recommended you host the API yourself.
+
 Configuration
 =============
 
