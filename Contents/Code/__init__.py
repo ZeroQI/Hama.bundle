@@ -28,6 +28,7 @@ import MyAnimeList       # Functions: GetMetadata                               
 import AniList           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
 import anidb34           # Functions: AdjustMapping                                              Variables: None
+import AniDBVectorSearch
 
 ### Variables ###
   
@@ -105,11 +106,12 @@ def Search(results, media, lang, manual, movie):
   if Prefs["vector_search_enabled"] and Prefs["vector_search_api"] is not None:
     Log.Debug("Searching for '%s' using vector search API" % (orig_title))
     
-    api_url = "%s?name=%s" % (Prefs["vector_search_api"], urllib.quote(orig_title))
-    response = HTTP.Request(api_url, cacheTime=CACHE_1DAY).content
-    response_content = json.loads(response)
-
-    if "error" not in response_content:
+    response_content = AniDBVectorSearch.get_results_from_vector_search(orig_title)
+    if response_content is None:
+      Log.Debug("Got no result from vector search API.")
+    elif "error" in response_content:
+      Log.Debug("Got error result from vector search API: %s" % (response_content["error"]))
+    else:
       for response_entry in response_content:
         name = "%s [%s]" % (response_entry["name"], response_entry["id"])
         Log.Debug("Got result from vector search API: %s" % name)
@@ -117,13 +119,11 @@ def Search(results, media, lang, manual, movie):
                                             name=name,
                                             year=media.year,
                                             lang=lang,
-                                            score=int(round(response_entry["score"] * 100))))
+                                            score=response_entry["score"]))
       Log.Close()
       return
     
-    # Continue with normal search
-    Log.Debug("Got error result from vector search API: %s" % (response_content["error"]))    
-  
+  # Continue with normal search as we failed to use vector search (or it's not enabled)
   ### Check if a guid is specified "Show name [anidb-id]" ###
   Log.Info('--- force id ---'.ljust(157, '-'))
   if orig_title and orig_title.isdigit():  orig_title = "xxx [tvdb-{}]".format(orig_title)  #Support tvdbid as title, allow to support Xattr from FileBot with tvdbid filled in
