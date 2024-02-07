@@ -119,6 +119,99 @@ You can use anidb.id file in series or Series/Extras folder or in the serie name
 
 Agents' update() method is called only when adding new items to your library or when doing a "Force Refresh" or a "Fix Incorrect Match". 
 
+AniDB Vector Search
+=============
+
+You can use Khell's [AniDB vector search](https://github.com/khell/anidb-semantic-search-api) as an alternative to standard matching. To opt in, scroll down to the bottom of the agent configuration to find the settings to enable AniDB vector search. This will send your names from the scanner to the configured AniDB vector search endpoint to match it against an AniDB id. Using this means that you do not need to follow any particular naming rules for your folders, as it will use a machine-learning semantic search model to match your series name to the closest AniDB match. For example, I like to name my directories with both English and Japanese names, like so:
+
+```
+Sanzoku no Musume Ronja「山賊の娘ローニャ」
+```
+
+Previously, this sort of naming would require the suffixing of a source id to the end of the folder name, such as:
+
+```
+Sanzoku no Musume Ronja「山賊の娘ローニャ」[anidb-10421]
+```
+
+Without this prefix, the automatic matching tends to break and requires a manual Fix Match unless you follow standard naming conventions. Using this vector search, such issues are no longer a problem, as the API will return to the agent (again for the given example):
+
+```
+[
+  {
+    "id": "anidb-10421",
+    "language": "ja",
+    "name": "山賊の娘ローニャ",
+    "score": 0.8278497457504272
+  },
+  {
+    "id": "anidb-10421",
+    "language": "x-jat",
+    "name": "Sanzoku no Musume Ronja",
+    "score": 0.7398622035980225
+  },
+  {
+    "id": "anidb-5467",
+    "language": "ja",
+    "name": "山姫の実",
+    "score": 0.7317830324172974
+  },
+  {
+    "id": "anidb-2309",
+    "language": "ja",
+    "name": "山ねずみ ロッキーチャック",
+    "score": 0.7189916968345642
+  },
+  {
+    "id": "anidb-16528",
+    "language": "ja",
+    "name": "狂気山脈 ネイキッド・ピーク",
+    "score": 0.7166963815689087
+  }
+]
+```
+
+The ML model currently running has additionally been trained on a large corpus of English data, which means (among other things) even partial matches or related words can work. For example, the query `Raeliana noble` will return:
+
+```
+[
+  {
+    "id": "anidb-17498",
+    "language": "en",
+    "name": "Why Raeliana Ended Up at the Duke`s Mansion",
+    "score": 0.5921987891197205
+  },
+  {
+    "id": "anidb-17498",
+    "language": "en",
+    "name": "The Reason Why Raeliana Ended Up at the Duke`s Mansion",
+    "score": 0.5916491746902466
+  },
+  {
+    "id": "anidb-17498",
+    "language": "de",
+    "name": "Raeliana – Warum sie die Verlobte des Dukes wurde",
+    "score": 0.565862238407135
+  },
+  {
+    "id": "anidb-6384",
+    "language": "ja",
+    "name": "Rispara",
+    "score": 0.5636906623840332
+  },
+  {
+    "id": "anidb-10421",
+    "language": "fi",
+    "name": "Ronja ryövärintytär",
+    "score": 0.5635910034179688
+  }
+]
+```
+
+As a `duke` is a type of `noble`.
+
+Please note that if you choose to use the default hosted API by Khell that no warranties or guarantees are implied of any kind, and your queries will be transiently logged on the API server (until the next server reboot). It is strongly recommended you host the API yourself.
+
 Configuration
 =============
 

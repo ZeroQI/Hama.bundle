@@ -1,47 +1,283 @@
 [
-  { "id": "reset_to_defaults",        "label": "Reset to Defaults",               "type": "bool",  "default": "false"                                                          },
-  { "id": "SerieLanguagePriority",    "label": "Serie Language Priority",         "type": "text",  "default": "main, en, ja"                                                   },
-  { "id": "EpisodeLanguagePriority",  "label": "Episode Language Priority",       "type": "text",  "default": "main, en, ja"                                                   },
-  { "id": "PosterLanguagePriority",   "label": "TheTVDB Poster Language Priority","type": "text",  "default": "en"                                                             },
-  { "id": "season_poster_failover",   "label": "Season Poster failover",          "type": "enum",  "default": "None", "values" : ["None","series","series different poster"]   },
-  { "id": "load_all_poster_sources",  "label": "Load all poster metadata sources","type": "bool",  "default": "false"                                                          },
-  { "id": "AnidbGenresAddWeights",    "label": "AniDB include weighted genres",   "type": "bool",  "default": "false"                                                          },
-  { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "default": "400",  "values" : ["600","500","400","300","200","100","0"]     },
-  { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                          },
-  { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                    },
-  { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                                },
-  { "id": "title_sort",               "label": "T-EM 'title_sort'",               "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "content_rating",           "label": "T-EM 'content_rating'",           "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "content_rating_age",       "label": "--E- 'content_rating_age'",       "type": "text",  "default": "None"                                                           },
-  { "id": "original_title",           "label": "T-EM 'original_title'",           "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "studio",                   "label": "T--M 'studio'",                   "type": "text",  "default": "AnimeLists, AniDB, TheMovieDb"                                  },
-  { "id": "tagline",                  "label": "T--M 'tagline'",                  "type": "text",  "default": "TheMovieDb"                                                     },
-  { "id": "summary",                  "label": "TSEM 'summary'",                  "type": "text",  "default": "TheTVDB, AniDB"                                                 },
-  { "id": "directors",                "label": "--EM 'directors'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "producers",                "label": "--EM 'producers'",                "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "countries",                "label": "T--M 'countries",                 "type": "text",  "default": "TheMovieDb"                                                     },
-  { "id": "genres",                   "label": "T--M 'genres'",                   "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"                  },
-  { "id": "tags",                     "label": "T--M 'tags'",                     "type": "text",  "default": "MyAnimeList"                                                    },
-  { "id": "writers",                  "label": "T-EM 'writers'",                  "type": "text",  "default": "AniDB,TheTVDB"                                                  },
-  { "id": "collections",              "label": "T--M 'collections'",              "type": "text",  "default": "Local, AniDB, TheMovieDb, AnimeLists"                           },
-  { "id": "duration",                 "label": "T--M 'duration'",                 "type": "text",  "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"                  },
-  { "id": "roles",                    "label": "T--M 'roles'",                    "type": "text",  "default": "AniDB, TheTVDB"                                                 },
-  { "id": "year",                     "label": "---M 'year'",                     "type": "text",  "default": "AniDB"                                                          },
-  { "id": "trivia",                   "label": "---M 'trivia'",                   "type": "text",  "default": "None"                                                           },
-  { "id": "quotes",                   "label": "---M 'quotes'",                   "type": "text",  "default": "None"                                                           },
-  { "id": "themes",                   "label": "T--M 'themes'",                   "type": "text",  "default": "TVTunes, Plex"                                                  },
-  { "id": "rating",                   "label": "T-EM 'rating'",                   "type": "text",  "default": "AniDB, TheTVDB, MyAnimeList, TheMovieDb, OMDb | TheTVDB, AniDB" },
-  { "id": "rating_image",             "label": "T--M 'rating_image'",             "type": "text",  "default": "None"                                                           },
-  { "id": "audience_rating",          "label": "T--M 'audience_rating'",          "type": "text",  "default": "None"                                                           },
-  { "id": "audience_rating_image",    "label": "T--M 'audience_rating_image'",    "type": "text",  "default": "None"                                                           },
-  { "id": "guest_stars",              "label": "T--M 'guest_stars'",              "type": "text",  "default": "TheTVDB"                                                        },
-  { "id": "posters",                  "label": "TS-M 'poster'",                   "type": "text",  "default": "tvdb4, TheMovieDb, TheTVDB, AniList, FanartTV, AniDB"           },
-  { "id": "art",                      "label": "T--M 'art'",                      "type": "text",  "default": "TheTVDB, TheMovieDb, FanartTV"                                  },
-  { "id": "banners",                  "label": "TS-- 'banners'",                  "type": "text",  "default": "TheTVDB, AniList"                                               },
-  { "id": "thumbs",                   "label": "--E- 'thumbs'",                   "type": "text",  "default": "TheTVDB"                                                        },
-  { "id": "reviews",                  "label": "T--M 'reviews'",                  "type": "text",  "default": "None"                                                           },
-  { "id": "extras",                   "label": "T--M 'extras'",                   "type": "text",  "default": "None"                                                           },
-  { "id": "rating_count",             "label": "T--M 'rating_count'",             "type": "text",  "default": "None"                                                           },
-  { "id": "absolute_index",           "label": "--E- 'absolute_index'",           "type": "text",  "default": "TheTVDB"                                                        }
+  {
+    "id": "reset_to_defaults",
+    "label": "Reset to Defaults",
+    "type": "bool",
+    "default": "false"
+  },
+  {
+    "id": "SerieLanguagePriority",
+    "label": "Serie Language Priority",
+    "type": "text",
+    "default": "main, en, ja"
+  },
+  {
+    "id": "EpisodeLanguagePriority",
+    "label": "Episode Language Priority",
+    "type": "text",
+    "default": "main, en, ja"
+  },
+  {
+    "id": "PosterLanguagePriority",
+    "label": "TheTVDB Poster Language Priority",
+    "type": "text",
+    "default": "en"
+  },
+  {
+    "id": "season_poster_failover",
+    "label": "Season Poster failover",
+    "type": "enum",
+    "default": "None",
+    "values": ["None", "series", "series different poster"]
+  },
+  {
+    "id": "load_all_poster_sources",
+    "label": "Load all poster metadata sources",
+    "type": "bool",
+    "default": "false"
+  },
+  {
+    "id": "AnidbGenresAddWeights",
+    "label": "AniDB include weighted genres",
+    "type": "bool",
+    "default": "false"
+  },
+  {
+    "id": "MinimumWeight",
+    "label": "AniDB genre minimum weight",
+    "type": "enum",
+    "default": "400",
+    "values": ["600", "500", "400", "300", "200", "100", "0"]
+  },
+  {
+    "id": "adult",
+    "label": "Include adult content",
+    "type": "bool",
+    "default": "false"
+  },
+  {
+    "id": "OMDbApiKey",
+    "label": "OMDb Api Key",
+    "type": "text",
+    "default": "None",
+    "option": "hidden",
+    "secure": "true"
+  },
+  {
+    "id": "title",
+    "label": "T-EM 'title'",
+    "type": "text",
+    "default": "AniDB, TheTVDB | TheTVDB, AniDB"
+  },
+  {
+    "id": "title_sort",
+    "label": "T-EM 'title_sort'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "originally_available_at",
+    "label": "T-EM 'originally_available_at'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "content_rating",
+    "label": "T-EM 'content_rating'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "content_rating_age",
+    "label": "--E- 'content_rating_age'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "original_title",
+    "label": "T-EM 'original_title'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "studio",
+    "label": "T--M 'studio'",
+    "type": "text",
+    "default": "AnimeLists, AniDB, TheMovieDb"
+  },
+  {
+    "id": "tagline",
+    "label": "T--M 'tagline'",
+    "type": "text",
+    "default": "TheMovieDb"
+  },
+  {
+    "id": "summary",
+    "label": "TSEM 'summary'",
+    "type": "text",
+    "default": "TheTVDB, AniDB"
+  },
+  {
+    "id": "directors",
+    "label": "--EM 'directors'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "producers",
+    "label": "--EM 'producers'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "countries",
+    "label": "T--M 'countries",
+    "type": "text",
+    "default": "TheMovieDb"
+  },
+  {
+    "id": "genres",
+    "label": "T--M 'genres'",
+    "type": "text",
+    "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"
+  },
+  {
+    "id": "tags",
+    "label": "T--M 'tags'",
+    "type": "text",
+    "default": "MyAnimeList"
+  },
+  {
+    "id": "writers",
+    "label": "T-EM 'writers'",
+    "type": "text",
+    "default": "AniDB,TheTVDB"
+  },
+  {
+    "id": "collections",
+    "label": "T--M 'collections'",
+    "type": "text",
+    "default": "Local, AniDB, TheMovieDb, AnimeLists"
+  },
+  {
+    "id": "duration",
+    "label": "T--M 'duration'",
+    "type": "text",
+    "default": "TheTVDB, AniDB, MyAnimeList, TheMovieDb, OMDb"
+  },
+  {
+    "id": "roles",
+    "label": "T--M 'roles'",
+    "type": "text",
+    "default": "AniDB, TheTVDB"
+  },
+  { "id": "year", "label": "---M 'year'", "type": "text", "default": "AniDB" },
+  {
+    "id": "trivia",
+    "label": "---M 'trivia'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "quotes",
+    "label": "---M 'quotes'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "themes",
+    "label": "T--M 'themes'",
+    "type": "text",
+    "default": "TVTunes, Plex"
+  },
+  {
+    "id": "rating",
+    "label": "T-EM 'rating'",
+    "type": "text",
+    "default": "AniDB, TheTVDB, MyAnimeList, TheMovieDb, OMDb | TheTVDB, AniDB"
+  },
+  {
+    "id": "rating_image",
+    "label": "T--M 'rating_image'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "audience_rating",
+    "label": "T--M 'audience_rating'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "audience_rating_image",
+    "label": "T--M 'audience_rating_image'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "guest_stars",
+    "label": "T--M 'guest_stars'",
+    "type": "text",
+    "default": "TheTVDB"
+  },
+  {
+    "id": "posters",
+    "label": "TS-M 'poster'",
+    "type": "text",
+    "default": "tvdb4, TheMovieDb, TheTVDB, AniList, FanartTV, AniDB"
+  },
+  {
+    "id": "art",
+    "label": "T--M 'art'",
+    "type": "text",
+    "default": "TheTVDB, TheMovieDb, FanartTV"
+  },
+  {
+    "id": "banners",
+    "label": "TS-- 'banners'",
+    "type": "text",
+    "default": "TheTVDB, AniList"
+  },
+  {
+    "id": "thumbs",
+    "label": "--E- 'thumbs'",
+    "type": "text",
+    "default": "TheTVDB"
+  },
+  {
+    "id": "reviews",
+    "label": "T--M 'reviews'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "extras",
+    "label": "T--M 'extras'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "rating_count",
+    "label": "T--M 'rating_count'",
+    "type": "text",
+    "default": "None"
+  },
+  {
+    "id": "absolute_index",
+    "label": "--E- 'absolute_index'",
+    "type": "text",
+    "default": "TheTVDB"
+  },
+  {
+    "id": "vector_search_enabled",
+    "label": "Use unofficial AniDB vector search API to match anime series/movies and circumvent other searching methods.",
+    "type": "bool",
+    "default": "false"
+  },
+  {
+    "id": "vector_search_api",
+    "label": "URL of the AniDB vector search endpoint API. Visit https://github.com/khell/anidb-semantic-search-api to optionally host it yourself.\n\nIf you choose to use the default hosted API here. no warranties or guarantees are implied of any kind, and all queries will be transiently logged on the API server (until the next server reboot). It is strongly recommended to host the API yourself.",
+    "type": "text",
+    "default": "https://anidb.khell.net/api/anidb/id"
+  }
 ]
