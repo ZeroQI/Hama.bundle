@@ -360,7 +360,12 @@ def Search(results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Sea
   #series_data = JSON.ObjectFromString(GetResultFromNetwork(TVDB_SEARCH_URL % mediaShowYear, additionalHeaders={'Accept-Language': lang}))['data'][0]
   orig_title = ( media.title if movie else media.show )
   maxi = 0
-  try:                    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + quote(orig_title), headers=common.COMMON_HEADERS, cacheTime=CACHE_1HOUR * 24)
+  try:
+    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + quote(orig_title), headers=common.COMMON_HEADERS, cacheTime=CACHE_1HOUR * 24)
+    if not TVDBsearchXml.xpath('Series'):
+      # Do a second try with the year removed from the title, if any
+      orig_title = re.sub(r'\s*\(\d{4}\)$', '', orig_title)
+      TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + quote(orig_title), headers=common.COMMON_HEADERS, cacheTime=CACHE_1HOUR * 24) 
   except Exception as e:  Log.Error("TVDB Loading search XML failed, Exception: '%s'" % e)
   else:
     for serie in TVDBsearchXml.xpath('Series'):
