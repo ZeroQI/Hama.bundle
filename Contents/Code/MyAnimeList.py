@@ -40,7 +40,7 @@ def GetMetadata(myanimelistIds, media_type, dict_AniDB):
     best_match, best_score = {}, -1
     season_mal_id_list = Dict(myanimelistIds, 'seasons', season)
     Log.Debug("Season: {}, MAL id list: {}".format(season, DictString(season_mal_id_list, 4)))
-    for myanimelistId in season_mal_id_list:
+    for myanimelistId in sorted(season_mal_id_list, key=natural_sort_key):
       parsed_response, current_score = {}, 0
       detailUrl = MYANIMELIST_URL_DETAILS.format(id=myanimelistId)
       Log.Info("=== MAL ID: {} ===".ljust(157, '=').format(myanimelistId))
