@@ -138,23 +138,23 @@ def Update(metadata, media, lang, force, movie):
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id)
   dict_tvdb4                                                    =       tvdb4.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
   dict_TheTVDB,                             IMDbid              =   TheTVDBv2.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList)
-  dict_AniDB, ANNid, MALid                                      =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
+  dict_AniDB, ANNid, MALids                                     =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)
   dict_FanartTV                                                 =    FanartTV.GetMetadata(       movie,                                   TVDBid, TMDbid, IMDbid)
   dict_Plex                                                     =        Plex.GetMetadata(metadata, error_log, TVDBid, Dict(dict_TheTVDB, 'title'))
   dict_TVTunes                                                  =     TVTunes.GetMetadata(metadata, Dict(dict_TheTVDB, 'title'), Dict(mappingList, AniDBid, 'name'))  #Sources[m:eval('dict_'+m)]
   dict_OMDb                                                     =        OMDb.GetMetadata(movie, IMDbid)  #TVDBid=='hentai'
-  #dict_MyAnimeList                                              = MyAnimeList.GetMetadata(MALid, "movie" if movie else "tvshow", media)
-  dict_AniList                                                  =     AniList.GetMetadata(AniDBid, MALid)
+  dict_MyAnimeList, MainMALid                                   = MyAnimeList.GetMetadata(MALids, "movie" if movie else "tv", dict_AniDB)
+  dict_AniList                                                  =     AniList.GetMetadata(AniDBid, MainMALid)
   dict_Local                                                    =       Local.GetMetadata(media, movie)
   if anidb34.AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
-    dict_AniDB, ANNid, MALid                                    =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
+    dict_AniDB, ANNid, MALids                                   =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   Log.Info('=== Update() ==='.ljust(157, '='))
-  Log.Info("AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MALid))
+  Log.Info("AniDBid: '{}', TVDBid: '{}', TMDbid: '{}', IMDbid: '{}', ANNid:'{}', MALid: '{}'".format(AniDBid, TVDBid, TMDbid, IMDbid, ANNid, MainMALid))
   common.write_logs(media, movie, error_log, source, AniDBid, TVDBid)
   common.UpdateMeta(metadata, media, movie, {'AnimeLists': dict_AnimeLists, 'AniDB':       dict_AniDB,       'TheTVDB': dict_TheTVDB, 'TheMovieDb': dict_TheMovieDb, 
                                              'FanartTV':   dict_FanartTV,   'tvdb4':       dict_tvdb4,       'Plex':    dict_Plex,    'TVTunes':    dict_TVTunes, 
-                                             'OMDb':       dict_OMDb,       'Local':       dict_Local,       'AniList': dict_AniList}, mappingList) #, 'MyAnimeList': dict_MyAnimeList
+                                             'OMDb':       dict_OMDb,       'Local':       dict_Local,       'AniList': dict_AniList, 'MyAnimeList': dict_MyAnimeList}, mappingList)
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
 
