@@ -9,6 +9,7 @@
   { "id": "MinimumWeight",            "label": "AniDB genre minimum weight",      "type": "enum",  "default": "400",  "values" : ["600","500","400","300","200","100","0"]     },
   { "id": "adult",                    "label": "Include adult content",           "type": "bool",  "default": "false"                                                          },
   { "id": "OMDbApiKey",               "label": "OMDb Api Key",                    "type": "text",  "default": "None",  "option": "hidden", "secure": "true"                    },
+  { "id": "MalApiClientID",           "label": "MyAnimeList Api ClientID",        "type": "text",  "default": "",      "option": "hidden", "secure": "true"                    },
   { "id": "title",                    "label": "T-EM 'title'",                    "type": "text",  "default": "AniDB, TheTVDB | TheTVDB, AniDB"                                },
   { "id": "title_sort",               "label": "T-EM 'title_sort'",               "type": "text",  "default": "AniDB,TheTVDB"                                                  },
   { "id": "originally_available_at",  "label": "T-EM 'originally_available_at'",  "type": "text",  "default": "AniDB,TheTVDB"                                                  },

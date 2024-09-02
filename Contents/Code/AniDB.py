@@ -114,12 +114,12 @@ def Search(results, media, lang, manual, movie):
   return best_score, n
 
 def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets, mappingList):
-  ''' Download metadata to dict_AniDB, ANNid, MALid
+  ''' Download metadata to dict_AniDB, ANNid, MALids
   '''
   Log.Info("=== AniDB.GetMetadata() ===".ljust(157, '='))
-  AniDB_dict, ANNid, MALid = {}, "", ""
-  original                 = AniDBid
-  anidb_numbering          = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
+  AniDB_dict, ANNid, MALids = {}, "", {}
+  original                  = AniDBid
+  anidb_numbering           = source=="anidb" and (movie or max(map(int, media.seasons.keys()))<=1)
   
   ### Build the list of anidbids for files present ####
   if source.startswith("tvdb") or source.startswith("anidb") and not movie and max(map(int, media.seasons.keys()))>1:  #multi anidbid required only for tvdb numbering
@@ -329,6 +329,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
           ep_summary = SaveDict(summary_sanitizer(GetXml(ep_obj, 'summary')), AniDB_dict, 'seasons', season, 'episodes', episode, 'summary')
           Log.Info(' - [ ] summary: {}'.format((ep_summary[:200]).replace("\n", "\\n").replace("\r", "\\r")+'..' if len(ep_summary)> 200 else ep_summary))
           for creator in creators:  SaveDict(",".join(creators[creator]), AniDB_dict, 'seasons', season, 'episodes', episode, creator)
+
+          ### Related Mal IDs
+          if not (season == "0") and not (Dict(MALids, 'seasons', season)):
+            for mal_entity in xml.xpath("/anime/resources/resource[@type='2']/externalentity"):
+              mal_id = GetXml(mal_entity, 'identifier')
+              if len(mal_id) > 0: SaveDict([mal_id], MALids, 'seasons', season)
                   
         ### End of for ep_obj...
         Log.Info(("--- %s.summary info ---" % AniDBid).ljust(157, '-'))
@@ -344,7 +350,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
             missing_eps = sorted(missing[season], key=common.natural_sort_key)
             Log.Info('Season: {} Episodes: {} not on disk'.format(season, missing_eps))
             if missing_eps:  error_log['Missing Specials' if season=='0' else 'Missing Episodes'].append("AniDBid: %s | Title: '%s' | Missing Episodes: %s" % (common.WEB_LINK % (common.ANIDB_SERIE_URL + AniDBid, AniDBid), AniDB_dict['title'], str(missing_eps)))
-          
+
       ### End of if not movie ###
     
       # Generate relations_map for anidb3/4(tvdb1/6) modes
@@ -353,7 +359,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
 
       # External IDs
       ANNid = GetXml(xml, "/anime/resources/resource[@type='1']/externalentity/identifier")
-      MALid = GetXml(xml, "/anime/resources/resource[@type='2']/externalentity/identifier")
+      #MALid = GetXml(xml, "/anime/resources/resource[@type='2']/externalentity/identifier")
       #ANFOid = GetXml(xml, "/anime/resources/resource[@type='3']/externalentity/identifier"), GetXml(xml, "/anime/resources/resource[@type='3']/externalentity/identifier")
     
       # Logs
@@ -363,12 +369,12 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
       #if metadata.studio       and 'studio' in AniDB_dict and AniDB_dict ['studio'] and AniDB_dict ['studio'] != metadata.studio:  error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB has studio '%s' and anime-list has '%s' | "    % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title, metadata.studio, mapping_studio) + common.WEB_LINK % (ANIDB_TVDB_MAPPING_FEEDBACK % ("aid:" + metadata.id + " " + title, String.StripTags( XML.StringFromElement(xml, encoding='utf8'))), "Submit bug report (need GIT account)"))
       #if metadata.studio == "" and 'studio' in AniDB_dict and AniDB_dict ['studio'] == "":                                         error_log['anime-list studio logos'].append("AniDBid: %s | Title: '%s' | AniDB and anime-list are both missing the studio" % (common.WEB_LINK % (ANIDB_SERIE_URL % AniDBid, AniDBid), title) )
     
-      Log.Info("ANNid: '%s', MALid: '%s', xml loaded: '%s'" % (ANNid, MALid, str(xml is not None)))
+      Log.Info("ANNid: '%s', MALids: '%s', xml loaded: '%s'" % (ANNid, MALids, str(xml is not None)))
   
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("relations_map: {}".format(DictString(Dict(mappingList, 'relations_map', default={}), 1)))
   Log.Info("AniDB_dict: {}".format(DictString(AniDB_dict, 4)))
-  return AniDB_dict, ANNid, MALid
+  return AniDB_dict, ANNid, MALids
 
 def GetAniDBTitlesDB():
   ''' Get the AniDB title database

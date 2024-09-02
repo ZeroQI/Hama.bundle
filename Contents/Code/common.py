@@ -705,9 +705,9 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
     season_posters_list = []
     for season in sorted(media.seasons, key=natural_sort_key):  # For each season, media, then use metadata['season'][season]...
       Log.Info(("metadata.seasons[{:>2}]".format(season)).ljust(157, '-'))
-      source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
       new_season  = season
       for field in FieldListSeasons:  #metadata.seasons[season].attrs.keys()
+        source_list = [ source_ for source_ in MetaSources if Dict(MetaSources, source_, 'seasons', season, field) ]
         meta_old = getattr(metadata.seasons[season], field)
         if field in ('posters', 'banners', 'art'):  meta_old.validate_keys([])  #This will allow the images to get readded at the correct priority level if preferences are updates and meta is refreshed
         for source in [source.strip() for source in Prefs[field].split(',') if Prefs[field]]:
