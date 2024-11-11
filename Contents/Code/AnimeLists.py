@@ -179,7 +179,7 @@ def GetMetadata(media, movie, error_log, id):
     elif TVDBid in ("", "unknown", None):
       link = SCUDLEE_FEEDBACK.format(title="[HAMA] AniDB ID:%s" % AniDB_id, anidb_title=GetXml(anime, 'name'), anidb_id=AniDB_id)
       error_log['anime-list TVDBid missing'].append('AniDBid: "{}" | Title: "{}" | Has no matching TVDBid "{}" in mapping file | <a href="{}" target="_blank">Submit bug report</a>'.format(AniDB_id, "title", TVDBid, link))
-      Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format(TVDBid))
+      Log.Info('"anime-list TVDBid missing.htm" log added as tvdb serie id missing in mapping file: "{}"'.format("None" if TVDBid is None else TVDBid))
         
     # guid need 1 entry only, not an TheTVDB numbered serie with anidb guid
     if (AniDB_id or TMDB_id or IMDB_id) and (movie or max(map(int, media.seasons.keys()))<=1):  break
