@@ -153,6 +153,7 @@ The titles will be in the priority indicated first and secondarily by the metada
 <TR> <TD> chinese (mandarin)       </TD> <TD> zh-x-cmn </TD> <TD> N/A  </TD> </TR>
 <TR> <TD> chinese (taiwanese)      </TD> <TD> zh-x-nan </TD> <TD> N/A  </TD> </TR>
 <TR> <TD> japanese                 </TD> <TD> ja       </TD> <TD> ja   </TD> </TR>
+<TR> <TD> japanese (Romaji)        </TD> <TD> x-jat    </TD> <TD> ja   </TD> </TR>
 <TR> <TD> japanese (transcription) </TD> <TD> jap      </TD> <TD> N/A  </TD> </TR>
 <TR> <TD> korean                   </TD> <TD> ko       </TD> <TD> ko   </TD> </TR>
 <TR> <TD> korean (transcription)   </TD> <TD> x-kot    </TD> <TD> N/A  </TD> </TR>
