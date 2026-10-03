@@ -6,13 +6,13 @@
 import os
 import time
 import re
-from urllib import quote
 # Plex Modules #
 #from collections import defaultdict
 # HAMA Modules #
 import common
 from common import Log, DictString, Dict, SaveDict, GetXml # Direct import of heavily used functions
 import AnimeLists
+import AniDB
 
 ### Variables ###
 TVDB_API_KEY               = 'A27AD9BE0DA63333'
@@ -28,7 +28,6 @@ TVDB_SERIES_IMG_INFO_URL   = TVDB_SERIES_URL + '/images'
 TVDB_SERIES_IMG_QUERY_URL  = TVDB_SERIES_URL + '/images/query?keyType={type}'
 
 TVDB_SEARCH_URL            = TVDB_BASE_URL + '/search/series?name=%s'
-TVDB_SERIE_SEARCH          = 'https://thetvdb.com/api/GetSeries.php?seriesname='
 
 #THETVDB_LANGUAGES_CODE     = { 'cs': '28', 'da': '10', 'de': '14', 'el': '20', 'en':  '7', 'es': '16', 'fi': '11', 'fr': '17', 'he': '24', 
 #                               'hr': '31', 'hu': '19', 'it': '15', 'ja': '25', 'ko': '32', 'nl': '13', 'no':  '9', 'pl': '18', 'pt': '26',
@@ -353,26 +352,30 @@ def GetMetadata(media, movie, error_log, lang, metadata_source, AniDBid, TVDBid,
   Log.Info("TheTVDB_dict: {}".format(DictString(TheTVDB_dict, 4)))
   return TheTVDB_dict, IMDbid
   
+class SearchResults(list):
+  ''' Stand-in for Plex's search results, so another source's Search() can be read back instead of returned to Plex
+  '''
+  def Append(self, result):  self.append(result)
+
 def Search(results,  media, lang, manual, movie):  #if maxi<50:  maxi = tvdb.Search_TVDB(results, media, lang, manual, movie)
   '''search for TVDB id series
+     TheTVDB removed title search from its legacy APIs (v1 GetSeries.php returns an empty <Data/>, v3 /search/series?name= returns 404),
+     so search the AniDB titles instead and map each AniDB id to its TVDB series with the Anime-Lists mapping.
   '''
   Log.Info("=== TheTVDB.Search() ===".ljust(157, '='))
-  #series_data = JSON.ObjectFromString(GetResultFromNetwork(TVDB_SEARCH_URL % mediaShowYear, additionalHeaders={'Accept-Language': lang}))['data'][0]
-  orig_title = ( media.title if movie else media.show )
+  if movie or max(map(int, media.seasons.keys()))<=1:  return 0  # AniDB.Search() already ran on the same titles and keeps AniDB numbering
+  if AnimeLists.AniDBTVDBMap is None:                  return 0
+  AniDB_results = SearchResults()
+  AniDB.Search(AniDB_results, media, lang, manual, movie)
+  AniDB_to_TVDB = dict((anime.get('anidbid'), anime.get('tvdbid') or '') for anime in AnimeLists.AniDBTVDBMap.iter('anime'))
+  TVDB_results  = {}
+  for result in AniDB_results:
+    TVDBid = AniDB_to_TVDB.get(result.id.split('-', 1)[1], '')
+    if not TVDBid.isdigit():  continue  # 'movie', 'OVA', 'hentai', ... are not TVDB series
+    if TVDBid not in TVDB_results or result.score > TVDB_results[TVDBid][0]:  TVDB_results[TVDBid] = (result.score, re.sub(r'( \[[^\[\]]*\])+$', '', result.name))
   maxi = 0
-  try:
-    TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + quote(orig_title), headers=common.COMMON_HEADERS, cacheTime=CACHE_1HOUR * 24)
-    if not TVDBsearchXml.xpath('Series'):
-      # Do a second try with the year removed from the title, if any
-      orig_title = re.sub(r'\s*\(\d{4}\)$', '', orig_title)
-      TVDBsearchXml = XML.ElementFromURL( TVDB_SERIE_SEARCH + quote(orig_title), headers=common.COMMON_HEADERS, cacheTime=CACHE_1HOUR * 24) 
-  except Exception as e:  Log.Error("TVDB Loading search XML failed, Exception: '%s'" % e)
-  else:
-    for serie in TVDBsearchXml.xpath('Series'):
-      a, b = orig_title, GetXml(serie, 'SeriesName').encode('utf-8') #a, b  = cleansedTitle, cleanse_title (serie.xpath('SeriesName')[0].text)
-      if b=='** 403: Series Not Permitted **': continue
-      score = 100 - 100*Util.LevenshteinDistance(a,b) / max(len(a),len(b)) if a!=b else 100
-      if maxi<score:  maxi = score
-      Log.Info("TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, GetXml(serie, 'seriesid'), GetXml(serie, 'SeriesName')))
-      results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", GetXml(serie, 'seriesid')), name="%s [%s-%s]" % (GetXml(serie, 'SeriesName'), "tvdb", GetXml(serie, 'seriesid')), year=None, lang=lang, score=score) )
+  for TVDBid, (score, title) in sorted(TVDB_results.items(), key=lambda x: x[1][0], reverse=True):
+    if maxi<score:  maxi = score
+    Log.Info("TVDB  - score: '%3d', id: '%6s', title: '%s'" % (score, TVDBid, title))
+    results.Append(MetadataSearchResult(id="%s-%s" % ("tvdb", TVDBid), name="%s [%s-%s]" % (title, "tvdb", TVDBid), year=None, lang=lang, score=score) )
   return maxi
