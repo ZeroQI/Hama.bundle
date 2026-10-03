@@ -1,0 +1,15 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # Python 2.7, as Plex's plug-in framework runs agents with it
+    container: python:2.7.18-buster
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --disable-pip-version-check "lxml<5"
+      - run: python -m unittest discover -s tests -v
