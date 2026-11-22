@@ -15,7 +15,8 @@ import common            # Functions: GetPlexLibraries, write_logs, UpdateMeta  
 from common import Dict
 import AnimeLists        # Functions: GetMetadata, GetAniDBTVDBMap, GetAniDBMovieSets            Variables: AniDBMovieSets
 import tvdb4             # Functions: GetMetadata                                                Variables: None
-import TheTVDBv4         # Functions: GetMetadata, Search                                        Variables: None
+import TheTVDBv2         # Functions: GetMetadata, Search                                        Variables: None
+import TheTVDBv4         # Functions: GetMetadata, Search, HasCredentials                        Variables: None
 import AniDB             # Functions: GetMetadata, Search, GetAniDBTitlesDB                      Variables: None
 import TheMovieDb        # Functions: GetMetadata, Search                                        Variables: None
 import FanartTV          # Functions: GetMetadata                                                Variables: None
@@ -26,6 +27,7 @@ import MyAnimeList       # Functions: GetMetadata                               
 import AniList           # Functions: GetMetadata                                                Variables: None
 import Local             # Functions: GetMetadata                                                Variables: None
 import anidb34           # Functions: AdjustMapping                                              Variables: None
+TheTVDB = TheTVDBv4 if TheTVDBv4.HasCredentials() else TheTVDBv2  # v4 needs both the key and PIN, otherwise use the legacy API
 
 ### Variables ###
   
@@ -113,7 +115,7 @@ def Search(results, media, lang, manual, movie):
     maxi, n = 0, 0
     if movie or max(map(int, media.seasons.keys()))<=1:  maxi, n =         AniDB.Search(results, media, lang, manual, movie)
     if maxi<50 and movie:                                maxi    =    TheMovieDb.Search(results, media, lang, manual, movie)
-    if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDBv4.Search(results, media, lang, manual, movie), maxi)
+    if maxi<80 and not movie or n>1:                     maxi    = max(TheTVDB.Search(results, media, lang, manual, movie), maxi)
   Log.Info("".ljust(157, '='))
   Log.Info("end: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
   Log.Close()
@@ -137,7 +139,7 @@ def Update(metadata, media, lang, force, movie):
   #   mappingList['absolute_map']:  tvdb4->TheTVDBv4->AniDB
   dict_AnimeLists, AniDBid, TVDBid, TMDbid, IMDbid, mappingList =  AnimeLists.GetMetadata(media, movie, error_log, metadata.id)
   dict_tvdb4                                                    =       tvdb4.GetMetadata(media, movie,                  source,          TVDBid,                 mappingList)
-  dict_TheTVDB,                             IMDbid              =   TheTVDBv4.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList)
+  dict_TheTVDB,                             IMDbid              =     TheTVDB.GetMetadata(media, movie, error_log, lang, source, AniDBid, TVDBid, IMDbid,         mappingList)
   dict_AniDB, ANNid, MALids                                     =       AniDB.GetMetadata(media, movie, error_log,       source, AniDBid, TVDBid, AnimeLists.AniDBMovieSets, mappingList)
   dict_TheMovieDb,          TSDbid, TMDbid, IMDbid              =  TheMovieDb.GetMetadata(media, movie,                                   TVDBid, TMDbid, IMDbid)
   dict_FanartTV                                                 =    FanartTV.GetMetadata(       movie,                                   TVDBid, TMDbid, IMDbid)
