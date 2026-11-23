@@ -50,7 +50,7 @@ def GetAniDBTVDBMapCustom(media, movie):
       try:
         AniDBTVDBMapCustom = XML.ElementFromString(Core.storage.load(scudlee_filename_custom))
         Log.Info("Local custom mapping file loaded: {}".format(scudlee_filename_custom))
-      except:  Log.Error("Failed to open: '%s', error: '%s'" % (scudlee_filename_custom, e))
+      except Exception as e:  Log.Error("Failed to open: '%s', error: '%s'" % (scudlee_filename_custom, e))
       else:    break
     dir = os.path.dirname(dir) if len(dir) > len(root) else ''  # Clear variable if we've just finished processing down to (and including) root
   else:  Log.Info("Local custom mapping file not present: {}".format(SCUDLEE_CUSTOM))
@@ -71,6 +71,19 @@ def GetAniDBMovieSets():
   if AniDBMovieSets is None:  raise Exception("GetAniDBMovieSets() - Failed to load core file '%s'" % os.path.basename(SCUDLEE_MOVIESET))  #;  AniDB_Movie_Set = XML.ElementFromString("<anime-set-list></anime-set-list>") 
   else: Log.Info("Entries loaded: {}, File: {}".format(len(AniDBMovieSets), SCUDLEE_MOVIESET))
   
+### anidb3 moves specials to a new season or past episode 100, so those files don't exist on TVDB ###
+def DetectAnidb3(media, source, mappingList, dict_TheTVDB):
+  if source!='tvdb' or Dict(mappingList, 'possible_anidb3') or not Dict(dict_TheTVDB, 'seasons'):  return False
+  max_season = Dict(mappingList, 'season_map', 'max_season', default=None)
+  if max_season is None:  return False
+  for season in media.seasons:
+    for episode in media.seasons[season].episodes:
+      if (int(season)>int(max_season) or int(episode)>100) and not Dict(dict_TheTVDB, 'seasons', season, 'episodes', episode):
+        SaveDict(True, mappingList, 'possible_anidb3')
+        mappingList['season_map'].pop('max_season', None)  # TheTVDB.GetMetadata rebuilds it when reloaded
+        return True
+  return False
+
 ### Get the tvdbId from the AnimeId or the other way around ###
 def GetMetadata(media, movie, error_log, id):
   Log.Info("=== AnimeLists.GetMetadata() ===".ljust(157, '='))
@@ -175,11 +188,15 @@ def GetMetadata(media, movie, error_log, id):
           if not Dict(mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+str(ep+int(offset))):
             SaveDict((anidbseason, str(ep),          AniDBid), mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+str(ep+int(offset)) ) #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for start-end mappings
           #else: Log.Info("already present")
-        for ep in filter(None, season.text.split(';')) if season.text else []:
+        for ep in sorted(filter(None, season.text.split(';')), key=lambda x: '+' in x) if season.text else []:  # Single episode mappings first so they keep priority over ;1-1+2;
           if not '-' in ep:
             Log.Info('[!] MAPPING ERROR, season.text: "{}", ep mapping missing hyphen: "{}"'.format(season.text, ep))
-          elif not Dict(mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+ep.split('-')[1]):
-            SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+ep.split('-')[1])     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
+          else:
+            tvdb_episodes = ep.split('-')[1].split('+')  # ;1-1+2; is one AniDB episode containing several TVDB episodes
+            free_episodes = [x for x in tvdb_episodes if not Dict(mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+x)]
+            for tvdb_episode in free_episodes or [ep.split('-')[1]]:
+              if not Dict(mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+tvdb_episode):
+                SaveDict((anidbseason, ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+tvdb_episode)     #mappingList['TVDB'][s1e1]=(AniDB_season, AniDB_episode, AniDBid) for manual mapping like '1-12'
           #elif '-' not in (mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+ep.split('-')[1]):
           #  SaveDict((anidbseason, Dict(mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+ep.split('-')[1])[1]+'-'+ep.split('-')[0], AniDBid), mappingList, 'TVDB', 's'+str(tvdbseason or '1')+'e'+ep.split('-')[1])
           #  Log.Info("already present so converting to range but range not supported")
@@ -318,7 +335,7 @@ def tvdb_ep(mappingList, season, episode, anidbid=''):
   value    = (season, episode, anidbid)
   tvdbList = Dict(mappingList, 'TVDB', default={})
   if value in tvdbList.values():
-    mapping = list(tvdbList.keys())[list(tvdbList.values()).index(value)][1:].split('e')
+    mapping = sorted([key[1:].split('e') for key in tvdbList if tvdbList[key] == value], key=lambda x: (int(x[0]), common.natural_sort_key(x[1])))[0]  # First TVDB episode if it maps to several
     if debug:  Log.Info('[?] (#2) value "{}" in mappingList "{}"'.format(value, mappingList)) 
   
   # if not mapped with mapping, specials are not mapped with tvdb

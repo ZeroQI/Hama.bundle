@@ -60,7 +60,7 @@ def AdjustMapping(source, mappingList, dict_AniDB, dict_TheTVDB, dict_FanartTV):
             return (a+1+season_map[prequel_id]['max']-season_map[prequel_id]['min'], 0) if str(a).isdigit() else ('', '') # Add 1 to the season number and start at episode 0
           return (2, 0) if season_map[prequel_id]['min'] == 1 else ('', '')              # Root prequel is season 1 so start counting up. Else was a sequel of specials only so leave mapping alone
       if source=="tvdb":
-        if season_map[id]['min'] == 0 and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
+        if season_map[id]['min'] == 0 and id in relations_map and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
           new_season, new_episode = get_prequel_info(relations_map[id]['Prequel'][0])    # Recurively go down the tree following prequels to a TVDB season non-0 AniDB prequel 
       if source=="tvdb6":
         if id in relations_map and 'Prequel' in relations_map[id] and relations_map[id]['Prequel'][0] in season_map:
