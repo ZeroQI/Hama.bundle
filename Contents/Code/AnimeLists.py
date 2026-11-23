@@ -12,6 +12,7 @@ import AniDB
 ### Variables ###
 AniDBTVDBMap     = None
 AniDBMovieSets   = None
+AniDBTVDBMapMerged = {}
 SCUDLEE_MASTER   = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-list-master.xml'                                  # ScudLee mapping file url
 SCUDLEE_MOVIESET = 'https://raw.githubusercontent.com/Anime-Lists/anime-lists/master/anime-movieset-list.xml'
 SCUDLEE_CUSTOM   = 'anime-list-custom.xml'
@@ -55,6 +56,14 @@ def GetAniDBTVDBMapCustom(media, movie):
   else:  Log.Info("Local custom mapping file not present: {}".format(SCUDLEE_CUSTOM))
   return AniDBTVDBMapCustom
   
+### Reuse the merged list until the custom file changes, as copying the full list on every update is slow ###
+def GetMergedMap(AniDBTVDBMapCustom):
+  key = XML.StringFromElement(AniDBTVDBMapCustom)
+  if key not in AniDBTVDBMapMerged:
+    if len(AniDBTVDBMapMerged) >= 3:  AniDBTVDBMapMerged.clear()  # Each entry holds a full copy of the list
+    AniDBTVDBMapMerged[key] = MergeMaps(AniDBTVDBMap, AniDBTVDBMapCustom)
+  return AniDBTVDBMapMerged[key]
+
 ### Anidb Movie collection ###
 def GetAniDBMovieSets():  
   global AniDBMovieSets
@@ -83,7 +92,7 @@ def GetMetadata(media, movie, error_log, id):
   AniDB_id2, TVDB_id2 = "",""
 
   AniDBTVDBMapCustom = GetAniDBTVDBMapCustom(media, movie)
-  if AniDBTVDBMapCustom:  AniDBTVDBMapFull = MergeMaps(AniDBTVDBMap, AniDBTVDBMapCustom)
+  if AniDBTVDBMapCustom:  AniDBTVDBMapFull = GetMergedMap(AniDBTVDBMapCustom)
   else:                   AniDBTVDBMapFull = AniDBTVDBMap
 
   def anime_core(anime):

@@ -28,6 +28,7 @@ PlexRoot          = Core.app_support_path
 CachePath         = os.path.join(PlexRoot, "Plug-in Support", "Data", "com.plexapp.agents.hama", "DataItems")
 downloaded        = {'posters':0, 'art':0, 'seasons':0, 'banners':0, 'themes':0, 'thumbs': 0} 
 netLock           = Thread.Lock()
+netHostLocks      = {}
 netLocked         = {}
 WEB_LINK          = "<a href='%s' target='_blank'>%s</a>"
 TVDB_SERIE_URL    = 'https://thetvdb.com/?tab=series&id='  # Used in error_log generation
@@ -375,6 +376,16 @@ def throttle_add(index=""):
     if index not in THROTTLE: THROTTLE[index] = []
     THROTTLE[index].append(time.time())
 
+def GetHostLock(url):
+  ''' One download lock per host, so a slow or rate limited provider doesn't hold up the others
+  '''
+  host = urlDomain(url)
+  netLock.acquire()
+  try:
+    if host not in netHostLocks:  netHostLocks[host] = Thread.Lock()
+    return host, netHostLocks[host]
+  finally:  netLock.release()
+
 def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, cache=CACHE_1DAY*6, sleep=0, throttle=["", 0, 0]):
   ''' Load file in Plex Media Server/Plug-in Support/Data/com.plexapp.agents.hama/DataItems if cache time not passed
   '''
@@ -401,13 +412,14 @@ def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, c
         break
 
     # Thread lock aquire
-    netLock.acquire()
+    host, hostLock = GetHostLock(url)
+    hostLock.acquire()
 
-    # Safeguard if netLock does not work as expected
-    while 'LoadFile' in netLocked and netLocked['LoadFile'][0]:
-      Log.Root("Waiting for lock: 'LoadFile'")
+    # Safeguard if the lock does not work as expected
+    while 'LoadFile-'+host in netLocked and netLocked['LoadFile-'+host][0]:
+      Log.Root("Waiting for lock: 'LoadFile-{}'".format(host))
       time.sleep(1)
-    netLocked['LoadFile'] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
+    netLocked['LoadFile-'+host] = (True, int(time.time())) #Log.Root("Lock acquired: 'LoadFile'")
     
     # Download URL to memory, Plex cache to 1 day
     try:
@@ -421,11 +433,11 @@ def LoadFile(filename="", relativeDirectory="", url="", headers={}, data=None, c
     # Sleeping after call completion to prevent ban
     time.sleep(sleep)
 
-    # Safeguard if netLock does not work as expected
-    netLocked['LoadFile'] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
+    # Safeguard if the lock does not work as expected
+    netLocked['LoadFile-'+host] = (False, 0)  #Log.Root("Lock released: 'LoadFile'")
 
     # Thread lock release
-    netLock.release()
+    hostLock.release()
     
     # Donwnloaded File checks and saving as cache  #if str(file).startswith("<Element error at ") or file in ('<error>Banned</error>', '<error>aid Missing or Invalid</error>'): 
     if file_downloaded:
