@@ -733,6 +733,7 @@ def UpdateMeta(metadata, media, movie, MetaSources, mappingList):
           for source in [source_.strip() for source_ in (Prefs[field].split('|')[1] if '|' in Prefs[field] else Prefs[field]).split(',')]:  #if shared by title and eps take later priority
             if source in MetaSources:
               if Dict(MetaSources, source, 'seasons', new_season, 'episodes', new_episode, field):
+                if source=='TheMovieDb' and (source_title if field=='title' else field=='thumbs' and len(source_list)>1):  continue  # TMDB only fills gaps, titles and thumbs would otherwise compete with other sources
                 if field=='title':  
                   language_rank = Dict(MetaSources, source,  'seasons', new_season, 'episodes', new_episode, 'language_rank')
                   if language_rank not in ('', None) and language_rank < rank or len(languages)< rank:  #Manage title language for AniDB and TheTVDB by recording the rank
