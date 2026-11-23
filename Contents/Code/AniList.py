@@ -44,7 +44,7 @@ def GetMetadata(AniDBid, MALid):
   AniList_dict = {}
 
   # Only try to get AniList ID if we have a AniDB ID
-  if AniDBid is not None:
+  if AniDBid:
     # Try to match the AniDB id to an AniList id as it has a higher chance of being correct
     ALid = Dict(common.LoadFile(filename=AniDBid+'.json', relativeDirectory=os.path.join('AniList', 'json', 'AniDBid'), url=ARM_SERVER_URL.format(id=AniDBid)), "anilist", default=None)
   else:

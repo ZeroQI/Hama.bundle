@@ -491,8 +491,9 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
       time.sleep(1)
       sleep_time += 1
       if sleep_time > sleep_time_max:
-        Log.Error("Could not obtain the lock in {}sec & lock age is {}sec. Skipping log update.".format(sleep_time_max, int(time.time())-netLocked[1] if 1 in netLocked else "never"))
-        continue #break #netLock.acquire()
+        Log.Error("Could not obtain the lock in {}sec & lock age is {}sec.".format(sleep_time_max, int(time.time())-netLocked[log][1]))
+        break
+    if log in netLocked and netLocked[log][0] and int(time.time())-netLocked[log][1] < 60:  continue  # Still in use, an older lock was left behind by a failed update
     netLocked[log] = (True, int(time.time()))
   
     ### Load previous entries ###

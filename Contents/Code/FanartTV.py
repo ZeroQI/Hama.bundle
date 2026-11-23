@@ -20,8 +20,12 @@ def GetMetadata(movie=False, TVDBid="", tmdbid="", imdbid="", season=0):  #Fetch
   FanartTV_dict = {}
 
   Log.Info("movie:'{movie}', TVDBid: '{TVDBid}', tmdbid: '{tmdbid}', imdbid:'{imdbid}', season: '{season}'".format(movie=movie, TVDBid=TVDBid, tmdbid=tmdbid, imdbid=imdbid, season=season))
-  if imdbid and "," in imdbid:  (GetMetadata(movie, "", "", imdbid_unique, season) for imdbid_unique in (tmdbid or imdbid).split(",")); return  #recusive call for each imdbid to reduce complexity
-  if tmdbid and "," in tmdbid:  (GetMetadata(movie, "", tmdbid_unique, "", season) for tmdbid_unique in             tmdbid.split(",")); return  #recusive call for each tmdbid to reduce complexity
+  if movie and "," in (imdbid or tmdbid):  #recusive call for each id to reduce complexity
+    for id_unique in (imdbid or tmdbid).split(","):
+      result = GetMetadata(movie, "", "" if imdbid else id_unique, id_unique if imdbid else "", season)
+      for field in ('posters', 'art'):
+        if Dict(result, field):  FanartTV_dict.setdefault(field, {}).update(result[field])
+    return FanartTV_dict
   if not movie and TVDBid.isdigit():  id, relativeDirectory, url = TVDBid,           os.path.join("FanartTV", "tv",    TVDBid),           FTV_API_TV_URL.format(id=TVDBid)
   elif movie and (imdbid or tmdbid):  id, relativeDirectory, url = imdbid or tmdbid, os.path.join("FanartTV", "movie", imdbid or tmdbid), FTV_API_MOVIES_URL.format(id=imdbid or tmdbid)
   else:                               return FanartTV_dict

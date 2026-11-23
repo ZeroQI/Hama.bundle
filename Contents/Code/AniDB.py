@@ -172,6 +172,7 @@ def GetMetadata(media, movie, error_log, source, AniDBid, TVDBid, AniDBMovieSets
     else:         xml = common.LoadFile(filename=AniDBid+".xml", relativeDirectory=os.path.join("AniDB", "xml"), url=ANIDB_HTTP_API_URL+AniDBid, cache=cache, sleep=6, throttle=['AniDB', CACHE_1HOUR, 100])
     if isinstance(xml, str) and 'banned' in xml:  global AniDBBan; AniDBBan = True  # Set ban hit on process level
     if AniDBBan:  SaveDict(True, AniDB_dict, 'Banned')                              # Set ban hit on series level
+    if isinstance(xml, str) and xml_cache:  xml = xml_cache                         # Keep the cached entry when AniDB replies with an error
 
     if not xml or isinstance(xml, str):
       title, original_title, language_rank = GetAniDBTitle(AniDBTitlesDB.xpath('/animetitles/anime[@aid="{}"]/title'.format(AniDBid)))
