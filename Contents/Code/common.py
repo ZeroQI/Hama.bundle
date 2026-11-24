@@ -488,6 +488,7 @@ def write_logs(media, movie, error_log, source, AniDBid, TVDBid):
   """ HAMA - Load logs, add non-present entried then Write log files to Plug-in /Support/Data/com.plexapp.agents.hama/DataItems
   """
   Log.Info("=== common.write_logs() ===".ljust(157, '='))
+  AniDBid, TVDBid = str(AniDBid or ''), str(TVDBid or '')  # Either id can be None when the series has no mapping
   if  source == 'anidb':  source = 'AniDBid'
   elif source == 'tvdb':  source = 'TVDBid'
 
