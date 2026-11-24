@@ -251,6 +251,10 @@ Then, create a post in one of these places:
 - https://github.com/ZeroQI/Hama.bundle/issues (proven or confident enough it's a bug. Include the library name, symptoms, and logs mentioned above)
 - https://forums.plex.tv/discussion/77636/release-http-anidb-metadata-agent-hama#latest (not sure if bug, if bug will create a gihub issue ticket)
 
+Tests
+=====
+`python -m unittest discover -s tests -v` runs the tests outside Plex. They need Python 2.7 and lxml, like Plex's plug-in framework, and no network: `tests/data` holds small extracts of the AniDB titles and Anime-Lists files. GitHub Actions runs them on every push and pull request.
+
 Bugs Fixes
 ==========
 - [ ] https://github.com/ZeroQI/Hama.bundle/issues/245 Anidb poster priority to fix
