@@ -55,7 +55,7 @@ def GetMetadata(media, movie, source, TVDBid, mappingList, num=0):
       Log.Info("[ ] season: {}, starting episode: {}, ending episode: {}, label: {}".format(season[0], season[1], season[2], season[3]))
 
   Log.Info("--- tvdb4.posters.xml ---".ljust(157, '-'))
-  TVDB4_posters = find_tvdb4_file("tvdb.posters")
+  TVDB4_posters = find_tvdb4_file("tvdb4.posters") or find_tvdb4_file("tvdb.posters")
   
   if TVDB4_posters: Log.Debug("'tvdb4.posters' file detected locally")
   else:         TVDB4_posters  = TVDB4_posters or common.LoadFile(filename=os.path.basename(TVDB4_POSTERS_URL), url=TVDB4_POSTERS_URL)
