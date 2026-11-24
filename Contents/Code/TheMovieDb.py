@@ -7,52 +7,118 @@ import os
 # HAMA Modules #
 import common
 from common import Log, DictString, Dict, SaveDict # Direct import of heavily used functions
+import AnimeLists
 
 ### Variables ###
 TMDB_API_KEY                = '7f4a0bd0bd3315bb832e17feda70b5cd'
 TMDB_MOVIE_SEARCH           = 'https://api.tmdb.org/3/search/movie?api_key=%s&query={query}&year=&language=en&include_adult=true' % TMDB_API_KEY
 TMDB_MOVIE_SEARCH_BY_TMDBID = 'https://api.tmdb.org/3/movie/{id}?api_key=%s&append_to_response=releases,credits,trailers,external_ids&language=en' % TMDB_API_KEY  # Work with IMDbid
 TMDB_SERIE_SEARCH_BY_TVDBID = "https://api.TheMovieDb.org/3/find/{id}?api_key=%s&external_source=tvdb_id&append_to_response=releases,credits,trailers,external_ids&language=en" % TMDB_API_KEY
+TMDB_SERIE_SEARCH_BY_IMDBID = "https://api.TheMovieDb.org/3/find/{id}?api_key=%s&external_source=imdb_id&language=en" % TMDB_API_KEY
+TMDB_SERIE_BY_TMDBTV        = 'https://api.tmdb.org/3/tv/{id}?api_key=%s&language=en' % TMDB_API_KEY
+TMDB_SEASON_URL             = 'https://api.tmdb.org/3/tv/{id}/season/{season}?api_key=%s&language=en' % TMDB_API_KEY
+TMDB_EPISODE_SOURCES        = ('anidb', 'anidb2', 'tvdb', 'tvdb2', 'tsdb')  # Sources whose library numbering can be translated to TMDB
 TMDB_CONFIG_URL             = 'https://api.tmdb.org/3/configuration?api_key=%s' % TMDB_API_KEY
 #TMDB_MOVIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/movie/list?api_key=%s&language=en" % TMDB_API_KEY
 #TMDB_SERIE_GENRE_LIST       = "https://api.TheMovieDb.org/3/genre/tv/list?api_key=%s&language=en" % TMDB_API_KEY
 TMDB_MOVIE_IMAGES_URL       = 'https://api.tmdb.org/3/{mode}/{id}/images?api_key=%s' % TMDB_API_KEY
 
 ### ###
-def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
+def LoadTMDB(filename, url):
+  try:                    return common.LoadFile(filename=filename, relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url)
+  except Exception as e:  Log.Info("TMDB - failed to load '{}', Exception: '{}'".format(filename, e))
+
+def LoadSeason(TMDBtv, season, cache):
+  """ Episodes of a TMDB season by episode number
+  """
+  if (TMDBtv, season) not in cache:
+    json = LoadTMDB("TV-{}-season-{}.json".format(TMDBtv, season), TMDB_SEASON_URL.format(id=TMDBtv, season=season))
+    cache[(TMDBtv, season)] = {Dict(episode, 'episode_number'): episode for episode in Dict(json, 'episodes', default=[])}
+  return cache[(TMDBtv, season)]
+
+def LoadAbsolute(TMDBtv, cache):
+  """ Episodes of all the regular TMDB seasons in order, by absolute number. Used by tmdbseason="a"
+  """
+  if (TMDBtv, 'a') not in cache:
+    show     = LoadTMDB("TV-{}.json".format(TMDBtv), TMDB_SERIE_BY_TMDBTV.format(id=TMDBtv))
+    episodes = []
+    for number in sorted(Dict(x, 'season_number', default=0) for x in Dict(show, 'seasons', default=[])):
+      if number > 0:
+        season = LoadSeason(TMDBtv, str(number), cache)
+        episodes.extend(season[x] for x in sorted(season))
+    cache[(TMDBtv, 'a')] = {index+1: episode for index, episode in enumerate(episodes)}
+  return cache[(TMDBtv, 'a')]
+
+def GetEpisodes(media, source, AniDBid, mappingList, image_base_url, TheMovieDb_dict):
+  """ Load the episodes mapped with tmdbseason into the library's numbering. Low priority source: common.UpdateMeta() only uses them to fill gaps
+  """
+  if source not in TMDB_EPISODE_SOURCES or Dict(mappingList, 'possible_anidb3'):  return  # Other modes renumber episodes after this point
+  Log.Info("--- episodes ---".ljust(157, '-'))
+  anidb_numbering = source=="anidb" and max(map(int, media.seasons.keys()))<=1
+  language_rank   = len(Prefs['EpisodeLanguagePriority'].replace(' ', '').split(','))
+  cache, loaded   = {}, 0
+  for season in media.seasons:
+    for episode in media.seasons[season].episodes:
+      if source=='tsdb':  target = (Dict(mappingList, 'tsdb'), season, episode)
+      else:
+        anidb_season, anidb_episode, anidbid = (season, episode, AniDBid) if anidb_numbering else AnimeLists.anidb_ep(mappingList, season, episode)
+        target = AnimeLists.tmdb_ep(mappingList, anidb_season, anidb_episode, anidbid or AniDBid)
+      if not target or not str(target[2]).isdigit():  continue
+      TMDBtv, tmdb_season, tmdb_episode = target
+      episodes     = LoadAbsolute(TMDBtv, cache) if tmdb_season=='a' else LoadSeason(TMDBtv, str(tmdb_season), cache)
+      episode_json = episodes.get(int(tmdb_episode))
+      if not episode_json:  continue
+      loaded += 1
+      if Dict(episode_json, 'name'):
+        SaveDict(language_rank,                          TheMovieDb_dict, 'seasons', season, 'episodes', episode, 'language_rank')
+        SaveDict(Dict(episode_json, 'name').strip(" \n\r"), TheMovieDb_dict, 'seasons', season, 'episodes', episode, 'title')
+      SaveDict(Dict(episode_json, 'overview').strip(" \n\r"), TheMovieDb_dict, 'seasons', season, 'episodes', episode, 'summary')
+      SaveDict(Dict(episode_json, 'air_date'),               TheMovieDb_dict, 'seasons', season, 'episodes', episode, 'originally_available_at')
+      still = Dict(episode_json, 'still_path')
+      if still and image_base_url:
+        SaveDict((os.path.join('TheMovieDb', 'thumbs', still.lstrip('/')), 1, image_base_url + 'w300' + still), TheMovieDb_dict, 'seasons', season, 'episodes', episode, 'thumbs', image_base_url + 'original' + still)
+  Log.Info("[ ] episodes mapped: {}".format(loaded))
+
+def GetMetadata(media, movie, source, AniDBid, TVDBid, TMDbid, IMDbid, mappingList):
   Log.Info("=== TheMovieDb.GetMetadata() ===".ljust(157, '='))
   TheMovieDb_dict = {}
   TSDbid          = ""
-  
-  Log.Info("TVDBid: '{}', TMDbid: '{}', IMDbid: '{}'".format(TVDBid, TMDbid, IMDbid))
-  if   TMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid), "TMDB-"+TMDbid+".json"
-  elif IMDbid:            url, filename = TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=IMDbid), "IMDb-"+IMDbid+".json"
-  elif TVDBid.isdigit():  url, filename = TMDB_SERIE_SEARCH_BY_TVDBID.format(id=TVDBid), "TVDB-"+TVDBid+".json"
-  else:                   return TheMovieDb_dict, TSDbid, TMDbid, IMDbid
-  
+  TMDBtv          = "" if movie else Dict(mappingList, 'tsdb') or Dict(mappingList, 'TMDB', AniDBid, 'tv')
+
+  Log.Info("TVDBid: '{}', TMDbid: '{}', TMDBtv: '{}', IMDbid: '{}'".format(TVDBid, TMDbid, TMDBtv, IMDbid))
+  lookups = []  # In priority order, the next one is only tried if the previous found nothing
+  if TMDBtv:            lookups.append((TMDB_SERIE_BY_TMDBTV.format(id=TMDBtv), "TV-"+TMDBtv+".json"))
+  if TMDbid:            lookups.append((TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid.split(',')[0]), "TMDB-"+TMDbid.split(',')[0]+".json"))
+  if IMDbid:            lookups.append((TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=IMDbid.split(',')[0]), "IMDb-"+IMDbid.split(',')[0]+".json"))
+  if IMDbid and not movie:  lookups.append((TMDB_SERIE_SEARCH_BY_IMDBID.format(id=IMDbid.split(',')[0]), "Find-IMDb-"+IMDbid.split(',')[0]+".json"))  # The imdbid of a series is not a movie
+  if TVDBid.isdigit():  lookups.append((TMDB_SERIE_SEARCH_BY_TVDBID.format(id=TVDBid), "TVDB-"+TVDBid+".json"))
+  if not lookups:       return TheMovieDb_dict, TSDbid, TMDbid, IMDbid
+
   mode           = "movie" if movie else "tv"
   Log.Info(("--- %s ---" % mode).ljust(157, '-'))
-  json           = common.LoadFile(filename=filename,               relativeDirectory=os.path.join('TheMovieDb', 'json'), url=url)
+  json = None
+  for url, filename in lookups:
+    json = LoadTMDB(filename, url)
+    if   Dict(json, 'tv_results'   ):  json, mode = json['tv_results'   ][0], "tv";    break
+    elif Dict(json, 'movie_results'):  json, mode = json['movie_results'][0], "movie"; break
+    elif json and 'tv_results' not in json and 'status_code' not in json:  break
+    json = None
   config_dict    = common.LoadFile(filename="TMDB_CONFIG_URL.json", relativeDirectory="TheMovieDb",                       url=TMDB_CONFIG_URL, cache=CACHE_1MONTH)
   image_base_url = Dict(config_dict, 'images', 'secure_base_url')
-  if not json:  Log.Info("TMDB - url: failed to get json" + TMDB_MOVIE_SEARCH_BY_TMDBID.format(id=TMDbid))
-  else:  
-    if   Dict(json, 'tv_results'   ):  json, mode = json['tv_results'   ][0], "tv"
-    elif Dict(json, 'movie_results'):  json, mode = json['movie_results'][0], "movie"
-    
-    Log.Info("[ ] title: {}"                  .format(SaveDict( Dict(json, 'title') or Dict(json, 'name'),                  TheMovieDb_dict, 'title'                  )))
+  if not json:  Log.Info("TMDB - failed to get json from: {}".format([filename for url, filename in lookups]))
+  else:
+    Log.Info("[ ] title: {}"                .format(SaveDict( Dict(json, 'title') or Dict(json, 'name'),                  TheMovieDb_dict, 'title'                  )))
     Log.Info("[ ] rating: {}"                 .format(SaveDict( Dict(json, 'vote_average'),                                 TheMovieDb_dict, 'rating'                 )))  #if 'vote_count' in json and json['vote_count'] > 3:  SaveDict( Dict(json, 'vote_average'), TheMovieDb_dict, 'rating')
     Log.Info("[ ] tagline: {}"                .format(SaveDict( Dict(json, 'tagline'),                                      TheMovieDb_dict, 'tagline'                )))
     Log.Info("[ ] summary: {}"                .format(SaveDict( Dict(json, 'overview'),                                     TheMovieDb_dict, 'summary'                )))
-    Log.Info("[ ] duration: {}"               .format(SaveDict( Dict(json, 'runtime'),                                      TheMovieDb_dict, 'duration'               )))
     Log.Info("[ ] countries: {}"              .format(SaveDict( Dict(json, 'origin_country'),                               TheMovieDb_dict, 'countries'              )))
     Log.Info("[ ] originally_available_at: {}".format(SaveDict( Dict(json, 'first_air_date') or Dict(json, 'release_date'), TheMovieDb_dict, 'originally_available_at')))
     if Dict(json, 'belongs_to_collection', 'name'):  Log.Info("[ ] collections: {}".format(SaveDict( [ Dict(json, 'belongs_to_collection', 'name')],                                TheMovieDb_dict, 'collections')))
     if Dict(json, 'genres'                       ):  Log.Info("[ ] genres: {}"     .format(SaveDict( sorted([ Dict(genre, 'name') for genre in Dict(json, 'genres', default=[]) ]), TheMovieDb_dict, 'genres'     )))
     if Dict(json, 'poster_path'                  ):  Log.Info("[ ] poster: {}"     .format(image_base_url + 'original' + json['poster_path']  )); SaveDict( (os.path.join('TheMovieDb', 'poster',  json['poster_path'  ].lstrip('/')), common.poster_rank('TheMovieDb', 'posters'), None),                                            TheMovieDb_dict, 'posters', image_base_url + 'original' + json['poster_path']  )
     if Dict(json, 'backdrop_path'                ):  Log.Info("[ ] art: {}"        .format(image_base_url + 'original' + json['backdrop_path'])); SaveDict( (os.path.join('TheMovieDb', 'artwork', json['backdrop_path'].lstrip('/')), common.poster_rank('TheMovieDb', 'art'    ), image_base_url + 'w300' + json['backdrop_path']), TheMovieDb_dict, 'art',     image_base_url + 'original' + json['backdrop_path'])
-    try:     Log.Info("[ ] duration: {}".format(SaveDict( int(Dict(json, 'duration')) * 60 * 1000,  TheMovieDb_dict, 'duration')))
-    except:  pass
+    runtime = Dict(json, 'runtime') or (Dict(json, 'episode_run_time', default=[]) or [0])[0]  # In minutes, tv shows have a list
+    if runtime:  Log.Info("[ ] duration: {}".format(SaveDict( int(runtime) * 60 * 1000,  TheMovieDb_dict, 'duration')))  # in ms in plex
     if mode=='tv':   TSDbid = str(Dict(json, 'id'))
     elif not TMDbid: TMDbid = str(Dict(json, 'id'))
     if not IMDbid:   IMDbid = Dict(json, 'imdb_id')
@@ -71,6 +137,8 @@ def GetMetadata(media, movie, TVDBid, TMDbid, IMDbid):
     for index, backdrop in enumerate(Dict(json, 'backdrops', default=[])):
       if Dict(backdrop, 'file_path'):  Log.Info("[ ] artwork: {}".format(image_base_url + 'original'+ backdrop['file_path'])); SaveDict((os.path.join('TheMovieDb', 'artwork', "%s-%s-art.jpg" % (TMDbid, index)), common.poster_rank('TheMovieDb', 'art'),     image_base_url + 'w300' + backdrop['file_path']), TheMovieDb_dict, 'art',     image_base_url + 'original' + backdrop['file_path'])
   
+  if not movie:  GetEpisodes(media, source, AniDBid, mappingList, image_base_url, TheMovieDb_dict)
+
   Log.Info("--- return ---".ljust(157, '-'))
   Log.Info("TheMovieDb_dict: {}".format(DictString(TheMovieDb_dict, 4)))
   return TheMovieDb_dict, TSDbid, TMDbid, IMDbid

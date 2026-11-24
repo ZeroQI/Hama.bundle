@@ -77,6 +77,7 @@ def GetMetadata(media, movie, error_log, id):
   TMDBid                         = ""
   IMDBid                         = ""
   tvdb_numbering                 = True if not movie and (TVDB_id or AniDB_id and max(map(int, media.seasons.keys()))>1) else False
+  if source=='tsdb' and id.isdigit():  SaveDict(id, mappingList, 'tsdb')  # TMDB TV id forced in the folder name, the library uses TMDB numbering
 
   ### Search for match ###
   Log.Info("tvdb_numbering: {}".format(tvdb_numbering))
@@ -90,7 +91,7 @@ def GetMetadata(media, movie, error_log, id):
     defaulttvdbseason = anime.get('defaulttvdbseason') if anime.get('defaulttvdbseason') and anime.get('defaulttvdbseason') != 'a' else '1'
     episodeoffset     = anime.get('episodeoffset')     if anime.get('episodeoffset')                                               else '0'
     s1_mapping_count  = len(anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='0' or @tvdbseason='1']"))
-    s1e1_mapping      = True if anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='1'][contains(text(), '-1;')]") else False
+    s1e1_mapping      = True if anime.xpath("mapping-list/mapping[@anidbseason='1'][@tvdbseason='1'][contains(text(), '-1;') or (@start='1' and (not(@offset) or @offset='0'))]") else False
     is_primary_series = True if defaulttvdbseason == '1' and episodeoffset == '0' and (s1_mapping_count == 0 or s1e1_mapping)   else False
     return defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series
 
@@ -112,6 +113,7 @@ def GetMetadata(media, movie, error_log, id):
     # nothing found, skip
     else: continue
     found = True
+    if AniDBid and (anime.get('tmdbtv') or '').isdigit():  SaveDict(tmdb_mapping(anime), mappingList, 'TMDB', AniDBid)
 
     defaulttvdbseason, episodeoffset, s1_mapping_count, is_primary_series = anime_core(anime)
 
@@ -156,6 +158,7 @@ def GetMetadata(media, movie, error_log, id):
       if source=="tvdb6" and int(episodeoffset)>0:  SaveDict({'min': '0', 'max': '0'}, mappingList, 'season_map', AniDBid)  # Force series as special if not starting the TVDB season
 
       for season in anime.iter('mapping'):  ### mapping list: <mapping-list> <mapping anidbseason="0" tvdbseason="0">;1-12;2-14;3-16;4-18;</mapping> </mapping-list> 
+        if season.get('tvdbseason') is None:  continue  # TMDB only row, read by tmdb_mapping()
         anidbseason, tvdbseason, offset, start, end = season.get('anidbseason'), season.get('tvdbseason'), season.get('offset') or '0', season.get('start'), season.get('end')
         Log.Info("    - season: [{:>2}],           [{:>2}], range:       [{:>3}-{:>3}], offset: {:>3}, text: {}".format(anidbseason, tvdbseason, start or '000', end or '000', offset, (season.text or '').strip(';')))
         for ep in range(int(start), int(end or '0')+1)        if start       else []:
@@ -229,6 +232,36 @@ def GetMetadata(media, movie, error_log, id):
   Log.Info("mappingList: {}".format(DictString(mappingList, 1)))
   Log.Info("AnimeLists_dict: {}".format(DictString(AnimeLists_dict, 1)))
   return AnimeLists_dict, AniDB_winner, TVDB_winner if TVDB_winner.isdigit() else "", Dict(mappingList, 'tmdbid') or TMDB_id, Dict(mappingList, 'imdbid') or IMDB_id, mappingList
+
+### Read the TMDB numbering of an anime entry ###
+def tmdb_mapping(anime):
+  mapping = {'tv': anime.get('tmdbtv'), 'season': anime.get('tmdbseason') or '', 'offset': int(anime.get('tmdboffset') or 0), 'episodes': {}, 'ranges': []}
+  for row in anime.iter('mapping'):
+    anidbseason, tmdbseason, start, end, offset = row.get('anidbseason'), row.get('tmdbseason'), row.get('start'), row.get('end'), row.get('offset')
+    if not anidbseason or not tmdbseason:  continue
+    if start or offset:  mapping['ranges'].append((anidbseason, int(start or 1), int(end) if end else None, tmdbseason, int(offset or 0)))
+    for ep in [ep.strip() for ep in (row.text or '').split(';') if ep.strip()]:  # ;1-2;2-0; a target of 0 means no TMDB episode, 1-1+2 uses the first
+      parts = ep.split('-', 1)
+      if len(parts)==2 and parts[0].isdigit() and parts[1].split('+')[0].isdigit():
+        mapping['episodes'].setdefault('s{}e{}'.format(anidbseason, int(parts[0])), (tmdbseason, parts[1].split('+')[0]))
+  return mapping
+
+### Translate AniDB numbering into TMDB numbering: (tmdbtv, season or 'a' for absolute, episode), None if not mapped ###
+def tmdb_ep(mappingList, season, episode, anidbid):
+  mapping = Dict(mappingList, 'TMDB', anidbid)
+  if not mapping or not str(episode).isdigit():  return None
+  ep     = int(episode)
+  target = Dict(mapping, 'episodes', 's{}e{}'.format(season, ep))  # Individual mappings win over ranges and the default season
+  if target:  tmdbseason, tmdbepisode = target[0], int(target[1])
+  else:
+    for anidbseason, start, end, range_season, offset in mapping['ranges']:
+      if anidbseason==str(season) and start<=ep and (end is None or ep<=end):
+        tmdbseason, tmdbepisode = range_season, ep+offset
+        break
+    else:
+      if str(season)!='1' or not mapping['season']:  return None  # Specials need an explicit mapping
+      tmdbseason, tmdbepisode = mapping['season'], ep+mapping['offset']
+  return (mapping['tv'], tmdbseason, tmdbepisode) if tmdbepisode>0 else None
 
 ### Translate AniDB numbering into TVDB numbering ###
 def tvdb_ep(mappingList, season, episode, anidbid=''):
